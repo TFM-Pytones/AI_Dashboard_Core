@@ -1,0 +1,9 @@
+name: 'tenerife_tourism_dbt'
+version: '1.0.0'
+config-version: 2
+profile: 'tenerife_tourism_dbt'
+model-paths: ["models"]
+models:
+  tenerife_tourism_dbt:
+    staging:
+      materialized: view
