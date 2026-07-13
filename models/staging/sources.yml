@@ -1,0 +1,13 @@
+version: 2
+sources:
+  - name: raw_data
+    schema: raw_data
+    tables:
+      - name: estaciones_clima
+        columns: [{name: ubicacion}]
+      - name: limites_municipales
+        columns: [{name: geometry}]
+      - name: zonas_turisticas
+        columns: [{name: geometry}]
+      - name: gtfs_paradas
+        columns: [{name: geometry}]
