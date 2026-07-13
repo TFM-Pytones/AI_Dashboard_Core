@@ -1,0 +1,15 @@
+# Conexión a Base de Datos y Variables de Entorno
+psycopg2-binary==2.9.12
+sqlalchemy==2.0.51
+python-dotenv==1.2.2
+
+pandas==3.0.3
+numpy==2.5.0
+ipykernel==7.3.0
+
+# Análisis Geoespacial
+geopandas==1.1.4
+shapely==2.1.2
+
+# Web Scrapping y APIs
+requests==2.34.2

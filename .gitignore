@@ -1,0 +1,24 @@
+# 1. Bases de datos y archivos espaciales potencialmente pesados
+*.csv
+*.xlsx
+*.sqlite
+*.db
+*.geojson
+*.tiff
+*.shp
+
+# 2. Carpetas de datos locales
+data/
+
+# 3. Archivos de entorno y contraseñas
+.env
+secrets.json
+*.pem
+
+# 4. Basura de Python y Entornos Virtuales
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+venv/
+env/
+.DS_Store
