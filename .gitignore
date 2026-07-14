@@ -21,4 +21,11 @@ __pycache__/
 .ipynb_checkpoints/
 venv/
 env/
+.venv/
 .DS_Store
+
+# 5. dbt
+logs/
+.user.yml
+target/
+dbt_packages/
