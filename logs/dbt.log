@@ -1,0 +1,141 @@
+==================== 2026-07-13T21:55:42.770444Z | 019f5d7a-9623-7bf1-8e08-3a3c35b96ef8 ====================
+21:55:42.770725 [info ]: dbt-core 2.0.0-alpha.4
+21:55:42.771537 [info ]: Started loading project
+21:55:42.778009 [info ]: Finished loading project [  0.01s]
+21:55:42.778295 [error]: [InvalidConfig (dbt1005)]: no profiles.yml found (searched: ["C:\\Users\\jaime\\tenerife_tourism_dbt\\models\\profiles.yml", "C:\\Users\\jaime\\.dbt\\profiles.yml"]). Run `dbt init` to create one
+21:55:43.082468 [info ]: 
+==================== Execution Summary =====================
+Finished 'debug' with 1 error [312ms]
+==================== 2026-07-13T21:56:54.123399Z | 019f5d7b-ace2-7af0-b1f8-d5d9ef11b01b ====================
+21:56:54.123588 [info ]: dbt-core 2.0.0-alpha.4
+21:56:54.124328 [info ]: Started loading project
+21:56:54.129744 [info ]: Loading profiles.yml
+21:56:54.130933 [info ]: Finished loading project [  0.01s]
+21:56:54.131146 [error]: [InvalidConfig (dbt1005)]: Jinja render error: invalid operation: 'env_var': environment variable 'NEON_HOST' not found
+(in :1:1)
+21:56:54.441829 [info ]: 
+==================== Execution Summary =====================
+Finished 'debug' with 1 error [318ms]
+==================== 2026-07-13T21:58:16.935542Z | 019f5d7c-f05f-75b3-8e25-db0e517f484b ====================
+21:58:16.935735 [info ]: dbt-core 2.0.0-alpha.4
+21:58:16.936291 [info ]: Started loading project
+21:58:16.941954 [info ]: Loading profiles.yml
+21:58:16.943453 [info ]: Finished loading project [  0.01s]
+21:58:16.943669 [error]: [InvalidConfig (dbt1005)]: Configuration Error: The 'postgres' adapter is not yet supported by dbt Fusion. Supported adapters: snowflake, bigquery, databricks, redshift, duckdb, salesforce. To use an experimental adapter, set the environment variable DBT_ALLOW_EXPERIMENTAL_ADAPTERS=true. Note that experimental adapters may be unstable and are not yet recommended for production use.
+21:58:17.191937 [info ]: 
+==================== Execution Summary =====================
+Finished 'debug' with 1 error [256ms]
+==================== 2026-07-13T21:59:18.810884Z | 019f5d7d-e213-7493-8c6f-7e432a5e5ab9 ====================
+21:59:18.811067 [info ]: dbt-core 2.0.0-alpha.4
+21:59:18.811617 [info ]: Started loading project
+21:59:18.816845 [info ]: Loading profiles.yml
+21:59:18.818439 [info ]: Finished loading project [  0.01s]
+21:59:18.818660 [info ]: Started debugging
+21:59:18.818797 [info ]: Debugging profile: dev
+21:59:18.818998 [info ]: Debugging dbt version: 2.0.0-alpha.4
+21:59:18.819205 [info ]: Debugging platform: windows x86_64 (windows)
+21:59:18.819438 [info ]: Debugging adapter type: postgres (remote)
+21:59:19.293055 [info ]: Debugging dependencies:
+  git: OK
+21:59:19.293820 [info ]: Debugging connection:
+  "port": 5432,
+  "database": "neondb",
+  "schema": "processed_data",
+  "sslmode": "require",
+  "host": "ep-dark-firefly-aspqynzo.c-4.eu-central-1.aws.neon.tech",
+  "user": "neondb_owner"
+21:59:20.473726 [info ]: Finished debugging [  1.66s]
+21:59:20.474078 [error]: [AuthenticationFailed (dbt1011)]: dbt was unable to connect to the specified database.
+The following error was returned:
+
+Error with dynamic library: LoadLibraryExW failed
+
+Check your database credentials and try again. For more information, visit:
+https://docs.getdbt.com/docs/core/connect-data-platform/connection-profiles
+21:59:20.511005 [info ]: 
+==================== Execution Summary =====================
+Finished 'debug' with 1 error for target 'dev' [1.7s]
+==================== 2026-07-13T22:00:23.778848Z | 019f5d7e-dfd6-7c32-8f91-6a1ef57d9455 ====================
+22:00:23.779113 [info ]: dbt-core 2.0.0-alpha.4
+22:00:23.779945 [info ]: Started loading project
+22:00:23.788410 [info ]: Loading profiles.yml
+22:00:23.790739 [info ]: Finished loading project [  0.01s]
+22:00:23.791099 [info ]: Started debugging
+22:00:23.791361 [info ]: Debugging profile: dev
+22:00:23.791727 [info ]: Debugging dbt version: 2.0.0-alpha.4
+22:00:23.792064 [info ]: Debugging platform: windows x86_64 (windows)
+22:00:23.792445 [info ]: Debugging adapter type: postgres (remote)
+22:00:23.873143 [info ]: Debugging dependencies:
+  git: OK
+22:00:23.874095 [info ]: Debugging connection:
+  "port": 5432,
+  "database": "neondb",
+  "schema": "processed_data",
+  "sslmode": "require",
+  "host": "ep-dark-firefly-aspqynzo.c-4.eu-central-1.aws.neon.tech",
+  "user": "neondb_owner"
+22:00:24.700469 [info ]: Finished debugging [  0.91s]
+22:00:24.700863 [error]: [AuthenticationFailed (dbt1011)]: dbt was unable to connect to the specified database.
+The following error was returned:
+
+Error with dynamic library: LoadLibraryExW failed
+
+Check your database credentials and try again. For more information, visit:
+https://docs.getdbt.com/docs/core/connect-data-platform/connection-profiles
+22:00:24.742899 [info ]: 
+==================== Execution Summary =====================
+Finished 'debug' with 1 error for target 'dev' [964ms]
+[0m00:17:50.681612 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000022F31B55AE0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000022F3476A320>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000022F34769750>]}
+
+
+============================== 00:17:50.689333 | 91b857a8-f004-4af4-af12-8466fb597d2e ==============================
+[0m00:17:50.689333 [info ] [MainThread]: Running with dbt=1.7.15
+[0m00:17:50.690334 [debug] [MainThread]: running dbt with arguments {'printer_width': '80', 'indirect_selection': 'eager', 'log_cache_events': 'False', 'write_json': 'True', 'partial_parse': 'True', 'cache_selected_only': 'False', 'warn_error': 'None', 'version_check': 'True', 'debug': 'False', 'log_path': 'C:\\Users\\jaime\\tenerife_tourism_dbt\\logs', 'fail_fast': 'False', 'profiles_dir': 'C:\\Users\\jaime\\tenerife_tourism_dbt', 'use_colors': 'True', 'use_experimental_parser': 'False', 'no_print': 'None', 'quiet': 'False', 'log_format': 'default', 'invocation_command': 'dbt debug', 'introspect': 'True', 'static_parser': 'True', 'target_path': 'None', 'warn_error_options': 'WarnErrorOptions(include=[], exclude=[])', 'send_anonymous_usage_stats': 'True'}
+[0m00:17:50.691335 [info ] [MainThread]: dbt version: 1.7.15
+[0m00:17:50.692337 [info ] [MainThread]: python version: 3.10.20
+[0m00:17:50.694377 [info ] [MainThread]: python path: C:\Users\jaime\anaconda3\envs\dbt_tfm\python.exe
+[0m00:17:50.695377 [info ] [MainThread]: os info: Windows-10-10.0.26200-SP0
+[0m00:17:50.809196 [info ] [MainThread]: Using profiles dir at C:\Users\jaime\tenerife_tourism_dbt
+[0m00:17:50.811148 [info ] [MainThread]: Using profiles.yml file at C:\Users\jaime\tenerife_tourism_dbt\profiles.yml
+[0m00:17:50.812189 [info ] [MainThread]: Using dbt_project.yml file at C:\Users\jaime\tenerife_tourism_dbt\dbt_project.yml
+[0m00:17:50.814146 [info ] [MainThread]: adapter type: postgres
+[0m00:17:50.815186 [info ] [MainThread]: adapter version: 1.7.15
+[0m00:17:50.960152 [info ] [MainThread]: Configuration:
+[0m00:17:50.961165 [info ] [MainThread]:   profiles.yml file [[32mOK found and valid[0m]
+[0m00:17:50.962151 [info ] [MainThread]:   dbt_project.yml file [[32mOK found and valid[0m]
+[0m00:17:50.963190 [info ] [MainThread]: Required dependencies:
+[0m00:17:50.964187 [debug] [MainThread]: Executing "git --help"
+[0m00:17:51.605738 [debug] [MainThread]: STDOUT: "b"usage: git [-v | --version] [-h | --help] [-C <path>] [-c <name>=<value>]\n           [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]\n           [-p | --paginate | -P | --no-pager] [--no-replace-objects] [--no-lazy-fetch]\n           [--no-optional-locks] [--no-advice] [--bare] [--git-dir=<path>]\n           [--work-tree=<path>] [--namespace=<name>] [--config-env=<name>=<envvar>]\n           <command> [<args>]\n\nThese are common Git commands used in various situations:\n\nstart a working area (see also: git help tutorial)\n   clone      Clone a repository into a new directory\n   init       Create an empty Git repository or reinitialize an existing one\n\nwork on the current change (see also: git help everyday)\n   add        Add file contents to the index\n   mv         Move or rename a file, a directory, or a symlink\n   restore    Restore working tree files\n   rm         Remove files from the working tree and from the index\n\nexamine the history and state (see also: git help revisions)\n   bisect     Use binary search to find the commit that introduced a bug\n   diff       Show changes between commits, commit and working tree, etc\n   grep       Print lines matching a pattern\n   log        Show commit logs\n   show       Show various types of objects\n   status     Show the working tree status\n\ngrow, mark and tweak your common history\n   backfill   Download missing objects in a partial clone\n   branch     List, create, or delete branches\n   commit     Record changes to the repository\n   history    EXPERIMENTAL: Rewrite history\n   merge      Join two or more development histories together\n   rebase     Reapply commits on top of another base tip\n   reset      Set `HEAD` or the index to a known state\n   switch     Switch branches\n   tag        Create, list, delete or verify tags\n\ncollaborate (see also: git help workflows)\n   fetch      Download objects and refs from another repository\n   pull       Fetch from and integrate with another repository or a local branch\n   push       Update remote refs along with associated objects\n\n'git help -a' and 'git help -g' list available subcommands and some\nconcept guides. See 'git help <command>' or 'git help <concept>'\nto read about a specific subcommand or concept.\nSee 'git help git' for an overview of the system.\n""
+[0m00:17:51.606737 [debug] [MainThread]: STDERR: "b''"
+[0m00:17:51.607738 [info ] [MainThread]:  - git [[32mOK found[0m]
+
+[0m00:17:51.609741 [info ] [MainThread]: Connection:
+[0m00:17:51.610736 [info ] [MainThread]:   host: ep-dark-firefly-aspqynzo.c-4.eu-central-1.aws.neon.tech
+[0m00:17:51.611737 [info ] [MainThread]:   port: 5432
+[0m00:17:51.612734 [info ] [MainThread]:   user: neondb_owner
+[0m00:17:51.613734 [info ] [MainThread]:   database: neondb
+[0m00:17:51.613734 [info ] [MainThread]:   schema: processed_data
+[0m00:17:51.614733 [info ] [MainThread]:   connect_timeout: 10
+[0m00:17:51.615733 [info ] [MainThread]:   role: None
+[0m00:17:51.616733 [info ] [MainThread]:   search_path: None
+[0m00:17:51.617733 [info ] [MainThread]:   keepalives_idle: 0
+[0m00:17:51.618733 [info ] [MainThread]:   sslmode: require
+[0m00:17:51.618733 [info ] [MainThread]:   sslcert: None
+[0m00:17:51.619733 [info ] [MainThread]:   sslkey: None
+[0m00:17:51.620734 [info ] [MainThread]:   sslrootcert: None
+[0m00:17:51.621733 [info ] [MainThread]:   application_name: dbt
+[0m00:17:51.622733 [info ] [MainThread]:   retries: 1
+[0m00:17:51.623734 [info ] [MainThread]: Registered adapter: postgres=1.7.15
+[0m00:17:51.625740 [debug] [MainThread]: Acquiring new postgres connection 'debug'
+[0m00:17:51.626737 [debug] [MainThread]: Using postgres connection "debug"
+[0m00:17:51.627734 [debug] [MainThread]: On debug: select 1 as id
+[0m00:17:51.628733 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m00:17:52.558839 [debug] [MainThread]: SQL status: SELECT 1 in 1.0 seconds
+[0m00:17:52.563864 [debug] [MainThread]: On debug: Close
+[0m00:17:52.567903 [info ] [MainThread]:   Connection test: [[32mOK connection ok[0m]
+
+[0m00:17:52.570856 [info ] [MainThread]: [32mAll checks passed![0m
+[0m00:17:52.576851 [debug] [MainThread]: Command `dbt debug` succeeded at 00:17:52.576851 after 2.09 seconds
+[0m00:17:52.578848 [debug] [MainThread]: Connection 'debug' was properly closed.
+[0m00:17:52.580847 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000022F31B55AE0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000022F322F56F0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000022F34881870>]}
+[0m00:17:52.582842 [debug] [MainThread]: Flushing usage events
