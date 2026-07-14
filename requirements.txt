@@ -13,3 +13,7 @@ shapely==2.1.2
 
 # Web Scrapping y APIs
 requests==2.34.2
+
+# Transformacion de datos (dbt)
+dbt-core==1.11.12
+dbt-postgres==1.10.2
