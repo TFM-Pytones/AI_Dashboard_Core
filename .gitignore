@@ -29,3 +29,6 @@ logs/
 .user.yml
 target/
 dbt_packages/
+
+# 6. Notas locales de trabajo (no compartir con el equipo)
+NOTAS_LOCALES.md
