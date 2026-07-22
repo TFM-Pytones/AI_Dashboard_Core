@@ -19,7 +19,7 @@ Solo `sentiment/` existe por ahora — el resto se irán creando según se empie
 ### Estado
 
 - ✅ **Issue #16 — Setup Entorno Hugging Face y Modelos** (`setup_test.py`) — hecho.
-- ⏳ **Issue #17 — Inferencia de Sentimiento por Lotes** — pendiente, reutilizará este setup.
+- ✅ **Issue #17 — Inferencia de Sentimiento por Lotes** (`batch_inference.py`) — hecho.
 - ⏳ **Issue #18 — Extracción de Aspectos (pyabsa)** — pendiente.
 - ⏳ **Issue #19 — Modelado de Tópicos (BERTopic)** — pendiente.
 - ⏳ **Issue #20 — Georreferenciación de Tópicos y Sentimientos** — pendiente, cruza los
@@ -72,11 +72,42 @@ python analytics/sentiment/setup_test.py
 Requiere que ya existan comentarios en `raw_data.youtube_comments` (correr antes
 `ingestion/scraping/youtube.py`) y las variables `DB_*` en el `.env`.
 
-### Qué haría falta para el Issue #17 (siguiente paso)
+### Qué hace `batch_inference.py` (Issue #17)
 
-- Reutilizar el mismo modelo/pipeline de aquí, pero iterando sobre **todos** los comentarios
-  (no una muestra de 5) — de YouTube, y más adelante Reddit (#14) y reviews (#12).
-- Guardar el resultado (label + score por comentario) en una tabla de `processed_data`, para que
-  el frontend (`lib/mock-data.ts` en `frontend/`) deje de usar datos simulados y consuma esto.
-- Procesar por lotes (`batch_size` en el pipeline de `transformers`) en vez de uno a uno, para
-  que sea rápido con miles de comentarios.
+Procesa **todos** los comentarios de YouTube pendientes (no una muestra), reutilizando el mismo
+modelo del #16, y guarda el resultado en `processed_data.sentiment_results` — tabla genérica
+(columna `source`) pensada para admitir TripAdvisor/Booking (#12) y Reddit (#14) más adelante sin
+cambiar el esquema (ver `sql/sentiment_results_schema.sql`).
+
+- **Limpieza de texto**: quita URLs y espacios repetidos antes de pasarlo al modelo; descarta lo
+  que quede con menos de 3 caracteres útiles.
+- **Por lotes** (`batch_size=32`) en vez de uno a uno — mucho más rápido con miles de filas.
+- **Incremental**: un `LEFT JOIN` contra `sentiment_results` filtra lo ya procesado antes de
+  cargar el modelo — relanzarlo tras una nueva tanda de `ingestion/scraping/youtube.py` solo
+  procesa los comentarios nuevos. Si no hay nada nuevo, ni siquiera carga el modelo (~1.1GB),
+  para no perder tiempo.
+
+```bash
+python analytics/sentiment/batch_inference.py
+```
+
+#### Resultado real (última ejecución)
+
+3.100 comentarios de YouTube → 3.071 procesados (29 quedaron vacíos tras limpiar URLs, descartados):
+
+| Sentimiento | Nº | Score medio |
+|---|---|---|
+| positive | 1.198 | 0.78 |
+| negative | 996 | 0.77 |
+| neutral | 877 | 0.62 |
+
+Ejemplo de predicción de alta confianza real: `negative 0.97` — *"Así está quedando benidorm un
+auténtico asco"*.
+
+### Qué haría falta para el Issue #18/#19 (siguiente paso)
+
+- **#18 (pyabsa)**: sobre este mismo texto limpio, extraer *sobre qué* opina cada comentario
+  (playas, precios, masificación...), no solo si es positivo o negativo.
+- **#19 (BERTopic)**: agrupar automáticamente los comentarios por temas recurrentes.
+- Ambos pueden leer directamente de `processed_data.sentiment_results` (ya tiene el texto
+  limpio) en vez de repetir la limpieza desde `raw_data`.
