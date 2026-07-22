@@ -17,3 +17,8 @@ requests==2.34.2
 # Transformacion de datos (dbt)
 dbt-core==1.11.12
 dbt-postgres==1.10.2
+
+# NLP / Hugging Face (analytics/sentiment)
+transformers==4.57.1
+torch==2.9.0
+sentencepiece==0.2.1
