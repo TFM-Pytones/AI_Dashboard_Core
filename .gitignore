@@ -32,3 +32,9 @@ dbt_packages/
 
 # 6. Notas locales de trabajo (no compartir con el equipo)
 NOTAS_LOCALES.md
+
+# 7. pyabsa (descarga checkpoints ~1GB y vuelca resultados en la raiz por defecto)
+checkpoints/
+checkpoints.json
+*.result.json
+source_datasets.hash.json
