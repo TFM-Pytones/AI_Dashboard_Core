@@ -26,3 +26,8 @@ dbt-postgres==1.10.2
 # Azure y Conectores adicionales
 azure-storage-blob>=12.19.0
 geoalchemy2>=0.14.0
+
+# NLP / Hugging Face (analytics/sentiment)
+transformers==4.57.1
+torch==2.9.0
+sentencepiece==0.2.1

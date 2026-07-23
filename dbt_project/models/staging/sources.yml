@@ -11,3 +11,7 @@ sources:
         columns: [{name: geometry}]
       - name: gtfs_paradas
         columns: [{name: geometry}]
+      - name: youtube_videos
+        columns: [{name: video_id}]
+      - name: youtube_comments
+        columns: [{name: comment_id}]
