@@ -46,6 +46,7 @@ Backlog completo y estado de cada tarea: [issues del repo](https://github.com/TF
 - roberhernando
 - mariorosete
 - guillermoortigosa28
+- jaimedevera32-alt
 
 ## Setup local
 

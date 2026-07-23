@@ -22,6 +22,7 @@ __pycache__/
 venv/
 env/
 .venv/
+.tfm/
 .DS_Store
 
 # 5. dbt
@@ -29,3 +30,6 @@ logs/
 .user.yml
 target/
 dbt_packages/
+
+# 6. Notas locales de trabajo (no compartir con el equipo)
+NOTAS_LOCALES.md
