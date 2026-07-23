@@ -1,7 +1,9 @@
 # Conexión a Base de Datos y Variables de Entorno
 psycopg2-binary==2.9.12
+psycopg2==2.9.12
 sqlalchemy==2.0.51
 python-dotenv==1.2.2
+
 
 pandas==3.0.3
 numpy==2.5.0
@@ -11,12 +13,19 @@ ipykernel==7.3.0
 geopandas==1.1.4
 shapely==2.1.2
 
+# Formato Parquet
+pyarrow
+
 # Web Scrapping y APIs
 requests==2.34.2
 
 # Transformacion de datos (dbt)
 dbt-core==1.11.12
 dbt-postgres==1.10.2
+
+# Azure y Conectores adicionales
+azure-storage-blob>=12.19.0
+geoalchemy2>=0.14.0
 
 # NLP / Hugging Face (analytics/sentiment)
 transformers==4.57.1
