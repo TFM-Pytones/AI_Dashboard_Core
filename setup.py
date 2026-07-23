@@ -30,10 +30,7 @@ def main():
 
     # 1. Determinar el entorno virtual a usar/crear
     venv_name = ".venv"
-    if os.path.isdir(".tfm"):
-        venv_name = ".tfm"
-        print("==> Se detectó entorno virtual '.tfm' existente. Se reutilizará.")
-    elif os.path.isdir(".venv"):
+    if os.path.isdir(venv_name):
         print("==> Se detectó entorno virtual '.venv' existente. Se reutilizará.")
     else:
         print(f"==> Creando entorno virtual '{venv_name}'...")
@@ -53,8 +50,8 @@ def main():
 
     # 3. Actualizar pip e instalar dependencias
     print("==> Instalando dependencias desde requirements.txt...")
-    run_command([venv_python, "-m", "pip", "install", "--upgrade", "pip", "-q"])
-    run_command([venv_python, "-m", "pip", "install", "-r", "requirements.txt", "-q"])
+    run_command([venv_python, "-m", "pip", "install", "--upgrade", "pip"])
+    run_command([venv_python, "-m", "pip", "install", "-r", "requirements.txt"])
 
     # 4. Registrar kernel de Jupyter
     kernel_name = "ai_dashboard_core"

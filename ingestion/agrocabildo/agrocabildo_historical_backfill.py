@@ -2,14 +2,14 @@ import os
 import sys
 import json
 import time
+import io
 import argparse
 import logging
 import pandas as pd
-import psycopg2
-from psycopg2.extras import execute_values
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 from dotenv import load_dotenv
+from azure.storage.blob import BlobServiceClient
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 if current_dir not in sys.path:
@@ -24,59 +24,57 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 logger = logging.getLogger("AgrocabildoBackfill")
 
 DEFAULT_CSV_PATH = os.path.abspath(os.path.join(current_dir, "..", "..", "..", "estaciones-meteorologicas.csv"))
-SQL_SCHEMA_PATH = os.path.abspath(os.path.join(current_dir, "..", "..", "sql", "agrocabildo_schema.sql"))
 STATE_FILE_PATH = os.path.join(current_dir, "backfill_progress.json")
 
 class AgrocabildoHistoricalBackfill:
     def __init__(self, csv_path: str = DEFAULT_CSV_PATH):
         self.csv_path = csv_path
         self.client = AgrocabildoAPIClient(min_request_interval=6.5)
+        
+        # Rutas locales para persistencia temporal
+        self.local_dir = os.path.abspath(os.path.join(current_dir, "..", "..", "data"))
+        os.makedirs(self.local_dir, exist_ok=True)
+        self.local_readings_path = os.path.join(self.local_dir, "clima_horario_agrocabildo.parquet")
+        self.local_stations_path = os.path.join(self.local_dir, "estaciones_agrocabildo.parquet")
+        
+        # Conexión a Azure Blob Storage
+        conn_str = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
+        self.container_name = "bronce-raw"
+        if conn_str:
+            conn_str = conn_str.strip('"').strip("'")
+            if "AccountName=" not in conn_str and "DefaultEndpointsProtocol=" not in conn_str:
+                conn_str = f"DefaultEndpointsProtocol=https;AccountName=datalaketfmtenerife;AccountKey={conn_str};EndpointSuffix=core.windows.net"
+            self.blob_service_client = BlobServiceClient.from_connection_string(conn_str)
+        else:
+            self.blob_service_client = None
+            logger.warning("⚠️ AZURE_STORAGE_CONNECTION_STRING no configurado. Solo se guardará en local.")
 
-    def get_db_connection(self):
-        """Abre una conexión con la base de datos PostgreSQL de Azure (o Neon como fallback)."""
-        # Priorizar credenciales de Azure, usar Neon como fallback
-        db_user = os.getenv("AZURE_DB_USER") or os.getenv("DB_USER")
-        db_password = os.getenv("AZURE_DB_PASSWORD") or os.getenv("DB_PASSWORD")
-        db_host = os.getenv("AZURE_DB_HOST") or os.getenv("DB_HOST")
-        db_name = os.getenv("AZURE_DB_NAME") or os.getenv("DB_NAME")
-        db_url = os.getenv("AZURE_DB_URL") or os.getenv("DB_URL")
-
+    def download_from_blob(self, blob_name: str, local_path: str):
+        """Descarga un archivo del contenedor bronce-raw al disco local."""
+        if not self.blob_service_client:
+            return
         try:
-            if db_host and db_user and db_password and db_name:
-                conn = psycopg2.connect(
-                    host=db_host,
-                    user=db_user,
-                    password=db_password,
-                    dbname=db_name,
-                    port="5432",
-                    sslmode="require"
-                )
-                return conn
-            elif db_url:
-                conn = psycopg2.connect(db_url)
-                return conn
+            blob_client = self.blob_service_client.get_blob_client(container=self.container_name, blob=blob_name)
+            with open(local_path, "wb") as f:
+                data = blob_client.download_blob()
+                data.readinto(f)
+            logger.info(f"📥 Archivo {blob_name} descargado de Azure Blob a local.")
         except Exception as e:
-            logger.error(f"❌ Error al conectar a la base de datos: {e}")
-        return None
+            logger.warning(f"No se pudo descargar {blob_name} de Azure Blob: {e}")
 
-    def init_db(self):
-        """Crea el esquema raw_data y las tablas clima_horario_agrocabildo."""
-        conn = self.get_db_connection()
-        if not conn:
-            raise ConnectionError("No se pudo establecer conexión con la base de datos.")
-
+    def upload_to_blob(self, local_path: str, blob_name: str):
+        """Sube un archivo local al contenedor bronce-raw de Azure Blob."""
+        if not self.blob_service_client:
+            return
+        if not os.path.exists(local_path):
+            return
         try:
-            with conn.cursor() as cursor:
-                if os.path.exists(SQL_SCHEMA_PATH):
-                    with open(SQL_SCHEMA_PATH, "r", encoding="utf-8") as f:
-                        sql_script = f.read()
-                    cursor.execute(sql_script)
-                    conn.commit()
-                    logger.info("✅ Esquema 'raw_data' y tablas verificadas en la base de datos.")
-                else:
-                    logger.error(f"No se encontró el archivo SQL en {SQL_SCHEMA_PATH}")
-        finally:
-            conn.close()
+            blob_client = self.blob_service_client.get_blob_client(container=self.container_name, blob=blob_name)
+            with open(local_path, "rb") as f:
+                blob_client.upload_blob(f, overwrite=True)
+            logger.info(f"📤 Archivo {blob_name} subido con éxito a Azure Blob Storage.")
+        except Exception as e:
+            logger.error(f"❌ Error al subir {blob_name} a Azure Blob: {e}")
 
     def load_target_stations(self) -> pd.DataFrame:
         """Carga el archivo CSV de estaciones y aplica filtro si existe fecha_instalacion."""
@@ -120,43 +118,30 @@ class AgrocabildoHistoricalBackfill:
         return df
 
     def save_stations_metadata(self, df_stations: pd.DataFrame):
-        """Guarda la metainformación de las estaciones en raw_data.estaciones_agrocabildo."""
-        conn = self.get_db_connection()
-        if not conn:
-            return
+        """Guarda la metainformación de las estaciones en formato Parquet local y en Azure Blob."""
+        new_stations = pd.DataFrame({
+            "id_estacion": df_stations["estacion_id"].astype(int),
+            "nombre": df_stations["estacion_nombre"].astype(str),
+            "municipio": df_stations.get("municipio_nombre", "").astype(str),
+            "latitud": df_stations["latitud"].apply(self.safe_float),
+            "longitud": df_stations["longitud"].apply(self.safe_float),
+            "altitud": df_stations["altitud"].apply(self.safe_float),
+            "fecha_instalacion": pd.to_datetime(df_stations["fecha_instalacion"])
+        })
 
-        try:
-            with conn.cursor() as cursor:
-                stations_data = []
-                for _, row in df_stations.iterrows():
-                    stations_data.append((
-                        int(row["estacion_id"]),
-                        str(row["estacion_nombre"]),
-                        str(row.get("municipio_nombre", "") or ""),
-                        float(row["latitud"]) if pd.notnull(row.get("latitud")) else None,
-                        float(row["longitud"]) if pd.notnull(row.get("longitud")) else None,
-                        float(row["altitud"]) if pd.notnull(row.get("altitud")) else None,
-                        pd.to_datetime(row["fecha_instalacion"]).to_pydatetime() if pd.notnull(row.get("fecha_instalacion")) else None
-                    ))
+        if os.path.exists(self.local_stations_path):
+            try:
+                df_existing = pd.read_parquet(self.local_stations_path)
+                combined = pd.concat([df_existing, new_stations], ignore_index=True)
+                combined.drop_duplicates(subset=["id_estacion"], keep="last", inplace=True)
+            except Exception:
+                combined = new_stations
+        else:
+            combined = new_stations
 
-                sql = """
-                    INSERT INTO raw_data.estaciones_agrocabildo 
-                    (id_estacion, nombre, municipio, latitud, longitud, altitud, fecha_instalacion)
-                    VALUES %s
-                    ON CONFLICT (id_estacion) DO UPDATE SET
-                        nombre = EXCLUDED.nombre,
-                        municipio = EXCLUDED.municipio,
-                        latitud = EXCLUDED.latitud,
-                        longitud = EXCLUDED.longitud,
-                        altitud = EXCLUDED.altitud,
-                        fecha_instalacion = EXCLUDED.fecha_instalacion,
-                        actualizado_en = CURRENT_TIMESTAMP;
-                """
-                execute_values(cursor, sql, stations_data)
-                conn.commit()
-                logger.info(f"✅ Guardadas {len(stations_data)} estaciones en raw_data.estaciones_agrocabildo.")
-        finally:
-            conn.close()
+        combined.to_parquet(self.local_stations_path, index=False, compression="snappy")
+        self.upload_to_blob(self.local_stations_path, "estaciones_agrocabildo.parquet")
+        logger.info(f"✅ Guardadas {len(combined)} estaciones en estaciones_agrocabildo.parquet (local y Azure).")
 
     @staticmethod
     def safe_float(val: Any) -> Optional[float]:
@@ -168,43 +153,36 @@ class AgrocabildoHistoricalBackfill:
             return None
 
     def upsert_hourly_readings(self, records: List[Dict[str, Any]]) -> int:
-        """Inserta lote de lecturas en raw_data.clima_horario_agrocabildo."""
+        """Inserta lote de lecturas en formato Parquet local y sube a Azure Blob."""
         if not records:
             return 0
 
-        conn = self.get_db_connection()
-        if not conn:
-            return 0
+        new_readings = pd.DataFrame(records)
+        new_readings = pd.DataFrame({
+            "id_estacion": new_readings["id_weatherstation"].astype(int),
+            "id_sensor": new_readings["id_weatherstationsensor"].astype(int),
+            "timestamp": pd.to_datetime(new_readings["timestamp"]),
+            "valor_observado": new_readings["observation_value"].apply(self.safe_float),
+            "valor_validado": new_readings["validated_value"].apply(self.safe_float),
+            "es_validado": new_readings["is_validated"].astype(bool)
+        })
 
-        try:
-            with conn.cursor() as cursor:
-                readings_data = []
-                for rec in records:
-                    readings_data.append((
-                        int(rec["id_weatherstation"]),
-                        int(rec["id_weatherstationsensor"]),
-                        pd.to_datetime(rec["timestamp"]).to_pydatetime(),
-                        self.safe_float(rec.get("observation_value")),
-                        self.safe_float(rec.get("validated_value")),
-                        bool(rec.get("is_validated", True))
-                    ))
+        if os.path.exists(self.local_readings_path):
+            try:
+                df_existing = pd.read_parquet(self.local_readings_path)
+                # Asegurar tipo datetime para alineación correcta
+                df_existing["timestamp"] = pd.to_datetime(df_existing["timestamp"])
+                combined = pd.concat([df_existing, new_readings], ignore_index=True)
+                combined.drop_duplicates(subset=["id_estacion", "id_sensor", "timestamp"], keep="last", inplace=True)
+            except Exception as e:
+                logger.error(f"Error al leer Parquet local: {e}. Creando nuevo.")
+                combined = new_readings
+        else:
+            combined = new_readings
 
-                # Deduplicar en memoria para evitar CardinalityViolation dentro del mismo lote
-                readings_data = list({(r[0], r[1], r[2]): r for r in readings_data}.values())
-
-                sql = """
-                    INSERT INTO raw_data.clima_horario_agrocabildo (id_estacion, id_sensor, timestamp, valor_observado, valor_validado, es_validado)
-                    VALUES %s
-                    ON CONFLICT (id_estacion, id_sensor, timestamp) DO UPDATE SET
-                        valor_observado = EXCLUDED.valor_observado,
-                        valor_validado = EXCLUDED.valor_validado,
-                        es_validado = EXCLUDED.es_validado;
-                """
-                execute_values(cursor, sql, readings_data, page_size=1000)
-                conn.commit()
-                return len(readings_data)
-        finally:
-            conn.close()
+        combined.to_parquet(self.local_readings_path, index=False, compression="snappy")
+        self.upload_to_blob(self.local_readings_path, "clima_horario_agrocabildo.parquet")
+        return len(new_readings)
 
     def load_progress_state(self) -> Dict[str, Any]:
         """Carga el estado del progreso del archivo JSON para reanudar."""
@@ -224,8 +202,9 @@ class AgrocabildoHistoricalBackfill:
     def run_backfill(self, start_year: int = 2020, end_year: int = None, max_stations: Optional[int] = None, station_range: Optional[str] = None):
         """
         Ejecuta el proceso completo de backfill histórico para todas las estaciones pre-2020.
-        """
-        self.init_db()
+        # Descargar el histórico actual del Blob para consolidarlo localmente
+        self.download_from_blob("clima_horario_agrocabildo.parquet", self.local_readings_path)
+        self.download_from_blob("estaciones_agrocabildo.parquet", self.local_stations_path)
 
         df_target = self.load_target_stations()
         self.save_stations_metadata(df_target)
