@@ -183,6 +183,34 @@ class AgrocabildoHistoricalBackfill:
         combined.to_parquet(self.local_readings_path, index=False, compression="snappy")
         return len(new_readings)
 
+    def _deduplicate_and_save_parquet(self, local_path: str, remote_path: str):
+        """Fusiona y deduplica dos archivos Parquet de forma eficiente en memoria usando PyArrow."""
+        import pyarrow as pa
+        import pyarrow.parquet as pq
+        import pyarrow.compute as pc
+        
+        logger.info("Cargando archivos Parquet con PyArrow para fusionar...")
+        table_local = pq.read_table(local_path)
+        table_remote = pq.read_table(remote_path)
+        
+        logger.info(f"Concatenando tablas (Local: {table_local.num_rows} filas, Azure: {table_remote.num_rows} filas)...")
+        combined_table = pa.concat_tables([table_remote, table_local])
+        
+        logger.info("Deduplicando registros de forma eficiente por estación...")
+        unique_stations = pc.unique(combined_table.column("id_estacion")).to_pylist()
+        
+        clean_tables = []
+        for station_id in unique_stations:
+            station_table = combined_table.filter(pc.field("id_estacion") == station_id)
+            df_station = station_table.to_pandas()
+            df_station.drop_duplicates(subset=["id_sensor", "timestamp"], keep="last", inplace=True)
+            station_clean_table = pa.Table.from_pandas(df_station, schema=combined_table.schema, preserve_index=False)
+            clean_tables.append(station_clean_table)
+            
+        final_table = pa.concat_tables(clean_tables)
+        logger.info(f"Guardando archivo consolidado limpio ({final_table.num_rows} filas)...")
+        pq.write_table(final_table, local_path, compression="snappy")
+
     def download_and_merge_at_start(self):
         """Descarga el Parquet y el Progreso de Azure Blob al inicio del backfill y los fusiona."""
         if not self.blob_service_client:
@@ -199,13 +227,8 @@ class AgrocabildoHistoricalBackfill:
                     data.readinto(f)
                 
                 if os.path.exists(self.local_readings_path) and os.path.exists(temp_remote_path):
-                    df_local = pd.read_parquet(self.local_readings_path)
-                    df_remote = pd.read_parquet(temp_remote_path)
-                    
-                    logger.info(f"Fusionando histórico local existente ({len(df_local)}) con el de Azure ({len(df_remote)})...")
-                    combined = pd.concat([df_remote, df_local], ignore_index=True)
-                    combined.drop_duplicates(subset=["id_estacion", "id_sensor", "timestamp"], keep="last", inplace=True)
-                    combined.to_parquet(self.local_readings_path, index=False, compression="snappy")
+                    logger.info("Iniciando fusión de Parquets en memoria...")
+                    self._deduplicate_and_save_parquet(self.local_readings_path, temp_remote_path)
                 elif os.path.exists(temp_remote_path):
                     if os.path.exists(self.local_readings_path):
                         os.remove(self.local_readings_path)
@@ -279,15 +302,8 @@ class AgrocabildoHistoricalBackfill:
                         data.readinto(f)
                     
                     if os.path.exists(self.local_readings_path) and os.path.exists(temp_remote_path):
-                        df_local = pd.read_parquet(self.local_readings_path)
-                        df_remote = pd.read_parquet(temp_remote_path)
-                        
-                        logger.info(f"Fusionando registros locales ({len(df_local)}) con remotos ({len(df_remote)})...")
-                        combined = pd.concat([df_remote, df_local], ignore_index=True)
-                        combined.drop_duplicates(subset=["id_estacion", "id_sensor", "timestamp"], keep="last", inplace=True)
-                        
-                        combined.to_parquet(self.local_readings_path, index=False, compression="snappy")
-                        logger.info(f"Consolidación local completada. Total registros finales: {len(combined)}")
+                        logger.info("Iniciando fusión final de Parquets en memoria...")
+                        self._deduplicate_and_save_parquet(self.local_readings_path, temp_remote_path)
                 else:
                     logger.info("El archivo clima_horario_agrocabildo.parquet no existe aún en el Blob. Se subirá el local directamente.")
             except Exception as e:
@@ -376,9 +392,9 @@ class AgrocabildoHistoricalBackfill:
         with open(STATE_FILE_PATH, "w", encoding="utf-8") as f:
             json.dump(state, f, indent=2)
 
-    def run_backfill(self, start_year: int = 2020, end_year: int = None, max_stations: Optional[int] = None, station_range: Optional[str] = None):
+    def run_backfill(self, start_year: int = 2019, end_year: int = None, max_stations: Optional[int] = None, station_range: Optional[str] = None):
         """
-        Ejecuta el proceso completo de backfill histórico para todas las estaciones pre-2020.
+        Ejecuta el proceso completo de backfill histórico para todas las estaciones pre-2019.
         """
         # Descargar el histórico inicial y fusionarlo para no perder progreso local
         self.download_and_merge_at_start()
