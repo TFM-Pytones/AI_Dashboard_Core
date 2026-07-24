@@ -194,6 +194,12 @@ class AgrocabildoHistoricalBackfill:
         table_remote = pq.read_table(remote_path)
         
         logger.info(f"Concatenando tablas (Local: {table_local.num_rows} filas, Azure: {table_remote.num_rows} filas)...")
+        # Alinear esquemas de zonas horarias si hubiere diferencias (e.g. tz=UTC vs naive timestamp)
+        try:
+            table_local = table_local.cast(table_remote.schema)
+        except Exception as cast_err:
+            logger.warning(f"No se pudo castear el esquema de la tabla local al remoto: {cast_err}")
+        
         combined_table = pa.concat_tables([table_remote, table_local])
         
         logger.info("Deduplicando registros de forma eficiente por estación...")
@@ -406,7 +412,10 @@ class AgrocabildoHistoricalBackfill:
         # Filtrar por rango de estaciones si se especifica
         if station_range:
             try:
-                start_r, end_r = map(int, station_range.split("-"))
+                if "-" in station_range:
+                    start_r, end_r = map(int, station_range.split("-"))
+                else:
+                    start_r = end_r = int(station_range)
                 # Filtrar por el índice posicional (1-indexed para el usuario)
                 df_target = df_target.iloc[start_r - 1 : end_r]
                 logger.info(f"Paralelización activa: Procesando rango de estaciones {start_r} al {end_r} (Total: {len(df_target)}).")
