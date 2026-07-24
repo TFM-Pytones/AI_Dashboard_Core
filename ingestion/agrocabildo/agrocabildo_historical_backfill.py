@@ -94,7 +94,20 @@ class AgrocabildoHistoricalBackfill:
                 break
 
         if not found_path:
-            raise FileNotFoundError(f"No se encontró el archivo CSV de estaciones.")
+            if os.path.exists(self.local_stations_path):
+                logger.info(f"Cargando estaciones desde el Parquet de respaldo de Azure: {self.local_stations_path}")
+                df = pd.read_parquet(self.local_stations_path)
+                df.rename(columns={
+                    "id_estacion": "estacion_id",
+                    "nombre": "estacion_nombre",
+                    "municipio": "municipio_nombre",
+                    "latitud": "latitud",
+                    "longitud": "longitud",
+                    "altitud": "altitud",
+                    "fecha_instalacion": "fecha_instalacion"
+                }, inplace=True)
+                return df
+            raise FileNotFoundError(f"No se encontró el archivo CSV ni el Parquet de respaldo de estaciones.")
 
         df = pd.read_csv(found_path, encoding="utf-8-sig")
         df.columns = [c.strip().lstrip('\ufeff') for c in df.columns]
