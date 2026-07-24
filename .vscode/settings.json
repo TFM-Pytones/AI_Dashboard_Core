@@ -1,3 +1,3 @@
 {
-  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python"
+  "python.defaultInterpreterPath": "${workspaceFolder}/AI_Dashboard_Core/.venv/Scripts/python.exe"
 }

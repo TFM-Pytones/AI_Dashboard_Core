@@ -59,8 +59,7 @@ class AgrocabildoAPIClient:
                 if attempt < self.max_retries:
                     time.sleep(5)
                 else:
-                    return None
-        return None
+                    raise e
 
     def get_stations(self, station_id: Optional[int] = None) -> List[Dict[str, Any]]:
         """Obtiene el listado completo de estaciones o la información de una única estación."""
@@ -97,7 +96,7 @@ class AgrocabildoAPIClient:
 
     def extract_hourly_readings(self, station_id: int, sensor_id: int, date_from: str, date_to: str, max_pages: int = 5) -> List[Dict[str, Any]]:
         """
-        Extrae y filtra las lecturas para quedarse UNICAMENTE con los registros en punto (minuto 00, segundo 00).
+        Extrae todas las lecturas disponibles sin filtrar por hora en punto.
         """
         hourly_records = []
         
@@ -122,47 +121,29 @@ class AgrocabildoAPIClient:
                     if not entries and "dates" in sensor:
                         for d_entry in sensor.get("dates", []):
                             entries.extend(d_entry.get("values", []))
-
+ 
                     for val in entries:
                         obs_date_str = val.get("observation_date")
                         if not obs_date_str:
                             continue
                         
-                        # Comprobar si la hora es en punto (:00:00)
-                        if self._is_exact_hour(obs_date_str):
-                            hourly_records.append({
-                                "id_weatherstation": station_id,
-                                "id_weatherstationsensor": sensor_resp_id,
-                                "timestamp": obs_date_str,
-                                "observation_value": val.get("observation_value"),
-                                "validated_value": val.get("validated_value"),
-                                "mean": val.get("mean"),
-                                "is_validated": val.get("is_visual_validated", True)
-                            })
-                            parsed_count += 1
-
+                        hourly_records.append({
+                            "id_weatherstation": station_id,
+                            "id_weatherstationsensor": sensor_resp_id,
+                            "timestamp": obs_date_str,
+                            "observation_value": val.get("observation_value"),
+                            "validated_value": val.get("validated_value"),
+                            "mean": val.get("mean"),
+                            "is_validated": val.get("is_visual_validated", True)
+                        })
+                        parsed_count += 1
+ 
             # Si no hay datos en esta página, detener iteración
             if parsed_count == 0 and page > 1:
                 break
                 
-        logger.info(f"Estación {station_id} | Sensor {sensor_id} -> {len(hourly_records)} lecturas horarias extraídas.")
+        logger.info(f"Estación {station_id} | Sensor {sensor_id} -> {len(hourly_records)} lecturas extraídas.")
         return hourly_records
-
-    @staticmethod
-    def _is_exact_hour(timestamp_str: str) -> bool:
-        """Determina si la fecha/hora corresponde a una hora en punto (:00:00)."""
-        if not timestamp_str:
-            return False
-        # Verificación directa por formato de string (más rápida y robusta)
-        clean_ts = timestamp_str.replace("Z", "")
-        if clean_ts.endswith(":00:00") or clean_ts.endswith(":00"):
-            return True
-        try:
-            # Fallback a datetime object
-            dt = datetime.fromisoformat(clean_ts)
-            return dt.minute == 0 and dt.second == 0
-        except Exception:
-            return False
 
 if __name__ == "__main__":
     # Test de conectividad rápido
