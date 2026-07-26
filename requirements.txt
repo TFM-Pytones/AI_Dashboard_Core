@@ -12,6 +12,8 @@ ipykernel==7.3.0
 # Análisis Geoespacial
 geopandas==1.1.4
 shapely==2.1.2
+rasterio>=1.3.0          # MDT: lectura/escritura GeoTIFF, slope, aspect, hillshade
+                         # En Windows instalar primero: pip install GDAL
 
 # Formato Parquet
 pyarrow
@@ -31,3 +33,12 @@ geoalchemy2>=0.14.0
 transformers==4.57.1
 torch==2.9.0
 sentencepiece==0.2.1
+
+# Validación Meteorológica (Open-Meteo vs Agrocabildo)
+openmeteo-requests>=0.3.0      # Cliente oficial Open-Meteo con caché integrada
+requests-cache>=1.2.0          # Caché HTTP para evitar re-descargas
+retry-requests>=2.0.0          # Reintentos automáticos en peticiones HTTP
+scikit-learn>=1.4.0            # Métricas: MAE, RMSE, R²
+seaborn>=0.13.0                # Visualizaciones: heatmaps, boxplots
+scipy>=1.13.0                  # Stats: regresión lineal, tests estadísticos
+matplotlib>=3.8.0              # Gráficos base

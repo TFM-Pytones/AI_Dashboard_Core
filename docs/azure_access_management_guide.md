@@ -35,11 +35,11 @@ Por seguridad, Azure Database for PostgreSQL bloquea por defecto cualquier conex
 3. Configura las siguientes reglas en la sección de **Firewall**:
 
 ### A. Permitir la conexión desde la Máquina Virtual de Azure:
-* Activa la casilla **"Permitir acceso público desde cualquier servicio de Azure dentro de esta suscripción a este servidor"** (*Allow public access from any Azure service...*). Esto permite que tus scrapers en la VM conecten con la base de datos sin necesidad de configurar IPs complejas.
+* Activa la casilla **"Permitir acceso público desde cualquier servicio de Azure dentro de esta suscripción a este servidor"** (*Allow public access from any Azure service...*). Esto permite que tus scrapers y codigo en la VM conecten con la base de datos sin necesidad de configurar IPs complejas.
 
 ### B. Permitir la conexión a los ordenadores locales de los desarrolladores:
 * Para que vuestros ordenadores personales o de trabajo puedan consultar la base de datos localmente (DBeaver, Python local, etc.), debéis registrar vuestras IPs públicas.
-* Haz clic en **"Agregar dirección IP de cliente actual"** (*Add current client IP address*) para registrar tu IP.
+* Haz clic en **"Agregar dirección IP de cliente actual"** (*Add current client IP address*) para registrar tu IP (la del router)
 * Si tus compañeros necesitan conectarse, introduce un nombre identificativo para su regla y su dirección IP pública.
 * Haz clic en **Guardar** (arriba a la izquierda) para aplicar los cambios de red.
 

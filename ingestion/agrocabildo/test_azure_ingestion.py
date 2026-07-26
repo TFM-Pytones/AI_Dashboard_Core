@@ -50,19 +50,27 @@ def run_test():
     else:
         print("   ❌ No se pudieron leer las estaciones del Blob.")
 
-    # Lecturas
-    df_readings = pipeline.read_parquet_from_blob("clima_horario_agrocabildo.parquet")
-    if not df_readings.empty:
-        print(f"   - Lecturas horarias guardadas en Azure Blob: {len(df_readings)}")
+    # Lecturas particionadas
+    if df_result is not None and not df_result.empty:
+        stations_ingested = df_result["id_weatherstation"].unique()
+        print(f"   - Estaciones ingestadas en esta prueba: {list(stations_ingested)}")
         
-        # Muestra de las últimas 5 lecturas
-        print("\nMuestra de las últimas lecturas consolidadas en Azure Blob:")
-        df_sorted = df_readings.sort_values(by="timestamp", ascending=False)
-        print(df_sorted.head(5).to_string(index=False))
-        
+        for st_id in stations_ingested:
+            st_id = int(st_id)
+            blob_name = f"clima_horario_agrocabildo/estacion_{st_id}.parquet"
+            print(f"   -> Verificando en el Blob: {blob_name}...")
+            df_st_readings = pipeline.read_parquet_from_blob(blob_name)
+            
+            if not df_st_readings.empty:
+                print(f"      [OK] Leídas {len(df_st_readings)} lecturas en Azure para estación {st_id}.")
+                print("      Muestra de las últimas 3 lecturas:")
+                print(df_st_readings.sort_values(by="timestamp", ascending=False).head(3).to_string(index=False))
+            else:
+                print(f"      ❌ No se pudo encontrar o leer {blob_name} en Azure Blob.")
+                
         print("\nPrueba de Azure Blob Storage completada con éxito!")
     else:
-        print("   ❌ No se pudieron leer las lecturas del Blob.")
+        print("   ❌ No se generaron lecturas en la ingesta en tiempo real.")
 
 if __name__ == "__main__":
     run_test()

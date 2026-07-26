@@ -44,6 +44,11 @@ Dependiendo de qué sistema operativo utilices en tu ordenador personal para tra
        ssh tu_usuario_de_la_vm@IP_PUBLICA_DE_LA_VM
        ```
 
+#### ⚠️ Problema común: Intentar ejecutar los comandos de Linux en la consola de tu PC Windows
+*   **Síntoma**: Si ejecutas comandos como `sudo fallocate` en tu PowerShell local de Windows, recibirás el error: *"Sudo está deshabilitado en este equipo. Para habilitarlo, vaya a Página Configuración del desarrollador..."*.
+*   **Por qué ocurre**: Has escrito el comando en la terminal local de tu ordenador personal en lugar de hacerlo dentro de la sesión de SSH de la VM.
+*   **Solución**: Conéctate primero a la máquina virtual usando `ssh usuario@IP` (Paso 2.2) y ejecuta los comandos solo cuando veas el prompt de Linux en verde/azul (`usuario@mv-orquestador-tfm:~$`).
+
 ---
 
 ### Paso 2.3: Generar un Token de Acceso Personal en GitHub (PAT)
@@ -53,8 +58,8 @@ GitHub ya no permite usar tu contraseña habitual en la línea de comandos de la
 2. En el menú lateral izquierdo, baja hasta el final y haz clic en **Developer Settings** (Ajustes de desarrollador).
 3. Selecciona **Personal access tokens** -> **Tokens (classic)**.
 4. Haz clic en **Generate new token** -> **Generate new token (classic)**.
-5. Dale un nombre identificativo (ej. *VM Azure*), selecciona la casilla **`repo`** (imprescindible para clonar) y pulsa en **Generate token**.
-6. **Copia el token largo que aparece en pantalla** (guárdalo temporalmente; una vez cierres la página no volverá a mostrarse).
+5. Dale un nombre identificativo (ej. *VM Azure*), selecciona la casilla **`repo`** (imprescindible para clonar) y pulsa en **Generate token (classic)**.
+6. **Copia el token largo que aparece en pantalla** (guárdalo en un sitio seguro; una vez cierres la página no volverá a mostrarse).
 
 ---
 
@@ -174,6 +179,38 @@ Si quieres volver a conectarte más tarde para ver el progreso de los logs en ti
 ```bash
 tail -f scraper.log
 ```
+
+#### ⚠️ Problema común: Error "ModuleNotFoundError: No module named 'pandas'" al arrancar el script
+*   **Por qué ocurre**: Has abierto una nueva conexión SSH y has intentado ejecutar el script de Python sin haber activado el entorno virtual. El sistema está usando el intérprete de Python básico de Linux, que no tiene instaladas tus dependencias.
+*   **Solución**: Activa siempre el entorno virtual en cada nueva sesión de consola antes de lanzar el scraper:
+    ```bash
+    source ../.venv/bin/activate
+    ```
+
+#### ⚠️ Problema común: El script se detiene de fondo silenciosamente sin dar ningún error en `scraper.log`
+*   **Por qué ocurre**: Nuestra máquina virtual tiene solo **1 GiB de RAM** (Standard B2ats v2). Si Python tiene un pico de uso de memoria, el kernel de Linux activa el *OOM-Killer* (Out of Memory Killer) y mata el proceso Python de forma fulminante (enviando un `SIGKILL`), lo que no le da oportunidad al script de escribir un error o traceback en el log.
+*   **Solución**: Configura un **archivo de intercambio (SWAP)** de 2 GB en el disco duro de la VM para que sirva como RAM de respaldo y evite que el sistema colapse:
+    ```bash
+    # 1. Crear un archivo vacío de 2 GB de tamaño
+    sudo fallocate -l 2G /swapfile
+
+    # 2. Configurar permisos de seguridad para el archivo
+    sudo chmod 600 /swapfile
+
+    # 3. Formatearlo como espacio swap
+    sudo mkswap /swapfile
+
+    # 4. Activar el espacio de intercambio
+    sudo swapon /swapfile
+
+    # 5. Hacerlo permanente (para que persista tras reiniciar la VM)
+    echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+    ```
+    Puedes verificar que se ha activado correctamente ejecutando:
+    ```bash
+    free -h
+    ```
+    *(Verás que ahora la fila `Swap` muestra `2.0Gi` en lugar de `0B`).*
 
 ---
 

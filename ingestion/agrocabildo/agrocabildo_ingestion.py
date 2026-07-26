@@ -93,21 +93,25 @@ class AgrocabildoIngestionPipeline:
                 "es_validado": df_readings["is_validated"].astype(bool)
             })
 
-            # Leer el histórico existente
-            df_existing_readings = self.read_parquet_from_blob("clima_horario_agrocabildo.parquet")
-            
-            if not df_existing_readings.empty:
-                # Asegurar tipo datetime para fusión correcta
-                df_existing_readings["timestamp"] = pd.to_datetime(df_existing_readings["timestamp"])
-                # Combinar y eliminar duplicados basándose en la clave única
-                combined = pd.concat([df_existing_readings, new_readings], ignore_index=True)
-                combined.drop_duplicates(subset=["id_estacion", "id_sensor", "timestamp"], keep="last", inplace=True)
-            else:
-                combined = new_readings
+            # Agrupar por id_estacion para guardar de forma particionada
+            grouped = new_readings.groupby("id_estacion")
+            for st_id, df_group in grouped:
+                st_id = int(st_id)
+                blob_name = f"clima_horario_agrocabildo/estacion_{st_id}.parquet"
+                
+                # Leer el histórico existente de esta estación
+                df_existing_readings = self.read_parquet_from_blob(blob_name)
+                
+                if not df_existing_readings.empty:
+                    df_existing_readings["timestamp"] = pd.to_datetime(df_existing_readings["timestamp"])
+                    combined = pd.concat([df_existing_readings, df_group], ignore_index=True)
+                    combined.drop_duplicates(subset=["id_estacion", "id_sensor", "timestamp"], keep="last", inplace=True)
+                else:
+                    combined = df_group
 
-            # Guardar el Parquet actualizado en la Capa Bronce
-            self.write_parquet_to_blob(combined, "clima_horario_agrocabildo.parquet")
-            logger.info(f"Consolidación completada: {len(combined)} lecturas totales en la Capa Bronce.")
+                # Guardar el Parquet actualizado de esta estación en la Capa Bronce
+                self.write_parquet_to_blob(combined, blob_name)
+                logger.info(f"Consolidación completada: {len(combined)} lecturas de estación {st_id} en la Capa Bronce.")
         
         # 2. Procesar metadatos de estaciones
         if not df_stations.empty:
@@ -242,6 +246,11 @@ class AgrocabildoIngestionPipeline:
             df_result["id_weatherstation"] = df_result["id_weatherstation"].astype(int)
             df_result["id_weatherstationsensor"] = df_result["id_weatherstationsensor"].astype(int)
             df_result["timestamp"] = pd.to_datetime(df_result["timestamp"])
+
+            # Limpiar columnas numericas de strings vacios para evitar fallos de PyArrow
+            for col in ["observation_value", "validated_value"]:
+                if col in df_result.columns:
+                    df_result[col] = pd.to_numeric(df_result[col].astype(str).str.strip().replace("", None), errors="coerce")
 
             # 1. Guardar en Azure Blob Storage (Capa Bronce)
             self.save_to_azure_blob(df_target, df_result)
