@@ -34,9 +34,9 @@ class AgrocabildoHistoricalBackfill:
         # Rutas locales para persistencia temporal
         self.local_dir = os.path.abspath(os.path.join(current_dir, "..", "..", "data"))
         os.makedirs(self.local_dir, exist_ok=True)
-        self.local_readings_path = os.path.join(self.local_dir, "clima_horario_agrocabildo.parquet")
+        self.local_partition_dir = os.path.join(self.local_dir, "clima_horario_agrocabildo")
+        os.makedirs(self.local_partition_dir, exist_ok=True)
         self.local_stations_path = os.path.join(self.local_dir, "estaciones_agrocabildo.parquet")
-        self.incremental_readings_path = os.path.join(self.local_dir, "incremental_readings.parquet")
         
         # Conexión a Azure Blob Storage
         conn_str = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
@@ -94,7 +94,20 @@ class AgrocabildoHistoricalBackfill:
                 break
 
         if not found_path:
-            raise FileNotFoundError(f"No se encontró el archivo CSV de estaciones.")
+            if os.path.exists(self.local_stations_path):
+                logger.info(f"Cargando estaciones desde el Parquet de respaldo de Azure: {self.local_stations_path}")
+                df = pd.read_parquet(self.local_stations_path)
+                df.rename(columns={
+                    "id_estacion": "estacion_id",
+                    "nombre": "estacion_nombre",
+                    "municipio": "municipio_nombre",
+                    "latitud": "latitud",
+                    "longitud": "longitud",
+                    "altitud": "altitud",
+                    "fecha_instalacion": "fecha_instalacion"
+                }, inplace=True)
+                return df
+            raise FileNotFoundError(f"No se encontró el archivo CSV ni el Parquet de respaldo de estaciones.")
 
         df = pd.read_csv(found_path, encoding="utf-8-sig")
         df.columns = [c.strip().lstrip('\ufeff') for c in df.columns]
@@ -154,10 +167,11 @@ class AgrocabildoHistoricalBackfill:
             return None
 
     def upsert_hourly_readings(self, records: List[Dict[str, Any]]) -> int:
-        """Inserta lote de lecturas en formato Parquet local incremental."""
+        """Inserta lote de lecturas en formato Parquet local por estación y las sube a Azure Blob."""
         if not records:
             return 0
 
+        # Formatear el nuevo lote
         new_readings = pd.DataFrame(records)
         new_readings = pd.DataFrame({
             "id_estacion": new_readings["id_weatherstation"].astype(int),
@@ -168,54 +182,32 @@ class AgrocabildoHistoricalBackfill:
             "es_validado": new_readings["is_validated"].astype(bool)
         })
 
-        if os.path.exists(self.incremental_readings_path):
+        st_id = int(new_readings["id_estacion"].iloc[0])
+        blob_name = f"clima_horario_agrocabildo/estacion_{st_id}.parquet"
+        local_st_path = os.path.join(self.local_partition_dir, f"estacion_{st_id}.parquet")
+
+        # Intentar descargar el Parquet existente del Blob si no existe localmente
+        if not os.path.exists(local_st_path):
+            self.download_from_blob(blob_name, local_st_path)
+
+        # Leer existente
+        if os.path.exists(local_st_path):
             try:
-                df_existing = pd.read_parquet(self.incremental_readings_path)
+                df_existing = pd.read_parquet(local_st_path)
                 df_existing["timestamp"] = pd.to_datetime(df_existing["timestamp"])
                 combined = pd.concat([df_existing, new_readings], ignore_index=True)
                 combined.drop_duplicates(subset=["id_estacion", "id_sensor", "timestamp"], keep="last", inplace=True)
             except Exception as e:
-                logger.error(f"Error al leer Parquet incremental: {e}. Creando nuevo.")
+                logger.error(f"Error al leer Parquet de estación {st_id}: {e}. Creando nuevo.")
                 combined = new_readings
         else:
             combined = new_readings
 
-        combined.to_parquet(self.incremental_readings_path, index=False, compression="snappy")
+        # Guardar en local y subir a Azure Blob Storage
+        combined.to_parquet(local_st_path, index=False, compression="snappy")
+        self.upload_to_blob(local_st_path, blob_name)
         return len(new_readings)
 
-    def _deduplicate_and_save_parquet(self, local_path: str, remote_path: str, incremental_path: str):
-        """Fusiona y deduplica el archivo remoto de Azure con el incremental local de forma eficiente usando PyArrow."""
-        import pyarrow as pa
-        import pyarrow.parquet as pq
-        import pyarrow.compute as pc
-        
-        logger.info("Cargando archivos Parquet con PyArrow para fusionar...")
-        table_remote = pq.read_table(remote_path)
-        table_incremental = pq.read_table(incremental_path)
-        
-        # Alinear esquemas de zonas horarias si hubiere diferencias (e.g. tz=UTC vs naive timestamp)
-        try:
-            table_incremental = table_incremental.cast(table_remote.schema)
-        except Exception as cast_err:
-            logger.warning(f"No se pudo castear el esquema de la tabla incremental al remoto: {cast_err}")
-        
-        logger.info(f"Concatenando tablas (Incremental: {table_incremental.num_rows} filas, Azure: {table_remote.num_rows} filas)...")
-        combined_table = pa.concat_tables([table_remote, table_incremental])
-        
-        logger.info("Deduplicando registros de forma eficiente por estación...")
-        unique_stations = pc.unique(combined_table.column("id_estacion")).to_pylist()
-        
-        clean_tables = []
-        for station_id in unique_stations:
-            station_table = combined_table.filter(pc.field("id_estacion") == station_id)
-            df_station = station_table.to_pandas()
-            df_station.drop_duplicates(subset=["id_sensor", "timestamp"], keep="last", inplace=True)
-            station_clean_table = pa.Table.from_pandas(df_station, schema=combined_table.schema, preserve_index=False)
-            clean_tables.append(station_clean_table)
-            
-        final_table = pa.concat_tables(clean_tables)
-        logger.info(f"Guardando archivo consolidado limpio ({final_table.num_rows} filas) en: {local_path}")
-        pq.write_table(final_table, local_path, compression="snappy")
 
     def download_and_merge_at_start(self):
         """Descarga el Progreso de Azure Blob al inicio del backfill y los fusiona."""
@@ -264,53 +256,10 @@ class AgrocabildoHistoricalBackfill:
                     pass
 
     def consolidate_and_upload_at_end(self):
-        """Consolida el archivo local con el del Blob Storage y lo sube al final del proceso."""
-        logger.info("Iniciando consolidación final con Azure Blob Storage...")
+        """Consolida el archivo local de progreso con el de Azure Blob y lo sube."""
+        logger.info("Iniciando consolidación final de progreso con Azure Blob Storage...")
         
-        # Si no hay lecturas nuevas incrementales, no hacemos nada con el Parquet
-        if not os.path.exists(self.incremental_readings_path):
-            logger.info("No hay nuevas lecturas incrementales que consolidar.")
-        else:
-            # 1. Consolidar clima_horario_agrocabildo.parquet
-            temp_remote_path = self.local_readings_path + ".remote"
-            if self.blob_service_client:
-                try:
-                    blob_client = self.blob_service_client.get_blob_client(container=self.container_name, blob="clima_horario_agrocabildo.parquet")
-                    if blob_client.exists():
-                        logger.info("Descargando la versión más reciente del Blob para fusionar...")
-                        with open(temp_remote_path, "wb") as f:
-                            data = blob_client.download_blob()
-                            data.readinto(f)
-                        
-                        if os.path.exists(temp_remote_path):
-                            logger.info("Iniciando fusión final de Parquets en memoria...")
-                            # Fusionar el archivo de Azure descargado con nuestro archivo incremental local
-                            self._deduplicate_and_save_parquet(self.local_readings_path, temp_remote_path, self.incremental_readings_path)
-                    else:
-                        logger.info("El archivo clima_horario_agrocabildo.parquet no existe aún en el Blob. Creando uno nuevo con los datos incrementales.")
-                        # Si no existe en Azure, el incremental pasa a ser el archivo principal local
-                        if os.path.exists(self.local_readings_path):
-                            os.remove(self.local_readings_path)
-                        os.rename(self.incremental_readings_path, self.local_readings_path)
-                except Exception as e:
-                    logger.error(f"Error al descargar o consolidar con el Blob: {e}. Se intentará subir el local de todos modos.")
-                finally:
-                    if os.path.exists(temp_remote_path):
-                        try:
-                            os.remove(temp_remote_path)
-                        except Exception:
-                            pass
-                    if os.path.exists(self.incremental_readings_path):
-                        try:
-                            os.remove(self.incremental_readings_path)
-                        except Exception:
-                            pass
-            
-            logger.info("Subiendo archivo Parquet final a Azure Blob...")
-            self.upload_to_blob(self.local_readings_path, "clima_horario_agrocabildo.parquet")
-            self.verify_blob_upload("clima_horario_agrocabildo.parquet")
-
-        # 2. Consolidar y subir backfill_progress.json
+        # Consolidar y subir backfill_progress.json
         temp_progress_path = STATE_FILE_PATH + ".remote"
         if self.blob_service_client:
             try:
