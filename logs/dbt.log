@@ -139,3 +139,448 @@ Finished 'debug' with 1 error for target 'dev' [964ms]
 [0m00:17:52.578848 [debug] [MainThread]: Connection 'debug' was properly closed.
 [0m00:17:52.580847 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000022F31B55AE0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000022F322F56F0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000022F34881870>]}
 [0m00:17:52.582842 [debug] [MainThread]: Flushing usage events
+[0m00:42:37.496814 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000023C962C9990>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000023C98EDD930>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000023C98EDE6E0>]}
+
+
+============================== 00:42:37.510857 | bb755842-a25d-4b87-b654-71ea02a4c06f ==============================
+[0m00:42:37.510857 [info ] [MainThread]: Running with dbt=1.7.15
+[0m00:42:37.511812 [debug] [MainThread]: running dbt with arguments {'printer_width': '80', 'indirect_selection': 'eager', 'write_json': 'True', 'log_cache_events': 'False', 'partial_parse': 'True', 'cache_selected_only': 'False', 'profiles_dir': 'C:\\Users\\jaime\\tenerife_tourism_dbt', 'debug': 'False', 'version_check': 'True', 'log_path': 'C:\\Users\\jaime\\tenerife_tourism_dbt\\logs', 'fail_fast': 'False', 'warn_error': 'None', 'use_colors': 'True', 'use_experimental_parser': 'False', 'no_print': 'None', 'quiet': 'False', 'warn_error_options': 'WarnErrorOptions(include=[], exclude=[])', 'introspect': 'True', 'static_parser': 'True', 'log_format': 'default', 'target_path': 'None', 'invocation_command': 'dbt run --select estaciones_clima_procesadas', 'send_anonymous_usage_stats': 'True'}
+[0m00:42:37.813401 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': 'bb755842-a25d-4b87-b654-71ea02a4c06f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000023C987306A0>]}
+[0m00:42:37.915441 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': 'bb755842-a25d-4b87-b654-71ea02a4c06f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000023C990BE590>]}
+[0m00:42:37.917402 [info ] [MainThread]: Registered adapter: postgres=1.7.15
+[0m00:42:37.931405 [debug] [MainThread]: checksum: e4cfa841c1cf2b310128daf3fe81590497b767fe3788aa75c7f0bcc4959f94d1, vars: {}, profile: , target: , version: 1.7.15
+[0m00:42:37.933408 [info ] [MainThread]: Unable to do partial parsing because saved manifest not found. Starting full parse.
+[0m00:42:37.934445 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'partial_parser', 'label': 'bb755842-a25d-4b87-b654-71ea02a4c06f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000023C990E6EF0>]}
+[0m00:42:39.432402 [warn ] [MainThread]: [[33mWARNING[0m]: Configuration paths exist in your dbt_project.yml file which do not apply to any resources.
+There are 1 unused configuration paths:
+- models.tenerife_tourism_dbt.staging
+[0m00:42:39.442406 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': 'bb755842-a25d-4b87-b654-71ea02a4c06f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000023C99531D20>]}
+[0m00:42:39.463139 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': 'bb755842-a25d-4b87-b654-71ea02a4c06f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000023C99532710>]}
+[0m00:42:39.464139 [info ] [MainThread]: Found 1 model, 4 sources, 0 exposures, 0 metrics, 401 macros, 0 groups, 0 semantic models
+[0m00:42:39.465140 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': 'bb755842-a25d-4b87-b654-71ea02a4c06f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000023C99399F00>]}
+[0m00:42:39.469145 [info ] [MainThread]: 
+[0m00:42:39.471145 [debug] [MainThread]: Acquiring new postgres connection 'master'
+[0m00:42:39.473145 [debug] [ThreadPool]: Acquiring new postgres connection 'list_neondb'
+[0m00:42:39.495142 [debug] [ThreadPool]: Using postgres connection "list_neondb"
+[0m00:42:39.496142 [debug] [ThreadPool]: On list_neondb: /* {"app": "dbt", "dbt_version": "1.7.15", "profile_name": "tenerife_tourism_dbt", "target_name": "dev", "connection_name": "list_neondb"} */
+
+    select distinct nspname from pg_namespace
+  
+[0m00:42:39.497142 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m00:42:40.607228 [debug] [ThreadPool]: SQL status: SELECT 6 in 1.0 seconds
+[0m00:42:40.609237 [debug] [ThreadPool]: On list_neondb: Close
+[0m00:42:40.612285 [debug] [ThreadPool]: Acquiring new postgres connection 'list_neondb_processed_data'
+[0m00:42:40.621285 [debug] [ThreadPool]: Using postgres connection "list_neondb_processed_data"
+[0m00:42:40.622285 [debug] [ThreadPool]: On list_neondb_processed_data: BEGIN
+[0m00:42:40.623286 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m00:42:40.900563 [debug] [ThreadPool]: SQL status: BEGIN in 0.0 seconds
+[0m00:42:40.903554 [debug] [ThreadPool]: Using postgres connection "list_neondb_processed_data"
+[0m00:42:40.906552 [debug] [ThreadPool]: On list_neondb_processed_data: /* {"app": "dbt", "dbt_version": "1.7.15", "profile_name": "tenerife_tourism_dbt", "target_name": "dev", "connection_name": "list_neondb_processed_data"} */
+select
+      'neondb' as database,
+      tablename as name,
+      schemaname as schema,
+      'table' as type
+    from pg_tables
+    where schemaname ilike 'processed_data'
+    union all
+    select
+      'neondb' as database,
+      viewname as name,
+      schemaname as schema,
+      'view' as type
+    from pg_views
+    where schemaname ilike 'processed_data'
+    union all
+    select
+      'neondb' as database,
+      matviewname as name,
+      schemaname as schema,
+      'materialized_view' as type
+    from pg_matviews
+    where schemaname ilike 'processed_data'
+  
+[0m00:42:40.979025 [debug] [ThreadPool]: SQL status: SELECT 10 in 0.0 seconds
+[0m00:42:40.983084 [debug] [ThreadPool]: On list_neondb_processed_data: ROLLBACK
+[0m00:42:41.015031 [debug] [ThreadPool]: On list_neondb_processed_data: Close
+[0m00:42:41.024991 [debug] [MainThread]: Using postgres connection "master"
+[0m00:42:41.025991 [debug] [MainThread]: On master: BEGIN
+[0m00:42:41.025991 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m00:42:41.302962 [debug] [MainThread]: SQL status: BEGIN in 0.0 seconds
+[0m00:42:41.304018 [debug] [MainThread]: Using postgres connection "master"
+[0m00:42:41.305013 [debug] [MainThread]: On master: /* {"app": "dbt", "dbt_version": "1.7.15", "profile_name": "tenerife_tourism_dbt", "target_name": "dev", "connection_name": "master"} */
+with relation as (
+        select
+            pg_rewrite.ev_class as class,
+            pg_rewrite.oid as id
+        from pg_rewrite
+    ),
+    class as (
+        select
+            oid as id,
+            relname as name,
+            relnamespace as schema,
+            relkind as kind
+        from pg_class
+    ),
+    dependency as (
+        select distinct
+            pg_depend.objid as id,
+            pg_depend.refobjid as ref
+        from pg_depend
+    ),
+    schema as (
+        select
+            pg_namespace.oid as id,
+            pg_namespace.nspname as name
+        from pg_namespace
+        where nspname != 'information_schema' and nspname not like 'pg\_%'
+    ),
+    referenced as (
+        select
+            relation.id AS id,
+            referenced_class.name ,
+            referenced_class.schema ,
+            referenced_class.kind
+        from relation
+        join class as referenced_class on relation.class=referenced_class.id
+        where referenced_class.kind in ('r', 'v', 'm')
+    ),
+    relationships as (
+        select
+            referenced.name as referenced_name,
+            referenced.schema as referenced_schema_id,
+            dependent_class.name as dependent_name,
+            dependent_class.schema as dependent_schema_id,
+            referenced.kind as kind
+        from referenced
+        join dependency on referenced.id=dependency.id
+        join class as dependent_class on dependency.ref=dependent_class.id
+        where
+            (referenced.name != dependent_class.name or
+             referenced.schema != dependent_class.schema)
+    )
+
+    select
+        referenced_schema.name as referenced_schema,
+        relationships.referenced_name as referenced_name,
+        dependent_schema.name as dependent_schema,
+        relationships.dependent_name as dependent_name
+    from relationships
+    join schema as dependent_schema on relationships.dependent_schema_id=dependent_schema.id
+    join schema as referenced_schema on relationships.referenced_schema_id=referenced_schema.id
+    group by referenced_schema, referenced_name, dependent_schema, dependent_name
+    order by referenced_schema, referenced_name, dependent_schema, dependent_name;
+[0m00:42:41.370870 [debug] [MainThread]: SQL status: SELECT 0 in 0.0 seconds
+[0m00:42:41.374870 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': 'bb755842-a25d-4b87-b654-71ea02a4c06f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000023C995A2D10>]}
+[0m00:42:41.376870 [debug] [MainThread]: On master: ROLLBACK
+[0m00:42:41.409517 [debug] [MainThread]: Using postgres connection "master"
+[0m00:42:41.409517 [debug] [MainThread]: On master: BEGIN
+[0m00:42:41.472418 [debug] [MainThread]: SQL status: BEGIN in 0.0 seconds
+[0m00:42:41.474432 [debug] [MainThread]: On master: COMMIT
+[0m00:42:41.475481 [debug] [MainThread]: Using postgres connection "master"
+[0m00:42:41.476479 [debug] [MainThread]: On master: COMMIT
+[0m00:42:41.508484 [debug] [MainThread]: SQL status: COMMIT in 0.0 seconds
+[0m00:42:41.510500 [debug] [MainThread]: On master: Close
+[0m00:42:41.513503 [info ] [MainThread]: Concurrency: 4 threads (target='dev')
+[0m00:42:41.515550 [info ] [MainThread]: 
+[0m00:42:41.523501 [debug] [Thread-1 (]: Began running node model.tenerife_tourism_dbt.estaciones_clima_procesadas
+[0m00:42:41.524538 [info ] [Thread-1 (]: 1 of 1 START sql table model processed_data.estaciones_clima_procesadas ........ [RUN]
+[0m00:42:41.526539 [debug] [Thread-1 (]: Acquiring new postgres connection 'model.tenerife_tourism_dbt.estaciones_clima_procesadas'
+[0m00:42:41.526539 [debug] [Thread-1 (]: Began compiling node model.tenerife_tourism_dbt.estaciones_clima_procesadas
+[0m00:42:41.539539 [debug] [Thread-1 (]: Writing injected SQL for node "model.tenerife_tourism_dbt.estaciones_clima_procesadas"
+[0m00:42:41.542499 [debug] [Thread-1 (]: Timing info for model.tenerife_tourism_dbt.estaciones_clima_procesadas (compile): 00:42:41.527540 => 00:42:41.542499
+[0m00:42:41.543541 [debug] [Thread-1 (]: Began executing node model.tenerife_tourism_dbt.estaciones_clima_procesadas
+[0m00:42:41.600502 [debug] [Thread-1 (]: Writing runtime sql for node "model.tenerife_tourism_dbt.estaciones_clima_procesadas"
+[0m00:42:41.603539 [debug] [Thread-1 (]: Using postgres connection "model.tenerife_tourism_dbt.estaciones_clima_procesadas"
+[0m00:42:41.604540 [debug] [Thread-1 (]: On model.tenerife_tourism_dbt.estaciones_clima_procesadas: BEGIN
+[0m00:42:41.605539 [debug] [Thread-1 (]: Opening a new connection, currently in state init
+[0m00:42:41.919327 [debug] [Thread-1 (]: SQL status: BEGIN in 0.0 seconds
+[0m00:42:41.921373 [debug] [Thread-1 (]: Using postgres connection "model.tenerife_tourism_dbt.estaciones_clima_procesadas"
+[0m00:42:41.923373 [debug] [Thread-1 (]: On model.tenerife_tourism_dbt.estaciones_clima_procesadas: /* {"app": "dbt", "dbt_version": "1.7.15", "profile_name": "tenerife_tourism_dbt", "target_name": "dev", "node_id": "model.tenerife_tourism_dbt.estaciones_clima_procesadas"} */
+
+  
+    
+
+  create  table "neondb"."processed_data"."estaciones_clima_procesadas__dbt_tmp"
+  
+  
+    as
+  
+  (
+    
+
+SELECT 
+    id,
+    nombre,
+    ST_Transform(ubicacion, 32628) as geometry,
+    altitud,
+    municipio
+FROM "neondb"."raw_data"."estaciones_clima"
+  );
+  
+[0m00:42:41.961697 [debug] [Thread-1 (]: Postgres adapter: Postgres error: column "id" does not exist
+LINE 15:     id,
+             ^
+
+[0m00:42:41.963740 [debug] [Thread-1 (]: On model.tenerife_tourism_dbt.estaciones_clima_procesadas: ROLLBACK
+[0m00:42:41.996191 [debug] [Thread-1 (]: Timing info for model.tenerife_tourism_dbt.estaciones_clima_procesadas (execute): 00:42:41.544540 => 00:42:41.995166
+[0m00:42:41.998181 [debug] [Thread-1 (]: On model.tenerife_tourism_dbt.estaciones_clima_procesadas: Close
+[0m00:42:42.157359 [debug] [Thread-1 (]: Database Error in model estaciones_clima_procesadas (models\marts\estaciones_clima_procesadas.sql)
+  column "id" does not exist
+  LINE 15:     id,
+               ^
+  compiled Code at target\run\tenerife_tourism_dbt\models\marts\estaciones_clima_procesadas.sql
+[0m00:42:42.158350 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'bb755842-a25d-4b87-b654-71ea02a4c06f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000023C9959D9C0>]}
+[0m00:42:42.160350 [error] [Thread-1 (]: 1 of 1 ERROR creating sql table model processed_data.estaciones_clima_procesadas  [[31mERROR[0m in 0.63s]
+[0m00:42:42.161392 [debug] [Thread-1 (]: Finished running node model.tenerife_tourism_dbt.estaciones_clima_procesadas
+[0m00:42:42.166351 [debug] [MainThread]: Using postgres connection "master"
+[0m00:42:42.167359 [debug] [MainThread]: On master: BEGIN
+[0m00:42:42.168392 [debug] [MainThread]: Opening a new connection, currently in state closed
+[0m00:42:42.440001 [debug] [MainThread]: SQL status: BEGIN in 0.0 seconds
+[0m00:42:42.441730 [debug] [MainThread]: On master: COMMIT
+[0m00:42:42.441730 [debug] [MainThread]: Using postgres connection "master"
+[0m00:42:42.442726 [debug] [MainThread]: On master: COMMIT
+[0m00:42:42.474673 [debug] [MainThread]: SQL status: COMMIT in 0.0 seconds
+[0m00:42:42.475669 [debug] [MainThread]: On master: Close
+[0m00:42:42.477669 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m00:42:42.478668 [debug] [MainThread]: Connection 'list_neondb' was properly closed.
+[0m00:42:42.479669 [debug] [MainThread]: Connection 'list_neondb_processed_data' was properly closed.
+[0m00:42:42.480668 [debug] [MainThread]: Connection 'model.tenerife_tourism_dbt.estaciones_clima_procesadas' was properly closed.
+[0m00:42:42.482669 [info ] [MainThread]: 
+[0m00:42:42.483711 [info ] [MainThread]: Finished running 1 table model in 0 hours 0 minutes and 3.01 seconds (3.01s).
+[0m00:42:42.486712 [debug] [MainThread]: Command end result
+[0m00:42:42.498725 [info ] [MainThread]: 
+[0m00:42:42.499668 [info ] [MainThread]: [31mCompleted with 1 error and 0 warnings:[0m
+[0m00:42:42.500716 [info ] [MainThread]: 
+[0m00:42:42.502668 [error] [MainThread]:   Database Error in model estaciones_clima_procesadas (models\marts\estaciones_clima_procesadas.sql)
+  column "id" does not exist
+  LINE 15:     id,
+               ^
+  compiled Code at target\run\tenerife_tourism_dbt\models\marts\estaciones_clima_procesadas.sql
+[0m00:42:42.503671 [info ] [MainThread]: 
+[0m00:42:42.504671 [info ] [MainThread]: Done. PASS=0 WARN=0 ERROR=1 SKIP=0 TOTAL=1
+[0m00:42:42.505671 [debug] [MainThread]: Command `dbt run` failed at 00:42:42.505671 after 5.22 seconds
+[0m00:42:42.506671 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000023C962C9990>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000023C990BE590>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000023C9933D9F0>]}
+[0m00:42:42.507671 [debug] [MainThread]: Flushing usage events
+[0m00:48:41.807767 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000011FB63A5AE0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000011FB8FB56C0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000011FB8FB66E0>]}
+
+
+============================== 00:48:41.815767 | 5ac0f0a3-54e1-42d3-9645-b39d3ccd0fc8 ==============================
+[0m00:48:41.815767 [info ] [MainThread]: Running with dbt=1.7.15
+[0m00:48:41.816769 [debug] [MainThread]: running dbt with arguments {'printer_width': '80', 'indirect_selection': 'eager', 'log_cache_events': 'False', 'write_json': 'True', 'partial_parse': 'True', 'cache_selected_only': 'False', 'warn_error': 'None', 'fail_fast': 'False', 'version_check': 'True', 'log_path': 'C:\\Users\\jaime\\tenerife_tourism_dbt\\logs', 'debug': 'False', 'profiles_dir': 'C:\\Users\\jaime\\tenerife_tourism_dbt', 'use_colors': 'True', 'use_experimental_parser': 'False', 'no_print': 'None', 'quiet': 'False', 'log_format': 'default', 'introspect': 'True', 'static_parser': 'True', 'warn_error_options': 'WarnErrorOptions(include=[], exclude=[])', 'target_path': 'None', 'invocation_command': 'dbt run --select estaciones_clima_procesadas', 'send_anonymous_usage_stats': 'True'}
+[0m00:48:42.114776 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': '5ac0f0a3-54e1-42d3-9645-b39d3ccd0fc8', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000011FB8FB4280>]}
+[0m00:48:42.234769 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': '5ac0f0a3-54e1-42d3-9645-b39d3ccd0fc8', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000011FB8FB7C40>]}
+[0m00:48:42.236776 [info ] [MainThread]: Registered adapter: postgres=1.7.15
+[0m00:48:42.252770 [debug] [MainThread]: checksum: e4cfa841c1cf2b310128daf3fe81590497b767fe3788aa75c7f0bcc4959f94d1, vars: {}, profile: , target: , version: 1.7.15
+[0m00:48:42.775785 [debug] [MainThread]: Partial parsing enabled: 0 files deleted, 0 files added, 1 files changed.
+[0m00:48:42.776787 [debug] [MainThread]: Partial parsing: updated file: tenerife_tourism_dbt://models\marts\estaciones_clima_procesadas.sql
+[0m00:48:43.005739 [warn ] [MainThread]: [[33mWARNING[0m]: Configuration paths exist in your dbt_project.yml file which do not apply to any resources.
+There are 1 unused configuration paths:
+- models.tenerife_tourism_dbt.staging
+[0m00:48:43.013741 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': '5ac0f0a3-54e1-42d3-9645-b39d3ccd0fc8', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000011FB955C0D0>]}
+[0m00:48:43.050853 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': '5ac0f0a3-54e1-42d3-9645-b39d3ccd0fc8', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000011FB93D3070>]}
+[0m00:48:43.051846 [info ] [MainThread]: Found 1 model, 4 sources, 0 exposures, 0 metrics, 401 macros, 0 groups, 0 semantic models
+[0m00:48:43.053801 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '5ac0f0a3-54e1-42d3-9645-b39d3ccd0fc8', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000011FB93E05B0>]}
+[0m00:48:43.057842 [info ] [MainThread]: 
+[0m00:48:43.058799 [debug] [MainThread]: Acquiring new postgres connection 'master'
+[0m00:48:43.061799 [debug] [ThreadPool]: Acquiring new postgres connection 'list_neondb'
+[0m00:48:43.079804 [debug] [ThreadPool]: Using postgres connection "list_neondb"
+[0m00:48:43.080805 [debug] [ThreadPool]: On list_neondb: /* {"app": "dbt", "dbt_version": "1.7.15", "profile_name": "tenerife_tourism_dbt", "target_name": "dev", "connection_name": "list_neondb"} */
+
+    select distinct nspname from pg_namespace
+  
+[0m00:48:43.081804 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m00:48:43.480751 [debug] [ThreadPool]: SQL status: SELECT 6 in 0.0 seconds
+[0m00:48:43.484765 [debug] [ThreadPool]: On list_neondb: Close
+[0m00:48:43.490778 [debug] [ThreadPool]: Acquiring new postgres connection 'list_neondb_processed_data'
+[0m00:48:43.507769 [debug] [ThreadPool]: Using postgres connection "list_neondb_processed_data"
+[0m00:48:43.508771 [debug] [ThreadPool]: On list_neondb_processed_data: BEGIN
+[0m00:48:43.509771 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m00:48:43.798196 [debug] [ThreadPool]: SQL status: BEGIN in 0.0 seconds
+[0m00:48:43.799255 [debug] [ThreadPool]: Using postgres connection "list_neondb_processed_data"
+[0m00:48:43.800246 [debug] [ThreadPool]: On list_neondb_processed_data: /* {"app": "dbt", "dbt_version": "1.7.15", "profile_name": "tenerife_tourism_dbt", "target_name": "dev", "connection_name": "list_neondb_processed_data"} */
+select
+      'neondb' as database,
+      tablename as name,
+      schemaname as schema,
+      'table' as type
+    from pg_tables
+    where schemaname ilike 'processed_data'
+    union all
+    select
+      'neondb' as database,
+      viewname as name,
+      schemaname as schema,
+      'view' as type
+    from pg_views
+    where schemaname ilike 'processed_data'
+    union all
+    select
+      'neondb' as database,
+      matviewname as name,
+      schemaname as schema,
+      'materialized_view' as type
+    from pg_matviews
+    where schemaname ilike 'processed_data'
+  
+[0m00:48:43.834052 [debug] [ThreadPool]: SQL status: SELECT 10 in 0.0 seconds
+[0m00:48:43.838925 [debug] [ThreadPool]: On list_neondb_processed_data: ROLLBACK
+[0m00:48:43.871963 [debug] [ThreadPool]: On list_neondb_processed_data: Close
+[0m00:48:43.885004 [debug] [MainThread]: Using postgres connection "master"
+[0m00:48:43.885955 [debug] [MainThread]: On master: BEGIN
+[0m00:48:43.885955 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m00:48:44.163956 [debug] [MainThread]: SQL status: BEGIN in 0.0 seconds
+[0m00:48:44.164951 [debug] [MainThread]: Using postgres connection "master"
+[0m00:48:44.164951 [debug] [MainThread]: On master: /* {"app": "dbt", "dbt_version": "1.7.15", "profile_name": "tenerife_tourism_dbt", "target_name": "dev", "connection_name": "master"} */
+with relation as (
+        select
+            pg_rewrite.ev_class as class,
+            pg_rewrite.oid as id
+        from pg_rewrite
+    ),
+    class as (
+        select
+            oid as id,
+            relname as name,
+            relnamespace as schema,
+            relkind as kind
+        from pg_class
+    ),
+    dependency as (
+        select distinct
+            pg_depend.objid as id,
+            pg_depend.refobjid as ref
+        from pg_depend
+    ),
+    schema as (
+        select
+            pg_namespace.oid as id,
+            pg_namespace.nspname as name
+        from pg_namespace
+        where nspname != 'information_schema' and nspname not like 'pg\_%'
+    ),
+    referenced as (
+        select
+            relation.id AS id,
+            referenced_class.name ,
+            referenced_class.schema ,
+            referenced_class.kind
+        from relation
+        join class as referenced_class on relation.class=referenced_class.id
+        where referenced_class.kind in ('r', 'v', 'm')
+    ),
+    relationships as (
+        select
+            referenced.name as referenced_name,
+            referenced.schema as referenced_schema_id,
+            dependent_class.name as dependent_name,
+            dependent_class.schema as dependent_schema_id,
+            referenced.kind as kind
+        from referenced
+        join dependency on referenced.id=dependency.id
+        join class as dependent_class on dependency.ref=dependent_class.id
+        where
+            (referenced.name != dependent_class.name or
+             referenced.schema != dependent_class.schema)
+    )
+
+    select
+        referenced_schema.name as referenced_schema,
+        relationships.referenced_name as referenced_name,
+        dependent_schema.name as dependent_schema,
+        relationships.dependent_name as dependent_name
+    from relationships
+    join schema as dependent_schema on relationships.dependent_schema_id=dependent_schema.id
+    join schema as referenced_schema on relationships.referenced_schema_id=referenced_schema.id
+    group by referenced_schema, referenced_name, dependent_schema, dependent_name
+    order by referenced_schema, referenced_name, dependent_schema, dependent_name;
+[0m00:48:44.203548 [debug] [MainThread]: SQL status: SELECT 0 in 0.0 seconds
+[0m00:48:44.206575 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '5ac0f0a3-54e1-42d3-9645-b39d3ccd0fc8', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000011FB95917E0>]}
+[0m00:48:44.208576 [debug] [MainThread]: On master: ROLLBACK
+[0m00:48:44.240008 [debug] [MainThread]: Using postgres connection "master"
+[0m00:48:44.241062 [debug] [MainThread]: On master: BEGIN
+[0m00:48:44.325496 [debug] [MainThread]: SQL status: BEGIN in 0.0 seconds
+[0m00:48:44.326464 [debug] [MainThread]: On master: COMMIT
+[0m00:48:44.327464 [debug] [MainThread]: Using postgres connection "master"
+[0m00:48:44.328463 [debug] [MainThread]: On master: COMMIT
+[0m00:48:44.359288 [debug] [MainThread]: SQL status: COMMIT in 0.0 seconds
+[0m00:48:44.360305 [debug] [MainThread]: On master: Close
+[0m00:48:44.362298 [info ] [MainThread]: Concurrency: 4 threads (target='dev')
+[0m00:48:44.364297 [info ] [MainThread]: 
+[0m00:48:44.387809 [debug] [Thread-1 (]: Began running node model.tenerife_tourism_dbt.estaciones_clima_procesadas
+[0m00:48:44.388809 [info ] [Thread-1 (]: 1 of 1 START sql table model processed_data.estaciones_clima_procesadas ........ [RUN]
+[0m00:48:44.390811 [debug] [Thread-1 (]: Acquiring new postgres connection 'model.tenerife_tourism_dbt.estaciones_clima_procesadas'
+[0m00:48:44.391815 [debug] [Thread-1 (]: Began compiling node model.tenerife_tourism_dbt.estaciones_clima_procesadas
+[0m00:48:44.405807 [debug] [Thread-1 (]: Writing injected SQL for node "model.tenerife_tourism_dbt.estaciones_clima_procesadas"
+[0m00:48:44.407809 [debug] [Thread-1 (]: Timing info for model.tenerife_tourism_dbt.estaciones_clima_procesadas (compile): 00:48:44.392813 => 00:48:44.407809
+[0m00:48:44.408808 [debug] [Thread-1 (]: Began executing node model.tenerife_tourism_dbt.estaciones_clima_procesadas
+[0m00:48:44.508846 [debug] [Thread-1 (]: Writing runtime sql for node "model.tenerife_tourism_dbt.estaciones_clima_procesadas"
+[0m00:48:44.510849 [debug] [Thread-1 (]: Using postgres connection "model.tenerife_tourism_dbt.estaciones_clima_procesadas"
+[0m00:48:44.511847 [debug] [Thread-1 (]: On model.tenerife_tourism_dbt.estaciones_clima_procesadas: BEGIN
+[0m00:48:44.512850 [debug] [Thread-1 (]: Opening a new connection, currently in state init
+[0m00:48:44.813306 [debug] [Thread-1 (]: SQL status: BEGIN in 0.0 seconds
+[0m00:48:44.815313 [debug] [Thread-1 (]: Using postgres connection "model.tenerife_tourism_dbt.estaciones_clima_procesadas"
+[0m00:48:44.816309 [debug] [Thread-1 (]: On model.tenerife_tourism_dbt.estaciones_clima_procesadas: /* {"app": "dbt", "dbt_version": "1.7.15", "profile_name": "tenerife_tourism_dbt", "target_name": "dev", "node_id": "model.tenerife_tourism_dbt.estaciones_clima_procesadas"} */
+
+  
+    
+
+  create  table "neondb"."processed_data"."estaciones_clima_procesadas__dbt_tmp"
+  
+  
+    as
+  
+  (
+    
+
+SELECT 
+    id_estacion as id,
+    nombre,
+    ST_Transform(ubicacion, 32628) as geometry,
+    altitud
+FROM "neondb"."raw_data"."estaciones_clima"
+  );
+  
+[0m00:48:44.891876 [debug] [Thread-1 (]: SQL status: SELECT 0 in 0.0 seconds
+[0m00:48:44.910883 [debug] [Thread-1 (]: Using postgres connection "model.tenerife_tourism_dbt.estaciones_clima_procesadas"
+[0m00:48:44.911877 [debug] [Thread-1 (]: On model.tenerife_tourism_dbt.estaciones_clima_procesadas: /* {"app": "dbt", "dbt_version": "1.7.15", "profile_name": "tenerife_tourism_dbt", "target_name": "dev", "node_id": "model.tenerife_tourism_dbt.estaciones_clima_procesadas"} */
+alter table "neondb"."processed_data"."estaciones_clima_procesadas__dbt_tmp" rename to "estaciones_clima_procesadas"
+[0m00:48:44.943977 [debug] [Thread-1 (]: SQL status: ALTER TABLE in 0.0 seconds
+[0m00:48:44.969676 [debug] [Thread-1 (]: On model.tenerife_tourism_dbt.estaciones_clima_procesadas: COMMIT
+[0m00:48:44.970719 [debug] [Thread-1 (]: Using postgres connection "model.tenerife_tourism_dbt.estaciones_clima_procesadas"
+[0m00:48:44.971716 [debug] [Thread-1 (]: On model.tenerife_tourism_dbt.estaciones_clima_procesadas: COMMIT
+[0m00:48:45.005311 [debug] [Thread-1 (]: SQL status: COMMIT in 0.0 seconds
+[0m00:48:45.015309 [debug] [Thread-1 (]: Applying DROP to: "neondb"."processed_data"."estaciones_clima_procesadas__dbt_backup"
+[0m00:48:45.022307 [debug] [Thread-1 (]: Using postgres connection "model.tenerife_tourism_dbt.estaciones_clima_procesadas"
+[0m00:48:45.023307 [debug] [Thread-1 (]: On model.tenerife_tourism_dbt.estaciones_clima_procesadas: /* {"app": "dbt", "dbt_version": "1.7.15", "profile_name": "tenerife_tourism_dbt", "target_name": "dev", "node_id": "model.tenerife_tourism_dbt.estaciones_clima_procesadas"} */
+drop table if exists "neondb"."processed_data"."estaciones_clima_procesadas__dbt_backup" cascade
+[0m00:48:45.055055 [debug] [Thread-1 (]: SQL status: DROP TABLE in 0.0 seconds
+[0m00:48:45.057948 [debug] [Thread-1 (]: Timing info for model.tenerife_tourism_dbt.estaciones_clima_procesadas (execute): 00:48:44.409807 => 00:48:45.057948
+[0m00:48:45.058948 [debug] [Thread-1 (]: On model.tenerife_tourism_dbt.estaciones_clima_procesadas: Close
+[0m00:48:45.059948 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '5ac0f0a3-54e1-42d3-9645-b39d3ccd0fc8', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000011FB95E1330>]}
+[0m00:48:45.060948 [info ] [Thread-1 (]: 1 of 1 OK created sql table model processed_data.estaciones_clima_procesadas ... [[32mSELECT 0[0m in 0.67s]
+[0m00:48:45.062946 [debug] [Thread-1 (]: Finished running node model.tenerife_tourism_dbt.estaciones_clima_procesadas
+[0m00:48:45.066991 [debug] [MainThread]: Using postgres connection "master"
+[0m00:48:45.067944 [debug] [MainThread]: On master: BEGIN
+[0m00:48:45.069037 [debug] [MainThread]: Opening a new connection, currently in state closed
+[0m00:48:45.373568 [debug] [MainThread]: SQL status: BEGIN in 0.0 seconds
+[0m00:48:45.375633 [debug] [MainThread]: On master: COMMIT
+[0m00:48:45.376629 [debug] [MainThread]: Using postgres connection "master"
+[0m00:48:45.378581 [debug] [MainThread]: On master: COMMIT
+[0m00:48:45.410818 [debug] [MainThread]: SQL status: COMMIT in 0.0 seconds
+[0m00:48:45.411832 [debug] [MainThread]: On master: Close
+[0m00:48:45.412825 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m00:48:45.413826 [debug] [MainThread]: Connection 'list_neondb' was properly closed.
+[0m00:48:45.414825 [debug] [MainThread]: Connection 'list_neondb_processed_data' was properly closed.
+[0m00:48:45.414825 [debug] [MainThread]: Connection 'model.tenerife_tourism_dbt.estaciones_clima_procesadas' was properly closed.
+[0m00:48:45.415825 [info ] [MainThread]: 
+[0m00:48:45.416828 [info ] [MainThread]: Finished running 1 table model in 0 hours 0 minutes and 2.36 seconds (2.36s).
+[0m00:48:45.418834 [debug] [MainThread]: Command end result
+[0m00:48:45.430869 [info ] [MainThread]: 
+[0m00:48:45.431870 [info ] [MainThread]: [32mCompleted successfully[0m
+[0m00:48:45.432872 [info ] [MainThread]: 
+[0m00:48:45.433855 [info ] [MainThread]: Done. PASS=1 WARN=0 ERROR=0 SKIP=0 TOTAL=1
+[0m00:48:45.437827 [debug] [MainThread]: Command `dbt run` succeeded at 00:48:45.436877 after 3.86 seconds
+[0m00:48:45.438868 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000011FB63A5AE0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000011FB8FB4280>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000011FB90CE350>]}
+[0m00:48:45.438868 [debug] [MainThread]: Flushing usage events

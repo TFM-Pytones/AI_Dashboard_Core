@@ -6,6 +6,8 @@
 *.geojson
 *.tiff
 *.shp
+*.parquet
+debug_primer_hilo.html
 
 # 2. Carpetas de datos locales
 data/
