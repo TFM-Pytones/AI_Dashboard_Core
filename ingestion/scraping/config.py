@@ -11,13 +11,20 @@ ISLAND = "Tenerife"
 BOOKING_HOTEL_SITEMAP = "https://www.booking.com/sitembk-hotel-index.xml"
 BOOKING_REVIEW_SITEMAP = "https://www.booking.com/sitembk-hotel-review-index.xml"
 
+# --- URLs de prueba (mientras no está implementado el parser de sitemaps) ---
+# Usa la URL "canónica" (sin parámetros de sesión/tracking tipo aid, sid, checkin...)
+TEST_ESTABLISHMENT_URLS = [
+    "https://www.booking.com/hotel/es/alegria-barranco1.es.html",
+]
+
 # --- Rate limiting ---
 MIN_DELAY_SECONDS = 3.0
 MAX_DELAY_SECONDS = 8.0
 
 # --- Límites de una corrida, para no sobrecargar la infraestructura del sitio ---
-MAX_ESTABLISHMENTS_PER_RUN = 20
-MAX_REVIEWS_PER_ESTABLISHMENT = 100
+# Empieza bajo para probar rápido; sube estos números cuando ya confirmes que funciona.
+MAX_ESTABLISHMENTS_PER_RUN = 1
+MAX_REVIEWS_PER_ESTABLISHMENT = 15
 
 # --- User-Agent identificable y honesto (ver README: no spoofear como Googlebot u otro bot) ---
 CONTACT_INFO = "TFM-Tenerife-AI-Dashboard (uso academico, contacto: equipo@tfm-tenerife.example)"
