@@ -1,7 +1,9 @@
 # Conexión a Base de Datos y Variables de Entorno
 psycopg2-binary==2.9.12
+psycopg2==2.9.12
 sqlalchemy==2.0.51
 python-dotenv==1.2.2
+
 
 pandas==3.0.3
 numpy==2.5.0
@@ -10,6 +12,11 @@ ipykernel==7.3.0
 # Análisis Geoespacial
 geopandas==1.1.4
 shapely==2.1.2
+rasterio>=1.3.0          # MDT: lectura/escritura GeoTIFF, slope, aspect, hillshade
+                         # En Windows instalar primero: pip install GDAL
+
+# Formato Parquet
+pyarrow
 
 # Web Scrapping y APIs
 requests==2.34.2
@@ -17,6 +24,10 @@ requests==2.34.2
 # Transformacion de datos (dbt)
 dbt-core==1.11.12
 dbt-postgres==1.10.2
+
+# Azure y Conectores adicionales
+azure-storage-blob>=12.19.0
+geoalchemy2>=0.14.0
 
 # NLP / Hugging Face (analytics/sentiment)
 transformers==4.57.1
@@ -26,3 +37,12 @@ sentencepiece==0.2.1
 # NLP / Extraccion de aspectos (analytics/aspects)
 pyabsa==2.4.2
 update-checker==0.18.0  # pin necesario: la 1.0.0 rompe metric_visualizer (dependencia de pyabsa)
+
+# Validación Meteorológica (Open-Meteo vs Agrocabildo)
+openmeteo-requests>=0.3.0      # Cliente oficial Open-Meteo con caché integrada
+requests-cache>=1.2.0          # Caché HTTP para evitar re-descargas
+retry-requests>=2.0.0          # Reintentos automáticos en peticiones HTTP
+scikit-learn>=1.4.0            # Métricas: MAE, RMSE, R²
+seaborn>=0.13.0                # Visualizaciones: heatmaps, boxplots
+scipy>=1.13.0                  # Stats: regresión lineal, tests estadísticos
+matplotlib>=3.8.0              # Gráficos base
