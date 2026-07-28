@@ -222,14 +222,16 @@ def _parse_review_card(card) -> Review | None:
         review_date = date_raw.replace("Fecha del comentario:", "").strip() or None
 
         # País del autor (NO se extrae el nombre, ver README - consideraciones éticas)
+        # La bandera del país es un <img alt="País">; la foto de perfil (si existe)
+        # siempre tiene alt="" vacío, por eso buscamos la primera con alt no vacío.
         reviewer_country = None
         try:
             avatar = card.find_element(By.CSS_SELECTOR, '[data-testid="review-avatar"]')
-            spans = avatar.find_elements(By.TAG_NAME, "span")
-            for span in spans:
-                text = span.text.strip()
-                if text and "activo desde" not in text.lower():
-                    reviewer_country = text
+            flag_imgs = avatar.find_elements(By.CSS_SELECTOR, "img[alt]")
+            for img in flag_imgs:
+                alt_text = img.get_attribute("alt")
+                if alt_text:
+                    reviewer_country = alt_text
                     break
         except NoSuchElementException:
             pass
@@ -277,9 +279,22 @@ def scrape_establishment(url: str) -> tuple[Establishment, list[Review]]:
 
         def _get_address():
             try:
-                return driver.find_element(
-                    By.CSS_SELECTOR, '[data-testid="address"]'
-                ).text.strip()
+                wrapper = driver.find_element(
+                    By.CSS_SELECTOR, '[data-testid="PropertyHeaderAddressDesktop-wrapper"]'
+                )
+                button = wrapper.find_element(By.CSS_SELECTOR, "button")
+                inner_div = button.find_element(By.CSS_SELECTOR, "div")
+                # El texto de la dirección real está en el primer nodo de texto
+                # directo de este div; el resto es un tooltip anidado que se
+                # cuela si usamos simplemente .text
+                full_text = driver.execute_script(
+                    """
+                    let node = arguments[0].childNodes[0];
+                    return node && node.nodeType === Node.TEXT_NODE ? node.textContent.trim() : '';
+                    """,
+                    inner_div,
+                )
+                return full_text or None
             except NoSuchElementException:
                 return None
 

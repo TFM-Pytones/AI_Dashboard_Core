@@ -1,0 +1,10 @@
+2026-07-28 18:46:15 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-07-28 18:46:15 - WARNING - __main__ - Usando TEST_ESTABLISHMENT_URLS (lista manual) — el descubrimiento vía sitemap todavía no está implementado.
+2026-07-28 18:46:15 - INFO - __main__ - [1/1] Procesando https://www.booking.com/hotel/es/alegria-barranco1.es.html
+2026-07-28 18:46:15 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/alegria-barranco1.es.html
+2026-07-28 18:46:31 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-28 18:46:42 - WARNING - __main__ -   Elemento obsoleto (stale), reintentando (1/4)...
+2026-07-28 18:46:50 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-07-28 18:46:59 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-07-28 18:47:02 - INFO - __main__ - Guardado completo: 1 establecimientos, 15 reseñas.
+2026-07-28 18:47:10 - INFO - __main__ - === Corrida finalizada: 1 establecimientos, 15 reseñas en total ===
