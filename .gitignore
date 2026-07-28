@@ -24,3 +24,8 @@ __pycache__/
 venv/
 env/
 .DS_Store
+
+# 5. Archivos temporales de dbt
+target/
+dbt_packages/
+logs/

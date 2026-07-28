@@ -11,3 +11,5 @@ sources:
         columns: [{name: geometry}]
       - name: gtfs_paradas
         columns: [{name: geometry}]
+      - name: losviajeros_temas
+      - name: losviajeros_mensajes
