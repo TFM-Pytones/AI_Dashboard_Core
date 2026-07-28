@@ -11,10 +11,46 @@ ISLAND = "Tenerife"
 BOOKING_HOTEL_SITEMAP = "https://www.booking.com/sitembk-hotel-index.xml"
 BOOKING_REVIEW_SITEMAP = "https://www.booking.com/sitembk-hotel-review-index.xml"
 
-# --- URLs de prueba (mientras no está implementado el parser de sitemaps) ---
-# Usa la URL "canónica" (sin parámetros de sesión/tracking tipo aid, sid, checkin...)
+# --- URLs de prueba (dejar vacía [] para usar el descubrimiento real vía sitemap) ---
 TEST_ESTABLISHMENT_URLS = [
     "https://www.booking.com/hotel/es/alegria-barranco1.es.html",
+    "https://www.booking.com/hotel/es/puerto-palace.es.html",
+]
+
+# --- Municipios de Tenerife, para filtrar URLs del sitemap por slug ---
+# LIMITACIÓN CONOCIDA: solo detecta establecimientos cuyo slug de URL incluye
+# el nombre del municipio (ver docstring de _matches_tenerife en booking_scraper.py)
+TENERIFE_MUNICIPALITIES = [
+    "tenerife",
+    "santa-cruz-de-tenerife",
+    "la-laguna",
+    "san-cristobal-de-la-laguna",
+    "puerto-de-la-cruz",
+    "adeje",
+    "playa-de-las-americas",
+    "costa-adeje",
+    "los-cristianos",
+    "arona",
+    "granadilla",
+    "candelaria",
+    "guimar",
+    "icod-de-los-vinos",
+    "garachico",
+    "los-realejos",
+    "la-orotava",
+    "tacoronte",
+    "el-sauzal",
+    "buenavista-del-norte",
+    "vilaflor",
+    "fasnia",
+    "arico",
+    "san-miguel-de-abona",
+    "santa-ursula",
+    "el-rosario",
+    "tegueste",
+    "bajamar",
+    "los-gigantes",
+    "san-isidro-tenerife",
 ]
 
 # --- Rate limiting ---
@@ -23,7 +59,7 @@ MAX_DELAY_SECONDS = 8.0
 
 # --- Límites de una corrida, para no sobrecargar la infraestructura del sitio ---
 # Empieza bajo para probar rápido; sube estos números cuando ya confirmes que funciona.
-MAX_ESTABLISHMENTS_PER_RUN = 1
+MAX_ESTABLISHMENTS_PER_RUN = 2
 MAX_REVIEWS_PER_ESTABLISHMENT = 15
 
 # --- User-Agent identificable y honesto (ver README: no spoofear como Googlebot u otro bot) ---
@@ -38,4 +74,12 @@ OUTPUT_DIR = "output"  # carpeta local temporal antes de subir a Azure Blob
 AZURE_SUBFOLDER = "booking"  # carpeta lógica dentro de bronce-raw
 
 # --- Logging ---
-LOG_FILE = "booking_scraper.log"
+# Ruta absoluta y fija, para que el log siempre quede en el mismo lugar
+# sin importar desde qué carpeta se ejecute el script. Se sube a Git (docs/)
+# para que el equipo pueda ver el historial de corridas y limitaciones
+# encontradas (bloqueos, CAPTCHAs, etc.) para la sección del TFM.
+from pathlib import Path
+
+LOG_FILE = str(
+    Path(__file__).resolve().parent / "docs" / "booking_scraper.log"
+)

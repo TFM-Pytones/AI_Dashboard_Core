@@ -1,0 +1,378 @@
+2026-07-28 20:44:19 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-07-28 20:44:19 - WARNING - __main__ - Usando TEST_ESTABLISHMENT_URLS (lista manual) — el descubrimiento vía sitemap todavía no está implementado.
+2026-07-28 20:44:19 - INFO - __main__ - [1/2] Procesando https://www.booking.com/hotel/es/alegria-barranco1.es.html
+2026-07-28 20:44:19 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/alegria-barranco1.es.html
+2026-07-28 20:44:30 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-28 20:44:42 - WARNING - __main__ -   Elemento obsoleto (stale), reintentando (1/4)...
+2026-07-28 20:44:51 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-07-28 20:44:57 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-07-28 20:45:00 - INFO - __main__ - Guardado completo: 1 establecimientos, 15 reseñas.
+2026-07-28 20:45:06 - INFO - __main__ - [2/2] Procesando https://www.booking.com/hotel/es/puerto-palace.es.html
+2026-07-28 20:45:06 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/puerto-palace.es.html
+2026-07-28 20:45:16 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-28 20:45:24 - WARNING - __main__ -   Elemento obsoleto (stale), reintentando (1/4)...
+2026-07-28 20:45:33 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-07-28 20:45:44 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-07-28 20:45:49 - INFO - __main__ - Guardado completo: 1 establecimientos, 15 reseñas.
+2026-07-28 20:45:55 - INFO - __main__ - === Corrida finalizada: 2 establecimientos, 30 reseñas en total ===
+2026-07-28 22:47:35 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-07-28 22:47:35 - WARNING - __main__ - Usando TEST_ESTABLISHMENT_URLS (lista manual) — el descubrimiento vía sitemap todavía no está implementado.
+2026-07-28 22:47:35 - INFO - __main__ - 2 establecimiento(s) ya completados en corridas anteriores, se omiten.
+2026-07-28 22:47:35 - INFO - __main__ - No hay establecimientos pendientes. Nada que hacer.
+2026-07-28 22:49:15 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-07-28 22:49:15 - WARNING - __main__ - Usando TEST_ESTABLISHMENT_URLS (lista manual) — el descubrimiento vía sitemap todavía no está implementado.
+2026-07-28 22:49:15 - INFO - __main__ - [1/2] Procesando https://www.booking.com/hotel/es/alegria-barranco1.es.html
+2026-07-28 22:49:15 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/alegria-barranco1.es.html
+2026-07-28 22:49:51 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-28 22:50:04 - WARNING - __main__ -   Elemento obsoleto (stale), reintentando (1/4)...
+2026-07-28 22:50:16 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-07-28 22:50:26 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-07-28 22:50:31 - INFO - __main__ - Guardado completo: 1 establecimientos, 15 reseñas.
+2026-07-28 22:50:37 - INFO - __main__ - [2/2] Procesando https://www.booking.com/hotel/es/puerto-palace.es.html
+2026-07-28 22:50:37 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/puerto-palace.es.html
+2026-07-28 22:51:22 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/puerto-palace.es.html: Message: timeout: Timed out receiving message from renderer: 30.000
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x11a5843+10883]
+	chromedriver!GetHandleVerifier [0x11a5884+108c4]
+	chromedriver!(No symbol) [0xfa90e0]
+	chromedriver!(No symbol) [0xf996d3]
+	chromedriver!(No symbol) [0xf99405]
+	chromedriver!(No symbol) [0xf975d8]
+	chromedriver!(No symbol) [0xf97e26]
+	chromedriver!(No symbol) [0xfa4acb]
+	chromedriver!(No symbol) [0xfb65de]
+	chromedriver!(No symbol) [0xfbc656]
+	chromedriver!(No symbol) [0xf984ac]
+	chromedriver!(No symbol) [0xfb6337]
+	chromedriver!(No symbol) [0x10330ba]
+	chromedriver!(No symbol) [0x1015406]
+	chromedriver!(No symbol) [0xfe8659]
+	chromedriver!(No symbol) [0xfe9424]
+	chromedriver!GetHandleVerifier [0x143ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0x143847b+2a34bb]
+	chromedriver!GetHandleVerifier [0x14594eb+2c452b]
+	chromedriver!GetHandleVerifier [0x11bf566+2a5a6]
+	chromedriver!GetHandleVerifier [0x11c620d+3124d]
+	chromedriver!GetHandleVerifier [0x11ae318+19358]
+	chromedriver!GetHandleVerifier [0x11ae4c5+19505]
+	chromedriver!GetHandleVerifier [0x11970af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-28 22:51:25 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/puerto-palace.es.html: Message: timeout: Timed out receiving message from renderer: 30.000
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x11a5843+10883]
+	chromedriver!GetHandleVerifier [0x11a5884+108c4]
+	chromedriver!(No symbol) [0xfa90e0]
+	chromedriver!(No symbol) [0xf996d3]
+	chromedriver!(No symbol) [0xf99405]
+	chromedriver!(No symbol) [0xf975d8]
+	chromedriver!(No symbol) [0xf97e26]
+	chromedriver!(No symbol) [0xfa4acb]
+	chromedriver!(No symbol) [0xfb65de]
+	chromedriver!(No symbol) [0xfbc656]
+	chromedriver!(No symbol) [0xf984ac]
+	chromedriver!(No symbol) [0xfb6337]
+	chromedriver!(No symbol) [0x10330ba]
+	chromedriver!(No symbol) [0x1015406]
+	chromedriver!(No symbol) [0xfe8659]
+	chromedriver!(No symbol) [0xfe9424]
+	chromedriver!GetHandleVerifier [0x143ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0x143847b+2a34bb]
+	chromedriver!GetHandleVerifier [0x14594eb+2c452b]
+	chromedriver!GetHandleVerifier [0x11bf566+2a5a6]
+	chromedriver!GetHandleVerifier [0x11c620d+3124d]
+	chromedriver!GetHandleVerifier [0x11ae318+19358]
+	chromedriver!GetHandleVerifier [0x11ae4c5+19505]
+	chromedriver!GetHandleVerifier [0x11970af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-28 22:51:25 - INFO - __main__ - === Corrida finalizada: 1 establecimientos, 15 reseñas en total ===
+2026-07-28 22:57:48 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-07-28 22:57:48 - WARNING - __main__ - Usando TEST_ESTABLISHMENT_URLS (lista manual) — el descubrimiento vía sitemap todavía no está implementado.
+2026-07-28 22:57:48 - INFO - __main__ - 1 establecimiento(s) ya completados en corridas anteriores, se omiten.
+2026-07-28 22:57:48 - INFO - __main__ - [1/1] Procesando https://www.booking.com/hotel/es/puerto-palace.es.html
+2026-07-28 22:57:48 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/puerto-palace.es.html
+2026-07-28 22:58:32 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/puerto-palace.es.html: Message: timeout: Timed out receiving message from renderer: 30.000
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x11a5843+10883]
+	chromedriver!GetHandleVerifier [0x11a5884+108c4]
+	chromedriver!(No symbol) [0xfa90e0]
+	chromedriver!(No symbol) [0xf996d3]
+	chromedriver!(No symbol) [0xf99405]
+	chromedriver!(No symbol) [0xf975d8]
+	chromedriver!(No symbol) [0xf97e26]
+	chromedriver!(No symbol) [0xfa4acb]
+	chromedriver!(No symbol) [0xfb65de]
+	chromedriver!(No symbol) [0xfbc656]
+	chromedriver!(No symbol) [0xf984ac]
+	chromedriver!(No symbol) [0xfb6337]
+	chromedriver!(No symbol) [0x10330ba]
+	chromedriver!(No symbol) [0x1015406]
+	chromedriver!(No symbol) [0xfe8659]
+	chromedriver!(No symbol) [0xfe9424]
+	chromedriver!GetHandleVerifier [0x143ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0x143847b+2a34bb]
+	chromedriver!GetHandleVerifier [0x14594eb+2c452b]
+	chromedriver!GetHandleVerifier [0x11bf566+2a5a6]
+	chromedriver!GetHandleVerifier [0x11c620d+3124d]
+	chromedriver!GetHandleVerifier [0x11ae318+19358]
+	chromedriver!GetHandleVerifier [0x11ae4c5+19505]
+	chromedriver!GetHandleVerifier [0x11970af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-28 22:58:34 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/puerto-palace.es.html: Message: timeout: Timed out receiving message from renderer: 30.000
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x11a5843+10883]
+	chromedriver!GetHandleVerifier [0x11a5884+108c4]
+	chromedriver!(No symbol) [0xfa90e0]
+	chromedriver!(No symbol) [0xf996d3]
+	chromedriver!(No symbol) [0xf99405]
+	chromedriver!(No symbol) [0xf975d8]
+	chromedriver!(No symbol) [0xf97e26]
+	chromedriver!(No symbol) [0xfa4acb]
+	chromedriver!(No symbol) [0xfb65de]
+	chromedriver!(No symbol) [0xfbc656]
+	chromedriver!(No symbol) [0xf984ac]
+	chromedriver!(No symbol) [0xfb6337]
+	chromedriver!(No symbol) [0x10330ba]
+	chromedriver!(No symbol) [0x1015406]
+	chromedriver!(No symbol) [0xfe8659]
+	chromedriver!(No symbol) [0xfe9424]
+	chromedriver!GetHandleVerifier [0x143ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0x143847b+2a34bb]
+	chromedriver!GetHandleVerifier [0x14594eb+2c452b]
+	chromedriver!GetHandleVerifier [0x11bf566+2a5a6]
+	chromedriver!GetHandleVerifier [0x11c620d+3124d]
+	chromedriver!GetHandleVerifier [0x11ae318+19358]
+	chromedriver!GetHandleVerifier [0x11ae4c5+19505]
+	chromedriver!GetHandleVerifier [0x11970af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-28 22:58:34 - INFO - __main__ - === Corrida finalizada: 0 establecimientos, 0 reseñas en total ===
+2026-07-28 22:59:13 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-07-28 22:59:13 - WARNING - __main__ - Usando TEST_ESTABLISHMENT_URLS (lista manual) — el descubrimiento vía sitemap todavía no está implementado.
+2026-07-28 22:59:13 - INFO - __main__ - 1 establecimiento(s) ya completados en corridas anteriores, se omiten.
+2026-07-28 22:59:13 - INFO - __main__ - [1/1] Procesando https://www.booking.com/hotel/es/puerto-palace.es.html
+2026-07-28 22:59:13 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/puerto-palace.es.html
+2026-07-28 22:59:46 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-28 22:59:49 - INFO - __main__ -   Geocodificación sin resultado, reintentando sin 's/n': 'Doctor Cobiella Zaera, 38400 Puerto de la Cruz, España'
+2026-07-28 22:59:56 - WARNING - __main__ -   Elemento obsoleto (stale), reintentando (1/4)...
+2026-07-28 23:00:04 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-07-28 23:00:10 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-07-28 23:00:15 - INFO - __main__ - Guardado completo: 1 establecimientos, 15 reseñas.
+2026-07-28 23:00:19 - INFO - __main__ - === Corrida finalizada: 1 establecimientos, 15 reseñas en total ===
+2026-07-28 23:16:53 - INFO - booking_scraper - Descargando índice de sitemaps de Booking...
+2026-07-28 23:16:54 - INFO - booking_scraper - 78 shards del idioma español encontrados. Recorriendo...
+2026-07-28 23:16:56 - INFO - booking_scraper -   Shard 1/78: 37685 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:16:59 - INFO - booking_scraper -   Shard 2/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:17:02 - INFO - booking_scraper -   Shard 3/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:17:06 - INFO - booking_scraper -   Shard 4/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:17:09 - INFO - booking_scraper -   Shard 5/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:17:12 - INFO - booking_scraper -   Shard 6/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:17:15 - INFO - booking_scraper -   Shard 7/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:17:17 - INFO - booking_scraper -   Shard 8/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:17:19 - INFO - booking_scraper -   Shard 9/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:17:22 - INFO - booking_scraper -   Shard 10/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:17:25 - INFO - booking_scraper -   Shard 11/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:17:28 - INFO - booking_scraper -   Shard 12/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:17:31 - INFO - booking_scraper -   Shard 13/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:17:36 - INFO - booking_scraper -   Shard 14/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:17:40 - INFO - booking_scraper -   Shard 15/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:17:45 - INFO - booking_scraper -   Shard 16/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:17:49 - INFO - booking_scraper -   Shard 17/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:17:53 - INFO - booking_scraper -   Shard 18/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:17:59 - INFO - booking_scraper -   Shard 19/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:18:03 - INFO - booking_scraper -   Shard 20/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:18:06 - INFO - booking_scraper -   Shard 21/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:18:18 - INFO - booking_scraper -   Shard 22/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:18:51 - INFO - booking_scraper -   Shard 23/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:18:54 - INFO - booking_scraper -   Shard 24/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:18:58 - INFO - booking_scraper -   Shard 25/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:19:05 - INFO - booking_scraper -   Shard 26/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:19:12 - INFO - booking_scraper -   Shard 27/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:19:15 - INFO - booking_scraper -   Shard 28/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:19:18 - INFO - booking_scraper -   Shard 29/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:19:22 - INFO - booking_scraper -   Shard 30/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:19:24 - INFO - booking_scraper -   Shard 31/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:19:31 - INFO - booking_scraper -   Shard 32/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:19:34 - INFO - booking_scraper -   Shard 33/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:19:37 - INFO - booking_scraper -   Shard 34/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:19:40 - INFO - booking_scraper -   Shard 35/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:19:43 - INFO - booking_scraper -   Shard 36/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:19:46 - INFO - booking_scraper -   Shard 37/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:19:48 - INFO - booking_scraper -   Shard 38/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:19:51 - INFO - booking_scraper -   Shard 39/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:19:54 - INFO - booking_scraper -   Shard 40/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:19:57 - INFO - booking_scraper -   Shard 41/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:19:59 - INFO - booking_scraper -   Shard 42/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:20:02 - INFO - booking_scraper -   Shard 43/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:20:07 - INFO - booking_scraper -   Shard 44/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:20:12 - INFO - booking_scraper -   Shard 45/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:20:25 - INFO - booking_scraper -   Shard 46/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:20:31 - INFO - booking_scraper -   Shard 47/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:20:41 - INFO - booking_scraper -   Shard 48/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:20:51 - INFO - booking_scraper -   Shard 49/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:20:55 - INFO - booking_scraper -   Shard 50/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:20:58 - INFO - booking_scraper -   Shard 51/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:21:02 - INFO - booking_scraper -   Shard 52/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:21:08 - INFO - booking_scraper -   Shard 53/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:21:15 - INFO - booking_scraper -   Shard 54/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:21:21 - INFO - booking_scraper -   Shard 55/78: 49990 URLs, 532 coinciden con Tenerife (532 acumuladas)
+2026-07-28 23:21:21 - INFO - booking_scraper - Descubrimiento guardado en caché: C:\Users\jcabr\AI_Dashboard_Core\ingestion\scraping\sitemap_discovery_cache.json
+2026-07-28 23:30:32 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-07-28 23:30:32 - WARNING - __main__ - Usando TEST_ESTABLISHMENT_URLS (lista manual) en vez del sitemap.
+2026-07-28 23:30:32 - INFO - __main__ - 2 establecimiento(s) ya completados en corridas anteriores, se omiten.
+2026-07-28 23:30:32 - INFO - __main__ - No hay establecimientos pendientes. Nada que hacer.
+2026-07-28 23:43:05 - INFO - booking_scraper - Descargando índice de sitemaps de Booking...
+2026-07-28 23:43:06 - INFO - booking_scraper - 78 shards del idioma español encontrados. Recorriendo...
+2026-07-28 23:43:07 - INFO - booking_scraper -   Shard 1/78: 37685 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:43:08 - INFO - booking_scraper -   Shard 2/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:43:11 - INFO - booking_scraper -   Shard 3/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:43:18 - INFO - booking_scraper -   Shard 4/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:43:22 - INFO - booking_scraper -   Shard 5/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:43:24 - INFO - booking_scraper -   Shard 6/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:43:25 - INFO - booking_scraper -   Shard 7/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:43:27 - INFO - booking_scraper -   Shard 8/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:43:29 - INFO - booking_scraper -   Shard 9/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:43:31 - INFO - booking_scraper -   Shard 10/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:43:32 - INFO - booking_scraper -   Shard 11/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:43:34 - INFO - booking_scraper -   Shard 12/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:43:37 - INFO - booking_scraper -   Shard 13/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:43:39 - INFO - booking_scraper -   Shard 14/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:43:41 - INFO - booking_scraper -   Shard 15/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:43:43 - INFO - booking_scraper -   Shard 16/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:43:45 - INFO - booking_scraper -   Shard 17/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:43:47 - INFO - booking_scraper -   Shard 18/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:43:49 - INFO - booking_scraper -   Shard 19/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:43:52 - INFO - booking_scraper -   Shard 20/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:43:54 - INFO - booking_scraper -   Shard 21/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:43:56 - INFO - booking_scraper -   Shard 22/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:43:58 - INFO - booking_scraper -   Shard 23/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:44:00 - INFO - booking_scraper -   Shard 24/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:44:03 - INFO - booking_scraper -   Shard 25/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:44:05 - INFO - booking_scraper -   Shard 26/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:44:07 - INFO - booking_scraper -   Shard 27/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:44:09 - INFO - booking_scraper -   Shard 28/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:44:12 - INFO - booking_scraper -   Shard 29/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:44:14 - INFO - booking_scraper -   Shard 30/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:44:16 - INFO - booking_scraper -   Shard 31/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:44:18 - INFO - booking_scraper -   Shard 32/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:44:20 - INFO - booking_scraper -   Shard 33/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:44:21 - INFO - booking_scraper -   Shard 34/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:44:23 - INFO - booking_scraper -   Shard 35/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:44:25 - INFO - booking_scraper -   Shard 36/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:44:28 - INFO - booking_scraper -   Shard 37/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:44:30 - INFO - booking_scraper -   Shard 38/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:44:32 - INFO - booking_scraper -   Shard 39/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:44:33 - INFO - booking_scraper -   Shard 40/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:44:35 - INFO - booking_scraper -   Shard 41/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:44:37 - INFO - booking_scraper -   Shard 42/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:44:39 - INFO - booking_scraper -   Shard 43/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:44:41 - INFO - booking_scraper -   Shard 44/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:44:43 - INFO - booking_scraper -   Shard 45/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:44:45 - INFO - booking_scraper -   Shard 46/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:44:47 - INFO - booking_scraper -   Shard 47/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:44:48 - INFO - booking_scraper -   Shard 48/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:44:51 - INFO - booking_scraper -   Shard 49/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:44:53 - INFO - booking_scraper -   Shard 50/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:44:55 - INFO - booking_scraper -   Shard 51/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:44:57 - INFO - booking_scraper -   Shard 52/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:44:59 - INFO - booking_scraper -   Shard 53/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:45:01 - INFO - booking_scraper -   Shard 54/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:45:04 - INFO - booking_scraper -   Shard 55/78: 49990 URLs, 36625 coinciden con Tenerife (36625 acumuladas)
+2026-07-28 23:45:07 - INFO - booking_scraper -   Shard 56/78: 49990 URLs, 49990 coinciden con Tenerife (86615 acumuladas)
+2026-07-28 23:45:10 - INFO - booking_scraper -   Shard 57/78: 49990 URLs, 49990 coinciden con Tenerife (136605 acumuladas)
+2026-07-28 23:45:10 - INFO - booking_scraper - Descubrimiento guardado en caché: C:\Users\jcabr\AI_Dashboard_Core\ingestion\scraping\sitemap_discovery_cache.json
+2026-07-28 23:53:10 - INFO - booking_scraper - Descargando índice de sitemaps de Booking...
+2026-07-28 23:53:11 - INFO - booking_scraper - 78 shards del idioma español encontrados. Recorriendo...
+2026-07-28 23:53:12 - INFO - booking_scraper -   Shard 1/78: 37685 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:53:13 - INFO - booking_scraper -   Shard 2/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:53:15 - INFO - booking_scraper -   Shard 3/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:53:17 - INFO - booking_scraper -   Shard 4/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:53:19 - INFO - booking_scraper -   Shard 5/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:53:20 - INFO - booking_scraper -   Shard 6/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:53:22 - INFO - booking_scraper -   Shard 7/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:53:24 - INFO - booking_scraper -   Shard 8/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:53:25 - INFO - booking_scraper -   Shard 9/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:53:27 - INFO - booking_scraper -   Shard 10/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:53:29 - INFO - booking_scraper -   Shard 11/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:53:30 - INFO - booking_scraper -   Shard 12/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:53:32 - INFO - booking_scraper -   Shard 13/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:53:33 - INFO - booking_scraper -   Shard 14/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:53:35 - INFO - booking_scraper -   Shard 15/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:53:37 - INFO - booking_scraper -   Shard 16/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:53:39 - INFO - booking_scraper -   Shard 17/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:53:41 - INFO - booking_scraper -   Shard 18/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:53:43 - INFO - booking_scraper -   Shard 19/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:53:45 - INFO - booking_scraper -   Shard 20/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:53:47 - INFO - booking_scraper -   Shard 21/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:53:48 - INFO - booking_scraper -   Shard 22/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:53:50 - INFO - booking_scraper -   Shard 23/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:53:52 - INFO - booking_scraper -   Shard 24/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:53:54 - INFO - booking_scraper -   Shard 25/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:53:55 - INFO - booking_scraper -   Shard 26/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:53:57 - INFO - booking_scraper -   Shard 27/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:53:59 - INFO - booking_scraper -   Shard 28/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:54:01 - INFO - booking_scraper -   Shard 29/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:54:02 - INFO - booking_scraper -   Shard 30/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:54:04 - INFO - booking_scraper -   Shard 31/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:54:06 - INFO - booking_scraper -   Shard 32/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:54:07 - INFO - booking_scraper -   Shard 33/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:54:09 - INFO - booking_scraper -   Shard 34/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:54:11 - INFO - booking_scraper -   Shard 35/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:54:12 - INFO - booking_scraper -   Shard 36/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:54:14 - INFO - booking_scraper -   Shard 37/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:54:16 - INFO - booking_scraper -   Shard 38/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:54:18 - INFO - booking_scraper -   Shard 39/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:54:19 - INFO - booking_scraper -   Shard 40/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:54:21 - INFO - booking_scraper -   Shard 41/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:54:23 - INFO - booking_scraper -   Shard 42/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:54:24 - INFO - booking_scraper -   Shard 43/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:54:26 - INFO - booking_scraper -   Shard 44/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:54:28 - INFO - booking_scraper -   Shard 45/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:54:29 - INFO - booking_scraper -   Shard 46/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:54:32 - INFO - booking_scraper -   Shard 47/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:54:34 - INFO - booking_scraper -   Shard 48/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:54:36 - INFO - booking_scraper -   Shard 49/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:54:37 - INFO - booking_scraper -   Shard 50/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:54:39 - INFO - booking_scraper -   Shard 51/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:54:41 - INFO - booking_scraper -   Shard 52/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:54:43 - INFO - booking_scraper -   Shard 53/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:54:44 - INFO - booking_scraper -   Shard 54/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-07-28 23:54:50 - INFO - booking_scraper -   Shard 55/78: 49990 URLs, 3205 coinciden con Tenerife (3205 acumuladas)
+2026-07-28 23:54:57 - INFO - booking_scraper -   Shard 56/78: 49990 URLs, 4313 coinciden con Tenerife (7518 acumuladas)
+2026-07-28 23:55:04 - INFO - booking_scraper -   Shard 57/78: 49990 URLs, 4489 coinciden con Tenerife (12007 acumuladas)
+2026-07-28 23:55:11 - INFO - booking_scraper -   Shard 58/78: 49990 URLs, 4600 coinciden con Tenerife (16607 acumuladas)
+2026-07-28 23:55:18 - INFO - booking_scraper -   Shard 59/78: 49990 URLs, 3569 coinciden con Tenerife (20176 acumuladas)
+2026-07-28 23:55:21 - INFO - booking_scraper -   Shard 60/78: 49990 URLs, 833 coinciden con Tenerife (21009 acumuladas)
+2026-07-28 23:55:23 - INFO - booking_scraper -   Shard 61/78: 49990 URLs, 0 coinciden con Tenerife (21009 acumuladas)
+2026-07-28 23:55:26 - INFO - booking_scraper -   Shard 62/78: 49990 URLs, 0 coinciden con Tenerife (21009 acumuladas)
+2026-07-28 23:55:27 - INFO - booking_scraper -   Shard 63/78: 49990 URLs, 0 coinciden con Tenerife (21009 acumuladas)
+2026-07-28 23:55:30 - INFO - booking_scraper -   Shard 64/78: 49990 URLs, 0 coinciden con Tenerife (21009 acumuladas)
+2026-07-28 23:55:31 - INFO - booking_scraper -   Shard 65/78: 49990 URLs, 0 coinciden con Tenerife (21009 acumuladas)
+2026-07-28 23:55:34 - INFO - booking_scraper -   Shard 66/78: 49990 URLs, 0 coinciden con Tenerife (21009 acumuladas)
+2026-07-28 23:55:36 - INFO - booking_scraper -   Shard 67/78: 49990 URLs, 0 coinciden con Tenerife (21009 acumuladas)
+2026-07-28 23:55:38 - INFO - booking_scraper -   Shard 68/78: 49990 URLs, 0 coinciden con Tenerife (21009 acumuladas)
+2026-07-28 23:55:40 - INFO - booking_scraper -   Shard 69/78: 49990 URLs, 0 coinciden con Tenerife (21009 acumuladas)
+2026-07-28 23:55:42 - INFO - booking_scraper -   Shard 70/78: 49990 URLs, 0 coinciden con Tenerife (21009 acumuladas)
+2026-07-28 23:55:44 - INFO - booking_scraper -   Shard 71/78: 49990 URLs, 0 coinciden con Tenerife (21009 acumuladas)
+2026-07-28 23:55:46 - INFO - booking_scraper -   Shard 72/78: 49990 URLs, 0 coinciden con Tenerife (21009 acumuladas)
+2026-07-28 23:55:48 - INFO - booking_scraper -   Shard 73/78: 49990 URLs, 0 coinciden con Tenerife (21009 acumuladas)
+2026-07-28 23:55:50 - INFO - booking_scraper -   Shard 74/78: 49990 URLs, 0 coinciden con Tenerife (21009 acumuladas)
+2026-07-28 23:55:52 - INFO - booking_scraper -   Shard 75/78: 49990 URLs, 0 coinciden con Tenerife (21009 acumuladas)
+2026-07-28 23:55:54 - INFO - booking_scraper -   Shard 76/78: 49990 URLs, 0 coinciden con Tenerife (21009 acumuladas)
+2026-07-28 23:55:55 - INFO - booking_scraper -   Shard 77/78: 49990 URLs, 0 coinciden con Tenerife (21009 acumuladas)
+2026-07-28 23:55:57 - INFO - booking_scraper -   Shard 78/78: 49990 URLs, 0 coinciden con Tenerife (21009 acumuladas)
+2026-07-28 23:55:58 - INFO - booking_scraper - Descubrimiento guardado en caché: C:\Users\jcabr\AI_Dashboard_Core\ingestion\scraping\sitemap_discovery_cache.json

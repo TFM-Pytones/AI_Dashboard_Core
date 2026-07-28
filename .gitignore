@@ -33,3 +33,7 @@ dbt_packages/
 
 # 6. Notas locales de trabajo (no compartir con el equipo)
 NOTAS_LOCALES.md
+
+# 7. Archivos de caché de scraping
+tenerife_osm_keywords.json
+sitemap_discovery_cache.json
