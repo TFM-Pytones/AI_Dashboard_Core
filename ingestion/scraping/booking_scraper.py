@@ -36,6 +36,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import (
     NoSuchElementException,
     StaleElementReferenceException,
+    ElementClickInterceptedException,
+    ElementNotInteractableException,
     TimeoutException,
 )
 from webdriver_manager.chrome import ChromeDriverManager
@@ -51,21 +53,40 @@ logger = get_logger(__name__, log_file=config.LOG_FILE)
 
 
 def _retry_on_stale(action, retries: int = 4, delay: float = 1.5):
-    """Reintenta `action` (una función sin argumentos) si Selenium tira
-    StaleElementReferenceException — vuelve a buscar el elemento desde cero
-    en cada intento, en vez de insistir con una referencia vieja del DOM.
+    """Reintenta `action` (una función sin argumentos) ante fallos transitorios
+    típicos de Selenium en sitios con re-renders dinámicos:
+    - StaleElementReferenceException: el elemento quedó obsoleto tras un re-render
+    - ElementClickInterceptedException: algo (ej. banner de cookies) tapa el elemento
+    - ElementNotInteractableException: el elemento existe pero no está listo para interactuar
+    En todos los casos, esperar un poco y reintentar (re-buscando desde cero) suele resolverlo.
     """
     last_error = None
+    retry_exceptions = (
+        StaleElementReferenceException,
+        ElementClickInterceptedException,
+        ElementNotInteractableException,
+    )
     for attempt in range(1, retries + 1):
         try:
             return action()
-        except StaleElementReferenceException as e:
+        except retry_exceptions as e:
             last_error = e
             logger.warning(
-                f"  Elemento obsoleto (stale), reintentando ({attempt}/{retries})..."
+                f"  Fallo transitorio ({type(e).__name__}), reintentando ({attempt}/{retries})..."
             )
             time.sleep(delay)
     raise last_error
+
+
+class NotTenerifeError(Exception):
+    """Se lanza cuando el breadcrumb de la página confirma que el
+    establecimiento NO está en Tenerife (falso positivo del filtro de
+    descubrimiento). Lleva el establishment_id para poder marcarlo como
+    procesado y no reintentarlo en corridas futuras.
+    """
+    def __init__(self, establishment_id: str, message: str):
+        self.establishment_id = establishment_id
+        super().__init__(message)
 
 
 @dataclass
@@ -279,10 +300,10 @@ def _dismiss_cookie_banner(driver) -> None:
     (best-effort) — solo evita que tape botones y cause clics fallidos."""
     try:
         button = driver.find_element(By.CSS_SELECTOR, '#onetrust-accept-btn-handler')
-        button.click()
+        driver.execute_script("arguments[0].click();", button)
         logger.info("  Banner de cookies cerrado.")
         time.sleep(1)
-    except NoSuchElementException:
+    except (NoSuchElementException, ElementNotInteractableException):
         pass
 
 
@@ -306,6 +327,25 @@ def _get_establishment_type(driver) -> str | None:
         return None
     except NoSuchElementException:
         return None
+
+
+def _verify_is_tenerife(driver) -> bool:
+    """Verificación final anti-falsos-positivos: confirma que 'Tenerife'
+    aparece explícitamente en el breadcrumb de navegación de la página.
+
+    Esto es necesario porque el filtro de descubrimiento (municipio o
+    palabra clave de OSM en el slug de la URL) puede generar falsos
+    positivos con nombres de lugar ambiguos que existen en más de una
+    provincia de España (ej: 'santa-cruz' coincide tanto con Santa Cruz
+    de Tenerife como con el barrio de Santa Cruz en Sevilla).
+    No cuesta una visita extra: usa la misma página que ya cargamos para
+    sacar el resto de los datos del establecimiento.
+    """
+    try:
+        nav = driver.find_element(By.CSS_SELECTOR, '[data-testid="breadcrumb-nav"]')
+        return "tenerife" in nav.text.strip().lower()
+    except NoSuchElementException:
+        return False  # si no se puede confirmar, mejor descartar que arriesgar un falso positivo
 
 
 def _extract_establishment_id(url: str) -> str:
@@ -354,7 +394,7 @@ def _geocode_address(address: str) -> tuple[float | None, float | None]:
         return result
 
     # Reintento sin "s/n" (con o sin espacio/coma alrededor)
-    address_sin_sn = re.sub(r",?\s*s/n\.?,?", ",", address, flags=re.IGNORECASE)
+    address_sin_sn = re.sub(r",?\s*s/n\.?,?\s*", ", ", address, flags=re.IGNORECASE)
     address_sin_sn = re.sub(r"\s*,\s*,\s*", ", ", address_sin_sn).strip(", ")
     if address_sin_sn != address:
         logger.info(f"  Geocodificación sin resultado, reintentando sin 's/n': '{address_sin_sn}'")
@@ -362,7 +402,20 @@ def _geocode_address(address: str) -> tuple[float | None, float | None]:
         if result:
             return result
 
-    logger.warning(f"No se pudo geocodificar '{address}' (ni con ni sin 's/n')")
+    # Último recurso: direcciones con detalles muy específicos de piso/apto
+    # (ej. "1 piano 4 - Apt 408") tampoco las reconoce Nominatim. Nos
+    # quedamos solo con "código postal + ciudad + país" — da coordenadas
+    # del centro de la ciudad, no la puerta exacta, pero es mejor que nada
+    # para clasificar zonas geográficas en el análisis.
+    postal_city_match = re.search(r"(\d{4,5}\s+[A-Za-zÀ-ÿ\s]+,\s*España)", address)
+    if postal_city_match:
+        fallback_query = postal_city_match.group(1)
+        logger.info(f"  Reintentando solo con código postal + ciudad: '{fallback_query}'")
+        result = _query(fallback_query)
+        if result:
+            return result
+
+    logger.warning(f"No se pudo geocodificar '{address}' (ni con variantes simplificadas)")
     return None, None
 
 
@@ -441,6 +494,16 @@ def scrape_establishment(url: str) -> tuple[Establishment, list[Review]]:
             ).text.strip()
         )
 
+        # Verificación anti-falsos-positivos: descartar temprano si el
+        # breadcrumb no confirma "Tenerife" — evita perder tiempo en
+        # geocodificación/reseñas de un establecimiento que en realidad
+        # está en otra provincia (ver docstring de _verify_is_tenerife).
+        if not _retry_on_stale(lambda: _verify_is_tenerife(driver)):
+            raise NotTenerifeError(
+                establishment_id,
+                f"'{name}' ({url}) no está en Tenerife según el breadcrumb — descartado.",
+            )
+
         def _get_address():
             try:
                 wrapper = driver.find_element(
@@ -448,17 +511,23 @@ def scrape_establishment(url: str) -> tuple[Establishment, list[Review]]:
                 )
                 button = wrapper.find_element(By.CSS_SELECTOR, "button")
                 inner_div = button.find_element(By.CSS_SELECTOR, "div")
-                # El texto de la dirección real está en el primer nodo de texto
-                # directo de este div; el resto es un tooltip anidado que se
-                # cuela si usamos simplemente .text
-                full_text = driver.execute_script(
+                # Tomamos TODO el texto del contenedor (no solo el primer nodo,
+                # que a veces fragmenta la dirección en más de un nodo/elemento
+                # y pierde espacios) y le restamos el texto del tooltip anidado.
+                address_text = driver.execute_script(
                     """
-                    let node = arguments[0].childNodes[0];
-                    return node && node.nodeType === Node.TEXT_NODE ? node.textContent.trim() : '';
+                    const container = arguments[0];
+                    const fullText = container.textContent.trim();
+                    const tooltip = container.querySelector('div');
+                    const tooltipText = tooltip ? tooltip.textContent.trim() : '';
+                    if (tooltipText && fullText.endsWith(tooltipText)) {
+                        return fullText.slice(0, fullText.length - tooltipText.length).trim();
+                    }
+                    return fullText;
                     """,
                     inner_div,
                 )
-                return full_text or None
+                return address_text or None
             except NoSuchElementException:
                 return None
 
@@ -483,12 +552,21 @@ def scrape_establishment(url: str) -> tuple[Establishment, list[Review]]:
 
         # --- Abrir el panel de reseñas ---
         def _click_read_all():
+            # Reintenta cerrar el banner de cookies justo antes del clic —
+            # a veces reaparece o tarda en cerrarse después del primer intento
+            # al inicio de la función, y termina tapando este botón.
+            _dismiss_cookie_banner(driver)
+
             button = wait_obj.until(
                 EC.element_to_be_clickable(
                     (By.CSS_SELECTOR, '[data-testid="fr-read-all-reviews"]')
                 )
             )
-            button.click()
+            # Clic vía JavaScript en vez de un clic simulado de mouse: no
+            # depende de que el botón esté visualmente libre de superposición
+            # (evita el error "element click intercepted" cuando el banner
+            # de cookies u otro elemento se solapa momentáneamente).
+            driver.execute_script("arguments[0].click();", button)
 
         _retry_on_stale(_click_read_all)
         wait(config.MIN_DELAY_SECONDS, config.MAX_DELAY_SECONDS)
@@ -531,7 +609,7 @@ def scrape_establishment(url: str) -> tuple[Establishment, list[Review]]:
                     btn = driver.find_element(
                         By.CSS_SELECTOR, 'button[aria-label="Página siguiente"]'
                     )
-                    btn.click()
+                    driver.execute_script("arguments[0].click();", btn)
 
                 _retry_on_stale(_click_next)
                 page += 1
@@ -607,6 +685,7 @@ def main():
 
     all_establishments: list[Establishment] = []
     all_reviews: list[Review] = []
+    rejected_count = 0
 
     for i, url in enumerate(pending_urls, start=1):
         logger.info(f"[{i}/{len(pending_urls)}] Procesando {url}")
@@ -619,6 +698,14 @@ def main():
             save_and_upload([establishment], reviews)
             mark_completed(establishment.establishment_id)
 
+        except NotTenerifeError as e:
+            # Falso positivo del descubrimiento (ver _verify_is_tenerife).
+            # No se guarda ningún dato, pero SÍ se marca como completado
+            # para no volver a visitarlo en corridas futuras.
+            logger.warning(f"  Descartado (no es Tenerife): {e}")
+            mark_completed(e.establishment_id)
+            rejected_count += 1
+
         except Exception as e:
             logger.error(f"Error procesando {url}: {e}")
             continue
@@ -627,7 +714,7 @@ def main():
 
     logger.info(
         f"=== Corrida finalizada: {len(all_establishments)} establecimientos, "
-        f"{len(all_reviews)} reseñas en total ==="
+        f"{len(all_reviews)} reseñas en total ({rejected_count} descartados por no ser de Tenerife) ==="
     )
 
 

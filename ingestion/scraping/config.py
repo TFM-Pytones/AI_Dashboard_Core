@@ -12,10 +12,7 @@ BOOKING_HOTEL_SITEMAP = "https://www.booking.com/sitembk-hotel-index.xml"
 BOOKING_REVIEW_SITEMAP = "https://www.booking.com/sitembk-hotel-review-index.xml"
 
 # --- URLs de prueba (dejar vacía [] para usar el descubrimiento real vía sitemap) ---
-TEST_ESTABLISHMENT_URLS = [
-    "https://www.booking.com/hotel/es/alegria-barranco1.es.html",
-    "https://www.booking.com/hotel/es/puerto-palace.es.html",
-]
+TEST_ESTABLISHMENT_URLS = []
 
 # --- Municipios de Tenerife, para filtrar URLs del sitemap por slug ---
 # LIMITACIÓN CONOCIDA: solo detecta establecimientos cuyo slug de URL incluye
@@ -59,7 +56,7 @@ MAX_DELAY_SECONDS = 8.0
 
 # --- Límites de una corrida, para no sobrecargar la infraestructura del sitio ---
 # Empieza bajo para probar rápido; sube estos números cuando ya confirmes que funciona.
-MAX_ESTABLISHMENTS_PER_RUN = 2
+MAX_ESTABLISHMENTS_PER_RUN = 20
 MAX_REVIEWS_PER_ESTABLISHMENT = 15
 
 # --- User-Agent identificable y honesto (ver README: no spoofear como Googlebot u otro bot) ---

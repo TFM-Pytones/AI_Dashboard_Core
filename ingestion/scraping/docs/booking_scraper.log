@@ -394,3 +394,1618 @@ Stacktrace:
 2026-07-29 11:40:23 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
 2026-07-29 11:40:41 - INFO - __main__ - Guardado completo: 1 establecimientos, 15 reseñas.
 2026-07-29 11:40:44 - INFO - __main__ - === Corrida finalizada: 2 establecimientos, 30 reseñas en total ===
+2026-07-29 12:35:23 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-07-29 12:35:23 - INFO - __main__ - Usando caché de descubrimiento: C:\Users\jcabr\AI_Dashboard_Core\ingestion\scraping\sitemap_discovery_cache.json
+2026-07-29 12:35:23 - INFO - __main__ - [1/10] Procesando https://www.booking.com/hotel/es/castle-harbour-sun-amp-fun.es.html
+2026-07-29 12:35:23 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/castle-harbour-sun-amp-fun.es.html
+2026-07-29 12:36:05 - WARNING - __main__ -   Elemento obsoleto (stale), reintentando (1/4)...
+2026-07-29 12:36:10 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/castle-harbour-sun-amp-fun.es.html: Message: element click intercepted: Element <button data-testid="fr-read-all-reviews" type="button" class="de576f5064 b46cd7aad7 d0a01e3d83 c7a901b0e7 bbf83acb81">...</button> is not clickable at point (247, 781). Other element would receive the click: <div id="onetrust-banner-sdk" class="otFlat bottom vertical-align-content ot-buttons-fw" tabindex="0" role="region" aria-label="pancarta de galletas" style="bottom: 0px;">...</div>
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x525843+10883]
+	chromedriver!GetHandleVerifier [0x525884+108c4]
+	chromedriver!(No symbol) [0x3290e0]
+	chromedriver!(No symbol) [0x379058]
+	chromedriver!(No symbol) [0x3776e9]
+	chromedriver!(No symbol) [0x3754c5]
+	chromedriver!(No symbol) [0x3746d4]
+	chromedriver!(No symbol) [0x36a0ea]
+	chromedriver!(No symbol) [0x39566c]
+	chromedriver!(No symbol) [0x369b24]
+	chromedriver!(No symbol) [0x395834]
+	chromedriver!(No symbol) [0x3b31aa]
+	chromedriver!(No symbol) [0x395406]
+	chromedriver!(No symbol) [0x368659]
+	chromedriver!(No symbol) [0x369424]
+	chromedriver!GetHandleVerifier [0x7bced6+2a7f16]
+	chromedriver!GetHandleVerifier [0x7b847b+2a34bb]
+	chromedriver!GetHandleVerifier [0x7d94eb+2c452b]
+	chromedriver!GetHandleVerifier [0x53f566+2a5a6]
+	chromedriver!GetHandleVerifier [0x54620d+3124d]
+	chromedriver!GetHandleVerifier [0x52e318+19358]
+	chromedriver!GetHandleVerifier [0x52e4c5+19505]
+	chromedriver!GetHandleVerifier [0x5170af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 12:36:10 - INFO - __main__ - [2/10] Procesando https://www.booking.com/hotel/es/apartment-overlooking-los-gigantes.es.html
+2026-07-29 12:36:10 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartment-overlooking-los-gigantes.es.html
+2026-07-29 12:36:48 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-29 12:36:50 - WARNING - __main__ - No se pudo geocodificar 'Calle los Guíos, 1 piano 4 - Apt 408, 38683 Santiago del Teide, España' (ni con ni sin 's/n')
+2026-07-29 12:36:57 - WARNING - __main__ -   Elemento obsoleto (stale), reintentando (1/4)...
+2026-07-29 12:37:02 - INFO - __main__ -   Página 1: 1 reseñas (1 acumuladas)
+2026-07-29 12:37:02 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-07-29 12:37:08 - INFO - __main__ - Guardado completo: 1 establecimientos, 1 reseñas.
+2026-07-29 12:37:12 - INFO - __main__ - [3/10] Procesando https://www.booking.com/hotel/es/casa-tipo-cueva-toda-una-experiencia-en-artola-marbella-con-toques-dorados-y-pis.es.html
+2026-07-29 12:37:12 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-tipo-cueva-toda-una-experiencia-en-artola-marbella-con-toques-dorados-y-pis.es.html
+2026-07-29 12:37:43 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-29 12:37:46 - WARNING - __main__ - No se pudo geocodificar 'Vial Camino, 28, 29604 Marbella, España' (ni con ni sin 's/n')
+2026-07-29 12:38:23 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/casa-tipo-cueva-toda-una-experiencia-en-artola-marbella-con-toques-dorados-y-pis.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x525843+10883]
+	chromedriver!GetHandleVerifier [0x525884+108c4]
+	chromedriver!(No symbol) [0x3290e0]
+	chromedriver!(No symbol) [0x37316b]
+	chromedriver!(No symbol) [0x37338b]
+	chromedriver!(No symbol) [0x3b5942]
+	chromedriver!(No symbol) [0x3956b4]
+	chromedriver!(No symbol) [0x3b31aa]
+	chromedriver!(No symbol) [0x395406]
+	chromedriver!(No symbol) [0x368659]
+	chromedriver!(No symbol) [0x369424]
+	chromedriver!GetHandleVerifier [0x7bced6+2a7f16]
+	chromedriver!GetHandleVerifier [0x7b847b+2a34bb]
+	chromedriver!GetHandleVerifier [0x7d94eb+2c452b]
+	chromedriver!GetHandleVerifier [0x53f566+2a5a6]
+	chromedriver!GetHandleVerifier [0x54620d+3124d]
+	chromedriver!GetHandleVerifier [0x52e318+19358]
+	chromedriver!GetHandleVerifier [0x52e4c5+19505]
+	chromedriver!GetHandleVerifier [0x5170af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 12:38:25 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/casa-tipo-cueva-toda-una-experiencia-en-artola-marbella-con-toques-dorados-y-pis.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x525843+10883]
+	chromedriver!GetHandleVerifier [0x525884+108c4]
+	chromedriver!(No symbol) [0x3290e0]
+	chromedriver!(No symbol) [0x37316b]
+	chromedriver!(No symbol) [0x37338b]
+	chromedriver!(No symbol) [0x3b5942]
+	chromedriver!(No symbol) [0x3956b4]
+	chromedriver!(No symbol) [0x3b31aa]
+	chromedriver!(No symbol) [0x395406]
+	chromedriver!(No symbol) [0x368659]
+	chromedriver!(No symbol) [0x369424]
+	chromedriver!GetHandleVerifier [0x7bced6+2a7f16]
+	chromedriver!GetHandleVerifier [0x7b847b+2a34bb]
+	chromedriver!GetHandleVerifier [0x7d94eb+2c452b]
+	chromedriver!GetHandleVerifier [0x53f566+2a5a6]
+	chromedriver!GetHandleVerifier [0x54620d+3124d]
+	chromedriver!GetHandleVerifier [0x52e318+19358]
+	chromedriver!GetHandleVerifier [0x52e4c5+19505]
+	chromedriver!GetHandleVerifier [0x5170af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 12:38:25 - INFO - __main__ - [4/10] Procesando https://www.booking.com/hotel/es/new-finca-panorama-stunning-5-bedroom-with-pool.es.html
+2026-07-29 12:38:25 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/new-finca-panorama-stunning-5-bedroom-with-pool.es.html
+2026-07-29 12:38:54 - WARNING - __main__ -   Elemento obsoleto (stale), reintentando (1/4)...
+2026-07-29 12:38:58 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/new-finca-panorama-stunning-5-bedroom-with-pool.es.html: Message: element click intercepted: Element <button data-testid="fr-read-all-reviews" type="button" class="de576f5064 b46cd7aad7 d0a01e3d83 c7a901b0e7 bbf83acb81">...</button> is not clickable at point (247, 781). Other element would receive the click: <div id="onetrust-banner-sdk" class="otFlat bottom vertical-align-content ot-buttons-fw" tabindex="0" role="region" aria-label="pancarta de galletas" style="bottom: 0px;">...</div>
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x525843+10883]
+	chromedriver!GetHandleVerifier [0x525884+108c4]
+	chromedriver!(No symbol) [0x3290e0]
+	chromedriver!(No symbol) [0x379058]
+	chromedriver!(No symbol) [0x3776e9]
+	chromedriver!(No symbol) [0x3754c5]
+	chromedriver!(No symbol) [0x3746d4]
+	chromedriver!(No symbol) [0x36a0ea]
+	chromedriver!(No symbol) [0x39566c]
+	chromedriver!(No symbol) [0x369b24]
+	chromedriver!(No symbol) [0x395834]
+	chromedriver!(No symbol) [0x3b31aa]
+	chromedriver!(No symbol) [0x395406]
+	chromedriver!(No symbol) [0x368659]
+	chromedriver!(No symbol) [0x369424]
+	chromedriver!GetHandleVerifier [0x7bced6+2a7f16]
+	chromedriver!GetHandleVerifier [0x7b847b+2a34bb]
+	chromedriver!GetHandleVerifier [0x7d94eb+2c452b]
+	chromedriver!GetHandleVerifier [0x53f566+2a5a6]
+	chromedriver!GetHandleVerifier [0x54620d+3124d]
+	chromedriver!GetHandleVerifier [0x52e318+19358]
+	chromedriver!GetHandleVerifier [0x52e4c5+19505]
+	chromedriver!GetHandleVerifier [0x5170af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 12:38:58 - INFO - __main__ - [5/10] Procesando https://www.booking.com/hotel/es/happy-place-arona.es.html
+2026-07-29 12:38:58 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/happy-place-arona.es.html
+2026-07-29 12:39:18 - WARNING - __main__ -   Elemento obsoleto (stale), reintentando (1/4)...
+2026-07-29 12:39:23 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/happy-place-arona.es.html: Message: element click intercepted: Element <button data-testid="fr-read-all-reviews" type="button" class="de576f5064 b46cd7aad7 d0a01e3d83 c7a901b0e7 bbf83acb81">...</button> is not clickable at point (247, 782). Other element would receive the click: <div id="onetrust-banner-sdk" class="otFlat bottom vertical-align-content ot-buttons-fw" tabindex="0" role="region" aria-label="pancarta de galletas" style="bottom: 0px;">...</div>
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x525843+10883]
+	chromedriver!GetHandleVerifier [0x525884+108c4]
+	chromedriver!(No symbol) [0x3290e0]
+	chromedriver!(No symbol) [0x379058]
+	chromedriver!(No symbol) [0x3776e9]
+	chromedriver!(No symbol) [0x3754c5]
+	chromedriver!(No symbol) [0x3746d4]
+	chromedriver!(No symbol) [0x36a0ea]
+	chromedriver!(No symbol) [0x39566c]
+	chromedriver!(No symbol) [0x369b24]
+	chromedriver!(No symbol) [0x395834]
+	chromedriver!(No symbol) [0x3b31aa]
+	chromedriver!(No symbol) [0x395406]
+	chromedriver!(No symbol) [0x368659]
+	chromedriver!(No symbol) [0x369424]
+	chromedriver!GetHandleVerifier [0x7bced6+2a7f16]
+	chromedriver!GetHandleVerifier [0x7b847b+2a34bb]
+	chromedriver!GetHandleVerifier [0x7d94eb+2c452b]
+	chromedriver!GetHandleVerifier [0x53f566+2a5a6]
+	chromedriver!GetHandleVerifier [0x54620d+3124d]
+	chromedriver!GetHandleVerifier [0x52e318+19358]
+	chromedriver!GetHandleVerifier [0x52e4c5+19505]
+	chromedriver!GetHandleVerifier [0x5170af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 12:39:23 - INFO - __main__ - [6/10] Procesando https://www.booking.com/hotel/es/villa-lalola-con-piscina-climatizada.es.html
+2026-07-29 12:39:23 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/villa-lalola-con-piscina-climatizada.es.html
+2026-07-29 12:39:38 - WARNING - __main__ -   Elemento obsoleto (stale), reintentando (1/4)...
+2026-07-29 12:39:43 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/villa-lalola-con-piscina-climatizada.es.html: Message: element click intercepted: Element <button data-testid="fr-read-all-reviews" type="button" class="de576f5064 b46cd7aad7 d0a01e3d83 c7a901b0e7 bbf83acb81">...</button> is not clickable at point (247, 762). Other element would receive the click: <p id="ot-analytical-cookies-p">...</p>
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x525843+10883]
+	chromedriver!GetHandleVerifier [0x525884+108c4]
+	chromedriver!(No symbol) [0x3290e0]
+	chromedriver!(No symbol) [0x379058]
+	chromedriver!(No symbol) [0x3776e9]
+	chromedriver!(No symbol) [0x3754c5]
+	chromedriver!(No symbol) [0x3746d4]
+	chromedriver!(No symbol) [0x36a0ea]
+	chromedriver!(No symbol) [0x39566c]
+	chromedriver!(No symbol) [0x369b24]
+	chromedriver!(No symbol) [0x395834]
+	chromedriver!(No symbol) [0x3b31aa]
+	chromedriver!(No symbol) [0x395406]
+	chromedriver!(No symbol) [0x368659]
+	chromedriver!(No symbol) [0x369424]
+	chromedriver!GetHandleVerifier [0x7bced6+2a7f16]
+	chromedriver!GetHandleVerifier [0x7b847b+2a34bb]
+	chromedriver!GetHandleVerifier [0x7d94eb+2c452b]
+	chromedriver!GetHandleVerifier [0x53f566+2a5a6]
+	chromedriver!GetHandleVerifier [0x54620d+3124d]
+	chromedriver!GetHandleVerifier [0x52e318+19358]
+	chromedriver!GetHandleVerifier [0x52e4c5+19505]
+	chromedriver!GetHandleVerifier [0x5170af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 12:39:43 - INFO - __main__ - [7/10] Procesando https://www.booking.com/hotel/es/waou-palacio-tenorio-santa-cruz-sevilla.es.html
+2026-07-29 12:39:43 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/waou-palacio-tenorio-santa-cruz-sevilla.es.html
+2026-07-29 12:39:55 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-29 12:40:03 - WARNING - __main__ -   Elemento obsoleto (stale), reintentando (1/4)...
+2026-07-29 12:40:13 - INFO - __main__ -   Página 1: 2 reseñas (2 acumuladas)
+2026-07-29 12:40:13 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-07-29 12:40:17 - INFO - __main__ - Guardado completo: 1 establecimientos, 2 reseñas.
+2026-07-29 12:40:21 - INFO - __main__ - [8/10] Procesando https://www.booking.com/hotel/es/seaview-royal-garden.es.html
+2026-07-29 12:40:21 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/seaview-royal-garden.es.html
+2026-07-29 12:40:40 - WARNING - __main__ -   Elemento obsoleto (stale), reintentando (1/4)...
+2026-07-29 12:40:45 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/seaview-royal-garden.es.html: Message: element click intercepted: Element <button data-testid="fr-read-all-reviews" type="button" class="de576f5064 b46cd7aad7 d0a01e3d83 c7a901b0e7 bbf83acb81">...</button> is not clickable at point (247, 782). Other element would receive the click: <div id="onetrust-banner-sdk" class="otFlat bottom vertical-align-content ot-buttons-fw" tabindex="0" role="region" aria-label="pancarta de galletas" style="bottom: 0px;">...</div>
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x525843+10883]
+	chromedriver!GetHandleVerifier [0x525884+108c4]
+	chromedriver!(No symbol) [0x3290e0]
+	chromedriver!(No symbol) [0x379058]
+	chromedriver!(No symbol) [0x3776e9]
+	chromedriver!(No symbol) [0x3754c5]
+	chromedriver!(No symbol) [0x3746d4]
+	chromedriver!(No symbol) [0x36a0ea]
+	chromedriver!(No symbol) [0x39566c]
+	chromedriver!(No symbol) [0x369b24]
+	chromedriver!(No symbol) [0x395834]
+	chromedriver!(No symbol) [0x3b31aa]
+	chromedriver!(No symbol) [0x395406]
+	chromedriver!(No symbol) [0x368659]
+	chromedriver!(No symbol) [0x369424]
+	chromedriver!GetHandleVerifier [0x7bced6+2a7f16]
+	chromedriver!GetHandleVerifier [0x7b847b+2a34bb]
+	chromedriver!GetHandleVerifier [0x7d94eb+2c452b]
+	chromedriver!GetHandleVerifier [0x53f566+2a5a6]
+	chromedriver!GetHandleVerifier [0x54620d+3124d]
+	chromedriver!GetHandleVerifier [0x52e318+19358]
+	chromedriver!GetHandleVerifier [0x52e4c5+19505]
+	chromedriver!GetHandleVerifier [0x5170af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 12:40:45 - INFO - __main__ - [9/10] Procesando https://www.booking.com/hotel/es/rincon-de-la-caleta.es.html
+2026-07-29 12:40:45 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/rincon-de-la-caleta.es.html
+2026-07-29 12:40:57 - WARNING - __main__ - No se pudo geocodificar 'Calle Olmos Edificio Silvia, 4 D, 18697 La Herradura, España' (ni con ni sin 's/n')
+2026-07-29 12:41:00 - WARNING - __main__ -   Elemento obsoleto (stale), reintentando (1/4)...
+2026-07-29 12:41:05 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/rincon-de-la-caleta.es.html: Message: element click intercepted: Element <button data-testid="fr-read-all-reviews" type="button" class="de576f5064 b46cd7aad7 d0a01e3d83 c7a901b0e7 bbf83acb81">...</button> is not clickable at point (247, 781). Other element would receive the click: <div id="onetrust-banner-sdk" class="otFlat bottom vertical-align-content ot-buttons-fw" tabindex="0" role="region" aria-label="pancarta de galletas" style="bottom: 0px;">...</div>
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x525843+10883]
+	chromedriver!GetHandleVerifier [0x525884+108c4]
+	chromedriver!(No symbol) [0x3290e0]
+	chromedriver!(No symbol) [0x379058]
+	chromedriver!(No symbol) [0x3776e9]
+	chromedriver!(No symbol) [0x3754c5]
+	chromedriver!(No symbol) [0x3746d4]
+	chromedriver!(No symbol) [0x36a0ea]
+	chromedriver!(No symbol) [0x39566c]
+	chromedriver!(No symbol) [0x369b24]
+	chromedriver!(No symbol) [0x395834]
+	chromedriver!(No symbol) [0x3b31aa]
+	chromedriver!(No symbol) [0x395406]
+	chromedriver!(No symbol) [0x368659]
+	chromedriver!(No symbol) [0x369424]
+	chromedriver!GetHandleVerifier [0x7bced6+2a7f16]
+	chromedriver!GetHandleVerifier [0x7b847b+2a34bb]
+	chromedriver!GetHandleVerifier [0x7d94eb+2c452b]
+	chromedriver!GetHandleVerifier [0x53f566+2a5a6]
+	chromedriver!GetHandleVerifier [0x54620d+3124d]
+	chromedriver!GetHandleVerifier [0x52e318+19358]
+	chromedriver!GetHandleVerifier [0x52e4c5+19505]
+	chromedriver!GetHandleVerifier [0x5170af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 12:41:05 - INFO - __main__ - [10/10] Procesando https://www.booking.com/hotel/es/grifeu-131-apartamento-duplex-con-2-terrazas.es.html
+2026-07-29 12:41:05 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/grifeu-131-apartamento-duplex-con-2-terrazas.es.html
+2026-07-29 12:41:47 - WARNING - __main__ - No se pudo geocodificar 'C/ Grifeu 27. Esc. 1. PB. P1, 17490 Llançà, España' (ni con ni sin 's/n')
+2026-07-29 12:42:25 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/grifeu-131-apartamento-duplex-con-2-terrazas.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x525843+10883]
+	chromedriver!GetHandleVerifier [0x525884+108c4]
+	chromedriver!(No symbol) [0x3290e0]
+	chromedriver!(No symbol) [0x37316b]
+	chromedriver!(No symbol) [0x37338b]
+	chromedriver!(No symbol) [0x3b5942]
+	chromedriver!(No symbol) [0x3956b4]
+	chromedriver!(No symbol) [0x3b31aa]
+	chromedriver!(No symbol) [0x395406]
+	chromedriver!(No symbol) [0x368659]
+	chromedriver!(No symbol) [0x369424]
+	chromedriver!GetHandleVerifier [0x7bced6+2a7f16]
+	chromedriver!GetHandleVerifier [0x7b847b+2a34bb]
+	chromedriver!GetHandleVerifier [0x7d94eb+2c452b]
+	chromedriver!GetHandleVerifier [0x53f566+2a5a6]
+	chromedriver!GetHandleVerifier [0x54620d+3124d]
+	chromedriver!GetHandleVerifier [0x52e318+19358]
+	chromedriver!GetHandleVerifier [0x52e4c5+19505]
+	chromedriver!GetHandleVerifier [0x5170af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 12:42:28 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/grifeu-131-apartamento-duplex-con-2-terrazas.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x525843+10883]
+	chromedriver!GetHandleVerifier [0x525884+108c4]
+	chromedriver!(No symbol) [0x3290e0]
+	chromedriver!(No symbol) [0x37316b]
+	chromedriver!(No symbol) [0x37338b]
+	chromedriver!(No symbol) [0x3b5942]
+	chromedriver!(No symbol) [0x3956b4]
+	chromedriver!(No symbol) [0x3b31aa]
+	chromedriver!(No symbol) [0x395406]
+	chromedriver!(No symbol) [0x368659]
+	chromedriver!(No symbol) [0x369424]
+	chromedriver!GetHandleVerifier [0x7bced6+2a7f16]
+	chromedriver!GetHandleVerifier [0x7b847b+2a34bb]
+	chromedriver!GetHandleVerifier [0x7d94eb+2c452b]
+	chromedriver!GetHandleVerifier [0x53f566+2a5a6]
+	chromedriver!GetHandleVerifier [0x54620d+3124d]
+	chromedriver!GetHandleVerifier [0x52e318+19358]
+	chromedriver!GetHandleVerifier [0x52e4c5+19505]
+	chromedriver!GetHandleVerifier [0x5170af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 12:42:28 - INFO - __main__ - === Corrida finalizada: 2 establecimientos, 3 reseñas en total ===
+2026-07-29 13:03:37 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-07-29 13:03:37 - INFO - __main__ - Usando caché de descubrimiento: C:\Users\jcabr\AI_Dashboard_Core\ingestion\scraping\sitemap_discovery_cache.json
+2026-07-29 13:03:37 - INFO - __main__ - [1/10] Procesando https://www.booking.com/hotel/es/castle-harbour-sun-amp-fun.es.html
+2026-07-29 13:03:37 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/castle-harbour-sun-amp-fun.es.html
+2026-07-29 13:04:02 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-29 13:04:09 - WARNING - __main__ -   Elemento obsoleto (stale), reintentando (1/4)...
+2026-07-29 13:04:24 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-07-29 13:04:30 - INFO - __main__ -   Página 2: 6 reseñas (16 acumuladas)
+2026-07-29 13:04:35 - INFO - __main__ - Guardado completo: 1 establecimientos, 15 reseñas.
+2026-07-29 13:04:41 - INFO - __main__ - [2/10] Procesando https://www.booking.com/hotel/es/apartment-overlooking-los-gigantes.es.html
+2026-07-29 13:04:41 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartment-overlooking-los-gigantes.es.html
+2026-07-29 13:05:02 - WARNING - __main__ - No se pudo geocodificar 'Calle los Guíos, 1 piano 4 - Apt 408, 38683 Santiago del Teide, España' (ni con ni sin 's/n')
+2026-07-29 13:05:08 - WARNING - __main__ -   Elemento obsoleto (stale), reintentando (1/4)...
+2026-07-29 13:05:13 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/apartment-overlooking-los-gigantes.es.html: Message: element click intercepted: Element <button data-testid="fr-read-all-reviews" type="button" class="de576f5064 b46cd7aad7 d0a01e3d83 c7a901b0e7 bbf83acb81">...</button> is not clickable at point (247, 781). Other element would receive the click: <div id="onetrust-banner-sdk" class="otFlat bottom vertical-align-content ot-buttons-fw" tabindex="0" role="region" aria-label="pancarta de galletas" style="bottom: 0px;">...</div>
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0xa19058]
+	chromedriver!(No symbol) [0xa176e9]
+	chromedriver!(No symbol) [0xa154c5]
+	chromedriver!(No symbol) [0xa146d4]
+	chromedriver!(No symbol) [0xa0a0ea]
+	chromedriver!(No symbol) [0xa3566c]
+	chromedriver!(No symbol) [0xa09b24]
+	chromedriver!(No symbol) [0xa35834]
+	chromedriver!(No symbol) [0xa531aa]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 13:05:13 - INFO - __main__ - [3/10] Procesando https://www.booking.com/hotel/es/casa-tipo-cueva-toda-una-experiencia-en-artola-marbella-con-toques-dorados-y-pis.es.html
+2026-07-29 13:05:13 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-tipo-cueva-toda-una-experiencia-en-artola-marbella-con-toques-dorados-y-pis.es.html
+2026-07-29 13:05:35 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-29 13:05:39 - WARNING - __main__ -   Descartado (no es Tenerife): 'Modern townhouse with private heated pool near Cabopino beach in Artola, Marbella' (https://www.booking.com/hotel/es/casa-tipo-cueva-toda-una-experiencia-en-artola-marbella-con-toques-dorados-y-pis.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-07-29 13:05:46 - INFO - __main__ - [4/10] Procesando https://www.booking.com/hotel/es/new-finca-panorama-stunning-5-bedroom-with-pool.es.html
+2026-07-29 13:05:46 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/new-finca-panorama-stunning-5-bedroom-with-pool.es.html
+2026-07-29 13:06:54 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/new-finca-panorama-stunning-5-bedroom-with-pool.es.html: Message: timeout: Timed out receiving message from renderer: 30.000
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa530ba]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 13:06:56 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/new-finca-panorama-stunning-5-bedroom-with-pool.es.html: Message: timeout: Timed out receiving message from renderer: 30.000
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa530ba]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 13:06:56 - INFO - __main__ - [5/10] Procesando https://www.booking.com/hotel/es/happy-place-arona.es.html
+2026-07-29 13:06:56 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/happy-place-arona.es.html
+2026-07-29 13:07:28 - WARNING - __main__ -   Elemento obsoleto (stale), reintentando (1/4)...
+2026-07-29 13:07:33 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/happy-place-arona.es.html: Message: element click intercepted: Element <button data-testid="fr-read-all-reviews" type="button" class="de576f5064 b46cd7aad7 d0a01e3d83 c7a901b0e7 bbf83acb81">...</button> is not clickable at point (247, 782). Other element would receive the click: <div id="onetrust-banner-sdk" class="otFlat bottom vertical-align-content ot-buttons-fw" tabindex="0" role="region" aria-label="pancarta de galletas" style="bottom: 0px;">...</div>
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0xa19058]
+	chromedriver!(No symbol) [0xa176e9]
+	chromedriver!(No symbol) [0xa154c5]
+	chromedriver!(No symbol) [0xa146d4]
+	chromedriver!(No symbol) [0xa0a0ea]
+	chromedriver!(No symbol) [0xa3566c]
+	chromedriver!(No symbol) [0xa09b24]
+	chromedriver!(No symbol) [0xa35834]
+	chromedriver!(No symbol) [0xa531aa]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 13:07:33 - INFO - __main__ - [6/10] Procesando https://www.booking.com/hotel/es/villa-lalola-con-piscina-climatizada.es.html
+2026-07-29 13:07:33 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/villa-lalola-con-piscina-climatizada.es.html
+2026-07-29 13:07:52 - WARNING - __main__ -   Descartado (no es Tenerife): 'Villa LaLola con piscina, oasis privado' (https://www.booking.com/hotel/es/villa-lalola-con-piscina-climatizada.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-07-29 13:07:58 - INFO - __main__ - [7/10] Procesando https://www.booking.com/hotel/es/waou-palacio-tenorio-santa-cruz-sevilla.es.html
+2026-07-29 13:07:58 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/waou-palacio-tenorio-santa-cruz-sevilla.es.html
+2026-07-29 13:08:18 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-29 13:08:23 - WARNING - __main__ -   Descartado (no es Tenerife): 'Waou Palacio Tenorio Santa Cruz' (https://www.booking.com/hotel/es/waou-palacio-tenorio-santa-cruz-sevilla.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-07-29 13:08:29 - INFO - __main__ - [8/10] Procesando https://www.booking.com/hotel/es/seaview-royal-garden.es.html
+2026-07-29 13:08:29 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/seaview-royal-garden.es.html
+2026-07-29 13:08:50 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-29 13:09:00 - WARNING - __main__ -   Elemento obsoleto (stale), reintentando (1/4)...
+2026-07-29 13:09:12 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-07-29 13:09:21 - INFO - __main__ -   Página 2: 3 reseñas (13 acumuladas)
+2026-07-29 13:09:26 - INFO - __main__ - Guardado completo: 1 establecimientos, 13 reseñas.
+2026-07-29 13:09:32 - INFO - __main__ - [9/10] Procesando https://www.booking.com/hotel/es/rincon-de-la-caleta.es.html
+2026-07-29 13:09:32 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/rincon-de-la-caleta.es.html
+2026-07-29 13:10:01 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-29 13:10:05 - WARNING - __main__ -   Descartado (no es Tenerife): 'Rincón de la Caleta' (https://www.booking.com/hotel/es/rincon-de-la-caleta.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-07-29 13:10:11 - INFO - __main__ - [10/10] Procesando https://www.booking.com/hotel/es/grifeu-131-apartamento-duplex-con-2-terrazas.es.html
+2026-07-29 13:10:11 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/grifeu-131-apartamento-duplex-con-2-terrazas.es.html
+2026-07-29 13:10:36 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-29 13:10:39 - WARNING - __main__ -   Descartado (no es Tenerife): 'Grifeu 13.1 - Apartamento dúplex con 2 terrazas' (https://www.booking.com/hotel/es/grifeu-131-apartamento-duplex-con-2-terrazas.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-07-29 13:10:44 - INFO - __main__ - === Corrida finalizada: 2 establecimientos, 28 reseñas en total (5 descartados por no ser de Tenerife) ===
+2026-07-29 13:18:43 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-07-29 13:18:43 - INFO - __main__ - Usando caché de descubrimiento: C:\Users\jcabr\AI_Dashboard_Core\ingestion\scraping\sitemap_discovery_cache.json
+2026-07-29 13:18:43 - INFO - __main__ - 7 establecimiento(s) ya completados en corridas anteriores, se omiten.
+2026-07-29 13:18:43 - INFO - __main__ - [1/3] Procesando https://www.booking.com/hotel/es/apartment-overlooking-los-gigantes.es.html
+2026-07-29 13:18:43 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartment-overlooking-los-gigantes.es.html
+2026-07-29 13:19:11 - WARNING - __main__ - No se pudo geocodificar 'Calle los Guíos, 1 piano 4 - Apt 408, 38683 Santiago del Teide, España' (ni con ni sin 's/n')
+2026-07-29 13:19:15 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-29 13:19:20 - INFO - __main__ -   Página 1: 1 reseñas (1 acumuladas)
+2026-07-29 13:19:20 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-07-29 13:19:27 - INFO - __main__ - Guardado completo: 1 establecimientos, 1 reseñas.
+2026-07-29 13:19:33 - INFO - __main__ - [2/3] Procesando https://www.booking.com/hotel/es/new-finca-panorama-stunning-5-bedroom-with-pool.es.html
+2026-07-29 13:19:33 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/new-finca-panorama-stunning-5-bedroom-with-pool.es.html
+2026-07-29 13:19:56 - WARNING - __main__ -   Descartado (no es Tenerife): 'NEW Finca Panorama - Stunning 5 Bedroom with pool' (https://www.booking.com/hotel/es/new-finca-panorama-stunning-5-bedroom-with-pool.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-07-29 13:20:00 - INFO - __main__ - [3/3] Procesando https://www.booking.com/hotel/es/happy-place-arona.es.html
+2026-07-29 13:20:00 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/happy-place-arona.es.html
+2026-07-29 13:20:17 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-29 13:20:26 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/happy-place-arona.es.html: Message: element not interactable
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c8f1e]
+	chromedriver!(No symbol) [0xa14354]
+	chromedriver!(No symbol) [0xa0a0ea]
+	chromedriver!(No symbol) [0xa3566c]
+	chromedriver!(No symbol) [0xa09b24]
+	chromedriver!(No symbol) [0xa35834]
+	chromedriver!(No symbol) [0xa531aa]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 13:20:26 - INFO - __main__ - === Corrida finalizada: 1 establecimientos, 1 reseñas en total (1 descartados por no ser de Tenerife) ===
+2026-07-29 13:27:32 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-07-29 13:27:32 - INFO - __main__ - Usando caché de descubrimiento: C:\Users\jcabr\AI_Dashboard_Core\ingestion\scraping\sitemap_discovery_cache.json
+2026-07-29 13:27:32 - INFO - __main__ - 9 establecimiento(s) ya completados en corridas anteriores, se omiten.
+2026-07-29 13:27:32 - INFO - __main__ - [1/1] Procesando https://www.booking.com/hotel/es/happy-place-arona.es.html
+2026-07-29 13:27:32 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/happy-place-arona.es.html
+2026-07-29 13:27:57 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-29 13:28:04 - INFO - __main__ -   Página 1: 1 reseñas (1 acumuladas)
+2026-07-29 13:28:05 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-07-29 13:28:08 - INFO - __main__ - Guardado completo: 1 establecimientos, 1 reseñas.
+2026-07-29 13:28:15 - INFO - __main__ - === Corrida finalizada: 1 establecimientos, 1 reseñas en total (0 descartados por no ser de Tenerife) ===
+2026-07-29 13:32:50 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-07-29 13:32:50 - INFO - __main__ - Usando caché de descubrimiento: C:\Users\jcabr\AI_Dashboard_Core\ingestion\scraping\sitemap_discovery_cache.json
+2026-07-29 13:32:50 - INFO - __main__ - [1/10] Procesando https://www.booking.com/hotel/es/castle-harbour-sun-amp-fun.es.html
+2026-07-29 13:32:50 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/castle-harbour-sun-amp-fun.es.html
+2026-07-29 13:33:18 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-29 13:33:27 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-07-29 13:33:33 - INFO - __main__ -   Página 2: 6 reseñas (16 acumuladas)
+2026-07-29 13:33:37 - INFO - __main__ - Guardado completo: 1 establecimientos, 15 reseñas.
+2026-07-29 13:33:40 - INFO - __main__ - [2/10] Procesando https://www.booking.com/hotel/es/apartment-overlooking-los-gigantes.es.html
+2026-07-29 13:33:40 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartment-overlooking-los-gigantes.es.html
+2026-07-29 13:33:56 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38683 Santiago del Teide, España'
+2026-07-29 13:34:01 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-29 13:34:08 - INFO - __main__ -   Página 1: 1 reseñas (1 acumuladas)
+2026-07-29 13:34:08 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-07-29 13:34:11 - INFO - __main__ - Guardado completo: 1 establecimientos, 1 reseñas.
+2026-07-29 13:34:15 - INFO - __main__ - [3/10] Procesando https://www.booking.com/hotel/es/casa-tipo-cueva-toda-una-experiencia-en-artola-marbella-con-toques-dorados-y-pis.es.html
+2026-07-29 13:34:15 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-tipo-cueva-toda-una-experiencia-en-artola-marbella-con-toques-dorados-y-pis.es.html
+2026-07-29 13:34:35 - WARNING - __main__ -   Descartado (no es Tenerife): 'Modern townhouse with private heated pool near Cabopino beach in Artola, Marbella' (https://www.booking.com/hotel/es/casa-tipo-cueva-toda-una-experiencia-en-artola-marbella-con-toques-dorados-y-pis.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-07-29 13:34:39 - INFO - __main__ - [4/10] Procesando https://www.booking.com/hotel/es/new-finca-panorama-stunning-5-bedroom-with-pool.es.html
+2026-07-29 13:34:39 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/new-finca-panorama-stunning-5-bedroom-with-pool.es.html
+2026-07-29 13:35:01 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-29 13:35:05 - WARNING - __main__ -   Descartado (no es Tenerife): 'NEW Finca Panorama - Stunning 5 Bedroom with pool' (https://www.booking.com/hotel/es/new-finca-panorama-stunning-5-bedroom-with-pool.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-07-29 13:35:11 - INFO - __main__ - [5/10] Procesando https://www.booking.com/hotel/es/happy-place-arona.es.html
+2026-07-29 13:35:11 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/happy-place-arona.es.html
+2026-07-29 13:35:32 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-29 13:35:39 - INFO - __main__ -   Página 1: 1 reseñas (1 acumuladas)
+2026-07-29 13:35:39 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-07-29 13:35:43 - INFO - __main__ - Guardado completo: 1 establecimientos, 1 reseñas.
+2026-07-29 13:35:46 - INFO - __main__ - [6/10] Procesando https://www.booking.com/hotel/es/villa-lalola-con-piscina-climatizada.es.html
+2026-07-29 13:35:46 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/villa-lalola-con-piscina-climatizada.es.html
+2026-07-29 13:36:10 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-29 13:36:13 - WARNING - __main__ -   Descartado (no es Tenerife): 'Villa LaLola con piscina, oasis privado' (https://www.booking.com/hotel/es/villa-lalola-con-piscina-climatizada.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-07-29 13:36:20 - INFO - __main__ - [7/10] Procesando https://www.booking.com/hotel/es/waou-palacio-tenorio-santa-cruz-sevilla.es.html
+2026-07-29 13:36:20 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/waou-palacio-tenorio-santa-cruz-sevilla.es.html
+2026-07-29 13:36:42 - WARNING - __main__ -   Descartado (no es Tenerife): 'Waou Palacio Tenorio Santa Cruz' (https://www.booking.com/hotel/es/waou-palacio-tenorio-santa-cruz-sevilla.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-07-29 13:36:47 - INFO - __main__ - [8/10] Procesando https://www.booking.com/hotel/es/seaview-royal-garden.es.html
+2026-07-29 13:36:47 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/seaview-royal-garden.es.html
+2026-07-29 13:37:03 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-29 13:37:11 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-29 13:37:22 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-07-29 13:37:30 - INFO - __main__ -   Página 2: 3 reseñas (13 acumuladas)
+2026-07-29 13:37:34 - INFO - __main__ - Guardado completo: 1 establecimientos, 13 reseñas.
+2026-07-29 13:37:41 - INFO - __main__ - [9/10] Procesando https://www.booking.com/hotel/es/rincon-de-la-caleta.es.html
+2026-07-29 13:37:41 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/rincon-de-la-caleta.es.html
+2026-07-29 13:38:05 - WARNING - __main__ -   Descartado (no es Tenerife): 'Rincón de la Caleta' (https://www.booking.com/hotel/es/rincon-de-la-caleta.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-07-29 13:38:10 - INFO - __main__ - [10/10] Procesando https://www.booking.com/hotel/es/grifeu-131-apartamento-duplex-con-2-terrazas.es.html
+2026-07-29 13:38:10 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/grifeu-131-apartamento-duplex-con-2-terrazas.es.html
+2026-07-29 13:38:30 - WARNING - __main__ -   Descartado (no es Tenerife): 'Grifeu 13.1 - Apartamento dúplex con 2 terrazas' (https://www.booking.com/hotel/es/grifeu-131-apartamento-duplex-con-2-terrazas.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-07-29 13:38:35 - INFO - __main__ - === Corrida finalizada: 4 establecimientos, 30 reseñas en total (6 descartados por no ser de Tenerife) ===
+2026-07-29 13:50:01 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-07-29 13:50:01 - INFO - __main__ - Usando caché de descubrimiento: C:\Users\jcabr\AI_Dashboard_Core\ingestion\scraping\sitemap_discovery_cache.json
+2026-07-29 13:50:01 - INFO - __main__ - 10 establecimiento(s) ya completados en corridas anteriores, se omiten.
+2026-07-29 13:50:01 - INFO - __main__ - [1/10] Procesando https://www.booking.com/hotel/es/amarilla-beach-apartment.es.html
+2026-07-29 13:50:01 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/amarilla-beach-apartment.es.html
+2026-07-29 13:50:42 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38639 San Miguel de Abona, España'
+2026-07-29 13:50:50 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-29 13:51:01 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-07-29 13:51:07 - INFO - __main__ -   Página 2: 1 reseñas (11 acumuladas)
+2026-07-29 13:51:21 - INFO - __main__ - Guardado completo: 1 establecimientos, 11 reseñas.
+2026-07-29 13:51:26 - INFO - __main__ - [2/10] Procesando https://www.booking.com/hotel/es/casa-rural-con-piscina-el-huerto-del-olivo-plasezuela-trujillo-caceres.es.html
+2026-07-29 13:51:26 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-rural-con-piscina-el-huerto-del-olivo-plasezuela-trujillo-caceres.es.html
+2026-07-29 13:52:21 - WARNING - __main__ -   Descartado (no es Tenerife): 'Casa Rural con piscina El Huerto del Olivo, Plasenzuela, Trujillo, Cáceres' (https://www.booking.com/hotel/es/casa-rural-con-piscina-el-huerto-del-olivo-plasezuela-trujillo-caceres.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-07-29 13:52:27 - INFO - __main__ - [3/10] Procesando https://www.booking.com/hotel/es/apartamento-sami-vista-al-mar-y-piscina.es.html
+2026-07-29 13:52:27 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartamento-sami-vista-al-mar-y-piscina.es.html
+2026-07-29 13:53:13 - WARNING - __main__ -   Descartado (no es Tenerife): 'Apartamento Sami vista al mar y piscina' (https://www.booking.com/hotel/es/apartamento-sami-vista-al-mar-y-piscina.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-07-29 13:53:19 - INFO - __main__ - [4/10] Procesando https://www.booking.com/hotel/es/las-canteras-ocean-view-las-palmas-de-gran-canaria.es.html
+2026-07-29 13:53:19 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/las-canteras-ocean-view-las-palmas-de-gran-canaria.es.html
+2026-07-29 13:54:04 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-29 13:54:08 - WARNING - __main__ -   Descartado (no es Tenerife): 'Las Canteras Ocean View' (https://www.booking.com/hotel/es/las-canteras-ocean-view-las-palmas-de-gran-canaria.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-07-29 13:54:12 - INFO - __main__ - [5/10] Procesando https://www.booking.com/hotel/es/apure-apartment-downtown-la-laguna.es.html
+2026-07-29 13:54:12 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apure-apartment-downtown-la-laguna.es.html
+2026-07-29 13:54:45 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-29 13:54:52 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-29 13:55:00 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-07-29 13:55:09 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-07-29 13:55:26 - INFO - __main__ - Guardado completo: 1 establecimientos, 15 reseñas.
+2026-07-29 13:55:29 - INFO - __main__ - [6/10] Procesando https://www.booking.com/hotel/es/casa-colibri-con-piscina-privada.es.html
+2026-07-29 13:55:29 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-colibri-con-piscina-privada.es.html
+2026-07-29 13:56:25 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/casa-colibri-con-piscina-privada.es.html: Message: timeout: Timed out receiving message from renderer: 30.000
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa530ba]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 13:56:27 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/casa-colibri-con-piscina-privada.es.html: Message: timeout: Timed out receiving message from renderer: 30.000
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa530ba]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 13:56:27 - INFO - __main__ - [7/10] Procesando https://www.booking.com/hotel/es/sauna-privada-piscina-climatizada-jacuzzi-y-bbq-para-8-personas.es.html
+2026-07-29 13:56:27 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/sauna-privada-piscina-climatizada-jacuzzi-y-bbq-para-8-personas.es.html
+2026-07-29 13:57:10 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-29 13:57:14 - WARNING - __main__ -   Descartado (no es Tenerife): 'Villa Naranjos - Sauna - Jacuzzi - Gym - BBQ' (https://www.booking.com/hotel/es/sauna-privada-piscina-climatizada-jacuzzi-y-bbq-para-8-personas.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-07-29 13:57:21 - INFO - __main__ - [8/10] Procesando https://www.booking.com/hotel/es/casa-julia-la-laguna1.es.html
+2026-07-29 13:57:21 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-julia-la-laguna1.es.html
+2026-07-29 13:58:07 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-29 13:58:09 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38260 La Laguna, España'
+2026-07-29 13:58:14 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-29 13:58:25 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-07-29 13:58:29 - INFO - __main__ -   Página 2: 4 reseñas (14 acumuladas)
+2026-07-29 13:58:34 - INFO - __main__ - Guardado completo: 1 establecimientos, 14 reseñas.
+2026-07-29 13:58:39 - INFO - __main__ - [9/10] Procesando https://www.booking.com/hotel/es/rio-beach-los-cristianos.es.html
+2026-07-29 13:58:39 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/rio-beach-los-cristianos.es.html
+2026-07-29 13:59:08 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-29 13:59:15 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-29 13:59:25 - INFO - __main__ -   Página 1: 5 reseñas (5 acumuladas)
+2026-07-29 13:59:25 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-07-29 14:20:38 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/rio-beach-los-cristianos.es.html: Server failed to authenticate the request. Make sure the value of Authorization header is formed correctly including the signature.
+RequestId:bb88a8c4-701e-0008-3854-1f3312000000
+Time:2026-07-29T12:20:40.4351574Z
+ErrorCode:AuthenticationFailed
+authenticationerrordetail:Request date header too old: 'Wed, 29 Jul 2026 11:59:27 GMT'
+Content: <?xml version="1.0" encoding="utf-8"?><Error><Code>AuthenticationFailed</Code><Message>Server failed to authenticate the request. Make sure the value of Authorization header is formed correctly including the signature.
+RequestId:bb88a8c4-701e-0008-3854-1f3312000000
+Time:2026-07-29T12:20:40.4351574Z</Message><AuthenticationErrorDetail>Request date header too old: 'Wed, 29 Jul 2026 11:59:27 GMT'</AuthenticationErrorDetail></Error>
+2026-07-29 14:20:38 - INFO - __main__ - [10/10] Procesando https://www.booking.com/hotel/es/residencial-bitacora-3.es.html
+2026-07-29 14:20:38 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/residencial-bitacora-3.es.html
+2026-07-29 14:21:25 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/residencial-bitacora-3.es.html: Message: timeout: Timed out receiving message from renderer: 30.000
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa530ba]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 14:21:27 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/residencial-bitacora-3.es.html: Message: timeout: Timed out receiving message from renderer: 30.000
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa530ba]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 14:21:27 - INFO - __main__ - === Corrida finalizada: 4 establecimientos, 45 reseñas en total (4 descartados por no ser de Tenerife) ===
+2026-07-29 14:31:47 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-07-29 14:31:47 - INFO - __main__ - Usando caché de descubrimiento: C:\Users\jcabr\AI_Dashboard_Core\ingestion\scraping\sitemap_discovery_cache.json
+2026-07-29 14:31:47 - INFO - __main__ - [1/20] Procesando https://www.booking.com/hotel/es/castle-harbour-sun-amp-fun.es.html
+2026-07-29 14:31:47 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/castle-harbour-sun-amp-fun.es.html
+2026-07-29 14:32:33 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/castle-harbour-sun-amp-fun.es.html: Message: timeout: Timed out receiving message from renderer: 30.000
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa530ba]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 14:32:35 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/castle-harbour-sun-amp-fun.es.html: Message: timeout: Timed out receiving message from renderer: 30.000
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa530ba]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 14:32:35 - INFO - __main__ - [2/20] Procesando https://www.booking.com/hotel/es/apartment-overlooking-los-gigantes.es.html
+2026-07-29 14:32:35 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartment-overlooking-los-gigantes.es.html
+2026-07-29 14:33:22 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/apartment-overlooking-los-gigantes.es.html: Message: timeout: Timed out receiving message from renderer: 30.000
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa530ba]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 14:33:24 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/apartment-overlooking-los-gigantes.es.html: Message: timeout: Timed out receiving message from renderer: 30.000
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa530ba]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 14:33:24 - INFO - __main__ - [3/20] Procesando https://www.booking.com/hotel/es/casa-tipo-cueva-toda-una-experiencia-en-artola-marbella-con-toques-dorados-y-pis.es.html
+2026-07-29 14:33:24 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-tipo-cueva-toda-una-experiencia-en-artola-marbella-con-toques-dorados-y-pis.es.html
+2026-07-29 14:34:07 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/casa-tipo-cueva-toda-una-experiencia-en-artola-marbella-con-toques-dorados-y-pis.es.html: Message: timeout: Timed out receiving message from renderer: 14.862
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa53493]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 14:34:09 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/casa-tipo-cueva-toda-una-experiencia-en-artola-marbella-con-toques-dorados-y-pis.es.html: Message: timeout: Timed out receiving message from renderer: 14.862
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa53493]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 14:34:09 - INFO - __main__ - [4/20] Procesando https://www.booking.com/hotel/es/new-finca-panorama-stunning-5-bedroom-with-pool.es.html
+2026-07-29 14:34:09 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/new-finca-panorama-stunning-5-bedroom-with-pool.es.html
+2026-07-29 14:35:25 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/new-finca-panorama-stunning-5-bedroom-with-pool.es.html: Message: timeout: Timed out receiving message from renderer: 30.000
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa530ba]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 14:35:28 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/new-finca-panorama-stunning-5-bedroom-with-pool.es.html: Message: timeout: Timed out receiving message from renderer: 30.000
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa530ba]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 14:35:28 - INFO - __main__ - [5/20] Procesando https://www.booking.com/hotel/es/happy-place-arona.es.html
+2026-07-29 14:35:28 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/happy-place-arona.es.html
+2026-07-29 14:37:09 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/happy-place-arona.es.html: Could not reach host. Are you offline?
+2026-07-29 14:37:09 - INFO - __main__ - [6/20] Procesando https://www.booking.com/hotel/es/villa-lalola-con-piscina-climatizada.es.html
+2026-07-29 14:37:09 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/villa-lalola-con-piscina-climatizada.es.html
+2026-07-29 14:38:03 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/villa-lalola-con-piscina-climatizada.es.html: Message: timeout: Timed out receiving message from renderer: 30.000
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa530ba]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 14:38:05 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/villa-lalola-con-piscina-climatizada.es.html: Message: timeout: Timed out receiving message from renderer: 30.000
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa530ba]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 14:38:05 - INFO - __main__ - [7/20] Procesando https://www.booking.com/hotel/es/waou-palacio-tenorio-santa-cruz-sevilla.es.html
+2026-07-29 14:38:05 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/waou-palacio-tenorio-santa-cruz-sevilla.es.html
+2026-07-29 14:38:59 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/waou-palacio-tenorio-santa-cruz-sevilla.es.html: Message: timeout: Timed out receiving message from renderer: 30.000
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa530ba]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 14:39:01 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/waou-palacio-tenorio-santa-cruz-sevilla.es.html: Message: timeout: Timed out receiving message from renderer: 30.000
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa530ba]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 14:39:01 - INFO - __main__ - [8/20] Procesando https://www.booking.com/hotel/es/seaview-royal-garden.es.html
+2026-07-29 14:39:01 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/seaview-royal-garden.es.html
+2026-07-29 14:39:40 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/seaview-royal-garden.es.html: Message: timeout: Timed out receiving message from renderer: 23.095
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa53493]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 14:39:42 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/seaview-royal-garden.es.html: Message: timeout: Timed out receiving message from renderer: 23.095
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa53493]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 14:39:42 - INFO - __main__ - [9/20] Procesando https://www.booking.com/hotel/es/rincon-de-la-caleta.es.html
+2026-07-29 14:39:42 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/rincon-de-la-caleta.es.html
+2026-07-29 14:40:37 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/rincon-de-la-caleta.es.html: Message: timeout: Timed out receiving message from renderer: 30.000
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa530ba]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 14:40:39 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/rincon-de-la-caleta.es.html: Message: timeout: Timed out receiving message from renderer: 30.000
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa530ba]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 14:40:39 - INFO - __main__ - [10/20] Procesando https://www.booking.com/hotel/es/grifeu-131-apartamento-duplex-con-2-terrazas.es.html
+2026-07-29 14:40:39 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/grifeu-131-apartamento-duplex-con-2-terrazas.es.html
+2026-07-29 14:41:39 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/grifeu-131-apartamento-duplex-con-2-terrazas.es.html: Message: timeout: Timed out receiving message from renderer: 30.000
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa530ba]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 14:41:41 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/grifeu-131-apartamento-duplex-con-2-terrazas.es.html: Message: timeout: Timed out receiving message from renderer: 30.000
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa530ba]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 14:41:41 - INFO - __main__ - [11/20] Procesando https://www.booking.com/hotel/es/amarilla-beach-apartment.es.html
+2026-07-29 14:41:41 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/amarilla-beach-apartment.es.html
+2026-07-29 14:42:46 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/amarilla-beach-apartment.es.html: Message: timeout: Timed out receiving message from renderer: 30.000
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa530ba]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 14:42:48 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/amarilla-beach-apartment.es.html: Message: timeout: Timed out receiving message from renderer: 30.000
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa530ba]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 14:42:48 - INFO - __main__ - [12/20] Procesando https://www.booking.com/hotel/es/casa-rural-con-piscina-el-huerto-del-olivo-plasezuela-trujillo-caceres.es.html
+2026-07-29 14:42:48 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-rural-con-piscina-el-huerto-del-olivo-plasezuela-trujillo-caceres.es.html
+2026-07-29 14:43:46 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/casa-rural-con-piscina-el-huerto-del-olivo-plasezuela-trujillo-caceres.es.html: Message: timeout: Timed out receiving message from renderer: 30.000
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa530ba]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 14:43:48 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/casa-rural-con-piscina-el-huerto-del-olivo-plasezuela-trujillo-caceres.es.html: Message: timeout: Timed out receiving message from renderer: 30.000
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa530ba]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 14:43:48 - INFO - __main__ - [13/20] Procesando https://www.booking.com/hotel/es/apartamento-sami-vista-al-mar-y-piscina.es.html
+2026-07-29 14:43:48 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartamento-sami-vista-al-mar-y-piscina.es.html
+2026-07-29 14:44:30 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/apartamento-sami-vista-al-mar-y-piscina.es.html: Message: timeout: Timed out receiving message from renderer: 29.481
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa53493]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 14:44:32 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/apartamento-sami-vista-al-mar-y-piscina.es.html: Message: timeout: Timed out receiving message from renderer: 29.481
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa53493]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 14:44:32 - INFO - __main__ - [14/20] Procesando https://www.booking.com/hotel/es/las-canteras-ocean-view-las-palmas-de-gran-canaria.es.html
+2026-07-29 14:44:32 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/las-canteras-ocean-view-las-palmas-de-gran-canaria.es.html
+2026-07-29 14:45:28 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/las-canteras-ocean-view-las-palmas-de-gran-canaria.es.html: Message: timeout: Timed out receiving message from renderer: 30.000
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa530ba]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 14:45:30 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/las-canteras-ocean-view-las-palmas-de-gran-canaria.es.html: Message: timeout: Timed out receiving message from renderer: 30.000
+  (Session info: chrome=150.0.7871.187)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbc5843+10883]
+	chromedriver!GetHandleVerifier [0xbc5884+108c4]
+	chromedriver!(No symbol) [0x9c90e0]
+	chromedriver!(No symbol) [0x9b96d3]
+	chromedriver!(No symbol) [0x9b9405]
+	chromedriver!(No symbol) [0x9b75d8]
+	chromedriver!(No symbol) [0x9b7e26]
+	chromedriver!(No symbol) [0x9c4acb]
+	chromedriver!(No symbol) [0x9d65de]
+	chromedriver!(No symbol) [0x9dc656]
+	chromedriver!(No symbol) [0x9b84ac]
+	chromedriver!(No symbol) [0x9d6337]
+	chromedriver!(No symbol) [0xa530ba]
+	chromedriver!(No symbol) [0xa35406]
+	chromedriver!(No symbol) [0xa08659]
+	chromedriver!(No symbol) [0xa09424]
+	chromedriver!GetHandleVerifier [0xe5ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0xe5847b+2a34bb]
+	chromedriver!GetHandleVerifier [0xe794eb+2c452b]
+	chromedriver!GetHandleVerifier [0xbdf566+2a5a6]
+	chromedriver!GetHandleVerifier [0xbe620d+3124d]
+	chromedriver!GetHandleVerifier [0xbce318+19358]
+	chromedriver!GetHandleVerifier [0xbce4c5+19505]
+	chromedriver!GetHandleVerifier [0xbb70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-07-29 14:45:30 - INFO - __main__ - [15/20] Procesando https://www.booking.com/hotel/es/apure-apartment-downtown-la-laguna.es.html
+2026-07-29 14:45:30 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apure-apartment-downtown-la-laguna.es.html
