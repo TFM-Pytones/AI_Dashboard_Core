@@ -286,6 +286,28 @@ def _dismiss_cookie_banner(driver) -> None:
         pass
 
 
+def _get_establishment_type(driver) -> str | None:
+    """Extrae el tipo de establecimiento (Apartahotel, Hotel, Hostal, etc.)
+    desde el breadcrumb de navegación — el último ítem tiene el patrón
+    '...Nombre (Tipo) (País)', donde el penúltimo grupo entre paréntesis
+    es siempre el tipo.
+    """
+    try:
+        nav = driver.find_element(By.CSS_SELECTOR, '[data-testid="breadcrumb-nav"]')
+        items = nav.find_elements(By.TAG_NAME, "li")
+        if not items:
+            return None
+        last_text = items[-1].text.strip()
+        # Toma todos los grupos entre paréntesis; el penúltimo es el tipo
+        # (el último siempre es el país, ej: "(Apartahotel) (España)")
+        matches = re.findall(r"\(([^)]+)\)", last_text)
+        if len(matches) >= 2:
+            return matches[-2]
+        return None
+    except NoSuchElementException:
+        return None
+
+
 def _extract_establishment_id(url: str) -> str:
     """Saca el slug del hotel de la URL, ej: 'alegria-barranco1' de
     '.../hotel/es/alegria-barranco1.es.html'."""
@@ -447,6 +469,8 @@ def scrape_establishment(url: str) -> tuple[Establishment, list[Review]]:
             latitude, longitude = _geocode_address(address)
             wait(config.MIN_DELAY_SECONDS, config.MAX_DELAY_SECONDS)  # respeta rate limit de Nominatim también
 
+        establishment_type = _retry_on_stale(lambda: _get_establishment_type(driver))
+
         establishment = Establishment(
             establishment_id=establishment_id,
             name=name,
@@ -454,7 +478,7 @@ def scrape_establishment(url: str) -> tuple[Establishment, list[Review]]:
             address=address,
             latitude=latitude,
             longitude=longitude,
-            establishment_type=None,  # TODO: confirmar selector si se necesita
+            establishment_type=establishment_type,
         )
 
         # --- Abrir el panel de reseñas ---

@@ -376,3 +376,21 @@ Stacktrace:
 2026-07-28 23:55:55 - INFO - booking_scraper -   Shard 77/78: 49990 URLs, 0 coinciden con Tenerife (21009 acumuladas)
 2026-07-28 23:55:57 - INFO - booking_scraper -   Shard 78/78: 49990 URLs, 0 coinciden con Tenerife (21009 acumuladas)
 2026-07-28 23:55:58 - INFO - booking_scraper - Descubrimiento guardado en caché: C:\Users\jcabr\AI_Dashboard_Core\ingestion\scraping\sitemap_discovery_cache.json
+2026-07-29 11:38:06 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-07-29 11:38:06 - WARNING - __main__ - Usando TEST_ESTABLISHMENT_URLS (lista manual) en vez del sitemap.
+2026-07-29 11:38:06 - INFO - __main__ - [1/2] Procesando https://www.booking.com/hotel/es/alegria-barranco1.es.html
+2026-07-29 11:38:06 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/alegria-barranco1.es.html
+2026-07-29 11:38:37 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-29 11:38:50 - WARNING - __main__ -   Elemento obsoleto (stale), reintentando (1/4)...
+2026-07-29 11:39:09 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-07-29 11:39:19 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-07-29 11:39:24 - INFO - __main__ - Guardado completo: 1 establecimientos, 15 reseñas.
+2026-07-29 11:39:32 - INFO - __main__ - [2/2] Procesando https://www.booking.com/hotel/es/puerto-palace.es.html
+2026-07-29 11:39:32 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/puerto-palace.es.html
+2026-07-29 11:39:51 - INFO - __main__ -   Banner de cookies cerrado.
+2026-07-29 11:39:53 - INFO - __main__ -   Geocodificación sin resultado, reintentando sin 's/n': 'Doctor Cobiella Zaera, 38400 Puerto de la Cruz, España'
+2026-07-29 11:40:02 - WARNING - __main__ -   Elemento obsoleto (stale), reintentando (1/4)...
+2026-07-29 11:40:13 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-07-29 11:40:23 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-07-29 11:40:41 - INFO - __main__ - Guardado completo: 1 establecimientos, 15 reseñas.
+2026-07-29 11:40:44 - INFO - __main__ - === Corrida finalizada: 2 establecimientos, 30 reseñas en total ===

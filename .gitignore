@@ -37,3 +37,4 @@ NOTAS_LOCALES.md
 # 7. Archivos de caché de scraping
 tenerife_osm_keywords.json
 sitemap_discovery_cache.json
+scraping_progress.json
