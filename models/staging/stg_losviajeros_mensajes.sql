@@ -5,7 +5,7 @@
 ) }}
 
 WITH raw_data AS (
-    SELECT * FROM {{ source('raw_data', 'losviajeros_mensajes') }}
+    SELECT * FROM {{ source('bronze', 'losviajeros_mensajes') }}
 ),
 
 cleaned_mensajes AS (
@@ -26,4 +26,8 @@ cleaned_mensajes AS (
     WHERE mensaje_id IS NOT NULL
 )
 
+-- Filtramos la tabla ya limpia justo antes de guardarla en la Capa Plata
 SELECT * FROM cleaned_mensajes
+WHERE texto_mensaje_limpio NOT LIKE '%Últimos Mensajes%' 
+  AND texto_mensaje_limpio NOT LIKE '%Menú principal%'
+  AND TRIM(texto_mensaje_limpio) != ''

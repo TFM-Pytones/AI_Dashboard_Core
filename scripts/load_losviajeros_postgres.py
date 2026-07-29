@@ -20,7 +20,7 @@ engine = create_engine(f"postgresql://{user}:{password}@{host}:5432/{dbname}?ssl
 
 # NUEVO PASO: Asegurarnos de que el esquema raw_data existe antes de inyectar nada
 with engine.connect() as conn:
-    conn.execute(text("CREATE SCHEMA IF NOT EXISTS raw_data;"))
+    conn.execute(text("CREATE SCHEMA IF NOT EXISTS bronze;"))
     conn.commit()
     print("[OK] Esquema 'raw_data' verificado/creado en la base de datos.")
 
@@ -42,7 +42,7 @@ try:
         df = pd.read_parquet(ruta_archivo)
         
         print(f"Inyectando {len(df)} filas en raw_data.{tabla}...")
-        df.to_sql(tabla, engine, schema="raw_data", if_exists="replace", index=False)
+        df.to_sql(tabla, engine, schema="bronze", if_exists="replace", index=False)
         print(f" -> [OK] Tabla {tabla} lista en PostgreSQL.")
         
     print("\n=======================================================")

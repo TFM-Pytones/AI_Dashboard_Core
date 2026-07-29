@@ -1,7 +1,7 @@
 version: 2
 sources:
   - name: raw_data
-    schema: raw_data
+    schema: bronze
     tables:
       - name: estaciones_clima
         columns: [{name: ubicacion}]
@@ -11,5 +11,8 @@ sources:
         columns: [{name: geometry}]
       - name: gtfs_paradas
         columns: [{name: geometry}]
+  - name: bronze
+    schema: bronze
+    tables:
       - name: losviajeros_temas
       - name: losviajeros_mensajes

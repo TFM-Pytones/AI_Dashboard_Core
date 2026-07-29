@@ -5,7 +5,7 @@
 ) }}
 
 WITH raw_data AS (
-    SELECT * FROM {{ source('raw_data', 'losviajeros_temas') }}
+    SELECT * FROM {{ source('bronze', 'losviajeros_temas') }}
 ),
 
 cleaned_temas AS (
