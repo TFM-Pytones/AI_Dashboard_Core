@@ -40,6 +40,7 @@ import time
 import random
 from datetime import datetime, timezone
 from urllib.parse import urljoin
+import pandas as pd
 
 import requests
 from bs4 import BeautifulSoup
@@ -143,10 +144,6 @@ def parse_post_block(block_text: str) -> dict | None:
 
 
 def scrape_thread(tema_id: str, titulo: str, max_posts_pages: int = 50) -> list[dict]:
-    """
-    Descarga todos los mensajes de un tema, paginando de 20 en 20 (start=0,20,40...)
-    hasta que una página no devuelva mensajes nuevos.
-    """
     mensajes = []
     start = 0
     paginas_vacias = 0
@@ -161,8 +158,6 @@ def scrape_thread(tema_id: str, titulo: str, max_posts_pages: int = 50) -> list[
             break
 
         soup = BeautifulSoup(html, "html.parser")
-
-        # Cada permalink de post es foros.php?p=NNNNNNN#NNNNNNN — confirmado real.
         post_links = soup.find_all("a", href=re.compile(r"foros\.php\?p=\d+#\d+$"))
         post_ids_pagina = sorted(set(re.search(r"p=(\d+)", a["href"]).group(1) for a in post_links))
 
@@ -171,17 +166,31 @@ def scrape_thread(tema_id: str, titulo: str, max_posts_pages: int = 50) -> list[
             start += 20
             continue
 
-        texto_pagina = soup.get_text("\n")
         for post_id in post_ids_pagina:
+            texto_limpio = ""
+            
+            # 1. Encontrar el inicio exacto del mensaje
+            ancla = soup.find(attrs={"name": post_id})
+            
+            if ancla:
+                # 2. Subir SOLO a la fila (<tr>) que contiene este post concreto (evita coger la tabla entera)
+                fila = ancla.find_parent("tr")
+                if fila:
+                    # 3. Extraer EXCLUSIVAMENTE el contenedor de texto
+                    cuerpo = fila.find(class_=re.compile(r"postbody", re.I))
+                    if cuerpo:
+                        texto_limpio = cuerpo.get_text(separator=" ", strip=True)
+
+            # FILTRO DE SEGURIDAD: Si está vacío, o vemos que se coló el menú por error, ignoramos la fila
+            if not texto_limpio or texto_limpio.startswith("Últimos Mensajes") or "Menú principal" in texto_limpio:
+                continue
+
             mensajes.append({
                 "tema_id": tema_id,
                 "tema_titulo": titulo,
                 "mensaje_id": post_id,
                 "url": f"{BASE_URL}/foros.php?p={post_id}#{post_id}",
-                # Guardamos el texto completo de la página; el post individual
-                # se puede aislar luego en processed_data con el propio LLM/NLP,
-                # es más robusto que pelearse con el HTML de un foro de 20 años.
-                "contexto_pagina_raw": texto_pagina[:20000],
+                "contexto_pagina_raw": texto_limpio,
                 "fetched_at": datetime.now(timezone.utc).isoformat(),
             })
 
@@ -191,22 +200,16 @@ def scrape_thread(tema_id: str, titulo: str, max_posts_pages: int = 50) -> list[
     return mensajes
 
 
-def main(max_temas: int | None = 30):
-    """
-    max_temas: por defecto limita a los primeros 30 temas para tu primera
-    prueba (evita lanzar 248 temas x paginación sin haber validado nada antes).
-    Ponlo a None para el scraping completo cuando ya hayas verificado que
-    todo funciona bien.
-    """
+def main(max_temas: int | None = 2): # <-- NOTA: Puesto a 2 para hacer una prueba rápida
     temas = discover_threads()
     if max_temas:
         temas = temas[:max_temas]
 
-    with open("losviajeros_temas.csv", "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=["tema_id", "titulo", "url"])
-        writer.writeheader()
-        writer.writerows(temas)
-    print(f"Guardado losviajeros_temas.csv ({len(temas)} temas)")
+    # Guardar temas directamente en Parquet
+    import pandas as pd
+    df_temas = pd.DataFrame(temas)
+    df_temas.to_parquet("losviajeros_temas.parquet", index=False)
+    print(f"Guardado losviajeros_temas.parquet ({len(df_temas)} temas)")
 
     todos_mensajes = []
     for i, tema in enumerate(temas):
@@ -215,11 +218,10 @@ def main(max_temas: int | None = 30):
         todos_mensajes.extend(mensajes)
 
     if todos_mensajes:
-        with open("losviajeros_mensajes.csv", "w", newline="", encoding="utf-8") as f:
-            writer = csv.DictWriter(f, fieldnames=list(todos_mensajes[0].keys()))
-            writer.writeheader()
-            writer.writerows(todos_mensajes)
-        print(f"Guardado losviajeros_mensajes.csv ({len(todos_mensajes)} mensajes)")
+        # Guardar mensajes directamente en Parquet
+        df_mensajes = pd.DataFrame(todos_mensajes)
+        df_mensajes.to_parquet("losviajeros_mensajes.parquet", index=False)
+        print(f"Guardado losviajeros_mensajes.parquet ({len(df_mensajes)} mensajes aislados)")
 
 
 if __name__ == "__main__":
