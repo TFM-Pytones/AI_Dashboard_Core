@@ -136,7 +136,7 @@ def save_videos(conn, videos: list[dict]):
         for v in videos:
             cur.execute(
                 """
-                INSERT INTO raw_data.youtube_videos
+                INSERT INTO bronze.youtube_videos
                     (video_id, search_term, title, channel_title, published_at, view_count)
                 VALUES (%(video_id)s, %(search_term)s, %(title)s, %(channel_title)s, %(published_at)s, %(view_count)s)
                 ON CONFLICT (video_id) DO UPDATE SET
@@ -155,7 +155,7 @@ def save_comments(conn, comments: list[dict]):
         for c in comments:
             cur.execute(
                 """
-                INSERT INTO raw_data.youtube_comments
+                INSERT INTO bronze.youtube_comments
                     (comment_id, video_id, author, text, like_count, published_at)
                 VALUES (%(comment_id)s, %(video_id)s, %(author)s, %(text)s, %(like_count)s, %(published_at)s)
                 ON CONFLICT (comment_id) DO NOTHING

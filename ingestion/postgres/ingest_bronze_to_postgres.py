@@ -40,20 +40,20 @@ def download_blob_to_dataframe(blob_service_client, blob_name):
     return df
 
 def ingest_to_postgres(df, table_name, engine):
-    """Inserta el DataFrame en el esquema raw_data de PostgreSQL"""
-    print(f"Ingestando {len(df)} filas en la tabla raw_data.{table_name}...")
+    """Inserta el DataFrame en el esquema bronze de PostgreSQL"""
+    print(f"Ingestando {len(df)} filas en la tabla bronze.{table_name}...")
     
-    # Escribimos los datos en el esquema 'raw_data'. dbt se encargará luego de pasarlos a 'silver'
+    # Escribimos los datos en el esquema 'bronze'. dbt se encargará luego de pasarlos a 'silver'
     df.to_sql(
         name=table_name,
         con=engine,
-        schema="raw_data",
+        schema="bronze",
         if_exists="replace", # o 'append' dependiendo de la lógica incremental
         index=False,
         method="multi", # optimización de inserción
         chunksize=1000
     )
-    print(f"✅ Ingesta en raw_data.{table_name} completada.")
+    print(f"✅ Ingesta en bronze.{table_name} completada.")
 
 def main():
     if not AZURE_CONNECTION_STRING:

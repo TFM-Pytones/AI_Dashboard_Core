@@ -73,8 +73,8 @@ def main():
 
     print("\nSetup completado exitosamente de forma multiplataforma.")
     print("Próximos pasos:")
-    print("  1. Verifica tu archivo .env con las credenciales reales de Neon DB.")
-    print("  2. Abre notebooks/connect_neon.ipynb en VS Code y selecciona el kernel 'AI Dashboard Core (.venv)'.")
+    print("  1. Verifica tu archivo .env con las credenciales reales de Azure PostgreSQL.")
+    print("  2. Configura el kernel 'AI Dashboard Core (.venv)' en tus notebooks si vas a ejecutarlos.")
 
 if __name__ == "__main__":
     main()

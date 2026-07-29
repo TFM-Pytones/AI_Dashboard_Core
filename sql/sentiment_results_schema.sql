@@ -7,7 +7,7 @@ CREATE SCHEMA IF NOT EXISTS processed_data;
 CREATE TABLE IF NOT EXISTS processed_data.sentiment_results (
     id              SERIAL PRIMARY KEY,
     source          TEXT NOT NULL,        -- ej. 'youtube_comment', 'tripadvisor_review', 'reddit_comment'
-    source_id       TEXT NOT NULL,        -- id original en su tabla raw_data (ej. comment_id)
+    source_id       TEXT NOT NULL,        -- id original en su tabla bronze (ej. comment_id)
     text            TEXT NOT NULL,        -- texto ya limpiado, el que se le paso al modelo
     label           TEXT NOT NULL,        -- 'positive' | 'neutral' | 'negative'
     score           REAL NOT NULL,
