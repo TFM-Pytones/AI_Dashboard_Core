@@ -39,3 +39,5 @@ checkpoints/
 checkpoints.json
 *.result.json
 source_datasets.hash.json
+# 8. Archivos de skills de claude
+.claude
