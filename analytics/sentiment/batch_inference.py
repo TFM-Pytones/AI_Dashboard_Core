@@ -2,7 +2,7 @@
 
 Procesa TODOS los comentarios de YouTube que aun no tengan resultado, corre el
 modelo de sentimiento (el mismo del Issue #16) y guarda las predicciones en
-processed_data.sentiment_results. Incremental: si se repite, solo procesa lo
+silver.sentiment_results (Azure). Incremental: si se repite, solo procesa lo
 nuevo (no reprocesa lo ya hecho).
 
 La tabla de resultados es generica (columna `source`) para poder añadir
@@ -40,17 +40,17 @@ URL_RE = re.compile(r"https?://\S+")
 
 def get_db_connection():
     return psycopg2.connect(
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        host=os.getenv("DB_HOST"),
-        database=os.getenv("DB_NAME"),
+        user=os.getenv("AZURE_DB_USER"),
+        password=os.getenv("AZURE_DB_PASSWORD"),
+        host=os.getenv("AZURE_DB_HOST"),
+        database=os.getenv("AZURE_DB_NAME"),
         port="5432",
         sslmode="require",
     )
 
 
 def ensure_schema(conn):
-    schema_path = Path(__file__).resolve().parents[2] / "sql" / "sentiment_results_schema.sql"
+    schema_path = Path(__file__).resolve().parents[2] / "sql" / "silver_sentiment_results_schema.sql"
     with conn.cursor() as cur:
         cur.execute(schema_path.read_text())
     conn.commit()
@@ -67,8 +67,8 @@ def fetch_pending_comments(conn) -> list[tuple[str, str]]:
         cur.execute(
             """
             SELECT c.comment_id, c.text
-            FROM raw_data.youtube_comments c
-            LEFT JOIN processed_data.sentiment_results r
+            FROM bronze.youtube_comments c
+            LEFT JOIN silver.sentiment_results r
                 ON r.source = %s AND r.source_id = c.comment_id
             WHERE r.id IS NULL AND c.text IS NOT NULL
             """,
@@ -160,7 +160,7 @@ def print_summary(results: list[dict]) -> None:
     counts = {}
     for r in results:
         counts[r["label"]] = counts.get(r["label"], 0) + 1
-    print(f"\nGuardados {len(results)} resultados nuevos en processed_data.sentiment_results.")
+    print(f"\nGuardados {len(results)} resultados nuevos en silver.sentiment_results.")
     print("Distribución:", counts)
 
 
@@ -171,7 +171,7 @@ def save_results(conn, results: list[dict]):
         psycopg2.extras.execute_batch(
             cur,
             """
-            INSERT INTO processed_data.sentiment_results
+            INSERT INTO silver.sentiment_results
                 (source, source_id, text, label, score, model_name, is_relevant, relevance_score)
             VALUES (%(source)s, %(source_id)s, %(text)s, %(label)s, %(score)s, %(model_name)s,
                     %(is_relevant)s, %(relevance_score)s)

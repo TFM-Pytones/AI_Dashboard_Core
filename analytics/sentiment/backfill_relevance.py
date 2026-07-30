@@ -32,7 +32,7 @@ def fetch_unclassified_chunk(conn, limit: int) -> list[tuple[int, str]]:
         cur.execute(
             """
             SELECT id, text
-            FROM processed_data.sentiment_results
+            FROM silver.sentiment_results
             WHERE source = %s AND relevance_score IS NULL
             ORDER BY id
             LIMIT %s
@@ -48,7 +48,7 @@ def apply_relevance(conn, rows: list[tuple[int, str]], relevance: list[tuple[boo
             if is_relevant:
                 cur.execute(
                     """
-                    UPDATE processed_data.sentiment_results
+                    UPDATE silver.sentiment_results
                     SET is_relevant = true, relevance_score = %s
                     WHERE id = %s
                     """,
@@ -57,7 +57,7 @@ def apply_relevance(conn, rows: list[tuple[int, str]], relevance: list[tuple[boo
             else:
                 cur.execute(
                     """
-                    UPDATE processed_data.sentiment_results
+                    UPDATE silver.sentiment_results
                     SET is_relevant = false, relevance_score = %s,
                         label = 'off_topic', score = %s, model_name = %s
                     WHERE id = %s

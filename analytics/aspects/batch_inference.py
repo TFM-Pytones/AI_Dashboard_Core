@@ -2,7 +2,7 @@
 
 Procesa TODOS los comentarios de YouTube que aun no tengan aspectos extraidos,
 corre pyabsa (ATEPC, el mismo checkpoint del setup_test.py) y guarda cada
-aspecto detectado en processed_data.aspect_results. Incremental: si se repite,
+aspecto detectado en silver.aspect_results (Azure). Incremental: si se repite,
 solo procesa comentarios nuevos.
 
 Un mismo comentario puede generar varias filas (una por aspecto detectado) o
@@ -36,17 +36,17 @@ URL_RE = re.compile(r"https?://\S+")
 
 def get_db_connection():
     return psycopg2.connect(
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        host=os.getenv("DB_HOST"),
-        database=os.getenv("DB_NAME"),
+        user=os.getenv("AZURE_DB_USER"),
+        password=os.getenv("AZURE_DB_PASSWORD"),
+        host=os.getenv("AZURE_DB_HOST"),
+        database=os.getenv("AZURE_DB_NAME"),
         port="5432",
         sslmode="require",
     )
 
 
 def ensure_schema(conn):
-    schema_path = Path(__file__).resolve().parents[2] / "sql" / "aspect_results_schema.sql"
+    schema_path = Path(__file__).resolve().parents[2] / "sql" / "silver_aspect_results_schema.sql"
     with conn.cursor() as cur:
         cur.execute(schema_path.read_text())
     conn.commit()
@@ -63,10 +63,10 @@ def fetch_pending_comments(conn) -> list[tuple[str, str]]:
         cur.execute(
             """
             SELECT c.comment_id, c.text
-            FROM raw_data.youtube_comments c
+            FROM bronze.youtube_comments c
             WHERE c.text IS NOT NULL
               AND NOT EXISTS (
-                  SELECT 1 FROM processed_data.aspect_results r
+                  SELECT 1 FROM silver.aspect_results r
                   WHERE r.source = %s AND r.source_id = c.comment_id
               )
             """,
@@ -82,7 +82,7 @@ def save_results(conn, results: list[dict]):
         psycopg2.extras.execute_batch(
             cur,
             """
-            INSERT INTO processed_data.aspect_results
+            INSERT INTO silver.aspect_results
                 (source, source_id, text, aspect, aspect_sentiment, confidence, model_name)
             VALUES (%(source)s, %(source_id)s, %(text)s, %(aspect)s, %(aspect_sentiment)s, %(confidence)s, %(model_name)s)
             """,
@@ -141,8 +141,8 @@ def main():
                     "model_name": MODEL_NAME,
                 })
 
-        # Conexión nueva por lote: cada INSERT es rápido, evita que el pooler
-        # de Neon cierre la conexión por inactividad durante la inferencia.
+        # Conexión nueva por lote: cada INSERT es rápido, evita que Azure
+        # cierre la conexión por inactividad durante la inferencia.
         batch_conn = get_db_connection()
         save_results(batch_conn, batch_results)
         batch_conn.close()
@@ -150,7 +150,7 @@ def main():
 
         print(f"  -> {min(start + BATCH_SIZE, len(items))}/{len(items)} comentarios procesados y guardados...")
 
-    print(f"\nGuardadas {total_saved} filas de aspectos en processed_data.aspect_results.")
+    print(f"\nGuardadas {total_saved} filas de aspectos en silver.aspect_results.")
     print(f"{comments_with_aspects}/{len(items)} comentarios tenían al menos un aspecto detectado.")
 
 

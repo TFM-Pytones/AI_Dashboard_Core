@@ -33,8 +33,11 @@ tables_to_migrate = [
     ("gtfs_calendario_excepciones", False),
     ("gtfs_rutas_atributos", False),
     ("gtfs_viajes", False),
-    ("sentiment_results", False),
-    ("aspect_results", False),
+    # sentiment_results y aspect_results ya NO se migran aca: el pipeline de
+    # YouTube escribe directo en Azure (bronze/silver), ver
+    # migration/migrate_youtube_pipeline_to_azure.py. Migrarlas con este
+    # script (pandas to_sql replace) borraria la UNIQUE(source, source_id)
+    # que necesita el ON CONFLICT de analytics/sentiment/batch_inference.py.
     ("gtfs_horarios", False)  # La procesamos al final por ser muy grande
 ]
 
