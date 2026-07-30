@@ -34,6 +34,7 @@ tables_to_migrate = [
     ("gtfs_rutas_atributos", False),
     ("gtfs_viajes", False),
     ("sentiment_results", False),
+    ("aspect_results", False),
     ("gtfs_horarios", False)  # La procesamos al final por ser muy grande
 ]
 

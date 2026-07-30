@@ -4,7 +4,7 @@ import psycopg2
 from dotenv import load_dotenv
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-env_path = os.path.abspath(os.path.join(current_dir, "..", "..", ".env"))
+env_path = os.path.abspath(os.path.join(current_dir, "..", ".env"))
 load_dotenv(env_path, override=True)
 
 print("Intentando conectar a Azure Database for PostgreSQL...")

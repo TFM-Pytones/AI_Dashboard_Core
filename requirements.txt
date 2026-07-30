@@ -1,6 +1,5 @@
 # Conexión a Base de Datos y Variables de Entorno
 psycopg2-binary==2.9.12
-psycopg2==2.9.12
 sqlalchemy==2.0.51
 python-dotenv==1.2.2
 
