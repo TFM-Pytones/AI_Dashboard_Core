@@ -1,0 +1,28 @@
+version: 2
+sources:
+  - name: bronze
+    schema: bronze
+    tables:
+      # Clima
+      - name: estaciones_agrocabildo
+      - name: clima_horario_agrocabildo
+      
+      # Modelos Atmosfericos / Satelite
+      - name: era5land_consolidado
+      - name: hist_forecast_gfs_seamless_consolidado
+      - name: leadtime_gfs_seamless_consolidado
+      
+      # Espacial
+      - name: limites_municipales
+      - name: zonas_turisticas
+      - name: tenerife_espacios_naturales_protegidos
+      
+      # Movilidad
+      - name: gtfs_paradas
+      - name: gtfs_rutas
+      
+      # NLP / Redes Sociales
+      - name: youtube_videos
+      - name: youtube_comments
+      - name: losviajeros_temas
+      - name: losviajeros_mensajes

@@ -1,0 +1,13 @@
+tenerife_tourism_dbt:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: "{{ env_var('AZURE_DB_HOST') }}"
+      user: "{{ env_var('AZURE_DB_USER') }}"
+      password: "{{ env_var('AZURE_DB_PASSWORD') }}"
+      dbname: "{{ env_var('AZURE_DB_NAME') }}"
+      schema: silver
+      port: 5432
+      threads: 4
+      sslmode: require

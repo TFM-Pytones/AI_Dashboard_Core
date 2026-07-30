@@ -23,9 +23,22 @@ __pycache__/
 .ipynb_checkpoints/
 venv/
 env/
+.venv/
+.tfm/
 .DS_Store
 
+<<<<<<< HEAD
 # 5. Archivos temporales de dbt
 target/
 dbt_packages/
 logs/
+=======
+# 5. dbt
+logs/
+.user.yml
+target/
+dbt_packages/
+
+# 6. Notas locales de trabajo (no compartir con el equipo)
+NOTAS_LOCALES.md
+>>>>>>> 2bbca33d1fa234a3ddf3522265ba28398b64eeef
