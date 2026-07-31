@@ -29,45 +29,17 @@ OUTPUT_DIR = os.path.join(
 )
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-# Municipios de Tenerife (codigos INE 38001-38999)
-TENERIFE_CODES = {
-    "38001": "Adeje",
-    "38002": "Agulo",
-    "38003": "Alajeró",
-    "38004": "Arafo",
-    "38005": "Arico",
-    "38006": "Arona",
-    "38007": "Buenavista del Norte",
-    "38008": "Candelaria",
-    "38009": "Fasnia",
-    "38010": "Garachico",
-    "38011": "Granadilla de Abona",
-    "38012": "La Guancha",
-    "38013": "Guía de Isora",
-    "38014": "Güímar",
-    "38015": "Icod de los Vinos",
-    "38016": "San Cristóbal de La Laguna",
-    "38017": "La Matanza de Acentejo",
-    "38018": "La Orotava",
-    "38019": "Puerto de la Cruz",
-    "38020": "Los Realejos",
-    "38021": "El Rosario",
-    "38022": "San Juan de la Rambla",
-    "38023": "San Miguel de Abona",
-    "38024": "Santa Cruz de Tenerife",
-    "38025": "Santa Úrsula",
-    "38026": "Santiago del Teide",
-    "38027": "El Sauzal",
-    "38028": "Los Silos",
-    "38029": "Tacoronte",
-    "38030": "El Tanque",
-    "38031": "Tegueste",
-    "38032": "La Victoria de Acentejo",
-    "38033": "Vilaflor de Chasna",
-}
-
-# Set de nombres para filtrado rapido (incluye variantes abreviadas del portal ISTAC)
-MUNICIPIOS_TENERIFE_NOMBRES = set(TENERIFE_CODES.values()) | {
+# 31 Municipios de Tenerife (nombres exactos + variantes del ISTAC)
+MUNICIPIOS_TENERIFE_NOMBRES = {
+    "Adeje", "Arafo", "Arico", "Arona", "Buenavista del Norte", 
+    "Candelaria", "Fasnia", "Garachico", "Granadilla de Abona", 
+    "La Guancha", "Guía de Isora", "Güímar", "Icod de los Vinos", 
+    "San Cristóbal de La Laguna", "La Matanza de Acentejo", "La Orotava", 
+    "Puerto de la Cruz", "Los Realejos", "El Rosario", "San Juan de la Rambla", 
+    "San Miguel de Abona", "Santa Cruz de Tenerife", "Santa Úrsula", 
+    "Santiago del Teide", "El Sauzal", "Los Silos", "Tacoronte", 
+    "El Tanque", "Tegueste", "La Victoria de Acentejo", "Vilaflor de Chasna",
+    
     # Variantes / abreviaciones que usa el portal ISTAC
     "La Laguna",
     "Vilaflor",
@@ -79,6 +51,7 @@ MUNICIPIOS_TENERIFE_NOMBRES = set(TENERIFE_CODES.values()) | {
     "La Victoria de Ace",
     "San Juan de la Ram",
 }
+
 
 # Indicadores a descargar: titulo exacto en la API -> nombre columna
 TITULO_A_NOMBRE = {

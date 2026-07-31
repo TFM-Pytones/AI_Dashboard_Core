@@ -350,36 +350,113 @@ Ingesta de datos climáticos históricos y en tiempo real desde dos fuentes comp
 
 ---
 
-### Issue #10 — Extracción Satelital (Copernicus / Sentinel)
+### Issue #10 — Extracción Satelital (Copernicus / Sentinel) ✅ IMPLEMENTADO
 
 **Dificultad**: 🔴 Alta | **Importancia/Bloqueo**: 🟡 Media | **Semana**: S3
 
+> ✅ **Estado**: Scripts implementados. Pendiente lanzar exports en GEE y descargar resultados.
+> 📄 **Decisiones técnicas**: Ver `ingestion/copernicus/DECISIONES_TECNICAS.md`
+
 #### Descripción
-Descarga de imágenes satelitales multiespectrales de **Copernicus Sentinel-2** para Tenerife. Estas imágenes serán la base para calcular los índices NDVI (vegetación), NDBI (urbanización) y datos de luces nocturnas VIIRS en la Fase 3.
+Generación de composites satelitales multiespectrales para Tenerife usando **Google Earth Engine (GEE)** como motor de procesamiento. Los composites alimentan el cálculo de NDVI (vegetación), NDBI (urbanización) y luces nocturnas VIIRS en la Fase 3.
+
+Se abandonó el enfoque original de descarga de escenas individuales (una por mes) debido a dos fenómenos climáticos específicos de Tenerife que invalidan el filtro simple de nubosidad `< 20%`:
+- **"Panza de burro"**: estratocúmulos persistentes en la vertiente norte (6-8 meses/año en municipios como Anaga, La Orotava, Acentejo). Un filtro `< 20%` eliminaría casi todas las escenas de esas zonas.
+- **Calima sahariana**: polvo del Sáhara que pasa el filtro de nubes SCL y sesga los valores NDVI/NDBI, especialmente en verano (Q3).
+
+La solución adoptada es el **composite de mediana trimestral** en GEE, que combina todos los píxeles válidos del trimestre eliminando nubes, sombras y calima.
 
 > 📌 **Periodo temporal**:
-> - **Sentinel-2 (NDVI, NDBI)**: descargar **periodo completo 2019–2026** — la vegetación y urbanización no se ven afectadas por el COVID.
-> - **VIIRS Night Lights**: descargar **periodo completo 2019–2026** pero **etiquetar 2020-2021 como periodo COVID** en los metadatos — serán excluidos del modelo de regresión (ver Decisión Metodológica Global).
+> - **Sentinel-2 (NDVI, NDBI)**: **2019-01 → último Q completo disponible** (auto-calculado en el script). La vegetación no se ve afectada por el COVID — incluir todos los años.
+> - **VIIRS Night Lights**: **2019-01 → último mes completo disponible** (~2 meses de latencia NASA). Los años 2020-2021 se etiquetan `periodo_covid=1` e `incluir_en_modelo=0` — caída artificial por COVID excluida del modelo MGWR.
 
-#### Datos a descargar
-- **Sentinel-2 L2A**: Imágenes de superficie en bandas B02 (Azul), B03 (Verde), B04 (Rojo), B08 (NIR), B11 (SWIR).
-- Filtro de nubosidad: < 20%.
-- **Periodo Sentinel-2**: enero 2019 – junio 2026 (una escena por mes por estación como mínimo para capturar estacionalidad).
-- **VIIRS Night Lights**: Producto `VNP46A2` (composites mensuales) de NASA LAADS DAAC. Periodo: enero 2019 – junio 2026.
+#### Estrategia de datos — Sentinel-2 via GEE
+
+**Producto**: `COPERNICUS/S2_SR_HARMONIZED` (Sentinel-2 L2A Surface Reflectance)
+**Granularidad**: composite de mediana **trimestral** (Q1=ene-mar, Q2=abr-jun, Q3=jul-sep, Q4=oct-dic)
+**Total composites**: 30 (2019 Q1 → 2026 Q2)
+
+**Triple filtrado de calidad por píxel:**
+1. **SCL (Scene Classification Layer)**: elimina nubes (media/alta probabilidad), cirrus y sombras de nubes. Los valores SCL excluidos son: `1` (saturado), `3` (sombra nube), `8` (nubes media), `9` (nubes alta), `10` (cirrus).
+2. **AOT (Aerosol Optical Thickness)**: filtra calima sahariana. Umbral: `AOT < 0.3` (DN < 300). La banda AOT está disponible como auxiliar en Sentinel-2 L2A.
+3. **B02 Azul (490 nm)**: refuerzo de detección de calima. El polvo sahariano eleva la reflectancia azul en superficies oscuras. Umbral: `B02 < 0.18` (DN < 1800).
+
+**Bandas exportadas** (GeoTIFF multiband por composite):
+- `NDVI = (B08 - B04) / (B08 + B04)` → capa de vegetación calculada en GEE
+- `NDBI = (B11 - B08) / (B11 + B08)` → capa de urbanización calculada en GEE
+- `B02_blue` → capa azul de control de calidad visual
+
+**Resolución de exportación**: 20m (vs 10m nativo → equilibrio calidad/tamaño; Tenerife ~2045 km²)
+**CRS**: EPSG:32628 (WGS 84 / UTM zone 28N — sistema oficial Canarias)
+
+#### Estrategia de datos — VIIRS Luces Nocturnas
+
+**Producto GEE**: `NOAA/VIIRS/DNB/MONTHLY_V1/VCMSLCFG`, banda `avg_rad` (nW/cm²/sr)
+**Producto NASA alternativo**: VNP46A2, tile `h17v05` (cubre Tenerife)
+**Granularidad**: composite **mensual** (ya vienen procesados por NASA/NOAA)
+**Total archivos**: 90 meses (2019/01 → 2026/06)
+**Fuente recomendada**: GEE (más sencillo, sin cuenta NASA)
+
+#### Archivos implementados
+
+| Archivo | Descripción |
+|---------|-------------|
+| `ingestion/copernicus/download_sentinel2_gee.py` | Pipeline GEE Sentinel-2: exports trimestrales, CLI completo |
+| `ingestion/copernicus/download_viirs.py` | Pipeline VIIRS: fuente GEE o NASA LAADS DAAC, upload Azure |
+| `ingestion/copernicus/DECISIONES_TECNICAS.md` | Justificación técnica y científica de las decisiones adoptadas |
+| `ingestion/copernicus/README.md` | Guía de uso de los scripts |
 
 #### Subtareas
-- [ ] Registrar cuenta en **Copernicus Data Space Ecosystem** (`https://dataspace.copernicus.eu/`).
-- [ ] Implementar `ingestion/satellite/download_sentinel2.py` usando la librería `sentinelhub` o la API STAC de Copernicus para buscar y descargar escenas de Tenerife.
-- [ ] Filtrar por tile UTM `29SCV` o `28RBS` (tiles que cubren Tenerife).
-- [ ] **Estrategia de descarga**: priorizar una escena por mes (preferentemente entre día 10 y 20 para evitar nubes) para el periodo completo 2019–2026.
-- [ ] Almacenar las bandas crudas en `bronce-raw/satelite/sentinel2/scene=<ID>/` con metadatos `{fecha, nubosidad, tile, año_covid: bool}`.
-- [ ] Implementar `ingestion/satellite/download_viirs.py` para descargar los composites mensuales VIIRS del periodo completo.
-- [ ] Registrar metadatos de cada escena/composite (fecha, cobertura nubosa, tile, flag `periodo_covid` si año ∈ {2020, 2021}).
+
+- [x] Analizar fenómenos climáticos específicos de Tenerife (panza de burro + calima) y su impacto en la calidad de datos Sentinel-2.
+- [x] Seleccionar estrategia de composite trimestral via GEE como solución.
+- [x] Implementar `ingestion/copernicus/download_sentinel2_gee.py` con triple filtrado (SCL + AOT + B02).
+- [x] Implementar `ingestion/copernicus/download_viirs.py` con fuentes GEE y NASA LAADS DAAC.
+- [x] Actualizar `.env.example` con `GEE_PROJECT_ID` y `EARTHDATA_TOKEN`.
+- [ ] Registrar cuenta y proyecto en **Google Earth Engine** (`https://earthengine.google.com/`).
+- [ ] Autenticar GEE: `earthengine authenticate` (una vez por máquina).
+- [ ] Test con un composite de prueba: `python download_sentinel2_gee.py --export --dry-run`.
+- [ ] Lanzar los **30 exports** Sentinel-2 a Google Drive: `python download_sentinel2_gee.py --export`.
+- [ ] Monitorizar tasks en GEE (`--status`) y descargar GeoTIFFs de Google Drive.
+- [ ] Mover GeoTIFFs a `data/bronce/spatial/satelite/sentinel2/` y ejecutar `--upload-azure`.
+- [ ] Lanzar exports VIIRS: `python download_viirs.py --source gee --export`.
+- [ ] Descargar GeoTIFFs VIIRS de Drive, mover a `data/bronce/spatial/satelite/viirs/` y ejecutar `--upload-azure`.
+- [ ] Verificar cobertura de píxeles válidos por trimestre (% NaN esperado mayor en Q3 norte de Tenerife).
+- [ ] Documentar en el TFM la estrategia de composite y el impacto de la panza de burro como limitación metodológica controlada.
+
+#### Almacenamiento Azure Blob
+
+```
+bronce-raw/
+  satelite/
+    sentinel2/
+      year=2019/quarter=Q1/tenerife_ndvi_ndbi_2019_Q1.tif
+      year=2019/quarter=Q2/tenerife_ndvi_ndbi_2019_Q2.tif
+      ...
+      year=2026/quarter=Q2/tenerife_ndvi_ndbi_2026_Q2.tif
+    viirs/
+      year=2019/month=01/tenerife_viirs_2019_01.tif
+      ...
+      year=2026/month=06/tenerife_viirs_2026_06.tif
+```
+
+#### Tamaño estimado en Bronce
+
+| Dato | Archivos | Tamaño estimado |
+|------|----------|-----------------|
+| Sentinel-2 (NDVI+NDBI+B02) | 30 GeoTIFF | ~6-10 GB |
+| VIIRS luces nocturnas | 90 GeoTIFF | ~2.5 GB |
+| **Total bronce satélite** | **120 archivos** | **~9-13 GB** |
 
 #### Referencias
 - Sección README `4.3 Monitorización Ambiental por Satélite`
+- [GEE Sentinel-2 SR Harmonized](https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S2_SR_HARMONIZED)
+- [GEE VIIRS Monthly](https://developers.google.com/earth-engine/datasets/catalog/NOAA_VIIRS_DNB_MONTHLY_V1_VCMSLCFG)
+- [NASA LAADS VNP46A2](https://ladsweb.modaps.eosdis.nasa.gov/missions-and-measurements/products/VNP46A2/)
+- `ingestion/copernicus/DECISIONES_TECNICAS.md`
 
 ---
+
 
 ### Issue #12 — Scraping Plataformas de Reservas (TripAdvisor / Booking)
 

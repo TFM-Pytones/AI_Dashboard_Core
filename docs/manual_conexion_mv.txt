@@ -1,0 +1,120 @@
+======================================================================
+MANUAL GENERAL DE OPERACIÓN Y ADMINISTRACIÓN DE LA MÁQUINA VIRTUAL (VM)
+======================================================================
+
+Este documento describe de forma genérica los pasos para conectarse, administrar
+los recursos, gestionar dependencias y lanzar tareas en segundo plano en la VM.
+
+----------------------------------------------------------------------
+1. CONEXIÓN SSH Y NAVEGACIÓN
+----------------------------------------------------------------------
+Para conectarse a la máquina virtual desde tu terminal local (PowerShell,
+Git Bash, Linux o macOS terminal):
+
+   ssh <usuario>@<IP_O_DOMINIO_VM>
+
+Una vez conectado, accede a la carpeta del proyecto en el servidor:
+
+   cd AI_Dashboard_Core
+
+----------------------------------------------------------------------
+2. ENTORNO VIRTUAL E INSTALACIÓN SELECTIVA DE DEPENDENCIAS (Ahorro de disco)
+----------------------------------------------------------------------
+Para aislar las librerías del proyecto, activa siempre el entorno virtual:
+
+   source ~/.venv/bin/activate
+
+* CONTROL DE DEPENDENCIAS PESADAS (Muy Importante):
+  Algunas librerías incluidas en el archivo general "requirements.txt" (como
+  PyTorch, TensorFlow, Transformers u otras de Deep Learning/NLP) ocupan
+  gigabytes de espacio en disco y exigen mucha CPU/RAM durante su compilación.
+
+  Para evitar saturar el almacenamiento de la VM o provocar caídas por falta
+  de RAM, se recomienda instalar únicamente lo necesario para el propósito
+  del servidor (por ejemplo, solo dependencias de ingesta o base de datos).
+
+  Estrategias para instalación selectiva:
+  
+  a) Comentar líneas en el archivo:
+     Edita "requirements.txt" con "nano requirements.txt" y añade un símbolo "#" 
+     delante de las librerías pesadas que no se necesiten en la VM antes de instalar:
+     # torch>=2.0.0  <-- Comentado para evitar su descarga en la VM
+     # rasterio>=1.3.16 <-- Comentado para evitar su descarga en la VM
+
+----------------------------------------------------------------------
+3. ACTUALIZACIÓN DEL CÓDIGO (GIT)
+----------------------------------------------------------------------
+Para mantener el servidor sincronizado con los últimos cambios de GitHub:
+
+   git pull origin main
+
+* Si hay conflictos con archivos locales modificados automáticamente por el 
+  servidor (archivos de progreso, logs, etc.), puedes usar Git Stash:
+  
+  git stash                 # Guarda tus cambios locales temporalmente
+  git pull origin main      # Descarga la última versión
+  git stash pop             # Vuelve a aplicar tus cambios locales sobre lo nuevo
+
+----------------------------------------------------------------------
+4. MONITOREO DE CAPACIDAD Y RECURSOS DEL SISTEMA
+----------------------------------------------------------------------
+Antes y durante la ejecución de tareas pesadas, es vital verificar la 
+capacidad del servidor para evitar bloqueos:
+
+   a) Espacio libre en disco duro:
+      df -h
+      (Revisa el porcentaje de uso de la partición raíz "/")
+
+   b) Memoria RAM libre y en uso:
+      free -h   (o "free -m" para valores en Megabytes)
+
+   c) Monitoreo de CPU y procesos en tiempo real:
+      htop      (o "top" si htop no está instalado)
+      (Permite ver qué proceso consume más memoria o procesador).
+
+----------------------------------------------------------------------
+5. CONTROL DE PROCESOS (Detener tareas en ejecución)
+----------------------------------------------------------------------
+Si un script se queda colgado o necesitas detenerlo para liberar recursos:
+
+   a) Buscar el identificador de proceso (PID):
+      ps aux | grep <nombre_del_script_o_tecnología>
+      Ejemplo: ps aux | grep python
+
+   b) Detener el proceso usando su PID:
+      kill <PID>      # Intento de parada ordenada (SIGTERM)
+      kill -9 <PID>   # Parada forzada inmediata (SIGKILL)
+
+   c) Detener todos los procesos que coincidan con un nombre:
+      pkill -f <nombre_patron>
+      Ejemplo: pkill -9 -f python
+
+----------------------------------------------------------------------
+6. GESTIÓN DE ARCHIVOS DE PROGRESO (JSON)
+----------------------------------------------------------------------
+Muchos pipelines utilizan archivos JSON para recordar qué tareas o bloques
+ya han sido descargados o procesados con éxito. 
+
+Si necesitas forzar al script a repetir un lote específico de trabajo, puedes
+limpiar claves directamente desde la terminal con un comando de Python rápido:
+
+   python -c "import json; f = 'ruta/progreso.json'; data = json.load(open(f)); data['keys'] = [k for k in data['keys'] if not k.startswith('prefijo_a_borrar')]; json.dump(data, open(f, 'w'), indent=2)"
+
+----------------------------------------------------------------------
+7. EJECUCIÓN EN SEGUNDO PLANO (NOHUP)
+----------------------------------------------------------------------
+Si ejecutas un script normal y cierras la sesión SSH, la VM matará el proceso.
+Para evitarlo y permitir que la tarea continúe de fondo (background):
+
+   nohup <ruta_python> <ruta_script.py> --argumento valor > salida.log 2>&1 &
+
+   * "nohup": Ignora la señal de desconexión del usuario (No Hang Up).
+   * "> salida.log 2>&1": Redirige tanto la salida estándar como los errores al archivo.
+   * "&": Envía la tarea a ejecutarse de fondo.
+
+   Ejemplo práctico:
+   nohup ~/.venv/bin/python ingestion/script.py --range 1-10 > run.log 2>&1 &
+
+   Para verificar la salida del script en tiempo real:
+   tail -f run.log
+======================================================================
