@@ -1,19 +1,70 @@
-"""Valida la calidad de los datos más recientes subidos a bronce-raw/booking/.
+"""Valida la calidad de los datos subidos a bronce-raw/booking/.
 
-Descarga los últimos Parquet de establecimientos y reseñas, y corre chequeos
-básicos: campos vacíos, duplicados, fuga de datos personales, y muestra
-una vista previa del contenido real.
+Por defecto descarga solo el último Parquet subido de establecimientos y
+reseñas. Con --all agrupa y descarga TODOS los parquets de la última
+corrida (cada establecimiento se guarda con su propio timestamp, no hay
+un run_id explícito — ver _cluster_latest_run). Corre chequeos básicos:
+campos vacíos, duplicados, fuga de datos personales, y muestra una vista
+previa del contenido real.
 
 Uso:
     python validate_booking_data.py
+    python validate_booking_data.py --all
+    python validate_booking_data.py --all --gap-minutes 30
 """
 
+import argparse
 import io
+import re
 import sys
+from datetime import datetime, timedelta
 
 import pandas as pd
 
 from utils.azure_storage import get_container_client, list_files
+from utils.logger import ensure_utf8_console
+
+ensure_utf8_console()
+
+_TIMESTAMP_RE = re.compile(r"_(\d{4}-\d{2}-\d{2}_\d{6})\.parquet$")
+
+
+def _parse_timestamp(blob_name: str) -> datetime | None:
+    match = _TIMESTAMP_RE.search(blob_name)
+    if not match:
+        return None
+    return datetime.strptime(match.group(1), "%Y-%m-%d_%H%M%S")
+
+
+def _cluster_latest_run(blob_names: list[str], gap_minutes: float) -> list[str]:
+    """Agrupa los blobs más recientes que pertenecen a la misma corrida.
+
+    No hay un run_id explícito en el nombre de archivo: cada establecimiento
+    genera su propio timestamp al guardarse (save_and_upload se llama una
+    vez por establecimiento, no una vez por corrida). Se infiere la corrida
+    tomando, desde el archivo más reciente hacia atrás, todos los que están
+    separados por menos de `gap_minutes` del siguiente — un hueco mayor a
+    eso indica que se pasó a una corrida anterior.
+    """
+    dated = [(name, ts) for name in blob_names if (ts := _parse_timestamp(name)) is not None]
+    dated.sort(key=lambda pair: pair[1], reverse=True)
+    if not dated:
+        return []
+
+    gap = timedelta(minutes=gap_minutes)
+    cluster = [dated[0][0]]
+    for (_, prev_ts), (name, ts) in zip(dated, dated[1:]):
+        if prev_ts - ts > gap:
+            break
+        cluster.append(name)
+    return cluster
+
+
+def _download_blob(name: str) -> pd.DataFrame:
+    container_client = get_container_client()
+    blob_client = container_client.get_blob_client(name)
+    data = blob_client.download_blob().readall()
+    return pd.read_parquet(io.BytesIO(data))
 
 
 def _download_latest(prefix: str) -> pd.DataFrame | None:
@@ -26,12 +77,24 @@ def _download_latest(prefix: str) -> pd.DataFrame | None:
 
     latest = sorted(all_files)[-1]  # el timestamp en el nombre ordena cronológicamente
     print(f"Descargando: {latest}")
+    return _download_blob(latest)
 
-    container_client = get_container_client()
-    blob_client = container_client.get_blob_client(latest)
-    data = blob_client.download_blob().readall()
 
-    return pd.read_parquet(io.BytesIO(data))
+def _download_last_run(prefix: str, gap_minutes: float) -> pd.DataFrame | None:
+    """Descarga y concatena todos los parquets de bronce-raw/booking/ que
+    empiecen con `prefix` y pertenezcan a la última corrida (ver
+    _cluster_latest_run)."""
+    all_files = list_files(prefix=f"booking/{prefix}")
+    if not all_files:
+        print(f"[AVISO] No se encontró ningún archivo con prefijo 'booking/{prefix}'")
+        return None
+
+    cluster = sorted(_cluster_latest_run(all_files, gap_minutes))
+    print(f"Descargando {len(cluster)} archivo(s) de la última corrida (prefijo 'booking/{prefix}'):")
+    for name in cluster:
+        print(f"  - {name}")
+
+    return pd.concat([_download_blob(name) for name in cluster], ignore_index=True)
 
 
 def validate_establishments(df: pd.DataFrame) -> None:
@@ -113,8 +176,26 @@ def validate_reviews(df: pd.DataFrame, establishment_ids: set) -> None:
 
 
 def main():
-    df_establishments = _download_latest("booking_establishments")
-    df_reviews = _download_latest("booking_reviews")
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Valida todos los parquets de la última corrida, no solo el más reciente.",
+    )
+    parser.add_argument(
+        "--gap-minutes",
+        type=float,
+        default=15.0,
+        help="Umbral en minutos para agrupar archivos en la misma corrida (default: 15). Solo aplica con --all.",
+    )
+    args = parser.parse_args()
+
+    if args.all:
+        df_establishments = _download_last_run("booking_establishments", args.gap_minutes)
+        df_reviews = _download_last_run("booking_reviews", args.gap_minutes)
+    else:
+        df_establishments = _download_latest("booking_establishments")
+        df_reviews = _download_latest("booking_reviews")
 
     if df_establishments is None or df_reviews is None:
         print("No se pudo descargar alguno de los dos archivos. Abortando.")

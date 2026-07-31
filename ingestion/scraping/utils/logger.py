@@ -6,10 +6,32 @@ qué bloqueos, CAPTCHAs o errores aparecieron durante una corrida larga
 """
 
 import logging
+import sys
 from pathlib import Path
+
+_console_reconfigured = False
+
+
+def ensure_utf8_console() -> None:
+    """Reconfigura stdout/stderr a UTF-8 explícito.
+
+    En Windows la consola usa cp1252 por defecto, que no puede imprimir
+    emojis ni varios caracteres especiales que aparecen en reseñas reales
+    (rompe con UnicodeEncodeError en vez de solo mostrar el texto mal).
+    """
+    global _console_reconfigured
+    if _console_reconfigured:
+        return
+    for stream_name in ("stdout", "stderr"):
+        stream = getattr(sys, stream_name)
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8")
+    _console_reconfigured = True
 
 
 def get_logger(name: str, log_file: str = "scraper.log") -> logging.Logger:
+    ensure_utf8_console()
+
     logger = logging.getLogger(name)
 
     if logger.handlers:

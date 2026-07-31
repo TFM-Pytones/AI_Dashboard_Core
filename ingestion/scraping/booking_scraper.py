@@ -17,6 +17,7 @@ Requiere en el .env: AZURE_STORAGE_CONNECTION_STRING (ver utils/azure_storage.py
 """
 
 import gzip
+import hashlib
 import json
 import re
 import sys
@@ -428,7 +429,14 @@ def _parse_review_card(card) -> Review | None:
             except NoSuchElementException:
                 return ""
 
-        review_id = card.get_attribute("data-review-id") or f"{hash(card.text)}"
+        # IMPORTANTE: usamos hashlib (determinístico) en vez de hash() de Python
+        # (aleatorizado por proceso, cambia cada vez que corres el script) —
+        # así el mismo review real siempre genera el mismo review_id, sin
+        # importar en qué corrida se scrapeó. Esto es lo que permite deduplicar
+        # correctamente más adelante al pasar de Bronce a Silver.
+        review_id = card.get_attribute("data-review-id") or hashlib.md5(
+            card.text.encode("utf-8")
+        ).hexdigest()
 
         rating = _clean_score(safe_text("review-score"))
         title = safe_text("review-title")
