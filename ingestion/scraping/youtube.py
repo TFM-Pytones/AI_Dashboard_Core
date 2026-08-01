@@ -1,7 +1,7 @@
 """Issue #13 — Integración API de YouTube.
 
 Busca vídeos relacionados con turismo en Tenerife y descarga sus comentarios,
-cargándolos en raw_data.youtube_videos / raw_data.youtube_comments (Neon).
+cargándolos en bronze.youtube_videos / bronze.youtube_comments (Azure).
 
 Requiere YOUTUBE_API_KEY en el .env (ver README de esta carpeta / .env.example).
 """
@@ -32,17 +32,17 @@ MAX_COMMENT_PAGES_PER_VIDEO = 3  # ~300 comentarios por vídeo como mucho
 
 def get_db_connection():
     return psycopg2.connect(
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        host=os.getenv("DB_HOST"),
-        database=os.getenv("DB_NAME"),
+        user=os.getenv("AZURE_DB_USER"),
+        password=os.getenv("AZURE_DB_PASSWORD"),
+        host=os.getenv("AZURE_DB_HOST"),
+        database=os.getenv("AZURE_DB_NAME"),
         port="5432",
         sslmode="require",
     )
 
 
 def ensure_schema(conn):
-    schema_path = Path(__file__).resolve().parents[2] / "sql" / "youtube_schema.sql"
+    schema_path = Path(__file__).resolve().parents[2] / "sql" / "bronze_youtube_schema.sql"
     with conn.cursor() as cur:
         cur.execute(schema_path.read_text())
     conn.commit()

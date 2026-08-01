@@ -4,13 +4,14 @@ Módulos de análisis del proyecto, cada uno en su propia subcarpeta:
 
 | Subcarpeta | Issues | Qué hace |
 |---|---|---|
-| `sentiment/` | #16, #17, #18, #19, #20 | NLP: sentimiento, aspectos, tópicos y su georreferenciación sobre reviews/comentarios/foros |
+| `sentiment/` | #16, #17 | Setup del modelo de sentimiento + inferencia por lotes sobre todo el corpus |
+| `aspects/` | #18 | Extracción de aspectos (pyabsa): sobre qué habla cada comentario, no solo si es positivo/negativo |
+| `topics/` *(pendiente)* | #19 | Modelado de tópicos (BERTopic): agrupa comentarios por temas recurrentes |
+| *(pendiente)* | #20 | Georreferenciación de sentimiento/tópicos/aspectos para el módulo de Mapa |
 | `ambiental/` *(pendiente)* | #21-24 | NDVI/NDBI, luminosidad nocturna (VIIRS) a partir de Sentinel/Copernicus |
 | `clustering/` *(pendiente)* | #25-27 | Clustering espacial (HDBSCAN), detección de brechas de mercado |
 | `isocronas/` *(pendiente)* | #28-30 | Motor de rutas, isocronas y métricas de accesibilidad |
 | `mgwr/` *(pendiente)* | #31-33 | Regresión geográficamente ponderada, factores de éxito local |
-
-Solo `sentiment/` existe por ahora — el resto se irán creando según se empiecen esos issues.
 
 ---
 
@@ -20,10 +21,6 @@ Solo `sentiment/` existe por ahora — el resto se irán creando según se empie
 
 - ✅ **Issue #16 — Setup Entorno Hugging Face y Modelos** (`setup_test.py`) — hecho.
 - ✅ **Issue #17 — Inferencia de Sentimiento por Lotes** (`batch_inference.py`) — hecho.
-- ⏳ **Issue #18 — Extracción de Aspectos (pyabsa)** — pendiente.
-- ⏳ **Issue #19 — Modelado de Tópicos (BERTopic)** — pendiente.
-- ⏳ **Issue #20 — Georreferenciación de Tópicos y Sentimientos** — pendiente, cruza los
-  resultados anteriores con ubicación geográfica para el módulo de Mapa del frontend.
 
 ### Qué hace `setup_test.py` (Issue #16)
 
@@ -104,10 +101,78 @@ python analytics/sentiment/batch_inference.py
 Ejemplo de predicción de alta confianza real: `negative 0.97` — *"Así está quedando benidorm un
 auténtico asco"*.
 
-### Qué haría falta para el Issue #18/#19 (siguiente paso)
+---
 
-- **#18 (pyabsa)**: sobre este mismo texto limpio, extraer *sobre qué* opina cada comentario
-  (playas, precios, masificación...), no solo si es positivo o negativo.
-- **#19 (BERTopic)**: agrupar automáticamente los comentarios por temas recurrentes.
-- Ambos pueden leer directamente de `processed_data.sentiment_results` (ya tiene el texto
-  limpio) en vez de repetir la limpieza desde `raw_data`.
+## aspects/ (Issue #18)
+
+### Estado
+
+- ✅ **Issue #18 — Configuración de Extracción de Aspectos (pyabsa)** (`setup_test.py`) — hecho.
+- ⏳ **Issue #19 — Modelado de Tópicos (BERTopic)** — pendiente.
+- ⏳ **Issue #20 — Georreferenciación de Tópicos y Sentimientos** — pendiente, cruza los
+  resultados de sentimiento/aspectos/tópicos con ubicación geográfica para el módulo de Mapa.
+
+### Qué es "extracción de aspectos" y en qué se diferencia del #16/#17
+
+El modelo del #16/#17 solo dice si un comentario entero es positivo/negativo/neutro. **pyabsa**
+va un paso más allá: detecta **sobre qué palabra o frase concreta** opina el comentario (el
+"aspecto") y el sentimiento de *esa parte en concreto*. Un mismo comentario puede tener varios
+aspectos con sentimientos distintos — ej. "las playas geniales pero el tráfico horrible" →
+`playas` (positivo) + `tráfico` (negativo), algo que el modelo de sentimiento general no puede
+distinguir (te diría solo una etiqueta para toda la frase).
+
+### Checkpoint: `multilingual` (ATEPC)
+
+pyabsa no usa modelos sueltos de Hugging Face como el #16 — tiene su propio "zoo" de checkpoints
+ya entrenados para la tarea ATEPC (*Aspect Term Extraction and Polarity Classification*). Se usó
+el checkpoint `multilingual` (~1.1GB), el único que no está limitado a un solo idioma — igual de
+importante aquí que en el #16, porque el corpus mezcla español/inglés.
+
+### Problemas de compatibilidad encontrados y solución (dejar constancia para el equipo)
+
+Instalar pyabsa en un entorno moderno (Python 3.13) no funcionó a la primera — dos fallos reales,
+no hipotéticos, con su arreglo:
+
+1. **`update-checker` 1.0.0 rompe `metric_visualizer`** (dependencia de pyabsa): la versión más
+   reciente de `update-checker` cambió su API a argumentos solo-por-nombre, pero
+   `metric_visualizer` la llama de forma posicional → `TypeError` al importar pyabsa.
+   **Arreglo**: fijado `update-checker==0.18.0` en `requirements.txt` (aunque no es una
+   dependencia directa del proyecto, solo transitiva de pyabsa, hay que fijarla a mano porque
+   pip instalaría la 1.0.0 por defecto).
+2. **`distutils` no existe en Python 3.12+** (se eliminó de la librería estándar), pero pyabsa
+   todavía hace `from distutils.version import StrictVersion` internamente. **Arreglo**: importar
+   `setuptools` antes que `pyabsa` en el propio script — `setuptools` registra un `distutils`
+   compatible como efecto secundario de importarse.
+3. **pyabsa vuelca archivos en la raíz del repo por defecto**: el checkpoint descargado
+   (`checkpoints/`, 1.1GB), un `checkpoints.json`, y un `*.result.json` por cada ejecución si no
+   se pasa `save_result=False`. Añadidas reglas a `.gitignore` para las tres cosas — nunca deben
+   comitearse (el checkpoint es demasiado grande para git de todas formas).
+
+### Ejemplo real (última ejecución, sobre comentarios reales de YouTube)
+
+```
+[beaches (Positive 0.99), traffic (Negative 0.98)]  The beaches are amazing but the traffic is terrible
+[Hostelería (Negative 0.99), empleados (Negative 0.99)]  Incluso se ha "coqueteado" con la idea de...
+[hoteles (Negative 0.74), saco (Negative 0.98)]  Pero esos hoteles desbordados de africanos no son...
+```
+
+Nota honesta: al ser comentarios públicos de YouTube sin filtrar, no todos son sobre turismo en
+sentido estricto — algunos derivan a temas sociales/políticos (vivienda, inmigración) que
+también mencionan hostelería/hoteles. Es una limitación de la fuente de datos, no del modelo.
+
+### Setup
+
+```bash
+pip install -r requirements.txt   # incluye pyabsa y el pin de update-checker
+python analytics/aspects/setup_test.py
+```
+
+---
+
+## Qué haría falta para el Issue #19 (siguiente paso)
+
+**#19 (BERTopic)**: a diferencia del #16 y el #18 (que son "setup + prueba con muestra"), este
+issue pide **entrenar sobre el corpus completo** — agrupar automáticamente los 3.071 comentarios
+por temas recurrentes, sin definir las categorías a mano. Puede leer directamente de
+`processed_data.sentiment_results` (ya tiene el texto limpio) en vez de repetir la limpieza
+desde `raw_data`.
