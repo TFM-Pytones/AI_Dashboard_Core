@@ -41,3 +41,7 @@ checkpoints.json
 source_datasets.hash.json
 # 8. Archivos de skills de claude
 .claude
+# Next.js / frontend
+node_modules/
+.next/
+next-env.d.ts
