@@ -198,6 +198,35 @@ Llamarlo automáticamente al inicio de `get_logger()`. **Importante**: cualquier
 
 
 
+## `build_driver()` multiplataforma: Windows (laptop) vs Linux (VM de Azure)
+
+En la VM de Azure (Ubuntu) Chrome necesita flags que en Windows no hacen falta. Detectar con `platform.system() == "Linux"` y aplicarlos condicionalmente, dejando el resto de `build_driver()` idéntico:
+
+```python
+if platform.system() == "Linux":
+    options.binary_location = "/usr/bin/google-chrome"
+    options.add_argument("--no-sandbox")           # la VM suele correr el proceso como root
+    options.add_argument("--disable-dev-shm-usage") # /dev/shm es chico por defecto en muchas VMs, Chrome crashea sin esto
+    options.add_argument("--disable-gpu")           # sin GPU real en el servidor
+    options.add_argument(f"--user-data-dir=/tmp/chrome-user-data-{os.getpid()}")  # único por proceso, permite correr instancias en paralelo
+```
+
+### Trampa: Chrome vía Snap falla con Selenium en Ubuntu
+
+Si Chrome/Chromium se instaló vía `snap install chromium` (el default en Ubuntu Desktop reciente), Selenium falla al arrancar el driver con:
+```
+session not created: probably user data directory is already in use, or Chrome failed to start
+Message: unknown error: DevToolsActivePort file doesn't exist
+```
+Causa: el sandboxing de Snap interfiere con cómo Chrome expone el puerto de DevTools que Selenium necesita para conectarse — no es arreglable solo con `--no-sandbox` u otros flags.
+
+**Solución que funcionó**: desinstalar la versión Snap e instalar `google-chrome-stable` directo del repositorio oficial de Google (`.deb`), no Chromium vía Snap:
+```bash
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+sudo apt install ./google-chrome-stable_current_amd64.deb
+```
+Por eso `options.binary_location` apunta a `/usr/bin/google-chrome` explícitamente en Linux — sin esto, Selenium puede intentar usar un Chromium de Snap residual si quedó instalado.
+
 ## Anti-patrón detectado: cuidado al mezclar ramas de Git con archivos README compartidos
 
 Si más de una persona del equipo edita el mismo README de carpeta compartida en ramas distintas, un merge sin conflicto puede descartar silenciosamente el contenido de una de las dos versiones (Git no siempre detecta esto como conflicto si las líneas no se solapan exactamente). Verificar con `git log --all --oneline -- archivo` si el historial esperado está completo antes de asumir que un merge "automático sin errores" preservó todo.

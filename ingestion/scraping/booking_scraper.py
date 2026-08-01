@@ -19,6 +19,8 @@ Requiere en el .env: AZURE_STORAGE_CONNECTION_STRING (ver utils/azure_storage.py
 import gzip
 import hashlib
 import json
+import os
+import platform
 import re
 import sys
 import time
@@ -280,7 +282,14 @@ def discover_establishment_urls(limit: int = config.MAX_ESTABLISHMENTS_PER_RUN) 
 # ---------------------------------------------------------------------------
 
 def build_driver() -> webdriver.Chrome:
-    """Arma el driver de Chrome, headless por defecto (ver config.HEADLESS)."""
+    """Arma el driver de Chrome, headless por defecto (ver config.HEADLESS).
+
+    En Linux (VM de Azure) hace falta configuración adicional que en Windows
+    no aplica: binario de google-chrome-stable explícito, flags de sandbox
+    para correr como root/sin GUI, y un --user-data-dir único por proceso
+    para poder correr varias instancias en paralelo sin conflicto (ver skill
+    booking-tenerife-scraper para el porqué de cada flag).
+    """
     options = Options()
     if config.HEADLESS:
         options.add_argument("--headless=new")
@@ -289,6 +298,13 @@ def build_driver() -> webdriver.Chrome:
     options.add_argument("--window-size=1440,900")
     # Reduce la huella "obviamente automatizada" por defecto de Selenium
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
+
+    if platform.system() == "Linux":
+        options.binary_location = "/usr/bin/google-chrome"
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--disable-gpu")
+        options.add_argument(f"--user-data-dir=/tmp/chrome-user-data-{os.getpid()}")
 
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)
