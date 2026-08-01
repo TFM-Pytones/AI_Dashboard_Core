@@ -1,4 +1,4 @@
--- Issue #13 — Integración API de YouTube
+-- Version Azure (esquema bronze) de youtube_schema.sql.
 -- Tablas crudas para vídeos y comentarios relacionados con turismo en Tenerife.
 
 CREATE SCHEMA IF NOT EXISTS bronze;

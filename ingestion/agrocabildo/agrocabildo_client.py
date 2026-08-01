@@ -35,15 +35,17 @@ class AgrocabildoAPIClient:
 
     def _get(self, url: str, params: Optional[Dict[str, Any]] = None) -> Optional[Any]:
         """Realiza una petición GET con rate-limiting y reintentos automáticos."""
-        for attempt in range(1, self.max_retries + 1):
+        max_retries = 5
+        for attempt in range(1, max_retries + 1):
             self._wait_rate_limit()
             try:
                 logger.info(f"GET {url}")
-                response = requests.get(url, params=params, timeout=30)
+                # Timeout de 60 segundos por si el servidor es lento o está cargado
+                response = requests.get(url, params=params, timeout=60)
                 
                 if response.status_code == 429:
-                    wait_time = attempt * 15
-                    logger.warning(f"Rate limit excedido (429). Reintentando en {wait_time}s (Intento {attempt}/{self.max_retries})...")
+                    wait_time = attempt * 20
+                    logger.warning(f"Rate limit excedido (429). Reintentando en {wait_time}s (Intento {attempt}/{max_retries})...")
                     time.sleep(wait_time)
                     continue
 
@@ -55,9 +57,10 @@ class AgrocabildoAPIClient:
                 return response.json()
 
             except requests.exceptions.RequestException as e:
-                logger.error(f"Error en GET {url}: {e} (Intento {attempt}/{self.max_retries})")
-                if attempt < self.max_retries:
-                    time.sleep(5)
+                wait_time = attempt * 15 # Esperar progresivamente más tiempo para dar margen al servidor para recuperarse
+                logger.error(f"Error en GET {url}: {e}. Reintentando en {wait_time}s (Intento {attempt}/{max_retries})")
+                if attempt < max_retries:
+                    time.sleep(wait_time)
                 else:
                     raise e
 

@@ -5,5 +5,5 @@ profile: 'tenerife_tourism_dbt'
 model-paths: ["models"]
 models:
   tenerife_tourism_dbt:
-    staging:
-      materialized: view
+    silver:
+      +materialized: table

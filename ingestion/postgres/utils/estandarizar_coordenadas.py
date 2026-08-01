@@ -19,30 +19,31 @@ raw_data (util si algun dato de origen cambia).
 Requisitos:
     pip install geopandas sqlalchemy psycopg2-binary geoalchemy2
 
-Uso (en Colab, con el secreto NEON_CONN ya configurado):
-    import os
-    from google.colab import userdata
-    os.environ['NEON_CONN'] = userdata.get('NEON_CONN')
-    !python estandarizar_coordenadas.py
-
 Uso (en local):
-    export NEON_CONN="postgresql://usuario:password@...neon.tech/db?sslmode=require"
-    python estandarizar_coordenadas.py
+    Asegúrate de tener tu archivo .env configurado con las variables AZURE_DB_*
+    python ingestion/postgres/utils/estandarizar_coordenadas.py
 """
 
 import os
 import geopandas as gpd
 from sqlalchemy import create_engine, text
+from dotenv import load_dotenv
 
 SRID_DESTINO = 32628
 
 
 def obtener_engine():
-    conn_string = os.environ['NEON_CONN']
-    return create_engine(conn_string, pool_pre_ping=True, pool_recycle=280)
+    load_dotenv()
+    pg_user = os.getenv("AZURE_DB_USER")
+    pg_pass = os.getenv("AZURE_DB_PASSWORD")
+    pg_host = os.getenv("AZURE_DB_HOST")
+    pg_db = os.getenv("AZURE_DB_NAME")
+    
+    conn_string = f"postgresql://{pg_user}:{pg_pass}@{pg_host}:5432/{pg_db}"
+    return create_engine(conn_string, connect_args={'sslmode': 'require'}, pool_pre_ping=True, pool_recycle=280)
 
 
-def listar_tablas_espaciales(engine, esquema='raw_data'):
+def listar_tablas_espaciales(engine, esquema='bronze'):
     """Devuelve (nombre_tabla, columna_geometria, srid) para cada tabla
     de 'esquema' que tenga una columna de tipo geometry, consultando
     directamente los metadatos de PostGIS."""

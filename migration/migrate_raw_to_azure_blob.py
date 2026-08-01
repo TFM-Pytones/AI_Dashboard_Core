@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from azure.storage.blob import BlobServiceClient
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-env_path = os.path.abspath(os.path.join(current_dir, "..", "..", ".env"))
+env_path = os.path.abspath(os.path.join(current_dir, "..", ".env"))
 load_dotenv(env_path, override=True)
 
 # 1. Verificar conexión a Azure Blob Storage

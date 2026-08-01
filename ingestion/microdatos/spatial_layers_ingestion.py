@@ -35,7 +35,7 @@ from typing import Optional
 import requests
 import pandas as pd
 from dotenv import load_dotenv
-from azure.storage.blob import BlobServiceClient
+from azure.storage.blob import BlobServiceClient, ContentSettings
 
 try:
     import geopandas as gpd
@@ -182,7 +182,7 @@ class SpatialLayersBronzeIngestionPipeline:
             )
             blob_client.upload_blob(
                 geojson_str.encode("utf-8"), overwrite=True,
-                content_settings={"content_type": "application/geo+json"},
+                content_settings=ContentSettings(content_type="application/geo+json"),
             )
             logger.info(f"  Azure: {self.container_name}/{blob_name}")
             return True

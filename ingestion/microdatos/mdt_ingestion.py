@@ -79,6 +79,13 @@ logger = logging.getLogger("MDTBronzeIngestion")
 
 DEFAULT_OUTPUT_DIR = os.path.abspath(os.path.join(root_dir, "data", "bronce", "mdt"))
 
+# Directorio donde el usuario puede colocar los TIFs descargados manualmente
+# (acepta cualquiera de estas rutas alternativas)
+MANUAL_TIF_DIRS = [
+    os.path.abspath(os.path.join(root_dir, "data", "bronce", "spatial", "raw", "mdt")),
+    os.path.abspath(os.path.join(root_dir, "data", "bronce", "mdt", "raw")),
+]
+
 # ---------------------------------------------------------------------------
 # Hojas MDT25 del CNIG que cubren Tenerife (REGCAN95 / UTM 28N)
 #
@@ -464,31 +471,42 @@ class MDTBronzeIngestionPipeline:
             logger.info(f"Hoja {hoja_id}")
             logger.info(f"{'-'*60}")
 
-            # Intento 1: descarga automatica desde CNIG
-            tif_path = self._download_hoja(hoja_id, url, raw_dir)
+            tif_path = None
 
-            # Intento 2: ZIP colocado manualmente en raw_dir
-            if tif_path is None:
-                manual_zips = glob.glob(os.path.join(raw_dir, f"*{hoja_id}*.zip"))
-                if manual_zips:
-                    logger.info(f"  ZIP manual encontrado: {manual_zips[0]}")
-                    tif_path = self._extract_raster_from_zip(
-                        manual_zips[0], hoja_id, raw_dir
-                    )
-
-            # Intento 3: TIF ya extraido en raw_dir
-            if tif_path is None:
-                existing_tifs = glob.glob(
-                    os.path.join(raw_dir, f"**/*{hoja_id}*.tif"), recursive=True
+            # Intento 1: TIF ya disponible en alguna de las carpetas manuales conocidas
+            for manual_dir in MANUAL_TIF_DIRS:
+                candidates = glob.glob(
+                    os.path.join(manual_dir, f"*{hoja_id}*.tif"), recursive=False
+                ) + glob.glob(
+                    os.path.join(manual_dir, "**", f"*{hoja_id}*.tif"), recursive=True
                 )
-                if existing_tifs:
-                    tif_path = existing_tifs[0]
-                    logger.info(f"  TIF existente encontrado: {tif_path}")
+                if candidates:
+                    tif_path = candidates[0]
+                    logger.info(f"  TIF local encontrado: {tif_path}")
+                    break
+
+            # Intento 2: ZIP manual en alguna de las carpetas conocidas
+            if tif_path is None:
+                for manual_dir in MANUAL_TIF_DIRS + [raw_dir]:
+                    manual_zips = glob.glob(os.path.join(manual_dir, f"*{hoja_id}*.zip"))
+                    if manual_zips:
+                        logger.info(f"  ZIP manual encontrado: {manual_zips[0]}")
+                        tif_path = self._extract_raster_from_zip(
+                            manual_zips[0], hoja_id, raw_dir
+                        )
+                        if tif_path:
+                            break
+
+            # Intento 3: descarga automatica desde CNIG (solo si no hay nada local)
+            if tif_path is None:
+                logger.info(f"  No encontrado localmente. Intentando descarga CNIG...")
+                tif_path = self._download_hoja(hoja_id, url, raw_dir)
 
             if tif_path is None:
                 logger.warning(
-                    f"  Hoja {hoja_id} omitida. Descarga manual requerida:\n"
-                    f"  -> {CNIG_PORTAL_URL}"
+                    f"  Hoja {hoja_id} omitida. Coloca el TIF en:\n"
+                    f"  -> {MANUAL_TIF_DIRS[0]}\n"
+                    f"  O descarga desde: {CNIG_PORTAL_URL}"
                 )
                 continue
 

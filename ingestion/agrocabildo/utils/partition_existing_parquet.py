@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from azure.storage.blob import BlobServiceClient
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-project_dir = os.path.abspath(os.path.join(current_dir, ".."))
+project_dir = os.path.abspath(os.path.join(current_dir, "..", "..", ".."))
 load_dotenv(os.path.join(project_dir, ".env"), override=True)
 
 conn_str = os.getenv("AZURE_STORAGE_CONNECTION_STRING")

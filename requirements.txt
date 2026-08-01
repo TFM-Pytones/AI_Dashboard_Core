@@ -1,6 +1,5 @@
 # Conexión a Base de Datos y Variables de Entorno
 psycopg2-binary==2.9.12
-psycopg2==2.9.12
 sqlalchemy==2.0.51
 python-dotenv==1.2.2
 
@@ -12,7 +11,7 @@ ipykernel==7.3.0
 # Análisis Geoespacial
 geopandas==1.1.4
 shapely==2.1.2
-rasterio>=1.3.0          # MDT: lectura/escritura GeoTIFF, slope, aspect, hillshade
+rasterio>=1.5.0         # MDT: lectura/escritura GeoTIFF, slope, aspect, hillshade
                          # En Windows instalar primero: pip install GDAL
 
 # Formato Parquet
@@ -37,6 +36,10 @@ transformers==4.57.1
 torch==2.9.0
 sentencepiece==0.2.1
 
+# NLP / Extraccion de aspectos (analytics/aspects)
+pyabsa==2.4.2
+update-checker==0.18.0  # pin necesario: la 1.0.0 rompe metric_visualizer (dependencia de pyabsa)
+
 # Validación Meteorológica (Open-Meteo vs Agrocabildo)
 openmeteo-requests>=0.3.0      # Cliente oficial Open-Meteo con caché integrada
 requests-cache>=1.2.0          # Caché HTTP para evitar re-descargas
@@ -45,3 +48,7 @@ scikit-learn>=1.4.0            # Métricas: MAE, RMSE, R²
 seaborn>=0.13.0                # Visualizaciones: heatmaps, boxplots
 scipy>=1.13.0                  # Stats: regresión lineal, tests estadísticos
 matplotlib>=3.8.0              # Gráficos base
+
+# Ingesta Satelital — Issue #10 (Sentinel-2 + VIIRS)
+earthengine-api>=0.1.390       # Google Earth Engine Python API (compositing Sentinel-2 + VIIRS)
+h5py>=3.10.0                   # Lectura de HDF5 (NASA LAADS DAAC VNP46A2 — VIIRS alternativo)
