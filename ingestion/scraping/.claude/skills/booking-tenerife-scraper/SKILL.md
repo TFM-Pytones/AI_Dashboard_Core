@@ -121,6 +121,23 @@ No alcanza con cerrarlo solo al cargar la página — puede reaparecer o tardar 
 
 Fallo transitorio de red, no de código. Capturar con `except TimeoutException`, loggear y continuar con el siguiente establecimiento — no reintentar automáticamente dentro de la misma corrida (se reintenta solo en la próxima corrida vía el progress tracker, ver abajo).
 
+### Cuelgue silencioso e invisible: `ChromeDriverManager().install()` dentro del loop
+
+Si `build_driver()` llama a `ChromeDriverManager().install()` cada vez que se construye un driver (una vez por establecimiento), cada llamada hace una consulta de red para verificar/descargar la versión correcta del binario. Un hipo de conexión ahí puede colgar el script 10-20+ minutos **sin ningún log y sin que Chrome llegue a abrirse** (confirmado: sin proceso `chrome.exe` corriendo durante el cuelgue) — invisible al manejo normal de timeouts (`TimeoutException`, `PAGE_LOAD_TIMEOUT_SECONDS`) porque ocurre ANTES de que exista un driver o una página cargando.
+
+**Solución**: resolver la ruta del ChromeDriver una sola vez por corrida, cacheada a nivel de módulo, y que `build_driver()` reutilice esa ruta en cada llamada:
+```python
+_chromedriver_path: str | None = None
+
+def _get_chromedriver_path() -> str:
+    global _chromedriver_path
+    if _chromedriver_path is None:
+        logger.info("Resolviendo ChromeDriver (una sola vez para toda la corrida)...")
+        _chromedriver_path = ChromeDriverManager().install()
+    return _chromedriver_path
+```
+Además, llamar a `_get_chromedriver_path()` explícitamente al inicio de `main()` (antes del loop de establecimientos) para fallar rápido y con log claro ante un problema de red, en vez de que el cuelgue aparezca recién en medio de la corrida, en un establecimiento arbitrario.
+
 ## Geocodificación de direcciones (Nominatim/OpenStreetMap)
 
 Nominatim falla con direcciones españolas específicas. Encadenar 3 niveles de fallback, del más preciso al más genérico:

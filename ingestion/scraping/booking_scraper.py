@@ -281,6 +281,27 @@ def discover_establishment_urls(limit: int = config.MAX_ESTABLISHMENTS_PER_RUN) 
 # 2. Scraping de un establecimiento individual
 # ---------------------------------------------------------------------------
 
+_chromedriver_path: str | None = None
+
+
+def _get_chromedriver_path() -> str:
+    """Resuelve la ruta al binario de ChromeDriver, cacheada a nivel de módulo.
+
+    ChromeDriverManager().install() hace una consulta de red para verificar
+    la versión correcta. Si se llama una vez por establecimiento (dentro de
+    build_driver()), un hipo de red silencioso ahí cuelga el script ANTES de
+    que Chrome llegue a abrirse — sin ningún log y sin que lo detecte ningún
+    timeout de Selenium/página, porque el cuelgue ocurre antes de que exista
+    un driver (ver skill booking-tenerife-scraper). Resolverla una sola vez
+    por corrida evita repetir esa consulta de red en cada llamada.
+    """
+    global _chromedriver_path
+    if _chromedriver_path is None:
+        logger.info("Resolviendo ChromeDriver (una sola vez para toda la corrida)...")
+        _chromedriver_path = ChromeDriverManager().install()
+    return _chromedriver_path
+
+
 def build_driver() -> webdriver.Chrome:
     """Arma el driver de Chrome, headless por defecto (ver config.HEADLESS).
 
@@ -306,7 +327,7 @@ def build_driver() -> webdriver.Chrome:
         options.add_argument("--disable-gpu")
         options.add_argument(f"--user-data-dir=/tmp/chrome-user-data-{os.getpid()}")
 
-    service = Service(ChromeDriverManager().install())
+    service = Service(_get_chromedriver_path())
     driver = webdriver.Chrome(service=service, options=options)
     driver.set_page_load_timeout(config.PAGE_LOAD_TIMEOUT_SECONDS)
     return driver
@@ -689,6 +710,11 @@ def save_and_upload(establishments: list[Establishment], reviews: list[Review]) 
 
 def main():
     logger.info("=== Iniciando scraper de Booking.com ===")
+
+    # Resuelve el ChromeDriver una sola vez, al inicio, para fallar rápido
+    # y con log claro ante un hipo de red — en vez de colgarse en silencio
+    # en medio de la corrida (ver _get_chromedriver_path).
+    _get_chromedriver_path()
 
     try:
         urls = discover_establishment_urls()

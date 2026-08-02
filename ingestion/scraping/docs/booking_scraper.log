@@ -2537,3 +2537,725 @@ Stacktrace:
 2026-07-31 11:31:41 - INFO - __main__ -   No hay más páginas de reseñas.
 2026-07-31 11:31:49 - INFO - __main__ - Guardado completo: 1 establecimientos, 6 reseñas.
 2026-07-31 11:31:55 - INFO - __main__ - === Corrida finalizada: 12 establecimientos, 100 reseñas en total (22 descartados por no ser de Tenerife) ===
+2026-08-01 23:45:18 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-08-01 23:45:18 - INFO - __main__ - Usando caché de descubrimiento: C:\Users\jcabr\AI_Dashboard_Core\ingestion\scraping\sitemap_discovery_cache.json
+2026-08-01 23:45:18 - INFO - __main__ - 50 establecimiento(s) ya completados en corridas anteriores, se omiten.
+2026-08-01 23:45:18 - INFO - __main__ - [1/450] Procesando https://www.booking.com/hotel/es/apartamentos-veramar-playa-piscina-parking-gratis.es.html
+2026-08-01 23:45:18 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartamentos-veramar-playa-piscina-parking-gratis.es.html
+2026-08-01 23:45:29 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:45:31 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38650 Arona, España'
+2026-08-01 23:45:37 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:45:44 - INFO - __main__ -   Página 1: 2 reseñas (2 acumuladas)
+2026-08-01 23:45:44 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-01 23:45:48 - INFO - __main__ - Guardado completo: 1 establecimientos, 2 reseñas.
+2026-08-01 23:45:55 - INFO - __main__ - [2/450] Procesando https://www.booking.com/hotel/es/finca-san-antonio-luxe-appartement-met-uitzicht-op-zee.es.html
+2026-08-01 23:45:55 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/finca-san-antonio-luxe-appartement-met-uitzicht-op-zee.es.html
+2026-08-01 23:46:06 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:46:09 - WARNING - __main__ -   Descartado (no es Tenerife): 'Finca San Antonio - Luxe Appartement met Uitzicht op Zee' (https://www.booking.com/hotel/es/finca-san-antonio-luxe-appartement-met-uitzicht-op-zee.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-01 23:46:14 - INFO - __main__ - [3/450] Procesando https://www.booking.com/hotel/es/lovely-home-in-san-antoniojerez-de-l-with-wifi.es.html
+2026-08-01 23:46:14 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/lovely-home-in-san-antoniojerez-de-l-with-wifi.es.html
+2026-08-01 23:46:32 - WARNING - __main__ -   Descartado (no es Tenerife): '3 Bedroom Lovely Home In San Antoniojerez De L' (https://www.booking.com/hotel/es/lovely-home-in-san-antoniojerez-de-l-with-wifi.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-01 23:46:35 - INFO - __main__ - [4/450] Procesando https://www.booking.com/hotel/es/puertito-azul-puertito-de-guimar.es.html
+2026-08-01 23:46:35 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/puertito-azul-puertito-de-guimar.es.html
+2026-08-01 23:46:57 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:47:28 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/puertito-azul-puertito-de-guimar.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x1055843+10883]
+	chromedriver!GetHandleVerifier [0x1055884+108c4]
+	chromedriver!(No symbol) [0xe590e0]
+	chromedriver!(No symbol) [0xea316b]
+	chromedriver!(No symbol) [0xea338b]
+	chromedriver!(No symbol) [0xee5942]
+	chromedriver!(No symbol) [0xec56b4]
+	chromedriver!(No symbol) [0xee31aa]
+	chromedriver!(No symbol) [0xec5406]
+	chromedriver!(No symbol) [0xe98659]
+	chromedriver!(No symbol) [0xe99424]
+	chromedriver!GetHandleVerifier [0x12eced6+2a7f16]
+	chromedriver!GetHandleVerifier [0x12e847b+2a34bb]
+	chromedriver!GetHandleVerifier [0x13094eb+2c452b]
+	chromedriver!GetHandleVerifier [0x106f566+2a5a6]
+	chromedriver!GetHandleVerifier [0x107620d+3124d]
+	chromedriver!GetHandleVerifier [0x105e318+19358]
+	chromedriver!GetHandleVerifier [0x105e4c5+19505]
+	chromedriver!GetHandleVerifier [0x10470af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-01 23:47:33 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/puertito-azul-puertito-de-guimar.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x1055843+10883]
+	chromedriver!GetHandleVerifier [0x1055884+108c4]
+	chromedriver!(No symbol) [0xe590e0]
+	chromedriver!(No symbol) [0xea316b]
+	chromedriver!(No symbol) [0xea338b]
+	chromedriver!(No symbol) [0xee5942]
+	chromedriver!(No symbol) [0xec56b4]
+	chromedriver!(No symbol) [0xee31aa]
+	chromedriver!(No symbol) [0xec5406]
+	chromedriver!(No symbol) [0xe98659]
+	chromedriver!(No symbol) [0xe99424]
+	chromedriver!GetHandleVerifier [0x12eced6+2a7f16]
+	chromedriver!GetHandleVerifier [0x12e847b+2a34bb]
+	chromedriver!GetHandleVerifier [0x13094eb+2c452b]
+	chromedriver!GetHandleVerifier [0x106f566+2a5a6]
+	chromedriver!GetHandleVerifier [0x107620d+3124d]
+	chromedriver!GetHandleVerifier [0x105e318+19358]
+	chromedriver!GetHandleVerifier [0x105e4c5+19505]
+	chromedriver!GetHandleVerifier [0x10470af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-01 23:47:33 - INFO - __main__ - [5/450] Procesando https://www.booking.com/hotel/es/casa-vista-bonita-polop.es.html
+2026-08-01 23:47:33 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-vista-bonita-polop.es.html
+2026-08-01 23:48:04 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:48:07 - WARNING - __main__ -   Descartado (no es Tenerife): 'Casa Vista Bonita' (https://www.booking.com/hotel/es/casa-vista-bonita-polop.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-01 23:48:11 - INFO - __main__ - [6/450] Procesando https://www.booking.com/hotel/es/residencial-ayraga.es.html
+2026-08-01 23:48:11 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/residencial-ayraga.es.html
+2026-08-01 23:48:26 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:48:29 - WARNING - __main__ -   Descartado (no es Tenerife): 'Residencial Ayraga' (https://www.booking.com/hotel/es/residencial-ayraga.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-01 23:48:37 - INFO - __main__ - [7/450] Procesando https://www.booking.com/hotel/es/cozy-studio-with-balcony-in-puerto-de-la-cruz.es.html
+2026-08-01 23:48:37 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/cozy-studio-with-balcony-in-puerto-de-la-cruz.es.html
+2026-08-01 23:48:52 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:48:54 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38400 Puerto de la Cruz, España'
+2026-08-01 23:48:59 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:49:06 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-01 23:49:12 - INFO - __main__ -   Página 2: 8 reseñas (18 acumuladas)
+2026-08-01 23:49:16 - INFO - __main__ - Guardado completo: 1 establecimientos, 18 reseñas.
+2026-08-01 23:49:24 - INFO - __main__ - [8/450] Procesando https://www.booking.com/hotel/es/nice-estudio-jaf-borinquen-sea-views-las-americas.es.html
+2026-08-01 23:49:24 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/nice-estudio-jaf-borinquen-sea-views-las-americas.es.html
+2026-08-01 23:49:35 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:49:37 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38660 Costa de Adeje, España'
+2026-08-01 23:49:44 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:49:50 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-01 23:49:56 - INFO - __main__ -   Página 2: 1 reseñas (11 acumuladas)
+2026-08-01 23:49:59 - INFO - __main__ - Guardado completo: 1 establecimientos, 11 reseñas.
+2026-08-01 23:50:03 - INFO - __main__ - [9/450] Procesando https://www.booking.com/hotel/es/live-guimar-los-piramides.es.html
+2026-08-01 23:50:03 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/live-guimar-los-piramides.es.html
+2026-08-01 23:50:23 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:50:33 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:50:41 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-01 23:50:48 - INFO - __main__ -   Página 2: 3 reseñas (13 acumuladas)
+2026-08-01 23:50:51 - INFO - __main__ - Guardado completo: 1 establecimientos, 13 reseñas.
+2026-08-01 23:50:56 - INFO - __main__ - [10/450] Procesando https://www.booking.com/hotel/es/one-bedroom-apartment-alex-near-the-beach-costa-adeje.es.html
+2026-08-01 23:50:56 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/one-bedroom-apartment-alex-near-the-beach-costa-adeje.es.html
+2026-08-01 23:51:07 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:51:10 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38660 Costa de Adeje, España'
+2026-08-01 23:51:14 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:51:22 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-01 23:51:27 - INFO - __main__ -   Página 2: 1 reseñas (11 acumuladas)
+2026-08-01 23:51:31 - INFO - __main__ - Guardado completo: 1 establecimientos, 11 reseñas.
+2026-08-01 23:51:37 - INFO - __main__ - [11/450] Procesando https://www.booking.com/hotel/es/allo-apartments-santa-maria-iv-centro-loft.es.html
+2026-08-01 23:51:37 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/allo-apartments-santa-maria-iv-centro-loft.es.html
+2026-08-01 23:51:47 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:51:50 - WARNING - __main__ -   Descartado (no es Tenerife): 'Allo Apartments Santa María IV Centro Loft' (https://www.booking.com/hotel/es/allo-apartments-santa-maria-iv-centro-loft.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-01 23:51:56 - INFO - __main__ - [12/450] Procesando https://www.booking.com/hotel/es/apartment-villas-canarias-2-bedroom-costa-adeje.es.html
+2026-08-01 23:51:56 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartment-villas-canarias-2-bedroom-costa-adeje.es.html
+2026-08-01 23:52:11 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:52:18 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:52:25 - INFO - __main__ -   Página 1: 7 reseñas (7 acumuladas)
+2026-08-01 23:52:25 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-01 23:52:27 - INFO - __main__ - Guardado completo: 1 establecimientos, 7 reseñas.
+2026-08-01 23:52:32 - INFO - __main__ - [13/450] Procesando https://www.booking.com/hotel/es/laguna-rocher-by-fidalsa.es.html
+2026-08-01 23:52:32 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/laguna-rocher-by-fidalsa.es.html
+2026-08-01 23:52:43 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:52:47 - WARNING - __main__ -   Descartado (no es Tenerife): 'Laguna Rocher by Fidalsa' (https://www.booking.com/hotel/es/laguna-rocher-by-fidalsa.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-01 23:52:53 - INFO - __main__ - [14/450] Procesando https://www.booking.com/hotel/es/la-cordobesa-el-sauzal.es.html
+2026-08-01 23:52:53 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/la-cordobesa-el-sauzal.es.html
+2026-08-01 23:53:20 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:53:26 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:53:31 - INFO - __main__ -   Página 1: 3 reseñas (3 acumuladas)
+2026-08-01 23:53:31 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-01 23:53:33 - INFO - __main__ - Guardado completo: 1 establecimientos, 3 reseñas.
+2026-08-01 23:53:41 - INFO - __main__ - [15/450] Procesando https://www.booking.com/hotel/es/home4u-san-antonio-1-min-walk-to-beach.es.html
+2026-08-01 23:53:41 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/home4u-san-antonio-1-min-walk-to-beach.es.html
+2026-08-01 23:53:56 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:53:59 - WARNING - __main__ -   Descartado (no es Tenerife): 'Home4U San Antonio - 1 min Walk to Beach' (https://www.booking.com/hotel/es/home4u-san-antonio-1-min-walk-to-beach.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-01 23:54:02 - INFO - __main__ - [16/450] Procesando https://www.booking.com/hotel/es/apartamento-olinda-playa-y-piscina-en-calafell.es.html
+2026-08-01 23:54:02 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartamento-olinda-playa-y-piscina-en-calafell.es.html
+2026-08-01 23:54:23 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:54:26 - WARNING - __main__ -   Descartado (no es Tenerife): 'Apartamento Olinda - Playa y Piscina en Calafell' (https://www.booking.com/hotel/es/apartamento-olinda-playa-y-piscina-en-calafell.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-01 23:54:31 - INFO - __main__ - [17/450] Procesando https://www.booking.com/hotel/es/apartamento-laplaza-villamartin.es.html
+2026-08-01 23:54:31 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartamento-laplaza-villamartin.es.html
+2026-08-01 23:54:46 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:54:49 - WARNING - __main__ -   Descartado (no es Tenerife): 'Villamartin Plaza Duplex with Rooftop Sun Terrace Golf 2min' (https://www.booking.com/hotel/es/apartamento-laplaza-villamartin.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-01 23:54:53 - INFO - __main__ - [18/450] Procesando https://www.booking.com/hotel/es/la-caleta-beach-amp-falla-theater-suites.es.html
+2026-08-01 23:54:53 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/la-caleta-beach-amp-falla-theater-suites.es.html
+2026-08-01 23:55:09 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:55:12 - WARNING - __main__ -   Descartado (no es Tenerife): 'Hidden Gem GRAN TEATRO FALLA SUITES by ApartmentsinCadiz' (https://www.booking.com/hotel/es/la-caleta-beach-amp-falla-theater-suites.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-01 23:55:17 - INFO - __main__ - [19/450] Procesando https://www.booking.com/hotel/es/s26-reina-victoria.es.html
+2026-08-01 23:55:17 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/s26-reina-victoria.es.html
+2026-08-01 23:55:35 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:55:39 - WARNING - __main__ -   Descartado (no es Tenerife): 'AT Boutique Alma' (https://www.booking.com/hotel/es/s26-reina-victoria.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-01 23:55:44 - INFO - __main__ - [20/450] Procesando https://www.booking.com/hotel/es/apartamento-deluxe-1-room-piscina-parking-luxsevilla-bormujos.es.html
+2026-08-01 23:55:44 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartamento-deluxe-1-room-piscina-parking-luxsevilla-bormujos.es.html
+2026-08-01 23:55:59 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:56:03 - WARNING - __main__ -   Descartado (no es Tenerife): 'Apartamento Deluxe 2 Room Piscina Parking LuxSevilla Bormujos' (https://www.booking.com/hotel/es/apartamento-deluxe-1-room-piscina-parking-luxsevilla-bormujos.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-01 23:56:06 - INFO - __main__ - [21/450] Procesando https://www.booking.com/hotel/es/ocean-view-quintanilla.es.html
+2026-08-01 23:56:06 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/ocean-view-quintanilla.es.html
+2026-08-01 23:56:20 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:56:23 - WARNING - __main__ -   Descartado (no es Tenerife): 'Ocean View Quintanilla' (https://www.booking.com/hotel/es/ocean-view-quintanilla.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-01 23:56:30 - INFO - __main__ - [22/450] Procesando https://www.booking.com/hotel/es/apartamento-los-olivos-huesca.es.html
+2026-08-01 23:56:30 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartamento-los-olivos-huesca.es.html
+2026-08-01 23:56:48 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:56:52 - WARNING - __main__ -   Descartado (no es Tenerife): 'Apartamento Los Olivos' (https://www.booking.com/hotel/es/apartamento-los-olivos-huesca.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-01 23:56:55 - INFO - __main__ - [23/450] Procesando https://www.booking.com/hotel/es/posada-finca-fuentes-carrionas.es.html
+2026-08-01 23:56:55 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/posada-finca-fuentes-carrionas.es.html
+2026-08-01 23:57:12 - WARNING - __main__ -   Descartado (no es Tenerife): 'Hotel Posada Fuentes Carrionas' (https://www.booking.com/hotel/es/posada-finca-fuentes-carrionas.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-01 23:57:18 - INFO - __main__ - [24/450] Procesando https://www.booking.com/hotel/es/your-dream-place-amarilla-golf.es.html
+2026-08-01 23:57:18 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/your-dream-place-amarilla-golf.es.html
+2026-08-01 23:57:33 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:57:38 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:57:47 - INFO - __main__ -   Página 1: 2 reseñas (2 acumuladas)
+2026-08-01 23:57:47 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-01 23:57:55 - INFO - __main__ - Guardado completo: 1 establecimientos, 2 reseñas.
+2026-08-01 23:58:01 - INFO - __main__ - [25/450] Procesando https://www.booking.com/hotel/es/los-patios-de-feria-jardin-secreto.es.html
+2026-08-01 23:58:01 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/los-patios-de-feria-jardin-secreto.es.html
+2026-08-01 23:58:24 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:58:27 - WARNING - __main__ -   Descartado (no es Tenerife): 'Los Patios de Feria - Secret Garden' (https://www.booking.com/hotel/es/los-patios-de-feria-jardin-secreto.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-01 23:58:32 - INFO - __main__ - [26/450] Procesando https://www.booking.com/hotel/es/starfish-san-juan.es.html
+2026-08-01 23:58:32 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/starfish-san-juan.es.html
+2026-08-01 23:58:47 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:58:57 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:59:06 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-01 23:59:10 - INFO - __main__ -   Página 2: 1 reseñas (11 acumuladas)
+2026-08-01 23:59:13 - INFO - __main__ - Guardado completo: 1 establecimientos, 11 reseñas.
+2026-08-01 23:59:19 - INFO - __main__ - [27/450] Procesando https://www.booking.com/hotel/es/la-casa-de-la-vieja-bodega.es.html
+2026-08-01 23:59:19 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/la-casa-de-la-vieja-bodega.es.html
+2026-08-01 23:59:32 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:59:36 - WARNING - __main__ -   Descartado (no es Tenerife): 'La Casa de la Antigua Bodega' (https://www.booking.com/hotel/es/la-casa-de-la-vieja-bodega.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-01 23:59:39 - INFO - __main__ - [28/450] Procesando https://www.booking.com/hotel/es/7-bdr-14-p-holiday-house-with-big-terrace.es.html
+2026-08-01 23:59:39 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/7-bdr-14-p-holiday-house-with-big-terrace.es.html
+2026-08-01 23:59:54 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-01 23:59:56 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38687 Guía de Isora, España'
+2026-08-02 00:00:01 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:00:07 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-02 00:00:15 - INFO - __main__ -   Página 2: 1 reseñas (11 acumuladas)
+2026-08-02 00:00:18 - INFO - __main__ - Guardado completo: 1 establecimientos, 11 reseñas.
+2026-08-02 00:00:26 - INFO - __main__ - [29/450] Procesando https://www.booking.com/hotel/es/holiday-home-amigos-by-interhome.es.html
+2026-08-02 00:00:26 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/holiday-home-amigos-by-interhome.es.html
+2026-08-02 00:00:46 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:00:49 - WARNING - __main__ -   Descartado (no es Tenerife): 'Holiday Home Amigos by Interhome' (https://www.booking.com/hotel/es/holiday-home-amigos-by-interhome.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-02 00:00:55 - INFO - __main__ - [30/450] Procesando https://www.booking.com/hotel/es/candelaria-sea-music.es.html
+2026-08-02 00:00:55 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/candelaria-sea-music.es.html
+2026-08-02 00:01:18 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:01:20 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38530 Candelaria, España'
+2026-08-02 00:01:25 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:01:56 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/candelaria-sea-music.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x11d5843+10883]
+	chromedriver!GetHandleVerifier [0x11d5884+108c4]
+	chromedriver!(No symbol) [0xfd90e0]
+	chromedriver!(No symbol) [0x102316b]
+	chromedriver!(No symbol) [0x102338b]
+	chromedriver!(No symbol) [0x1065942]
+	chromedriver!(No symbol) [0x10456b4]
+	chromedriver!(No symbol) [0x10631aa]
+	chromedriver!(No symbol) [0x1045406]
+	chromedriver!(No symbol) [0x1018659]
+	chromedriver!(No symbol) [0x1019424]
+	chromedriver!GetHandleVerifier [0x146ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0x146847b+2a34bb]
+	chromedriver!GetHandleVerifier [0x14894eb+2c452b]
+	chromedriver!GetHandleVerifier [0x11ef566+2a5a6]
+	chromedriver!GetHandleVerifier [0x11f620d+3124d]
+	chromedriver!GetHandleVerifier [0x11de318+19358]
+	chromedriver!GetHandleVerifier [0x11de4c5+19505]
+	chromedriver!GetHandleVerifier [0x11c70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-02 00:01:59 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/candelaria-sea-music.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x11d5843+10883]
+	chromedriver!GetHandleVerifier [0x11d5884+108c4]
+	chromedriver!(No symbol) [0xfd90e0]
+	chromedriver!(No symbol) [0x102316b]
+	chromedriver!(No symbol) [0x102338b]
+	chromedriver!(No symbol) [0x1065942]
+	chromedriver!(No symbol) [0x10456b4]
+	chromedriver!(No symbol) [0x10631aa]
+	chromedriver!(No symbol) [0x1045406]
+	chromedriver!(No symbol) [0x1018659]
+	chromedriver!(No symbol) [0x1019424]
+	chromedriver!GetHandleVerifier [0x146ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0x146847b+2a34bb]
+	chromedriver!GetHandleVerifier [0x14894eb+2c452b]
+	chromedriver!GetHandleVerifier [0x11ef566+2a5a6]
+	chromedriver!GetHandleVerifier [0x11f620d+3124d]
+	chromedriver!GetHandleVerifier [0x11de318+19358]
+	chromedriver!GetHandleVerifier [0x11de4c5+19505]
+	chromedriver!GetHandleVerifier [0x11c70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-02 00:01:59 - INFO - __main__ - [31/450] Procesando https://www.booking.com/hotel/es/tenohomes-spacious-home-retreat-icod-de-los-vinos.es.html
+2026-08-02 00:01:59 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/tenohomes-spacious-home-retreat-icod-de-los-vinos.es.html
+2026-08-02 00:02:18 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:02:26 - INFO - __main__ -   Página 1: 7 reseñas (7 acumuladas)
+2026-08-02 00:02:26 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-02 00:02:29 - INFO - __main__ - Guardado completo: 1 establecimientos, 7 reseñas.
+2026-08-02 00:02:37 - INFO - __main__ - [32/450] Procesando https://www.booking.com/hotel/es/live-la-caleta-las-salinas-con-vista-al-mar-2.es.html
+2026-08-02 00:02:37 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/live-la-caleta-las-salinas-con-vista-al-mar-2.es.html
+2026-08-02 00:02:47 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:02:49 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38460 Los Silos, España'
+2026-08-02 00:02:53 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:03:01 - INFO - __main__ -   Página 1: 7 reseñas (7 acumuladas)
+2026-08-02 00:03:01 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-02 00:03:04 - INFO - __main__ - Guardado completo: 1 establecimientos, 7 reseñas.
+2026-08-02 00:03:10 - INFO - __main__ - [33/450] Procesando https://www.booking.com/hotel/es/precioso-apartamento-santa-cruz.es.html
+2026-08-02 00:03:10 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/precioso-apartamento-santa-cruz.es.html
+2026-08-02 00:03:20 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:03:28 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:03:36 - INFO - __main__ -   Página 1: 9 reseñas (9 acumuladas)
+2026-08-02 00:03:36 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-02 00:03:39 - INFO - __main__ - Guardado completo: 1 establecimientos, 9 reseñas.
+2026-08-02 00:03:44 - INFO - __main__ - [34/450] Procesando https://www.booking.com/hotel/es/city-center-apartment-santa-cruz-de-tenerife.es.html
+2026-08-02 00:03:44 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/city-center-apartment-santa-cruz-de-tenerife.es.html
+2026-08-02 00:04:06 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:04:16 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:04:25 - INFO - __main__ -   Página 1: 4 reseñas (4 acumuladas)
+2026-08-02 00:04:25 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-02 00:04:28 - INFO - __main__ - Guardado completo: 1 establecimientos, 4 reseñas.
+2026-08-02 00:04:33 - INFO - __main__ - [35/450] Procesando https://www.booking.com/hotel/es/practico-loft-en-santa-cruz.es.html
+2026-08-02 00:04:33 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/practico-loft-en-santa-cruz.es.html
+2026-08-02 00:04:48 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:04:53 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:05:03 - INFO - __main__ -   Página 1: 3 reseñas (3 acumuladas)
+2026-08-02 00:05:03 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-02 00:05:07 - INFO - __main__ - Guardado completo: 1 establecimientos, 3 reseñas.
+2026-08-02 00:05:13 - INFO - __main__ - [36/450] Procesando https://www.booking.com/hotel/es/apartamento-practico-en-santa-cruz.es.html
+2026-08-02 00:05:13 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartamento-practico-en-santa-cruz.es.html
+2026-08-02 00:05:29 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:05:35 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:05:43 - INFO - __main__ -   Página 1: 4 reseñas (4 acumuladas)
+2026-08-02 00:05:43 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-02 00:05:50 - INFO - __main__ - Guardado completo: 1 establecimientos, 4 reseñas.
+2026-08-02 00:05:54 - INFO - __main__ - [37/450] Procesando https://www.booking.com/hotel/es/estudio-centrico-santa-cruz.es.html
+2026-08-02 00:05:54 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/estudio-centrico-santa-cruz.es.html
+2026-08-02 00:06:11 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:06:22 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:06:28 - INFO - __main__ -   Página 1: 4 reseñas (4 acumuladas)
+2026-08-02 00:06:28 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-02 00:06:34 - INFO - __main__ - Guardado completo: 1 establecimientos, 4 reseñas.
+2026-08-02 00:06:38 - INFO - __main__ - [38/450] Procesando https://www.booking.com/hotel/es/apartamento-familiar-santa-cruz-de-tenerife.es.html
+2026-08-02 00:06:38 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartamento-familiar-santa-cruz-de-tenerife.es.html
+2026-08-02 00:06:51 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:07:01 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:07:09 - INFO - __main__ -   Página 1: 6 reseñas (6 acumuladas)
+2026-08-02 00:07:09 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-02 00:07:15 - INFO - __main__ - Guardado completo: 1 establecimientos, 6 reseñas.
+2026-08-02 00:07:21 - INFO - __main__ - [39/450] Procesando https://www.booking.com/hotel/es/apartamento-santa-cruz-de-tenerife-santa-cruz-de-tenerife.es.html
+2026-08-02 00:07:21 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartamento-santa-cruz-de-tenerife-santa-cruz-de-tenerife.es.html
+2026-08-02 00:07:34 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:07:41 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:07:49 - INFO - __main__ -   Página 1: 9 reseñas (9 acumuladas)
+2026-08-02 00:07:49 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-02 00:07:53 - INFO - __main__ - Guardado completo: 1 establecimientos, 9 reseñas.
+2026-08-02 00:07:57 - INFO - __main__ - [40/450] Procesando https://www.booking.com/hotel/es/apartamento-acogedor-santa-cruz.es.html
+2026-08-02 00:07:57 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartamento-acogedor-santa-cruz.es.html
+2026-08-02 00:08:08 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:08:13 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:08:20 - INFO - __main__ -   Página 1: 6 reseñas (6 acumuladas)
+2026-08-02 00:08:20 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-02 00:08:27 - INFO - __main__ - Guardado completo: 1 establecimientos, 6 reseñas.
+2026-08-02 00:08:33 - INFO - __main__ - [41/450] Procesando https://www.booking.com/hotel/es/piso-en-pleno-centro-santa-cruz-de-tenerife.es.html
+2026-08-02 00:08:33 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/piso-en-pleno-centro-santa-cruz-de-tenerife.es.html
+2026-08-02 00:08:45 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:08:50 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:08:58 - INFO - __main__ -   Página 1: 3 reseñas (3 acumuladas)
+2026-08-02 00:08:58 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-02 00:09:01 - INFO - __main__ - Guardado completo: 1 establecimientos, 3 reseñas.
+2026-08-02 00:09:05 - INFO - __main__ - [42/450] Procesando https://www.booking.com/hotel/es/apartamento-zona-residencia-con-piscina-cerca-de-las-playas-en-santander.es.html
+2026-08-02 00:09:05 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartamento-zona-residencia-con-piscina-cerca-de-las-playas-en-santander.es.html
+2026-08-02 00:09:23 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:09:26 - WARNING - __main__ -   Descartado (no es Tenerife): 'Apartamento, zona residencia con piscina, cerca de las playas en Santander' (https://www.booking.com/hotel/es/apartamento-zona-residencia-con-piscina-cerca-de-las-playas-en-santander.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-02 00:09:33 - INFO - __main__ - [43/450] Procesando https://www.booking.com/hotel/es/casa-calma-mar-menor-golf-resort.es.html
+2026-08-02 00:09:33 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-calma-mar-menor-golf-resort.es.html
+2026-08-02 00:09:52 - WARNING - __main__ -   Descartado (no es Tenerife): 'Casa Calma - Mar Menor Golf Resort' (https://www.booking.com/hotel/es/casa-calma-mar-menor-golf-resort.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-02 00:09:58 - INFO - __main__ - [44/450] Procesando https://www.booking.com/hotel/es/apartamento-victoria-amp-parking-incluido.es.html
+2026-08-02 00:09:58 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartamento-victoria-amp-parking-incluido.es.html
+2026-08-02 00:10:18 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:10:21 - WARNING - __main__ -   Descartado (no es Tenerife): 'Cordoba Essence, Parking incluido junto al centro y casco histórico' (https://www.booking.com/hotel/es/apartamento-victoria-amp-parking-incluido.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-02 00:10:29 - INFO - __main__ - [45/450] Procesando https://www.booking.com/hotel/es/apartamento-dejavu-torrelaguna.es.html
+2026-08-02 00:10:29 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartamento-dejavu-torrelaguna.es.html
+2026-08-02 00:10:47 - WARNING - __main__ -   Descartado (no es Tenerife): 'Apartamento Torrelaguna Las Marinas,Vera -250 m Playa - 2 Dormitorios - Piscina - Mascotas' (https://www.booking.com/hotel/es/apartamento-dejavu-torrelaguna.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-02 00:10:52 - INFO - __main__ - [46/450] Procesando https://www.booking.com/hotel/es/luxury-villa-with-panorama-view-and-heated-pool.es.html
+2026-08-02 00:10:52 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/luxury-villa-with-panorama-view-and-heated-pool.es.html
+2026-08-02 00:11:08 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:11:11 - WARNING - __main__ -   Descartado (no es Tenerife): 'Luxury Villa with Panorama View and Heated Pool' (https://www.booking.com/hotel/es/luxury-villa-with-panorama-view-and-heated-pool.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-02 00:11:15 - INFO - __main__ - [47/450] Procesando https://www.booking.com/hotel/es/lux-villa-d-with-heated-pool-ocean-view-costa-adeje.es.html
+2026-08-02 00:11:15 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/lux-villa-d-with-heated-pool-ocean-view-costa-adeje.es.html
+2026-08-02 00:11:30 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:11:32 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38660 Adeje, España'
+2026-08-02 00:11:38 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:11:44 - INFO - __main__ -   Página 1: 4 reseñas (4 acumuladas)
+2026-08-02 00:11:44 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-02 00:11:50 - INFO - __main__ - Guardado completo: 1 establecimientos, 4 reseñas.
+2026-08-02 00:11:57 - INFO - __main__ - [48/450] Procesando https://www.booking.com/hotel/es/la-era-adeje.es.html
+2026-08-02 00:11:57 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/la-era-adeje.es.html
+2026-08-02 00:12:11 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:12:20 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:12:51 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/la-era-adeje.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x11d5843+10883]
+	chromedriver!GetHandleVerifier [0x11d5884+108c4]
+	chromedriver!(No symbol) [0xfd90e0]
+	chromedriver!(No symbol) [0x102316b]
+	chromedriver!(No symbol) [0x102338b]
+	chromedriver!(No symbol) [0x1065942]
+	chromedriver!(No symbol) [0x10456b4]
+	chromedriver!(No symbol) [0x10631aa]
+	chromedriver!(No symbol) [0x1045406]
+	chromedriver!(No symbol) [0x1018659]
+	chromedriver!(No symbol) [0x1019424]
+	chromedriver!GetHandleVerifier [0x146ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0x146847b+2a34bb]
+	chromedriver!GetHandleVerifier [0x14894eb+2c452b]
+	chromedriver!GetHandleVerifier [0x11ef566+2a5a6]
+	chromedriver!GetHandleVerifier [0x11f620d+3124d]
+	chromedriver!GetHandleVerifier [0x11de318+19358]
+	chromedriver!GetHandleVerifier [0x11de4c5+19505]
+	chromedriver!GetHandleVerifier [0x11c70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-02 00:12:54 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/la-era-adeje.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x11d5843+10883]
+	chromedriver!GetHandleVerifier [0x11d5884+108c4]
+	chromedriver!(No symbol) [0xfd90e0]
+	chromedriver!(No symbol) [0x102316b]
+	chromedriver!(No symbol) [0x102338b]
+	chromedriver!(No symbol) [0x1065942]
+	chromedriver!(No symbol) [0x10456b4]
+	chromedriver!(No symbol) [0x10631aa]
+	chromedriver!(No symbol) [0x1045406]
+	chromedriver!(No symbol) [0x1018659]
+	chromedriver!(No symbol) [0x1019424]
+	chromedriver!GetHandleVerifier [0x146ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0x146847b+2a34bb]
+	chromedriver!GetHandleVerifier [0x14894eb+2c452b]
+	chromedriver!GetHandleVerifier [0x11ef566+2a5a6]
+	chromedriver!GetHandleVerifier [0x11f620d+3124d]
+	chromedriver!GetHandleVerifier [0x11de318+19358]
+	chromedriver!GetHandleVerifier [0x11de4c5+19505]
+	chromedriver!GetHandleVerifier [0x11c70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-02 00:12:54 - INFO - __main__ - [49/450] Procesando https://www.booking.com/hotel/es/villa-at-parque-santiago-2-playa-las-americas.es.html
+2026-08-02 00:12:54 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/villa-at-parque-santiago-2-playa-las-americas.es.html
+2026-08-02 00:13:09 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:13:11 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38660 Playa de las Américas, España'
+2026-08-02 00:13:17 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:13:25 - INFO - __main__ -   Página 1: 7 reseñas (7 acumuladas)
+2026-08-02 00:13:25 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-02 00:13:29 - INFO - __main__ - Guardado completo: 1 establecimientos, 7 reseñas.
+2026-08-02 00:13:32 - INFO - __main__ - [50/450] Procesando https://www.booking.com/hotel/es/apartamento-juan-vista-piscina-y-mar.es.html
+2026-08-02 00:13:32 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartamento-juan-vista-piscina-y-mar.es.html
+2026-08-02 00:13:44 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:13:47 - WARNING - __main__ -   Descartado (no es Tenerife): 'Apartamento Juan vista piscina y mar' (https://www.booking.com/hotel/es/apartamento-juan-vista-piscina-y-mar.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-02 00:13:52 - INFO - __main__ - [51/450] Procesando https://www.booking.com/hotel/es/magical-cave-in-spain-boutique-luxury-stay-in-nature.es.html
+2026-08-02 00:13:52 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/magical-cave-in-spain-boutique-luxury-stay-in-nature.es.html
+2026-08-02 00:14:06 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:14:10 - WARNING - __main__ -   Descartado (no es Tenerife): 'Magical Cave in Spain - Boutique Luxury Stay in Nature' (https://www.booking.com/hotel/es/magical-cave-in-spain-boutique-luxury-stay-in-nature.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-02 00:14:13 - INFO - __main__ - [52/450] Procesando https://www.booking.com/hotel/es/florida-home-private-pool-and-jacuzzi.es.html
+2026-08-02 00:14:13 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/florida-home-private-pool-and-jacuzzi.es.html
+2026-08-02 00:14:29 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:14:32 - WARNING - __main__ -   Descartado (no es Tenerife): 'Florida Home Private pool and Jacuzzi' (https://www.booking.com/hotel/es/florida-home-private-pool-and-jacuzzi.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-02 00:14:40 - INFO - __main__ - [53/450] Procesando https://www.booking.com/hotel/es/piscina-y-balcon-con-vistas-cerca-playa-antolin.es.html
+2026-08-02 00:14:40 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/piscina-y-balcon-con-vistas-cerca-playa-antolin.es.html
+2026-08-02 00:14:54 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:14:58 - WARNING - __main__ -   Descartado (no es Tenerife): 'Apartamento con Piscina y Hermosas Vistas a la Naturaleza - Posada de Llanes' (https://www.booking.com/hotel/es/piscina-y-balcon-con-vistas-cerca-playa-antolin.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-02 00:15:02 - INFO - __main__ - [54/450] Procesando https://www.booking.com/hotel/es/casa-astrid-icod-de-los-vinos.es.html
+2026-08-02 00:15:02 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-astrid-icod-de-los-vinos.es.html
+2026-08-02 00:15:26 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:15:35 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:15:40 - INFO - __main__ -   Página 1: 1 reseñas (1 acumuladas)
+2026-08-02 00:15:40 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-02 00:15:44 - INFO - __main__ - Guardado completo: 1 establecimientos, 1 reseñas.
+2026-08-02 00:15:49 - INFO - __main__ - [55/450] Procesando https://www.booking.com/hotel/es/apartamento-victoria-mogan.es.html
+2026-08-02 00:15:49 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartamento-victoria-mogan.es.html
+2026-08-02 00:16:08 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:16:12 - WARNING - __main__ -   Descartado (no es Tenerife): 'Apartamento Victoria' (https://www.booking.com/hotel/es/apartamento-victoria-mogan.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-02 00:16:19 - INFO - __main__ - [56/450] Procesando https://www.booking.com/hotel/es/villa-cush-adeje.es.html
+2026-08-02 00:16:19 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/villa-cush-adeje.es.html
+2026-08-02 00:16:34 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:16:40 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:16:48 - INFO - __main__ -   Página 1: 3 reseñas (3 acumuladas)
+2026-08-02 00:16:48 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-02 00:16:54 - INFO - __main__ - Guardado completo: 1 establecimientos, 3 reseñas.
+2026-08-02 00:16:58 - INFO - __main__ - [57/450] Procesando https://www.booking.com/hotel/es/atico-con-piscina-en-la-rapita.es.html
+2026-08-02 00:16:58 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/atico-con-piscina-en-la-rapita.es.html
+2026-08-02 00:17:11 - WARNING - __main__ -   Descartado (no es Tenerife): 'Ático con Piscina privada y Solarium en la Ràpita' (https://www.booking.com/hotel/es/atico-con-piscina-en-la-rapita.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-02 00:17:18 - INFO - __main__ - [58/450] Procesando https://www.booking.com/hotel/es/la-casa-de-santa-maria-laredo.es.html
+2026-08-02 00:17:18 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/la-casa-de-santa-maria-laredo.es.html
+2026-08-02 00:17:32 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:17:35 - WARNING - __main__ -   Descartado (no es Tenerife): 'La Casa de Santa María de Laredo' (https://www.booking.com/hotel/es/la-casa-de-santa-maria-laredo.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-02 00:17:42 - INFO - __main__ - [59/450] Procesando https://www.booking.com/hotel/es/vivienda-vacacional-sanxenxo.es.html
+2026-08-02 00:17:42 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/vivienda-vacacional-sanxenxo.es.html
+2026-08-02 00:17:56 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:17:59 - WARNING - __main__ -   Descartado (no es Tenerife): 'Vivienda vacacional' (https://www.booking.com/hotel/es/vivienda-vacacional-sanxenxo.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-02 00:18:07 - INFO - __main__ - [60/450] Procesando https://www.booking.com/hotel/es/torres-de-yomely-y8a.es.html
+2026-08-02 00:18:07 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/torres-de-yomely-y8a.es.html
+2026-08-02 00:18:22 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:18:24 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38660 Playa de las Américas, España'
+2026-08-02 00:18:28 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 00:18:37 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-02 00:18:37 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-02 00:18:39 - INFO - __main__ - Guardado completo: 1 establecimientos, 10 reseñas.
+2026-08-02 00:18:45 - INFO - __main__ - [61/450] Procesando https://www.booking.com/hotel/es/tranquil-studio-apartment-communal-heated-pool-los-cristianos.es.html
+2026-08-02 00:18:45 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/tranquil-studio-apartment-communal-heated-pool-los-cristianos.es.html
+2026-08-02 09:10:24 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-08-02 09:10:24 - INFO - __main__ - Usando caché de descubrimiento: C:\Users\jcabr\AI_Dashboard_Core\ingestion\scraping\sitemap_discovery_cache.json
+2026-08-02 09:10:24 - INFO - __main__ - 107 establecimiento(s) ya completados en corridas anteriores, se omiten.
+2026-08-02 09:10:24 - INFO - __main__ - [1/393] Procesando https://www.booking.com/hotel/es/puertito-azul-puertito-de-guimar.es.html
+2026-08-02 09:10:24 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/puertito-azul-puertito-de-guimar.es.html
+2026-08-02 09:10:41 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 09:51:20 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-08-02 09:51:20 - INFO - __main__ - Usando caché de descubrimiento: C:\Users\jcabr\AI_Dashboard_Core\ingestion\scraping\sitemap_discovery_cache.json
+2026-08-02 09:51:20 - INFO - __main__ - 107 establecimiento(s) ya completados en corridas anteriores, se omiten.
+2026-08-02 09:51:20 - INFO - __main__ - [1/393] Procesando https://www.booking.com/hotel/es/puertito-azul-puertito-de-guimar.es.html
+2026-08-02 09:51:20 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/puertito-azul-puertito-de-guimar.es.html
+2026-08-02 09:51:37 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 09:52:08 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/puertito-azul-puertito-de-guimar.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x11d5843+10883]
+	chromedriver!GetHandleVerifier [0x11d5884+108c4]
+	chromedriver!(No symbol) [0xfd90e0]
+	chromedriver!(No symbol) [0x102316b]
+	chromedriver!(No symbol) [0x102338b]
+	chromedriver!(No symbol) [0x1065942]
+	chromedriver!(No symbol) [0x10456b4]
+	chromedriver!(No symbol) [0x10631aa]
+	chromedriver!(No symbol) [0x1045406]
+	chromedriver!(No symbol) [0x1018659]
+	chromedriver!(No symbol) [0x1019424]
+	chromedriver!GetHandleVerifier [0x146ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0x146847b+2a34bb]
+	chromedriver!GetHandleVerifier [0x14894eb+2c452b]
+	chromedriver!GetHandleVerifier [0x11ef566+2a5a6]
+	chromedriver!GetHandleVerifier [0x11f620d+3124d]
+	chromedriver!GetHandleVerifier [0x11de318+19358]
+	chromedriver!GetHandleVerifier [0x11de4c5+19505]
+	chromedriver!GetHandleVerifier [0x11c70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-02 09:52:10 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/puertito-azul-puertito-de-guimar.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x11d5843+10883]
+	chromedriver!GetHandleVerifier [0x11d5884+108c4]
+	chromedriver!(No symbol) [0xfd90e0]
+	chromedriver!(No symbol) [0x102316b]
+	chromedriver!(No symbol) [0x102338b]
+	chromedriver!(No symbol) [0x1065942]
+	chromedriver!(No symbol) [0x10456b4]
+	chromedriver!(No symbol) [0x10631aa]
+	chromedriver!(No symbol) [0x1045406]
+	chromedriver!(No symbol) [0x1018659]
+	chromedriver!(No symbol) [0x1019424]
+	chromedriver!GetHandleVerifier [0x146ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0x146847b+2a34bb]
+	chromedriver!GetHandleVerifier [0x14894eb+2c452b]
+	chromedriver!GetHandleVerifier [0x11ef566+2a5a6]
+	chromedriver!GetHandleVerifier [0x11f620d+3124d]
+	chromedriver!GetHandleVerifier [0x11de318+19358]
+	chromedriver!GetHandleVerifier [0x11de4c5+19505]
+	chromedriver!GetHandleVerifier [0x11c70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-02 09:52:10 - INFO - __main__ - [2/393] Procesando https://www.booking.com/hotel/es/candelaria-sea-music.es.html
+2026-08-02 09:52:10 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/candelaria-sea-music.es.html
+2026-08-02 09:52:23 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 09:52:25 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38530 Candelaria, España'
+2026-08-02 09:52:30 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 09:53:01 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/candelaria-sea-music.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x11d5843+10883]
+	chromedriver!GetHandleVerifier [0x11d5884+108c4]
+	chromedriver!(No symbol) [0xfd90e0]
+	chromedriver!(No symbol) [0x102316b]
+	chromedriver!(No symbol) [0x102338b]
+	chromedriver!(No symbol) [0x1065942]
+	chromedriver!(No symbol) [0x10456b4]
+	chromedriver!(No symbol) [0x10631aa]
+	chromedriver!(No symbol) [0x1045406]
+	chromedriver!(No symbol) [0x1018659]
+	chromedriver!(No symbol) [0x1019424]
+	chromedriver!GetHandleVerifier [0x146ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0x146847b+2a34bb]
+	chromedriver!GetHandleVerifier [0x14894eb+2c452b]
+	chromedriver!GetHandleVerifier [0x11ef566+2a5a6]
+	chromedriver!GetHandleVerifier [0x11f620d+3124d]
+	chromedriver!GetHandleVerifier [0x11de318+19358]
+	chromedriver!GetHandleVerifier [0x11de4c5+19505]
+	chromedriver!GetHandleVerifier [0x11c70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-02 09:53:04 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/candelaria-sea-music.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x11d5843+10883]
+	chromedriver!GetHandleVerifier [0x11d5884+108c4]
+	chromedriver!(No symbol) [0xfd90e0]
+	chromedriver!(No symbol) [0x102316b]
+	chromedriver!(No symbol) [0x102338b]
+	chromedriver!(No symbol) [0x1065942]
+	chromedriver!(No symbol) [0x10456b4]
+	chromedriver!(No symbol) [0x10631aa]
+	chromedriver!(No symbol) [0x1045406]
+	chromedriver!(No symbol) [0x1018659]
+	chromedriver!(No symbol) [0x1019424]
+	chromedriver!GetHandleVerifier [0x146ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0x146847b+2a34bb]
+	chromedriver!GetHandleVerifier [0x14894eb+2c452b]
+	chromedriver!GetHandleVerifier [0x11ef566+2a5a6]
+	chromedriver!GetHandleVerifier [0x11f620d+3124d]
+	chromedriver!GetHandleVerifier [0x11de318+19358]
+	chromedriver!GetHandleVerifier [0x11de4c5+19505]
+	chromedriver!GetHandleVerifier [0x11c70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-02 09:53:04 - INFO - __main__ - [3/393] Procesando https://www.booking.com/hotel/es/la-era-adeje.es.html
+2026-08-02 09:53:04 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/la-era-adeje.es.html
+2026-08-02 09:53:28 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 09:53:59 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/la-era-adeje.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x11d5843+10883]
+	chromedriver!GetHandleVerifier [0x11d5884+108c4]
+	chromedriver!(No symbol) [0xfd90e0]
+	chromedriver!(No symbol) [0x102316b]
+	chromedriver!(No symbol) [0x102338b]
+	chromedriver!(No symbol) [0x1065942]
+	chromedriver!(No symbol) [0x10456b4]
+	chromedriver!(No symbol) [0x10631aa]
+	chromedriver!(No symbol) [0x1045406]
+	chromedriver!(No symbol) [0x1018659]
+	chromedriver!(No symbol) [0x1019424]
+	chromedriver!GetHandleVerifier [0x146ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0x146847b+2a34bb]
+	chromedriver!GetHandleVerifier [0x14894eb+2c452b]
+	chromedriver!GetHandleVerifier [0x11ef566+2a5a6]
+	chromedriver!GetHandleVerifier [0x11f620d+3124d]
+	chromedriver!GetHandleVerifier [0x11de318+19358]
+	chromedriver!GetHandleVerifier [0x11de4c5+19505]
+	chromedriver!GetHandleVerifier [0x11c70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-02 09:54:01 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/la-era-adeje.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x11d5843+10883]
+	chromedriver!GetHandleVerifier [0x11d5884+108c4]
+	chromedriver!(No symbol) [0xfd90e0]
+	chromedriver!(No symbol) [0x102316b]
+	chromedriver!(No symbol) [0x102338b]
+	chromedriver!(No symbol) [0x1065942]
+	chromedriver!(No symbol) [0x10456b4]
+	chromedriver!(No symbol) [0x10631aa]
+	chromedriver!(No symbol) [0x1045406]
+	chromedriver!(No symbol) [0x1018659]
+	chromedriver!(No symbol) [0x1019424]
+	chromedriver!GetHandleVerifier [0x146ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0x146847b+2a34bb]
+	chromedriver!GetHandleVerifier [0x14894eb+2c452b]
+	chromedriver!GetHandleVerifier [0x11ef566+2a5a6]
+	chromedriver!GetHandleVerifier [0x11f620d+3124d]
+	chromedriver!GetHandleVerifier [0x11de318+19358]
+	chromedriver!GetHandleVerifier [0x11de4c5+19505]
+	chromedriver!GetHandleVerifier [0x11c70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-02 09:54:01 - INFO - __main__ - [4/393] Procesando https://www.booking.com/hotel/es/tranquil-studio-apartment-communal-heated-pool-los-cristianos.es.html
+2026-08-02 09:54:01 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/tranquil-studio-apartment-communal-heated-pool-los-cristianos.es.html
+2026-08-02 09:54:18 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 09:54:28 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 09:54:59 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/tranquil-studio-apartment-communal-heated-pool-los-cristianos.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x11d5843+10883]
+	chromedriver!GetHandleVerifier [0x11d5884+108c4]
+	chromedriver!(No symbol) [0xfd90e0]
+	chromedriver!(No symbol) [0x102316b]
+	chromedriver!(No symbol) [0x102338b]
+	chromedriver!(No symbol) [0x1065942]
+	chromedriver!(No symbol) [0x10456b4]
+	chromedriver!(No symbol) [0x10631aa]
+	chromedriver!(No symbol) [0x1045406]
+	chromedriver!(No symbol) [0x1018659]
+	chromedriver!(No symbol) [0x1019424]
+	chromedriver!GetHandleVerifier [0x146ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0x146847b+2a34bb]
+	chromedriver!GetHandleVerifier [0x14894eb+2c452b]
+	chromedriver!GetHandleVerifier [0x11ef566+2a5a6]
+	chromedriver!GetHandleVerifier [0x11f620d+3124d]
+	chromedriver!GetHandleVerifier [0x11de318+19358]
+	chromedriver!GetHandleVerifier [0x11de4c5+19505]
+	chromedriver!GetHandleVerifier [0x11c70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-02 09:55:09 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/tranquil-studio-apartment-communal-heated-pool-los-cristianos.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x11d5843+10883]
+	chromedriver!GetHandleVerifier [0x11d5884+108c4]
+	chromedriver!(No symbol) [0xfd90e0]
+	chromedriver!(No symbol) [0x102316b]
+	chromedriver!(No symbol) [0x102338b]
+	chromedriver!(No symbol) [0x1065942]
+	chromedriver!(No symbol) [0x10456b4]
+	chromedriver!(No symbol) [0x10631aa]
+	chromedriver!(No symbol) [0x1045406]
+	chromedriver!(No symbol) [0x1018659]
+	chromedriver!(No symbol) [0x1019424]
+	chromedriver!GetHandleVerifier [0x146ced6+2a7f16]
+	chromedriver!GetHandleVerifier [0x146847b+2a34bb]
+	chromedriver!GetHandleVerifier [0x14894eb+2c452b]
+	chromedriver!GetHandleVerifier [0x11ef566+2a5a6]
+	chromedriver!GetHandleVerifier [0x11f620d+3124d]
+	chromedriver!GetHandleVerifier [0x11de318+19358]
+	chromedriver!GetHandleVerifier [0x11de4c5+19505]
+	chromedriver!GetHandleVerifier [0x11c70af+20ef]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-02 09:55:09 - INFO - __main__ - [5/393] Procesando https://www.booking.com/hotel/es/el-dorado-nueva-andalucia-pool-terrace.es.html
+2026-08-02 09:55:09 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/el-dorado-nueva-andalucia-pool-terrace.es.html
+2026-08-02 09:55:28 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 09:55:32 - WARNING - __main__ -   Descartado (no es Tenerife): 'El Dorado Nueva Andalucia Pool Terrace' (https://www.booking.com/hotel/es/el-dorado-nueva-andalucia-pool-terrace.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-02 09:55:35 - INFO - __main__ - [6/393] Procesando https://www.booking.com/hotel/es/evans-realty-ch-casa-rural-piscina-vistas-top.es.html
+2026-08-02 09:55:35 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/evans-realty-ch-casa-rural-piscina-vistas-top.es.html
+2026-08-02 09:55:56 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 09:55:59 - WARNING - __main__ -   Descartado (no es Tenerife): 'Evans Realty CH Casa Rural Piscina Vistas top' (https://www.booking.com/hotel/es/evans-realty-ch-casa-rural-piscina-vistas-top.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-02 09:56:07 - INFO - __main__ - [7/393] Procesando https://www.booking.com/hotel/es/evans-realty-ci-piscina-climatizada-bbq-juegos.es.html
+2026-08-02 09:56:07 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/evans-realty-ci-piscina-climatizada-bbq-juegos.es.html
+2026-08-02 09:56:24 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 09:56:27 - WARNING - __main__ -   Descartado (no es Tenerife): 'Evans Realty CI Piscina climatizada BBQ Juegos' (https://www.booking.com/hotel/es/evans-realty-ci-piscina-climatizada-bbq-juegos.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-02 09:56:32 - INFO - __main__ - [8/393] Procesando https://www.booking.com/hotel/es/hdfm-collection-oasis-costa-adeje.es.html
+2026-08-02 09:56:32 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/hdfm-collection-oasis-costa-adeje.es.html
+2026-08-02 09:56:48 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 09:56:55 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-02 09:57:03 - INFO - __main__ -   Página 1: 4 reseñas (4 acumuladas)
+2026-08-02 09:57:03 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-02 09:57:10 - INFO - __main__ - Guardado completo: 1 establecimientos, 4 reseñas.
+2026-08-02 09:57:18 - INFO - __main__ - [9/393] Procesando https://www.booking.com/hotel/es/residencial-el-cano.es.html
+2026-08-02 09:57:18 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/residencial-el-cano.es.html
+2026-08-02 10:24:08 - INFO - booking_scraper - Resolviendo ChromeDriver (una sola vez para toda la corrida)...
