@@ -207,6 +207,17 @@ Llamarlo automáticamente al inicio de `get_logger()`. **Importante**: cualquier
 
 
 
+## Falsa alarma confirmada: "review_date con el país pegado al final" era un artefacto de terminal, no un bug real
+
+Se reportó ver valores tipo `'4 de mayo de 2026España'` en `review_date` (país de `reviewer_country` pegado sin espacio). Investigado a fondo, en ningún nivel apareció el problema real:
+1. Parquet leído directo de Blob (sin pasar por ninguna terminal): `review_date` y `reviewer_country` separados y limpios.
+2. Barrido de las ~800 reseñas de la corrida completa del día buscando el patrón "dígito pegado a letra": cero coincidencias.
+3. DOM real de Booking en vivo: `[data-testid="review-date"]` es un `<span>` aislado, sin nada anidado que pudiera arrastrar el país.
+
+Causa real: una terminal angosta corta visualmente la línea larga de `df.to_string()` justo entre la columna `review_date` y la columna `reviewer_country`, dando la ilusión de que están concatenadas cuando en realidad son dos columnas separadas por espacios que ya no entraron en el ancho visible.
+
+**Antes de asumir que hay un bug de scraping por algo visto en consola**: leer el valor puntual con `repr()` sobre el parquet crudo (sin pasar por un `print(df.to_string())` de una fila ancha) — si ahí aparece limpio, el problema es de visualización, no de datos. Evita "arreglar" con código especulativo un bug que no existe.
+
 ## Validación de una corrida completa (no solo el último archivo)
 
 `booking_scraper.py` genera un archivo Parquet independiente por establecimiento (timestamp único cada vez) — no hay un `run_id` explícito que agrupe "todo lo de esta corrida". `validate_booking_data.py --all` infiere los límites de una corrida agrupando desde el archivo más reciente hacia atrás, cortando cuando el hueco entre dos guardados consecutivos supera `--gap-minutes` (default 15).
