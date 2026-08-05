@@ -32,7 +32,7 @@ PG_HOST = os.getenv("AZURE_DB_HOST")
 PG_PORT = "5432"
 PG_DB = os.getenv("AZURE_DB_NAME")
 
-SCHEMA = "raw_data"  # con guión bajo — "bronce-raw" NO es válido como nombre de esquema SQL
+SCHEMA = "bronze"  # alineado con dbt_project/models/silver/sources.yml (no "raw_data")
 
 
 def get_pg_engine():
