@@ -1,6 +1,5 @@
 # Conexión a Base de Datos y Variables de Entorno
 psycopg2-binary==2.9.12
-psycopg2==2.9.12
 sqlalchemy==2.0.51
 python-dotenv==1.2.2
 
@@ -33,6 +32,10 @@ geoalchemy2>=0.14.0
 transformers==4.57.1
 torch==2.9.0
 sentencepiece==0.2.1
+
+# NLP / Extraccion de aspectos (analytics/aspects)
+pyabsa==2.4.2
+update-checker==0.18.0  # pin necesario: la 1.0.0 rompe metric_visualizer (dependencia de pyabsa)
 
 # Validación Meteorológica (Open-Meteo vs Agrocabildo)
 openmeteo-requests>=0.3.0      # Cliente oficial Open-Meteo con caché integrada
