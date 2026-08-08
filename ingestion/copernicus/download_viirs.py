@@ -82,7 +82,7 @@ logger = logging.getLogger("VIIRSIngestion")
 
 # Bounding box Tenerife (WGS84 lon_min, lat_min, lon_max, lat_max)
 TENERIFE_BBOX = {
-    "west":  -16.92,
+    "west":  -16.95,
     "south":  27.97,
     "east":  -16.09,
     "north":  28.59,
@@ -158,7 +158,12 @@ class VIIRSGEEExporter:
                 ee.Initialize()
             logger.info("✅ GEE inicializado correctamente.")
         except Exception as exc:
-            logger.error(f"❌ Error GEE: {exc}\n  Ejecuta: earthengine authenticate")
+            logger.error(
+                f"❌ Error al inicializar GEE: {exc}\n"
+                "   NOTA: Los tokens de Google Earth Engine caducan a los pocos días por seguridad.\n"
+                "   Si estabas autenticado y de repente falla, renueva el token ejecutando:\n"
+                "   earthengine authenticate --force"
+            )
             raise
 
     def export_monthly_composites(self) -> List[str]:
