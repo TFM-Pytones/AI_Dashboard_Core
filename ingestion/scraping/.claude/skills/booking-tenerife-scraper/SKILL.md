@@ -205,6 +205,18 @@ def ensure_utf8_console():
 ```
 Llamarlo automáticamente al inicio de `get_logger()`. **Importante**: cualquier script que NO use `get_logger()` (ej. uno que solo hace `print()`, como `validate_booking_data.py`) NO queda cubierto automáticamente — necesita `from utils.logger import ensure_utf8_console; ensure_utf8_console()` explícito al inicio. Por convención del equipo, todo script nuevo debería usar `get_logger()` desde el principio para evitar este caso borde.
 
+## `get_logger()` escribe a stderr, no a stdout — cuidado al parsear el output de un subproceso
+
+`logging.StreamHandler()` (usado en `utils/logger.py`) usa **`sys.stderr` por defecto** si no se le pasa un stream explícito — confirmado con `logging.StreamHandler().stream is sys.stderr`. Esto significa que TODO el logging de `booking_scraper.py` (incluido cualquier marcador de texto que otro script busque en su output, ej. `"No hay establecimientos pendientes"`) sale por stderr, no por stdout.
+
+Si otro script lanza `booking_scraper.py` como subproceso y necesita inspeccionar su output (ej. `run_continuous.py` buscando ese marcador para saber cuándo detener el loop), **hay que capturar/fusionar stderr, no solo stdout** — de lo contrario el chequeo nunca encuentra lo que busca, silenciosamente, sin ningún error. Con `subprocess.Popen`, fusionar con `stderr=subprocess.STDOUT`; con `subprocess.run`, no alcanza con revisar solo `result.stdout`.
+
+## Streaming en tiempo real de un subproceso largo (`run_continuous.py` → `booking_scraper.py`)
+
+`subprocess.run(..., capture_output=True)` bufferea TODO el output hasta que el proceso termina — inútil para monitorear una corrida larga sin supervisión (no se ve nada hasta el final). Usar `subprocess.Popen` con `stdout=PIPE`, `stderr=STDOUT` (ver arriba), `text=True`, `encoding="utf-8"` explícito (si no, en Windows se decodifica con cp1252 y rompe acentos) y `bufsize=1`, luego iterar `for line in process.stdout: print(line, end="")` — cada línea se entrega apenas se produce. Acumular las líneas en una lista aparte para poder buscar marcadores en el output completo después de que el proceso termine (`process.wait()`).
+
+**Cómo probar que el streaming es real** (no solo "parece funcionar"): el caché de descubrimiento se agota rápido para límites chicos si ya se scrapearon miles de establecimientos en corridas previas (los primeros N candidatos, deterministas, ya están completados) — un lote de prueba puede terminar en segundos sin generar líneas espaciadas en el tiempo, lo cual no prueba nada. Mejor: apuntar `SCRIPT_PATH` a un script descartable que imprima líneas con `time.sleep()` entre medio (por stdout Y stderr) y confirmar con timestamps que cada línea llega a su propio momento, no todas juntas al final.
+
 
 
 ## Falsa alarma confirmada: "review_date con el país pegado al final" era un artefacto de terminal, no un bug real

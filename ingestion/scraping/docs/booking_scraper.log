@@ -12436,3 +12436,856 @@ Stacktrace:
 2026-08-03 13:10:09 - INFO - __main__ -   Banner de cookies cerrado.
 2026-08-03 13:10:13 - WARNING - __main__ -   Descartado (no es Tenerife): 'Pádel y Brasas - Rural con Piscina' (https://www.booking.com/hotel/es/padel-y-brasas-casa-rural-con-piscina.es.html) no está en Tenerife según el breadcrumb — descartado.
 2026-08-03 13:10:18 - INFO - __main__ - === Corrida finalizada: 94 establecimientos, 542 reseñas en total (363 descartados por no ser de Tenerife) ===
+2026-08-09 23:36:09 - INFO - run_continuous - === Iniciando corrida continua de booking_scraper.py ===
+2026-08-09 23:36:09 - INFO - run_continuous - --- Lote #1 ---
+2026-08-09 23:36:09 - INFO - run_continuous - Lanzando un nuevo lote de booking_scraper.py...
+2026-08-09 23:36:15 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-08-09 23:36:15 - INFO - __main__ - Resolviendo ChromeDriver (una sola vez para toda la corrida)...
+2026-08-09 23:36:20 - INFO - __main__ - Usando caché de descubrimiento: C:\Users\jcabr\AI_Dashboard_Core\ingestion\scraping\sitemap_discovery_cache.json
+2026-08-09 23:36:20 - INFO - __main__ - 50 establecimiento(s) ya completados en corridas anteriores, se omiten.
+2026-08-09 23:36:20 - INFO - __main__ - No hay establecimientos pendientes. Nada que hacer.
+2026-08-09 23:36:20 - INFO - run_continuous - Lote #1 finalizado. Pausando 1 minutos antes del siguiente...
+2026-08-09 23:37:20 - INFO - run_continuous - --- Lote #2 ---
+2026-08-09 23:37:20 - INFO - run_continuous - Lanzando un nuevo lote de booking_scraper.py...
+2026-08-09 23:37:22 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-08-09 23:37:22 - INFO - __main__ - Resolviendo ChromeDriver (una sola vez para toda la corrida)...
+2026-08-09 23:37:26 - INFO - __main__ - Usando caché de descubrimiento: C:\Users\jcabr\AI_Dashboard_Core\ingestion\scraping\sitemap_discovery_cache.json
+2026-08-09 23:37:26 - INFO - __main__ - 50 establecimiento(s) ya completados en corridas anteriores, se omiten.
+2026-08-09 23:37:26 - INFO - __main__ - No hay establecimientos pendientes. Nada que hacer.
+2026-08-09 23:37:26 - INFO - run_continuous - Lote #2 finalizado. Pausando 1 minutos antes del siguiente...
+2026-08-09 23:43:29 - INFO - booking_scraper - Descargando índice de sitemaps de Booking...
+2026-08-09 23:43:29 - INFO - booking_scraper - 78 shards del idioma español encontrados. Recorriendo...
+2026-08-09 23:43:30 - INFO - booking_scraper -   Shard 1/78: 30255 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:43:31 - INFO - booking_scraper -   Shard 2/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:43:33 - INFO - booking_scraper -   Shard 3/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:43:34 - INFO - booking_scraper -   Shard 4/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:43:36 - INFO - booking_scraper -   Shard 5/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:43:37 - INFO - booking_scraper -   Shard 6/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:43:39 - INFO - booking_scraper -   Shard 7/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:43:40 - INFO - booking_scraper -   Shard 8/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:43:42 - INFO - booking_scraper -   Shard 9/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:43:43 - INFO - booking_scraper -   Shard 10/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:43:45 - INFO - booking_scraper -   Shard 11/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:43:47 - INFO - booking_scraper -   Shard 12/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:43:48 - INFO - booking_scraper -   Shard 13/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:43:50 - INFO - booking_scraper -   Shard 14/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:43:51 - INFO - booking_scraper -   Shard 15/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:43:53 - INFO - booking_scraper -   Shard 16/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:43:55 - INFO - booking_scraper -   Shard 17/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:43:56 - INFO - booking_scraper -   Shard 18/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:43:57 - INFO - booking_scraper -   Shard 19/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:43:59 - INFO - booking_scraper -   Shard 20/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:01 - INFO - booking_scraper -   Shard 21/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:02 - INFO - booking_scraper -   Shard 22/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:04 - INFO - booking_scraper -   Shard 23/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:06 - INFO - booking_scraper -   Shard 24/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:07 - INFO - booking_scraper -   Shard 25/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:09 - INFO - booking_scraper -   Shard 26/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:10 - INFO - booking_scraper -   Shard 27/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:12 - INFO - booking_scraper -   Shard 28/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:14 - INFO - booking_scraper -   Shard 29/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:15 - INFO - booking_scraper -   Shard 30/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:17 - INFO - booking_scraper -   Shard 31/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:19 - INFO - booking_scraper -   Shard 32/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:20 - INFO - booking_scraper -   Shard 33/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:22 - INFO - booking_scraper -   Shard 34/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:23 - INFO - booking_scraper -   Shard 35/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:25 - INFO - booking_scraper -   Shard 36/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:27 - INFO - booking_scraper -   Shard 37/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:28 - INFO - booking_scraper -   Shard 38/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:30 - INFO - booking_scraper -   Shard 39/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:31 - INFO - booking_scraper -   Shard 40/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:33 - INFO - booking_scraper -   Shard 41/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:34 - INFO - booking_scraper -   Shard 42/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:36 - INFO - booking_scraper -   Shard 43/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:37 - INFO - booking_scraper -   Shard 44/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:39 - INFO - booking_scraper -   Shard 45/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:40 - INFO - booking_scraper -   Shard 46/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:42 - INFO - booking_scraper -   Shard 47/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:43 - INFO - booking_scraper -   Shard 48/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:45 - INFO - booking_scraper -   Shard 49/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:47 - INFO - booking_scraper -   Shard 50/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:48 - INFO - booking_scraper -   Shard 51/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:50 - INFO - booking_scraper -   Shard 52/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:51 - INFO - booking_scraper -   Shard 53/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:52 - INFO - booking_scraper -   Shard 54/78: 49990 URLs, 0 coinciden con Tenerife (0 acumuladas)
+2026-08-09 23:44:56 - INFO - booking_scraper -   Shard 55/78: 49990 URLs, 2623 coinciden con Tenerife (2623 acumuladas)
+2026-08-09 23:45:00 - INFO - booking_scraper -   Shard 56/78: 49990 URLs, 4294 coinciden con Tenerife (6917 acumuladas)
+2026-08-09 23:45:05 - INFO - booking_scraper -   Shard 57/78: 49990 URLs, 4532 coinciden con Tenerife (11449 acumuladas)
+2026-08-09 23:45:09 - INFO - booking_scraper -   Shard 58/78: 49990 URLs, 4599 coinciden con Tenerife (16048 acumuladas)
+2026-08-09 23:45:14 - INFO - booking_scraper -   Shard 59/78: 49990 URLs, 3776 coinciden con Tenerife (19824 acumuladas)
+2026-08-09 23:45:17 - INFO - booking_scraper -   Shard 60/78: 49990 URLs, 1117 coinciden con Tenerife (20941 acumuladas)
+2026-08-09 23:45:19 - INFO - booking_scraper -   Shard 61/78: 49990 URLs, 0 coinciden con Tenerife (20941 acumuladas)
+2026-08-09 23:45:20 - INFO - booking_scraper -   Shard 62/78: 49990 URLs, 0 coinciden con Tenerife (20941 acumuladas)
+2026-08-09 23:45:21 - INFO - booking_scraper -   Shard 63/78: 49990 URLs, 0 coinciden con Tenerife (20941 acumuladas)
+2026-08-09 23:45:23 - INFO - booking_scraper -   Shard 64/78: 49990 URLs, 0 coinciden con Tenerife (20941 acumuladas)
+2026-08-09 23:45:24 - INFO - booking_scraper -   Shard 65/78: 49990 URLs, 0 coinciden con Tenerife (20941 acumuladas)
+2026-08-09 23:45:26 - INFO - booking_scraper -   Shard 66/78: 49990 URLs, 0 coinciden con Tenerife (20941 acumuladas)
+2026-08-09 23:45:27 - INFO - booking_scraper -   Shard 67/78: 49990 URLs, 0 coinciden con Tenerife (20941 acumuladas)
+2026-08-09 23:45:29 - INFO - booking_scraper -   Shard 68/78: 49990 URLs, 0 coinciden con Tenerife (20941 acumuladas)
+2026-08-09 23:45:30 - INFO - booking_scraper -   Shard 69/78: 49990 URLs, 0 coinciden con Tenerife (20941 acumuladas)
+2026-08-09 23:45:32 - INFO - booking_scraper -   Shard 70/78: 49990 URLs, 0 coinciden con Tenerife (20941 acumuladas)
+2026-08-09 23:45:33 - INFO - booking_scraper -   Shard 71/78: 49990 URLs, 0 coinciden con Tenerife (20941 acumuladas)
+2026-08-09 23:45:35 - INFO - booking_scraper -   Shard 72/78: 49990 URLs, 0 coinciden con Tenerife (20941 acumuladas)
+2026-08-09 23:45:36 - INFO - booking_scraper -   Shard 73/78: 49990 URLs, 0 coinciden con Tenerife (20941 acumuladas)
+2026-08-09 23:45:38 - INFO - booking_scraper -   Shard 74/78: 49990 URLs, 0 coinciden con Tenerife (20941 acumuladas)
+2026-08-09 23:45:39 - INFO - booking_scraper -   Shard 75/78: 49990 URLs, 0 coinciden con Tenerife (20941 acumuladas)
+2026-08-09 23:45:41 - INFO - booking_scraper -   Shard 76/78: 49990 URLs, 0 coinciden con Tenerife (20941 acumuladas)
+2026-08-09 23:45:42 - INFO - booking_scraper -   Shard 77/78: 49990 URLs, 0 coinciden con Tenerife (20941 acumuladas)
+2026-08-09 23:45:44 - INFO - booking_scraper -   Shard 78/78: 49990 URLs, 0 coinciden con Tenerife (20941 acumuladas)
+2026-08-09 23:45:45 - INFO - booking_scraper - Descubrimiento guardado en caché: C:\Users\jcabr\AI_Dashboard_Core\ingestion\scraping\sitemap_discovery_cache.json
+2026-08-09 23:46:01 - INFO - run_continuous - === Iniciando corrida continua de booking_scraper.py ===
+2026-08-09 23:46:01 - INFO - run_continuous - --- Lote #1 ---
+2026-08-09 23:46:01 - INFO - run_continuous - Lanzando un nuevo lote de booking_scraper.py...
+2026-08-09 23:46:02 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-08-09 23:46:02 - INFO - __main__ - Resolviendo ChromeDriver (una sola vez para toda la corrida)...
+2026-08-09 23:46:08 - INFO - __main__ - Usando caché de descubrimiento: C:\Users\jcabr\AI_Dashboard_Core\ingestion\scraping\sitemap_discovery_cache.json
+2026-08-09 23:46:08 - INFO - __main__ - 300 establecimiento(s) ya completados en corridas anteriores, se omiten.
+2026-08-09 23:46:08 - INFO - __main__ - [1/700] Procesando https://www.booking.com/hotel/es/live-la-caleta-vista-al-mar.es.html
+2026-08-09 23:46:08 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/live-la-caleta-vista-al-mar.es.html
+2026-08-09 23:46:15 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-09 23:46:21 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-09 23:46:53 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/live-la-caleta-vista-al-mar.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x6fd9a3+fca3]
+	chromedriver!GetHandleVerifier [0x6fd9e4+fce4]
+	chromedriver!(No symbol) [0x4d9240]
+	chromedriver!(No symbol) [0x52330b]
+	chromedriver!(No symbol) [0x52352b]
+	chromedriver!(No symbol) [0x565b72]
+	chromedriver!(No symbol) [0x5458d4]
+	chromedriver!(No symbol) [0x5634e9]
+	chromedriver!(No symbol) [0x545626]
+	chromedriver!(No symbol) [0x5187f9]
+	chromedriver!(No symbol) [0x5195c4]
+	chromedriver!GetHandleVerifier [0x9889fa+29acfa]
+	chromedriver!GetHandleVerifier [0x983e69+296169]
+	chromedriver!GetHandleVerifier [0x72901e+3b31e]
+	chromedriver!GetHandleVerifier [0x7183d6+2a6d6]
+	chromedriver!GetHandleVerifier [0x71f17d+3147d]
+	chromedriver!GetHandleVerifier [0x706948+18c48]
+	chromedriver!GetHandleVerifier [0x706af5+18df5]
+	chromedriver!GetHandleVerifier [0x6efb5f+1e5f]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-09 23:46:57 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/live-la-caleta-vista-al-mar.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x6fd9a3+fca3]
+	chromedriver!GetHandleVerifier [0x6fd9e4+fce4]
+	chromedriver!(No symbol) [0x4d9240]
+	chromedriver!(No symbol) [0x52330b]
+	chromedriver!(No symbol) [0x52352b]
+	chromedriver!(No symbol) [0x565b72]
+	chromedriver!(No symbol) [0x5458d4]
+	chromedriver!(No symbol) [0x5634e9]
+	chromedriver!(No symbol) [0x545626]
+	chromedriver!(No symbol) [0x5187f9]
+	chromedriver!(No symbol) [0x5195c4]
+	chromedriver!GetHandleVerifier [0x9889fa+29acfa]
+	chromedriver!GetHandleVerifier [0x983e69+296169]
+	chromedriver!GetHandleVerifier [0x72901e+3b31e]
+	chromedriver!GetHandleVerifier [0x7183d6+2a6d6]
+	chromedriver!GetHandleVerifier [0x71f17d+3147d]
+	chromedriver!GetHandleVerifier [0x706948+18c48]
+	chromedriver!GetHandleVerifier [0x706af5+18df5]
+	chromedriver!GetHandleVerifier [0x6efb5f+1e5f]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-09 23:46:57 - INFO - __main__ - [2/700] Procesando https://www.booking.com/hotel/es/floritas-23-2.es.html
+2026-08-09 23:46:57 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/floritas-23-2.es.html
+2026-08-09 23:47:03 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-09 23:47:16 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-09 23:47:48 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/floritas-23-2.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x6fd9a3+fca3]
+	chromedriver!GetHandleVerifier [0x6fd9e4+fce4]
+	chromedriver!(No symbol) [0x4d9240]
+	chromedriver!(No symbol) [0x52330b]
+	chromedriver!(No symbol) [0x52352b]
+	chromedriver!(No symbol) [0x565b72]
+	chromedriver!(No symbol) [0x5458d4]
+	chromedriver!(No symbol) [0x5634e9]
+	chromedriver!(No symbol) [0x545626]
+	chromedriver!(No symbol) [0x5187f9]
+	chromedriver!(No symbol) [0x5195c4]
+	chromedriver!GetHandleVerifier [0x9889fa+29acfa]
+	chromedriver!GetHandleVerifier [0x983e69+296169]
+	chromedriver!GetHandleVerifier [0x72901e+3b31e]
+	chromedriver!GetHandleVerifier [0x7183d6+2a6d6]
+	chromedriver!GetHandleVerifier [0x71f17d+3147d]
+	chromedriver!GetHandleVerifier [0x706948+18c48]
+	chromedriver!GetHandleVerifier [0x706af5+18df5]
+	chromedriver!GetHandleVerifier [0x6efb5f+1e5f]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-09 23:47:52 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/floritas-23-2.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x6fd9a3+fca3]
+	chromedriver!GetHandleVerifier [0x6fd9e4+fce4]
+	chromedriver!(No symbol) [0x4d9240]
+	chromedriver!(No symbol) [0x52330b]
+	chromedriver!(No symbol) [0x52352b]
+	chromedriver!(No symbol) [0x565b72]
+	chromedriver!(No symbol) [0x5458d4]
+	chromedriver!(No symbol) [0x5634e9]
+	chromedriver!(No symbol) [0x545626]
+	chromedriver!(No symbol) [0x5187f9]
+	chromedriver!(No symbol) [0x5195c4]
+	chromedriver!GetHandleVerifier [0x9889fa+29acfa]
+	chromedriver!GetHandleVerifier [0x983e69+296169]
+	chromedriver!GetHandleVerifier [0x72901e+3b31e]
+	chromedriver!GetHandleVerifier [0x7183d6+2a6d6]
+	chromedriver!GetHandleVerifier [0x71f17d+3147d]
+	chromedriver!GetHandleVerifier [0x706948+18c48]
+	chromedriver!GetHandleVerifier [0x706af5+18df5]
+	chromedriver!GetHandleVerifier [0x6efb5f+1e5f]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-09 23:47:52 - INFO - __main__ - [3/700] Procesando https://www.booking.com/hotel/es/panoramic-sea-view-apartment-los-cristianos.es.html
+2026-08-09 23:47:52 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/panoramic-sea-view-apartment-los-cristianos.es.html
+2026-08-09 23:47:58 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-09 23:48:05 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-09 23:48:36 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/panoramic-sea-view-apartment-los-cristianos.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x6fd9a3+fca3]
+	chromedriver!GetHandleVerifier [0x6fd9e4+fce4]
+	chromedriver!(No symbol) [0x4d9240]
+	chromedriver!(No symbol) [0x52330b]
+	chromedriver!(No symbol) [0x52352b]
+	chromedriver!(No symbol) [0x565b72]
+	chromedriver!(No symbol) [0x5458d4]
+	chromedriver!(No symbol) [0x5634e9]
+	chromedriver!(No symbol) [0x545626]
+	chromedriver!(No symbol) [0x5187f9]
+	chromedriver!(No symbol) [0x5195c4]
+	chromedriver!GetHandleVerifier [0x9889fa+29acfa]
+	chromedriver!GetHandleVerifier [0x983e69+296169]
+	chromedriver!GetHandleVerifier [0x72901e+3b31e]
+	chromedriver!GetHandleVerifier [0x7183d6+2a6d6]
+	chromedriver!GetHandleVerifier [0x71f17d+3147d]
+	chromedriver!GetHandleVerifier [0x706948+18c48]
+	chromedriver!GetHandleVerifier [0x706af5+18df5]
+	chromedriver!GetHandleVerifier [0x6efb5f+1e5f]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-09 23:48:38 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/panoramic-sea-view-apartment-los-cristianos.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x6fd9a3+fca3]
+	chromedriver!GetHandleVerifier [0x6fd9e4+fce4]
+	chromedriver!(No symbol) [0x4d9240]
+	chromedriver!(No symbol) [0x52330b]
+	chromedriver!(No symbol) [0x52352b]
+	chromedriver!(No symbol) [0x565b72]
+	chromedriver!(No symbol) [0x5458d4]
+	chromedriver!(No symbol) [0x5634e9]
+	chromedriver!(No symbol) [0x545626]
+	chromedriver!(No symbol) [0x5187f9]
+	chromedriver!(No symbol) [0x5195c4]
+	chromedriver!GetHandleVerifier [0x9889fa+29acfa]
+	chromedriver!GetHandleVerifier [0x983e69+296169]
+	chromedriver!GetHandleVerifier [0x72901e+3b31e]
+	chromedriver!GetHandleVerifier [0x7183d6+2a6d6]
+	chromedriver!GetHandleVerifier [0x71f17d+3147d]
+	chromedriver!GetHandleVerifier [0x706948+18c48]
+	chromedriver!GetHandleVerifier [0x706af5+18df5]
+	chromedriver!GetHandleVerifier [0x6efb5f+1e5f]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-09 23:48:38 - INFO - __main__ - [4/700] Procesando https://www.booking.com/hotel/es/villa-marieto-chalet-cerca-de-las-mejores-playas-para-4-personas.es.html
+2026-08-09 23:48:38 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/villa-marieto-chalet-cerca-de-las-mejores-playas-para-4-personas.es.html
+2026-08-09 23:48:45 - WARNING - __main__ -   Descartado (no es Tenerife): 'Villa Marieto-chalet cerca de las mejores playas para 4 personas' (https://www.booking.com/hotel/es/villa-marieto-chalet-cerca-de-las-mejores-playas-para-4-personas.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-09 23:48:50 - INFO - __main__ - [5/700] Procesando https://www.booking.com/hotel/es/paraiso-del-sol-adeje3.es.html
+2026-08-09 23:48:50 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/paraiso-del-sol-adeje3.es.html
+2026-08-09 23:48:55 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-09 23:48:57 - INFO - __main__ -   Geocodificación sin resultado, reintentando sin 's/n': 'Av. Playa Paraíso, 19 Blq. 3, Puerta Bajo A, Paraiso I, 38678 Adeje, España'
+2026-08-09 23:48:58 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38678 Adeje, España'
+2026-08-09 23:49:01 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-09 23:49:33 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/paraiso-del-sol-adeje3.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x6fd9a3+fca3]
+	chromedriver!GetHandleVerifier [0x6fd9e4+fce4]
+	chromedriver!(No symbol) [0x4d9240]
+	chromedriver!(No symbol) [0x52330b]
+	chromedriver!(No symbol) [0x52352b]
+	chromedriver!(No symbol) [0x565b72]
+	chromedriver!(No symbol) [0x5458d4]
+	chromedriver!(No symbol) [0x5634e9]
+	chromedriver!(No symbol) [0x545626]
+	chromedriver!(No symbol) [0x5187f9]
+	chromedriver!(No symbol) [0x5195c4]
+	chromedriver!GetHandleVerifier [0x9889fa+29acfa]
+	chromedriver!GetHandleVerifier [0x983e69+296169]
+	chromedriver!GetHandleVerifier [0x72901e+3b31e]
+	chromedriver!GetHandleVerifier [0x7183d6+2a6d6]
+	chromedriver!GetHandleVerifier [0x71f17d+3147d]
+	chromedriver!GetHandleVerifier [0x706948+18c48]
+	chromedriver!GetHandleVerifier [0x706af5+18df5]
+	chromedriver!GetHandleVerifier [0x6efb5f+1e5f]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-09 23:49:36 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/paraiso-del-sol-adeje3.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x6fd9a3+fca3]
+	chromedriver!GetHandleVerifier [0x6fd9e4+fce4]
+	chromedriver!(No symbol) [0x4d9240]
+	chromedriver!(No symbol) [0x52330b]
+	chromedriver!(No symbol) [0x52352b]
+	chromedriver!(No symbol) [0x565b72]
+	chromedriver!(No symbol) [0x5458d4]
+	chromedriver!(No symbol) [0x5634e9]
+	chromedriver!(No symbol) [0x545626]
+	chromedriver!(No symbol) [0x5187f9]
+	chromedriver!(No symbol) [0x5195c4]
+	chromedriver!GetHandleVerifier [0x9889fa+29acfa]
+	chromedriver!GetHandleVerifier [0x983e69+296169]
+	chromedriver!GetHandleVerifier [0x72901e+3b31e]
+	chromedriver!GetHandleVerifier [0x7183d6+2a6d6]
+	chromedriver!GetHandleVerifier [0x71f17d+3147d]
+	chromedriver!GetHandleVerifier [0x706948+18c48]
+	chromedriver!GetHandleVerifier [0x706af5+18df5]
+	chromedriver!GetHandleVerifier [0x6efb5f+1e5f]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-09 23:49:36 - INFO - __main__ - [6/700] Procesando https://www.booking.com/hotel/es/113-cactus-heart-of-los-cristianos.es.html
+2026-08-09 23:49:36 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/113-cactus-heart-of-los-cristianos.es.html
+2026-08-09 23:49:51 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38650 Los Cristianos, España'
+2026-08-09 23:50:00 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-09 23:50:31 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/113-cactus-heart-of-los-cristianos.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x6fd9a3+fca3]
+	chromedriver!GetHandleVerifier [0x6fd9e4+fce4]
+	chromedriver!(No symbol) [0x4d9240]
+	chromedriver!(No symbol) [0x52330b]
+	chromedriver!(No symbol) [0x52352b]
+	chromedriver!(No symbol) [0x565b72]
+	chromedriver!(No symbol) [0x5458d4]
+	chromedriver!(No symbol) [0x5634e9]
+	chromedriver!(No symbol) [0x545626]
+	chromedriver!(No symbol) [0x5187f9]
+	chromedriver!(No symbol) [0x5195c4]
+	chromedriver!GetHandleVerifier [0x9889fa+29acfa]
+	chromedriver!GetHandleVerifier [0x983e69+296169]
+	chromedriver!GetHandleVerifier [0x72901e+3b31e]
+	chromedriver!GetHandleVerifier [0x7183d6+2a6d6]
+	chromedriver!GetHandleVerifier [0x71f17d+3147d]
+	chromedriver!GetHandleVerifier [0x706948+18c48]
+	chromedriver!GetHandleVerifier [0x706af5+18df5]
+	chromedriver!GetHandleVerifier [0x6efb5f+1e5f]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-09 23:50:33 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/113-cactus-heart-of-los-cristianos.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x6fd9a3+fca3]
+	chromedriver!GetHandleVerifier [0x6fd9e4+fce4]
+	chromedriver!(No symbol) [0x4d9240]
+	chromedriver!(No symbol) [0x52330b]
+	chromedriver!(No symbol) [0x52352b]
+	chromedriver!(No symbol) [0x565b72]
+	chromedriver!(No symbol) [0x5458d4]
+	chromedriver!(No symbol) [0x5634e9]
+	chromedriver!(No symbol) [0x545626]
+	chromedriver!(No symbol) [0x5187f9]
+	chromedriver!(No symbol) [0x5195c4]
+	chromedriver!GetHandleVerifier [0x9889fa+29acfa]
+	chromedriver!GetHandleVerifier [0x983e69+296169]
+	chromedriver!GetHandleVerifier [0x72901e+3b31e]
+	chromedriver!GetHandleVerifier [0x7183d6+2a6d6]
+	chromedriver!GetHandleVerifier [0x71f17d+3147d]
+	chromedriver!GetHandleVerifier [0x706948+18c48]
+	chromedriver!GetHandleVerifier [0x706af5+18df5]
+	chromedriver!GetHandleVerifier [0x6efb5f+1e5f]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-09 23:50:33 - INFO - __main__ - [7/700] Procesando https://www.booking.com/hotel/es/casa-blanca-santa-ursula.es.html
+2026-08-09 23:50:33 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-blanca-santa-ursula.es.html
+2026-08-09 23:50:39 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-09 23:50:48 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-09 23:51:19 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/casa-blanca-santa-ursula.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x6fd9a3+fca3]
+	chromedriver!GetHandleVerifier [0x6fd9e4+fce4]
+	chromedriver!(No symbol) [0x4d9240]
+	chromedriver!(No symbol) [0x52330b]
+	chromedriver!(No symbol) [0x52352b]
+	chromedriver!(No symbol) [0x565b72]
+	chromedriver!(No symbol) [0x5458d4]
+	chromedriver!(No symbol) [0x5634e9]
+	chromedriver!(No symbol) [0x545626]
+	chromedriver!(No symbol) [0x5187f9]
+	chromedriver!(No symbol) [0x5195c4]
+	chromedriver!GetHandleVerifier [0x9889fa+29acfa]
+	chromedriver!GetHandleVerifier [0x983e69+296169]
+	chromedriver!GetHandleVerifier [0x72901e+3b31e]
+	chromedriver!GetHandleVerifier [0x7183d6+2a6d6]
+	chromedriver!GetHandleVerifier [0x71f17d+3147d]
+	chromedriver!GetHandleVerifier [0x706948+18c48]
+	chromedriver!GetHandleVerifier [0x706af5+18df5]
+	chromedriver!GetHandleVerifier [0x6efb5f+1e5f]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-09 23:51:24 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/casa-blanca-santa-ursula.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x6fd9a3+fca3]
+	chromedriver!GetHandleVerifier [0x6fd9e4+fce4]
+	chromedriver!(No symbol) [0x4d9240]
+	chromedriver!(No symbol) [0x52330b]
+	chromedriver!(No symbol) [0x52352b]
+	chromedriver!(No symbol) [0x565b72]
+	chromedriver!(No symbol) [0x5458d4]
+	chromedriver!(No symbol) [0x5634e9]
+	chromedriver!(No symbol) [0x545626]
+	chromedriver!(No symbol) [0x5187f9]
+	chromedriver!(No symbol) [0x5195c4]
+	chromedriver!GetHandleVerifier [0x9889fa+29acfa]
+	chromedriver!GetHandleVerifier [0x983e69+296169]
+	chromedriver!GetHandleVerifier [0x72901e+3b31e]
+	chromedriver!GetHandleVerifier [0x7183d6+2a6d6]
+	chromedriver!GetHandleVerifier [0x71f17d+3147d]
+	chromedriver!GetHandleVerifier [0x706948+18c48]
+	chromedriver!GetHandleVerifier [0x706af5+18df5]
+	chromedriver!GetHandleVerifier [0x6efb5f+1e5f]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-09 23:51:24 - INFO - __main__ - [8/700] Procesando https://www.booking.com/hotel/es/luxurious-villa-in-puerto-de-la-cruz-with-pool-and-great-views.es.html
+2026-08-09 23:51:24 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/luxurious-villa-in-puerto-de-la-cruz-with-pool-and-great-views.es.html
+2026-08-09 23:51:30 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-09 23:51:39 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-09 23:52:10 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/luxurious-villa-in-puerto-de-la-cruz-with-pool-and-great-views.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x6fd9a3+fca3]
+	chromedriver!GetHandleVerifier [0x6fd9e4+fce4]
+	chromedriver!(No symbol) [0x4d9240]
+	chromedriver!(No symbol) [0x52330b]
+	chromedriver!(No symbol) [0x52352b]
+	chromedriver!(No symbol) [0x565b72]
+	chromedriver!(No symbol) [0x5458d4]
+	chromedriver!(No symbol) [0x5634e9]
+	chromedriver!(No symbol) [0x545626]
+	chromedriver!(No symbol) [0x5187f9]
+	chromedriver!(No symbol) [0x5195c4]
+	chromedriver!GetHandleVerifier [0x9889fa+29acfa]
+	chromedriver!GetHandleVerifier [0x983e69+296169]
+	chromedriver!GetHandleVerifier [0x72901e+3b31e]
+	chromedriver!GetHandleVerifier [0x7183d6+2a6d6]
+	chromedriver!GetHandleVerifier [0x71f17d+3147d]
+	chromedriver!GetHandleVerifier [0x706948+18c48]
+	chromedriver!GetHandleVerifier [0x706af5+18df5]
+	chromedriver!GetHandleVerifier [0x6efb5f+1e5f]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-09 23:52:14 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/luxurious-villa-in-puerto-de-la-cruz-with-pool-and-great-views.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x6fd9a3+fca3]
+	chromedriver!GetHandleVerifier [0x6fd9e4+fce4]
+	chromedriver!(No symbol) [0x4d9240]
+	chromedriver!(No symbol) [0x52330b]
+	chromedriver!(No symbol) [0x52352b]
+	chromedriver!(No symbol) [0x565b72]
+	chromedriver!(No symbol) [0x5458d4]
+	chromedriver!(No symbol) [0x5634e9]
+	chromedriver!(No symbol) [0x545626]
+	chromedriver!(No symbol) [0x5187f9]
+	chromedriver!(No symbol) [0x5195c4]
+	chromedriver!GetHandleVerifier [0x9889fa+29acfa]
+	chromedriver!GetHandleVerifier [0x983e69+296169]
+	chromedriver!GetHandleVerifier [0x72901e+3b31e]
+	chromedriver!GetHandleVerifier [0x7183d6+2a6d6]
+	chromedriver!GetHandleVerifier [0x71f17d+3147d]
+	chromedriver!GetHandleVerifier [0x706948+18c48]
+	chromedriver!GetHandleVerifier [0x706af5+18df5]
+	chromedriver!GetHandleVerifier [0x6efb5f+1e5f]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-09 23:52:14 - INFO - __main__ - [9/700] Procesando https://www.booking.com/hotel/es/ocean-view-palm-mar1.es.html
+2026-08-09 23:52:14 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/ocean-view-palm-mar1.es.html
+2026-08-09 23:52:20 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-09 23:52:28 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-09 23:52:59 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/ocean-view-palm-mar1.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x6fd9a3+fca3]
+	chromedriver!GetHandleVerifier [0x6fd9e4+fce4]
+	chromedriver!(No symbol) [0x4d9240]
+	chromedriver!(No symbol) [0x52330b]
+	chromedriver!(No symbol) [0x52352b]
+	chromedriver!(No symbol) [0x565b72]
+	chromedriver!(No symbol) [0x5458d4]
+	chromedriver!(No symbol) [0x5634e9]
+	chromedriver!(No symbol) [0x545626]
+	chromedriver!(No symbol) [0x5187f9]
+	chromedriver!(No symbol) [0x5195c4]
+	chromedriver!GetHandleVerifier [0x9889fa+29acfa]
+	chromedriver!GetHandleVerifier [0x983e69+296169]
+	chromedriver!GetHandleVerifier [0x72901e+3b31e]
+	chromedriver!GetHandleVerifier [0x7183d6+2a6d6]
+	chromedriver!GetHandleVerifier [0x71f17d+3147d]
+	chromedriver!GetHandleVerifier [0x706948+18c48]
+	chromedriver!GetHandleVerifier [0x706af5+18df5]
+	chromedriver!GetHandleVerifier [0x6efb5f+1e5f]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-09 23:53:03 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/ocean-view-palm-mar1.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x6fd9a3+fca3]
+	chromedriver!GetHandleVerifier [0x6fd9e4+fce4]
+	chromedriver!(No symbol) [0x4d9240]
+	chromedriver!(No symbol) [0x52330b]
+	chromedriver!(No symbol) [0x52352b]
+	chromedriver!(No symbol) [0x565b72]
+	chromedriver!(No symbol) [0x5458d4]
+	chromedriver!(No symbol) [0x5634e9]
+	chromedriver!(No symbol) [0x545626]
+	chromedriver!(No symbol) [0x5187f9]
+	chromedriver!(No symbol) [0x5195c4]
+	chromedriver!GetHandleVerifier [0x9889fa+29acfa]
+	chromedriver!GetHandleVerifier [0x983e69+296169]
+	chromedriver!GetHandleVerifier [0x72901e+3b31e]
+	chromedriver!GetHandleVerifier [0x7183d6+2a6d6]
+	chromedriver!GetHandleVerifier [0x71f17d+3147d]
+	chromedriver!GetHandleVerifier [0x706948+18c48]
+	chromedriver!GetHandleVerifier [0x706af5+18df5]
+	chromedriver!GetHandleVerifier [0x6efb5f+1e5f]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-09 23:53:03 - INFO - __main__ - [10/700] Procesando https://www.booking.com/hotel/es/los-gigantes-fantastic-views-acantilados-de-los-gigantes.es.html
+2026-08-09 23:53:03 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/los-gigantes-fantastic-views-acantilados-de-los-gigantes.es.html
+2026-08-09 23:53:09 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-09 23:53:18 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-09 23:53:49 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/los-gigantes-fantastic-views-acantilados-de-los-gigantes.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x6fd9a3+fca3]
+	chromedriver!GetHandleVerifier [0x6fd9e4+fce4]
+	chromedriver!(No symbol) [0x4d9240]
+	chromedriver!(No symbol) [0x52330b]
+	chromedriver!(No symbol) [0x52352b]
+	chromedriver!(No symbol) [0x565b72]
+	chromedriver!(No symbol) [0x5458d4]
+	chromedriver!(No symbol) [0x5634e9]
+	chromedriver!(No symbol) [0x545626]
+	chromedriver!(No symbol) [0x5187f9]
+	chromedriver!(No symbol) [0x5195c4]
+	chromedriver!GetHandleVerifier [0x9889fa+29acfa]
+	chromedriver!GetHandleVerifier [0x983e69+296169]
+	chromedriver!GetHandleVerifier [0x72901e+3b31e]
+	chromedriver!GetHandleVerifier [0x7183d6+2a6d6]
+	chromedriver!GetHandleVerifier [0x71f17d+3147d]
+	chromedriver!GetHandleVerifier [0x706948+18c48]
+	chromedriver!GetHandleVerifier [0x706af5+18df5]
+	chromedriver!GetHandleVerifier [0x6efb5f+1e5f]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-09 23:53:52 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/los-gigantes-fantastic-views-acantilados-de-los-gigantes.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x6fd9a3+fca3]
+	chromedriver!GetHandleVerifier [0x6fd9e4+fce4]
+	chromedriver!(No symbol) [0x4d9240]
+	chromedriver!(No symbol) [0x52330b]
+	chromedriver!(No symbol) [0x52352b]
+	chromedriver!(No symbol) [0x565b72]
+	chromedriver!(No symbol) [0x5458d4]
+	chromedriver!(No symbol) [0x5634e9]
+	chromedriver!(No symbol) [0x545626]
+	chromedriver!(No symbol) [0x5187f9]
+	chromedriver!(No symbol) [0x5195c4]
+	chromedriver!GetHandleVerifier [0x9889fa+29acfa]
+	chromedriver!GetHandleVerifier [0x983e69+296169]
+	chromedriver!GetHandleVerifier [0x72901e+3b31e]
+	chromedriver!GetHandleVerifier [0x7183d6+2a6d6]
+	chromedriver!GetHandleVerifier [0x71f17d+3147d]
+	chromedriver!GetHandleVerifier [0x706948+18c48]
+	chromedriver!GetHandleVerifier [0x706af5+18df5]
+	chromedriver!GetHandleVerifier [0x6efb5f+1e5f]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-09 23:53:52 - INFO - __main__ - [11/700] Procesando https://www.booking.com/hotel/es/winahost-loft-santa-cruz.es.html
+2026-08-09 23:53:52 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/winahost-loft-santa-cruz.es.html
+2026-08-09 23:53:57 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-09 23:54:08 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-09 23:54:39 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/winahost-loft-santa-cruz.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x6fd9a3+fca3]
+	chromedriver!GetHandleVerifier [0x6fd9e4+fce4]
+	chromedriver!(No symbol) [0x4d9240]
+	chromedriver!(No symbol) [0x52330b]
+	chromedriver!(No symbol) [0x52352b]
+	chromedriver!(No symbol) [0x565b72]
+	chromedriver!(No symbol) [0x5458d4]
+	chromedriver!(No symbol) [0x5634e9]
+	chromedriver!(No symbol) [0x545626]
+	chromedriver!(No symbol) [0x5187f9]
+	chromedriver!(No symbol) [0x5195c4]
+	chromedriver!GetHandleVerifier [0x9889fa+29acfa]
+	chromedriver!GetHandleVerifier [0x983e69+296169]
+	chromedriver!GetHandleVerifier [0x72901e+3b31e]
+	chromedriver!GetHandleVerifier [0x7183d6+2a6d6]
+	chromedriver!GetHandleVerifier [0x71f17d+3147d]
+	chromedriver!GetHandleVerifier [0x706948+18c48]
+	chromedriver!GetHandleVerifier [0x706af5+18df5]
+	chromedriver!GetHandleVerifier [0x6efb5f+1e5f]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-09 23:54:43 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/winahost-loft-santa-cruz.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x6fd9a3+fca3]
+	chromedriver!GetHandleVerifier [0x6fd9e4+fce4]
+	chromedriver!(No symbol) [0x4d9240]
+	chromedriver!(No symbol) [0x52330b]
+	chromedriver!(No symbol) [0x52352b]
+	chromedriver!(No symbol) [0x565b72]
+	chromedriver!(No symbol) [0x5458d4]
+	chromedriver!(No symbol) [0x5634e9]
+	chromedriver!(No symbol) [0x545626]
+	chromedriver!(No symbol) [0x5187f9]
+	chromedriver!(No symbol) [0x5195c4]
+	chromedriver!GetHandleVerifier [0x9889fa+29acfa]
+	chromedriver!GetHandleVerifier [0x983e69+296169]
+	chromedriver!GetHandleVerifier [0x72901e+3b31e]
+	chromedriver!GetHandleVerifier [0x7183d6+2a6d6]
+	chromedriver!GetHandleVerifier [0x71f17d+3147d]
+	chromedriver!GetHandleVerifier [0x706948+18c48]
+	chromedriver!GetHandleVerifier [0x706af5+18df5]
+	chromedriver!GetHandleVerifier [0x6efb5f+1e5f]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-09 23:54:43 - INFO - __main__ - [12/700] Procesando https://www.booking.com/hotel/es/casa-canaria-guimar.es.html
+2026-08-09 23:54:43 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-canaria-guimar.es.html
+2026-08-09 23:54:49 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-09 23:54:58 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-09 23:55:29 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/casa-canaria-guimar.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x6fd9a3+fca3]
+	chromedriver!GetHandleVerifier [0x6fd9e4+fce4]
+	chromedriver!(No symbol) [0x4d9240]
+	chromedriver!(No symbol) [0x52330b]
+	chromedriver!(No symbol) [0x52352b]
+	chromedriver!(No symbol) [0x565b72]
+	chromedriver!(No symbol) [0x5458d4]
+	chromedriver!(No symbol) [0x5634e9]
+	chromedriver!(No symbol) [0x545626]
+	chromedriver!(No symbol) [0x5187f9]
+	chromedriver!(No symbol) [0x5195c4]
+	chromedriver!GetHandleVerifier [0x9889fa+29acfa]
+	chromedriver!GetHandleVerifier [0x983e69+296169]
+	chromedriver!GetHandleVerifier [0x72901e+3b31e]
+	chromedriver!GetHandleVerifier [0x7183d6+2a6d6]
+	chromedriver!GetHandleVerifier [0x71f17d+3147d]
+	chromedriver!GetHandleVerifier [0x706948+18c48]
+	chromedriver!GetHandleVerifier [0x706af5+18df5]
+	chromedriver!GetHandleVerifier [0x6efb5f+1e5f]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-09 23:55:33 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/casa-canaria-guimar.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x6fd9a3+fca3]
+	chromedriver!GetHandleVerifier [0x6fd9e4+fce4]
+	chromedriver!(No symbol) [0x4d9240]
+	chromedriver!(No symbol) [0x52330b]
+	chromedriver!(No symbol) [0x52352b]
+	chromedriver!(No symbol) [0x565b72]
+	chromedriver!(No symbol) [0x5458d4]
+	chromedriver!(No symbol) [0x5634e9]
+	chromedriver!(No symbol) [0x545626]
+	chromedriver!(No symbol) [0x5187f9]
+	chromedriver!(No symbol) [0x5195c4]
+	chromedriver!GetHandleVerifier [0x9889fa+29acfa]
+	chromedriver!GetHandleVerifier [0x983e69+296169]
+	chromedriver!GetHandleVerifier [0x72901e+3b31e]
+	chromedriver!GetHandleVerifier [0x7183d6+2a6d6]
+	chromedriver!GetHandleVerifier [0x71f17d+3147d]
+	chromedriver!GetHandleVerifier [0x706948+18c48]
+	chromedriver!GetHandleVerifier [0x706af5+18df5]
+	chromedriver!GetHandleVerifier [0x6efb5f+1e5f]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-09 23:55:33 - INFO - __main__ - [13/700] Procesando https://www.booking.com/hotel/es/home2book-family-home-with-jacuzzi-in-candelaria.es.html
+2026-08-09 23:55:33 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/home2book-family-home-with-jacuzzi-in-candelaria.es.html
+2026-08-09 23:55:39 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-09 23:55:48 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-09 23:56:19 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/home2book-family-home-with-jacuzzi-in-candelaria.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x6fd9a3+fca3]
+	chromedriver!GetHandleVerifier [0x6fd9e4+fce4]
+	chromedriver!(No symbol) [0x4d9240]
+	chromedriver!(No symbol) [0x52330b]
+	chromedriver!(No symbol) [0x52352b]
+	chromedriver!(No symbol) [0x565b72]
+	chromedriver!(No symbol) [0x5458d4]
+	chromedriver!(No symbol) [0x5634e9]
+	chromedriver!(No symbol) [0x545626]
+	chromedriver!(No symbol) [0x5187f9]
+	chromedriver!(No symbol) [0x5195c4]
+	chromedriver!GetHandleVerifier [0x9889fa+29acfa]
+	chromedriver!GetHandleVerifier [0x983e69+296169]
+	chromedriver!GetHandleVerifier [0x72901e+3b31e]
+	chromedriver!GetHandleVerifier [0x7183d6+2a6d6]
+	chromedriver!GetHandleVerifier [0x71f17d+3147d]
+	chromedriver!GetHandleVerifier [0x706948+18c48]
+	chromedriver!GetHandleVerifier [0x706af5+18df5]
+	chromedriver!GetHandleVerifier [0x6efb5f+1e5f]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-09 23:56:21 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/home2book-family-home-with-jacuzzi-in-candelaria.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x6fd9a3+fca3]
+	chromedriver!GetHandleVerifier [0x6fd9e4+fce4]
+	chromedriver!(No symbol) [0x4d9240]
+	chromedriver!(No symbol) [0x52330b]
+	chromedriver!(No symbol) [0x52352b]
+	chromedriver!(No symbol) [0x565b72]
+	chromedriver!(No symbol) [0x5458d4]
+	chromedriver!(No symbol) [0x5634e9]
+	chromedriver!(No symbol) [0x545626]
+	chromedriver!(No symbol) [0x5187f9]
+	chromedriver!(No symbol) [0x5195c4]
+	chromedriver!GetHandleVerifier [0x9889fa+29acfa]
+	chromedriver!GetHandleVerifier [0x983e69+296169]
+	chromedriver!GetHandleVerifier [0x72901e+3b31e]
+	chromedriver!GetHandleVerifier [0x7183d6+2a6d6]
+	chromedriver!GetHandleVerifier [0x71f17d+3147d]
+	chromedriver!GetHandleVerifier [0x706948+18c48]
+	chromedriver!GetHandleVerifier [0x706af5+18df5]
+	chromedriver!GetHandleVerifier [0x6efb5f+1e5f]
+	KERNEL32!BaseThreadInitThunk [0x75bc5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x77a3e00b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x77a3df91+231]
+
+2026-08-09 23:56:21 - INFO - __main__ - [14/700] Procesando https://www.booking.com/hotel/es/can-noguera-casa-familiar-con-piscina-cerca-de-l-escala-hisp-7-87.es.html
+2026-08-09 23:56:21 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/can-noguera-casa-familiar-con-piscina-cerca-de-l-escala-hisp-7-87.es.html
+2026-08-09 23:56:26 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-09 23:56:29 - WARNING - __main__ -   Descartado (no es Tenerife): 'Can Noguera: Casa familiar con piscina cerca de l'Escala - HISP-7-87' (https://www.booking.com/hotel/es/can-noguera-casa-familiar-con-piscina-cerca-de-l-escala-hisp-7-87.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-09 23:56:37 - INFO - __main__ - [15/700] Procesando https://www.booking.com/hotel/es/casa-tranquila-con-piscina-privada-en-carrer-vall-d-aran-torroella-de-montgri-hi.es.html
+2026-08-09 23:56:37 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-tranquila-con-piscina-privada-en-carrer-vall-d-aran-torroella-de-montgri-hi.es.html
+2026-08-09 23:56:45 - WARNING - __main__ -   Descartado (no es Tenerife): 'Casa tranquila con piscina privada en Carrer Vall d'Aran, Torroella de Montgrí - HISP-7-17' (https://www.booking.com/hotel/es/casa-tranquila-con-piscina-privada-en-carrer-vall-d-aran-torroella-de-montgri-hi.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-09 23:56:52 - INFO - __main__ - [16/700] Procesando https://www.booking.com/hotel/es/espectacular-chalet-para-descansar.es.html
+2026-08-09 23:56:52 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/espectacular-chalet-para-descansar.es.html
+2026-08-09 23:56:57 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-09 23:57:02 - WARNING - __main__ -   Descartado (no es Tenerife): 'Espectacular chalet para descansar' (https://www.booking.com/hotel/es/espectacular-chalet-para-descansar.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-09 23:57:09 - INFO - __main__ - [17/700] Procesando https://www.booking.com/hotel/es/villa-en-biar-con-piscina-privada-y-jardin-biar.es.html
+2026-08-09 23:57:09 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/villa-en-biar-con-piscina-privada-y-jardin-biar.es.html
+2026-08-09 23:57:30 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-09 23:57:33 - WARNING - __main__ -   Descartado (no es Tenerife): 'Villa en Biar con piscina privada y jardín' (https://www.booking.com/hotel/es/villa-en-biar-con-piscina-privada-y-jardin-biar.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-09 23:57:39 - INFO - __main__ - [18/700] Procesando https://www.booking.com/hotel/es/mare-nostrum-sea-view-apartment.es.html
+2026-08-09 23:57:39 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/mare-nostrum-sea-view-apartment.es.html
+2026-08-09 23:57:44 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-09 23:57:47 - WARNING - __main__ -   Descartado (no es Tenerife): 'Mare Nostrum Sea View Apartment' (https://www.booking.com/hotel/es/mare-nostrum-sea-view-apartment.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-09 23:57:53 - INFO - __main__ - [19/700] Procesando https://www.booking.com/hotel/es/casa-lull-village-house-piscina-privada.es.html
+2026-08-09 23:57:53 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-lull-village-house-piscina-privada.es.html
+2026-08-09 23:58:00 - WARNING - __main__ -   Descartado (no es Tenerife): 'Casa Lull - Village house - Piscina privada' (https://www.booking.com/hotel/es/casa-lull-village-house-piscina-privada.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-09 23:58:08 - INFO - __main__ - [20/700] Procesando https://www.booking.com/hotel/es/amarres-con-piscina.es.html
+2026-08-09 23:58:08 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/amarres-con-piscina.es.html
+2026-08-09 23:58:13 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-09 23:58:16 - WARNING - __main__ -   Descartado (no es Tenerife): 'Amarres con Piscina' (https://www.booking.com/hotel/es/amarres-con-piscina.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-09 23:58:19 - INFO - __main__ - [21/700] Procesando https://www.booking.com/hotel/es/ocean-view-studio-next-to-the-beach.es.html
+2026-08-09 23:58:19 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/ocean-view-studio-next-to-the-beach.es.html
+2026-08-09 23:58:26 - WARNING - __main__ -   Descartado (no es Tenerife): 'Ocean view studio next to the beach' (https://www.booking.com/hotel/es/ocean-view-studio-next-to-the-beach.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-09 23:58:31 - INFO - __main__ - [22/700] Procesando https://www.booking.com/hotel/es/casas-rurales-las-lagunas.es.html
+2026-08-09 23:58:31 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casas-rurales-las-lagunas.es.html
+2026-08-09 23:58:38 - WARNING - __main__ -   Descartado (no es Tenerife): 'Casas Rurales Las Lagunas' (https://www.booking.com/hotel/es/casas-rurales-las-lagunas.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-09 23:58:41 - INFO - run_continuous - === Iniciando corrida continua de booking_scraper.py ===
+2026-08-09 23:58:41 - INFO - run_continuous - --- Lote #1 ---
+2026-08-09 23:58:41 - INFO - run_continuous - Lanzando un nuevo lote de booking_scraper.py...
+2026-08-09 23:58:43 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-08-09 23:58:43 - INFO - __main__ - Resolviendo ChromeDriver (una sola vez para toda la corrida)...
+2026-08-09 23:58:43 - INFO - __main__ - [23/700] Procesando https://www.booking.com/hotel/es/primera-linea-mar-piscina-padel-tenis-bbq-55-seafront.es.html
+2026-08-09 23:58:43 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/primera-linea-mar-piscina-padel-tenis-bbq-55-seafront.es.html
+2026-08-09 23:58:45 - INFO - __main__ - Usando caché de descubrimiento: C:\Users\jcabr\AI_Dashboard_Core\ingestion\scraping\sitemap_discovery_cache.json
+2026-08-09 23:58:45 - INFO - __main__ - 2 establecimiento(s) ya completados en corridas anteriores, se omiten.
+2026-08-09 23:58:45 - INFO - __main__ - No hay establecimientos pendientes. Nada que hacer.
+2026-08-09 23:58:46 - INFO - run_continuous - Lote sin candidatos pendientes (1/3).
+2026-08-09 23:58:46 - INFO - run_continuous - Lote #1 finalizado. Pausando 1 minutos antes del siguiente...
+2026-08-09 23:58:48 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-09 23:58:52 - WARNING - __main__ -   Descartado (no es Tenerife): 'Primera línea mar, piscina, pádel, tenis, bbq, 55,seafront' (https://www.booking.com/hotel/es/primera-linea-mar-piscina-padel-tenis-bbq-55-seafront.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-09 23:58:58 - INFO - __main__ - [24/700] Procesando https://www.booking.com/hotel/es/chalet-acogedor-en-els-poblets-para-5-personas-es-373-11.es.html
+2026-08-09 23:58:58 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/chalet-acogedor-en-els-poblets-para-5-personas-es-373-11.es.html
+2026-08-09 23:59:05 - WARNING - __main__ -   Descartado (no es Tenerife): 'Chalet acogedor en Els Poblets para 5 personas - ES-373-11' (https://www.booking.com/hotel/es/chalet-acogedor-en-els-poblets-para-5-personas-es-373-11.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-09 23:59:12 - INFO - __main__ - [25/700] Procesando https://www.booking.com/hotel/es/casa-moderna-cerca-de-la-playa-piscina-wifi-aire-acondicionado-es-373-23.es.html
+2026-08-09 23:59:12 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-moderna-cerca-de-la-playa-piscina-wifi-aire-acondicionado-es-373-23.es.html
+2026-08-09 23:59:16 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-09 23:59:20 - WARNING - __main__ -   Descartado (no es Tenerife): 'Casa moderna cerca de la playa, piscina, WiFi, aire acondicionado - ES-373-23' (https://www.booking.com/hotel/es/casa-moderna-cerca-de-la-playa-piscina-wifi-aire-acondicionado-es-373-23.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-09 23:59:28 - INFO - __main__ - [26/700] Procesando https://www.booking.com/hotel/es/amplio-chalet-para-11-personas-piscina-privada-se-admiten-mascotas-cerca-del-mar.es.html
+2026-08-09 23:59:28 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/amplio-chalet-para-11-personas-piscina-privada-se-admiten-mascotas-cerca-del-mar.es.html
+2026-08-09 23:59:46 - INFO - run_continuous - --- Lote #2 ---
+2026-08-09 23:59:46 - INFO - run_continuous - Lanzando un nuevo lote de booking_scraper.py...
+2026-08-09 23:59:47 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-08-09 23:59:47 - INFO - __main__ - Resolviendo ChromeDriver (una sola vez para toda la corrida)...
+2026-08-09 23:59:50 - INFO - __main__ - Usando caché de descubrimiento: C:\Users\jcabr\AI_Dashboard_Core\ingestion\scraping\sitemap_discovery_cache.json
+2026-08-09 23:59:50 - INFO - __main__ - 2 establecimiento(s) ya completados en corridas anteriores, se omiten.
+2026-08-09 23:59:50 - INFO - __main__ - No hay establecimientos pendientes. Nada que hacer.
+2026-08-09 23:59:50 - INFO - run_continuous - Lote sin candidatos pendientes (2/3).
+2026-08-09 23:59:50 - INFO - run_continuous - Lote #2 finalizado. Pausando 1 minutos antes del siguiente...
+2026-08-10 00:00:22 - INFO - run_continuous - Lanzando un nuevo lote de booking_scraper.py...
+2026-08-10 00:00:55 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-10 00:01:04 - WARNING - __main__ -   Descartado (no es Tenerife): 'Amplio chalet para 11 personas, piscina privada, se admiten mascotas, cerca del mar - ES-373-15' (https://www.booking.com/hotel/es/amplio-chalet-para-11-personas-piscina-privada-se-admiten-mascotas-cerca-del-mar.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-10 00:01:10 - INFO - __main__ - [27/700] Procesando https://www.booking.com/hotel/es/duplex-luminoso-con-piscina-y-parking-en-denia-es-373-17.es.html
+2026-08-10 00:01:10 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/duplex-luminoso-con-piscina-y-parking-en-denia-es-373-17.es.html
+2026-08-10 00:01:15 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-10 00:01:18 - WARNING - __main__ -   Descartado (no es Tenerife): 'Dúplex luminoso con piscina y parking en Denia - ES-373-17' (https://www.booking.com/hotel/es/duplex-luminoso-con-piscina-y-parking-en-denia-es-373-17.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-10 00:01:21 - INFO - __main__ - [28/700] Procesando https://www.booking.com/hotel/es/apartamento-de-3-habitaciones-a-100m-de-la-playa-de-denia-con-terraza-y-piscina.es.html
+2026-08-10 00:01:21 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartamento-de-3-habitaciones-a-100m-de-la-playa-de-denia-con-terraza-y-piscina.es.html
+2026-08-10 00:01:26 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-10 00:01:29 - WARNING - __main__ -   Descartado (no es Tenerife): 'Apartamento de 3 habitaciones a 100m de la playa de Dénia con terraza y piscina - ES-373-28' (https://www.booking.com/hotel/es/apartamento-de-3-habitaciones-a-100m-de-la-playa-de-denia-con-terraza-y-piscina.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-10 00:01:36 - INFO - __main__ - [29/700] Procesando https://www.booking.com/hotel/es/chalet-familiar-en-els-poblets-3-habitaciones-para-7-personas-es-373-13.es.html
+2026-08-10 00:01:36 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/chalet-familiar-en-els-poblets-3-habitaciones-para-7-personas-es-373-13.es.html
+2026-08-10 00:01:43 - WARNING - __main__ -   Descartado (no es Tenerife): 'Chalet familiar en Els Poblets - 3 habitaciones para 7 personas - ES-373-13' (https://www.booking.com/hotel/es/chalet-familiar-en-els-poblets-3-habitaciones-para-7-personas-es-373-13.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-10 00:01:48 - INFO - __main__ - [30/700] Procesando https://www.booking.com/hotel/es/chalet-en-denia-8-personas-piscina-privada-wifi-se-admiten-mascotas-es-373-19.es.html
+2026-08-10 00:01:48 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/chalet-en-denia-8-personas-piscina-privada-wifi-se-admiten-mascotas-es-373-19.es.html
+2026-08-10 00:01:53 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-10 00:01:56 - WARNING - __main__ -   Descartado (no es Tenerife): 'Chalet en Dénia 8 personas, piscina privada, wifi, se admiten mascotas - ES-373-19' (https://www.booking.com/hotel/es/chalet-en-denia-8-personas-piscina-privada-wifi-se-admiten-mascotas-es-373-19.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-10 00:02:00 - INFO - __main__ - [31/700] Procesando https://www.booking.com/hotel/es/apartamento-frente-al-mar-con-piscina-y-parking-en-denia-capacidad-8-pers-es-373.es.html
+2026-08-10 00:02:00 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartamento-frente-al-mar-con-piscina-y-parking-en-denia-capacidad-8-pers-es-373.es.html
+2026-08-10 00:02:07 - WARNING - __main__ -   Descartado (no es Tenerife): 'Apartamento frente al mar con piscina y parking en Denia - Capacidad 8 pers. - ES-373-30' (https://www.booking.com/hotel/es/apartamento-frente-al-mar-con-piscina-y-parking-en-denia-capacidad-8-pers-es-373.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-10 00:02:13 - INFO - __main__ - [32/700] Procesando https://www.booking.com/hotel/es/villa-espaciosa-con-piscina-privada-y-wi-fi-en-oliva-es-373-41.es.html
+2026-08-10 00:02:13 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/villa-espaciosa-con-piscina-privada-y-wi-fi-en-oliva-es-373-41.es.html
+2026-08-10 00:02:20 - WARNING - __main__ -   Descartado (no es Tenerife): 'Villa espaciosa con piscina privada y Wi-Fi en Oliva - ES-373-41' (https://www.booking.com/hotel/es/villa-espaciosa-con-piscina-privada-y-wi-fi-en-oliva-es-373-41.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-10 00:02:27 - INFO - __main__ - [33/700] Procesando https://www.booking.com/hotel/es/apartamento-con-piscina-en-denia-cerca-de-la-playa-es-373-44.es.html
+2026-08-10 00:02:27 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartamento-con-piscina-en-denia-cerca-de-la-playa-es-373-44.es.html
+2026-08-10 00:02:32 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-10 00:02:36 - WARNING - __main__ -   Descartado (no es Tenerife): 'Apartamento con piscina en Denia, cerca de la playa - ES-373-44' (https://www.booking.com/hotel/es/apartamento-con-piscina-en-denia-cerca-de-la-playa-es-373-44.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-10 00:02:41 - INFO - __main__ - [34/700] Procesando https://www.booking.com/hotel/es/acogedor-estudio-con-terraza-y-piscina-privada-en-rafol-d-almunia-es-373-65.es.html
+2026-08-10 00:02:41 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/acogedor-estudio-con-terraza-y-piscina-privada-en-rafol-d-almunia-es-373-65.es.html
+2026-08-10 00:02:46 - INFO - __main__ -   Banner de cookies cerrado.

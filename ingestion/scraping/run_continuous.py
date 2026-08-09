@@ -30,7 +30,7 @@ logger = get_logger("run_continuous", log_file=config.LOG_FILE)
 # maneja config.MIN_DELAY_SECONDS/MAX_DELAY_SECONDS dentro de cada corrida).
 # Un lote entero de MAX_ESTABLISHMENTS_PER_RUN ya toma tiempo real; esta
 # pausa es un respiro adicional entre lotes completos.
-PAUSE_BETWEEN_BATCHES_SECONDS = 15 * 60  # 15 minutos
+PAUSE_BETWEEN_BATCHES_SECONDS = 1 * 60  # 15 minutos
 
 # Si un lote entero devuelve 0 procesados 3 veces seguidas, probablemente
 # se agotó el caché de candidatos (sitemap_discovery_cache.json) — no tiene
@@ -47,20 +47,33 @@ def run_one_batch() -> bool:
     pendiente en el caché (señal de que el caché de descubrimiento se agotó).
     """
     logger.info("Lanzando un nuevo lote de booking_scraper.py...")
-    result = subprocess.run(
+
+    # stderr=STDOUT: el logging de booking_scraper.py sale por stderr
+    # (logging.StreamHandler() por defecto usa sys.stderr, no stdout) —
+    # fusionar ambos streams es necesario para no perder esas líneas y para
+    # que el marcador de caché agotado, más abajo, efectivamente lo detecte.
+    process = subprocess.Popen(
         [sys.executable, str(SCRIPT_PATH)],
         cwd=SCRIPT_PATH.parent,
-        capture_output=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
         text=True,
+        encoding="utf-8",
+        bufsize=1,  # line-buffered: cada línea se entrega apenas se produce, sin esperar a que el proceso termine
     )
-    # Se sigue mostrando el output del lote en este mismo log, para no
-    # perder visibilidad de lo que hizo booking_scraper.py.
-    if result.stdout:
-        print(result.stdout)
-    if result.stderr:
-        print(result.stderr)
 
-    if "No hay establecimientos pendientes" in (result.stdout or ""):
+    # Mostramos cada línea en tiempo real (para poder monitorear una corrida
+    # larga sin supervisión) y a la vez la acumulamos, para poder buscar el
+    # marcador de "caché agotado" en el output completo al final.
+    output_lines = []
+    for line in process.stdout:
+        print(line, end="")
+        output_lines.append(line)
+
+    process.wait()
+    full_output = "".join(output_lines)
+
+    if "No hay establecimientos pendientes" in full_output:
         return False
     return True
 
