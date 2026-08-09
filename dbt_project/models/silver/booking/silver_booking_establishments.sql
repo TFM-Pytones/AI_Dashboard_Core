@@ -9,8 +9,9 @@
 -- varias veces con datos prácticamente idénticos. No existe una columna de
 -- timestamp de scraping en los datos crudos (limitación conocida — el
 -- timestamp solo vive en el nombre del archivo Parquet, no se llevó a la
--- tabla), así que la deduplicación toma una fila arbitraria pero
--- determinística por establishment_id (DISTINCT ON + ctid como desempate).
+-- tabla), así que DISTINCT ON toma una fila arbitraria por establishment_id
+-- (no necesariamente la más reciente) — aceptable porque los atributos del
+-- establecimiento no cambian entre corridas.
 
 WITH source_data AS (
     SELECT *
@@ -20,7 +21,7 @@ WITH source_data AS (
 deduplicated AS (
     SELECT DISTINCT ON (establishment_id) *
     FROM source_data
-    ORDER BY establishment_id, ctid
+    ORDER BY establishment_id
 )
 
 SELECT
