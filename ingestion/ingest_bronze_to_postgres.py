@@ -40,24 +40,24 @@ def download_blob_to_dataframe(blob_service_client, blob_name):
     return df
 
 def ingest_to_postgres(df, table_name, engine):
-    """Inserta el DataFrame en el esquema bronze de PostgreSQL"""
-    print(f"Ingestando {len(df)} filas en la tabla bronze.{table_name}...")
+    """Inserta el DataFrame en el esquema bronce-raw de PostgreSQL"""
+    print(f"Ingestando {len(df)} filas en la tabla bronce-raw.{table_name}...")
     
-    # Escribimos los datos en el esquema 'bronze'. dbt se encargará luego de pasarlos a 'silver'
+    # Escribimos los datos en el esquema 'bronce-raw'. dbt se encargará luego de pasarlos a 'silver'
     df.to_sql(
         name=table_name,
         con=engine,
-        schema="bronze",
+        schema="bronce-raw",
         if_exists="replace", # o 'append' dependiendo de la lógica incremental
         index=False,
         method="multi", # optimización de inserción
         chunksize=1000
     )
-    print(f"[OK] Ingesta en bronze.{table_name} completada.")
+    print(f"✅ Ingesta en bronce-raw.{table_name} completada.")
 
 def main():
     if not AZURE_CONNECTION_STRING:
-        print("[ERROR] AZURE_STORAGE_CONNECTION_STRING no está definido en el archivo .env")
+        print("❌ Error: AZURE_STORAGE_CONNECTION_STRING no está definido en el archivo .env")
         return
         
     print("Conectando a Azure Blob Storage...")
@@ -68,9 +68,9 @@ def main():
     # EJEMPLO DE INGESTA: Modifica esto según los nombres de tus archivos
     # -------------------------------------------------------------
     archivos_a_ingestar = [
-        # ("nombre_del_blob_en_azure.csv/.parquet", "nombre_de_la_tabla_en_postgres")
-        # ("clima/historico_agrocabildo.csv", "estaciones_clima"),
-        ("tabular/istac/istac_municipios_cifras_tenerife.parquet", "istac_municipios"),
+        # ("nombre_del_blob_en_azure.csv", "nombre_de_la_tabla_en_postgres")
+        ("clima/historico_agrocabildo.csv", "estaciones_clima"),
+        # ("geospatial/limites.parquet", "limites_municipales")
     ]
     
     for blob_name, table_name in archivos_a_ingestar:
@@ -84,7 +84,7 @@ def main():
             ingest_to_postgres(df, table_name, engine)
             
         except Exception as e:
-            print(f"[ERROR] Error al procesar {blob_name}: {e}")
+            print(f"❌ Error al procesar {blob_name}: {e}")
 
 if __name__ == "__main__":
     main()

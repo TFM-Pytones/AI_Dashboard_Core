@@ -26,3 +26,6 @@ sources:
       - name: youtube_comments
       - name: losviajeros_temas
       - name: losviajeros_mensajes
+      
+      # ISTAC
+      - name: istac_municipios

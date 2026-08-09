@@ -41,4 +41,19 @@ dbt_packages/
 
 # 6. Notas locales de trabajo (no compartir con el equipo)
 NOTAS_LOCALES.md
+<<<<<<< HEAD
 >>>>>>> 2bbca33d1fa234a3ddf3522265ba28398b64eeef
+=======
+
+# 7. pyabsa (descarga checkpoints ~1GB y vuelca resultados en la raiz por defecto)
+checkpoints/
+checkpoints.json
+*.result.json
+source_datasets.hash.json
+# 8. Archivos de skills de claude
+.claude
+# Next.js / frontend
+node_modules/
+.next/
+next-env.d.ts
+>>>>>>> 730409bdd16c4f3529d6f5249cf57d9ab4c8835b
