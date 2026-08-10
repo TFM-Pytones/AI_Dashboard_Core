@@ -45,3 +45,6 @@ source_datasets.hash.json
 node_modules/
 .next/
 next-env.d.ts
+
+# 9. Scripts temporales / scratch
+scratch/
