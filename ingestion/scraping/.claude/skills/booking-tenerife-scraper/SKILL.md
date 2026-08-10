@@ -48,6 +48,8 @@ Las clases CSS de Booking son hashes generados (tipo `f6e3a11b0d`) que cambian c
 | Dirección | `[data-testid="PropertyHeaderAddressDesktop-wrapper"]` | Contiene un tooltip anidado que hay que restar (ver abajo) |
 | Tipo de establecimiento | `[data-testid="breadcrumb-nav"]` | Último `<li>`, patrón `"...Nombre (Tipo) (País)"` — penúltimo grupo entre paréntesis es el tipo |
 | Banner de cookies | `#onetrust-accept-btn-handler` | Aparece de forma inconsistente, cerrar más de una vez |
+| Banner "Iniciar sesión con Google" | `div#credential_picker_container iframe`, botón cerrar `[aria-label="Cerrar"]` DENTRO del iframe | Requiere `switch_to.frame()`/`default_content()`, ver sección de errores |
+| Sin reseñas | `[data-testid="no-reviews-banner"]` | Si está presente, `fr-read-all-reviews` nunca existe — no esperar por él |
 
 ### Extraer país del reseñador (correcto)
 
@@ -120,6 +122,51 @@ No alcanza con cerrarlo solo al cargar la página — puede reaparecer o tardar 
 ### Timeouts de carga (`Timed out receiving message from renderer: 30.000`)
 
 Fallo transitorio de red, no de código. Capturar con `except TimeoutException`, loggear y continuar con el siguiente establecimiento — no reintentar automáticamente dentro de la misma corrida (se reintenta solo en la próxima corrida vía el progress tracker, ver abajo).
+
+### Interferencia nueva: banner "Iniciar sesión con Google" (One Tap), distinta al banner de cookies
+
+Booking a veces muestra el widget nativo de Google ("Google One Tap") superpuesto a la página — aparece de forma intermitente y con carga ASÍNCRONA (tarda unos segundos en inyectarse, no está apenas carga la página). Tapa el botón "Leer todos los comentarios" y puede causar un timeout en el clic si no se cierra.
+
+A diferencia del banner de cookies, este vive DENTRO de un `<iframe>` de `accounts.google.com` — Google no lo embebe directo en el DOM del sitio:
+```html
+<div id="credential_picker_container">
+  <iframe title="Cuadro de diálogo Iniciar sesión con Google" src="https://accounts.google.com/gsi/iframe/select?...">
+```
+Botón de cerrar dentro del iframe: `[aria-label="Cerrar"]` (las clases de Google son generadas/inestables, igual que los hashes CSS de Booking — no confiar en ellas, usar el atributo semántico). Hace falta cambiar de contexto para poder clickearlo:
+```python
+try:
+    iframe = WebDriverWait(driver, 2).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "div#credential_picker_container iframe"))
+    )
+except TimeoutException:
+    return  # no apareció — caso más común, nada que hacer
+
+try:
+    driver.switch_to.frame(iframe)
+    close_button = driver.find_element(By.CSS_SELECTOR, '[aria-label="Cerrar"]')
+    driver.execute_script("arguments[0].click();", close_button)
+except (NoSuchElementException, ElementNotInteractableException):
+    pass
+finally:
+    driver.switch_to.default_content()  # SIEMPRE volver, pase lo que pase adentro
+```
+`switch_to.default_content()` va en un `finally` — si no se vuelve al contexto principal, todos los selectores del sitio (`h2`, `data-testid`, etc.) dejan de encontrar nada después, como si la página estuviera vacía. Llamar a esta función en los mismos dos puntos que `_dismiss_cookie_banner()`: al inicio de la página y justo antes del clic en "Leer todos los comentarios".
+
+**Ojo con el diagnóstico**: verificado en vivo que el banner de Google SÍ aparece y SÍ se cierra bien con este código, pero en dos URLs reportadas como "cuelgan por el banner de Google" (`live-la-caleta-vista-al-mar`, `floritas-23-2`), la causa real de esos timeouts puntuales resultó ser otra cosa (ver siguiente hallazgo) — dos problemas distintos pueden producir el mismo síntoma (timeout en el clic de reseñas). No asumir causa por correlación; instrumentar con timestamps paso a paso hasta encontrar dónde se traba exactamente.
+
+### Establecimientos sin reseñas: `no-reviews-banner`, no hay botón que esperar
+
+Si un establecimiento no tiene ninguna reseña en Booking, el DOM nunca tiene `[data-testid="fr-read-all-reviews"]` — en su lugar aparece `[data-testid="no-reviews-banner"]`. Sin chequear esto antes de intentar el clic, el código esperaba los `PAGE_LOAD_TIMEOUT_SECONDS` completos (30s) por un botón que nunca iba a existir, tiraba `TimeoutException`, y como esa excepción se propaga fuera de `scrape_establishment()`, `main()` la atrapaba en el `except Exception` genérico del loop y **descartaba TODO el establecimiento** (ni el nombre ni la dirección quedaban guardados, no solo las reseñas).
+
+Fix: chequear `no-reviews-banner` temprano (apenas se arma el objeto `Establishment`, antes de intentar abrir el panel) y devolver el establecimiento con `reviews=[]` de inmediato, sin esperar nada:
+```python
+if driver.find_elements(By.CSS_SELECTOR, '[data-testid="no-reviews-banner"]'):
+    logger.info("  Sin reseñas para este establecimiento (no-reviews-banner detectado).")
+    return establishment, reviews  # reviews=[] en este punto, no hace falta esperar nada más
+```
+`driver.find_elements` (plural) no tira excepción si no encuentra nada — no hace falta try/except acá, a diferencia de `find_element` (singular).
+
+Verificado en vivo contra las 2 URLs de arriba: antes del fix, 52.3s y 47.4s hasta `TimeoutException` (establecimiento perdido); después, 18.3s y 14.3s, establecimiento guardado correctamente con 0 reseñas.
 
 ### Cuelgue silencioso e invisible: `ChromeDriverManager().install()` dentro del loop
 
@@ -229,6 +276,22 @@ Se reportó ver valores tipo `'4 de mayo de 2026España'` en `review_date` (paí
 Causa real: una terminal angosta corta visualmente la línea larga de `df.to_string()` justo entre la columna `review_date` y la columna `reviewer_country`, dando la ilusión de que están concatenadas cuando en realidad son dos columnas separadas por espacios que ya no entraron en el ancho visible.
 
 **Antes de asumir que hay un bug de scraping por algo visto en consola**: leer el valor puntual con `repr()` sobre el parquet crudo (sin pasar por un `print(df.to_string())` de una fila ancha) — si ahí aparece limpio, el problema es de visualización, no de datos. Evita "arreglar" con código especulativo un bug que no existe.
+
+## Bug de diseño (corregido): recortar por `limit` ANTES de filtrar completados congela el "pendientes" en 0
+
+`discover_establishment_urls()` / `_discover_from_sitemap()` recortaban el resultado a `limit` (=`config.MAX_ESTABLISHMENTS_PER_RUN`) ANTES de que `main()` aplicara `filter_pending()`. Efecto: cada corrida nueva volvía a pedir siempre los mismos primeros N candidatos del caché (`cached["urls"][:limit]`), nunca avanzaba a las posiciones siguientes. Una vez que esos primeros N quedaban `mark_completed()`, cualquier corrida futura con el mismo límite filtraba esos N a 0 pendientes y terminaba ahí — **aunque el caché tuviera miles de candidatos más sin tocar**. Silencioso: no tira error, solo logea "No hay establecimientos pendientes. Nada que hacer." y listo.
+
+Por qué no se notó antes: una corrida larga en un solo proceso (`python booking_scraper.py` corriendo horas con `MAX_ESTABLISHMENTS_PER_RUN` alto) no lo sufre — el filtrado pasa una sola vez al arrancar y el loop interno de esa misma llamada sí avanza célula por célula, completando de a uno genuino. El bug solo aparece entre invocaciones SEPARADAS del proceso con el mismo límite (exactamente el caso de `run_continuous.py`, que relanza `booking_scraper.py` como subproceso nuevo en cada lote) — ahí es donde de verdad importa, porque es la forma pensada para corridas largas sin supervisión.
+
+**Fix**: `discover_establishment_urls()` (y `_discover_from_sitemap()`) devuelven TODOS los candidatos disponibles, sin recortar. `main()` aplica `filter_pending()` sobre la lista completa y recién DESPUÉS recorta a `config.MAX_ESTABLISHMENTS_PER_RUN`:
+```python
+pending_urls = filter_pending(urls, _extract_establishment_id)  # sobre la lista completa
+...
+pending_urls = pending_urls[: config.MAX_ESTABLISHMENTS_PER_RUN]  # recién acá se recorta
+```
+Excepción a propósito: `config.TEST_ESTABLISHMENT_URLS` (lista manual chica para pruebas rápidas) SÍ sigue recortando por `limit` dentro de `discover_establishment_urls()`, sin este cambio — no tiene el problema de fondo (no es un caché de miles de candidatos) y se quiere que siga devolviendo siempre la misma sublista fija.
+
+**Verificado contra el caché real** (20.941 candidatos, 953 ya completados): antes del fix, pedir un lote con `MAX_ESTABLISHMENTS_PER_RUN=2` daba 0 pendientes (los primeros 2 raw del caché ya estaban hechos). Después del fix, el mismo caso trae 2 candidatos genuinamente nuevos, y un chequeo de solapamiento confirma 0 IDs del lote nuevo presentes en `scraping_progress.json`.
 
 ## Validación de una corrida completa (no solo el último archivo)
 

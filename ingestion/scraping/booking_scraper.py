@@ -217,12 +217,21 @@ def _matches_tenerife(url: str) -> bool:
 def _discover_from_sitemap(limit: int) -> list[str]:
     """Recorre los shards de idioma español, filtra por país=España y
     por coincidencia de municipio de Tenerife en el slug.
+
+    Devuelve TODOS los candidatos disponibles (del caché o recién
+    descubiertos), SIN recortar por `limit` — el recorte a
+    config.MAX_ESTABLISHMENTS_PER_RUN debe pasar en main(), después de
+    filtrar los ya completados (filter_pending). Si se recortara acá antes
+    de filtrar, cada corrida volvería a mirar siempre los mismos primeros
+    N candidatos del caché: una vez completados, "pendientes" da 0 para
+    siempre, aunque el caché tenga miles de candidatos más sin tocar más
+    adelante en la lista.
     """
     if DISCOVERY_CACHE_FILE.exists():
         logger.info(f"Usando caché de descubrimiento: {DISCOVERY_CACHE_FILE}")
         with open(DISCOVERY_CACHE_FILE, "r", encoding="utf-8") as f:
             cached = json.load(f)
-        return cached["urls"][:limit]
+        return cached["urls"]
 
     logger.info("Descargando índice de sitemaps de Booking...")
     shards = _get_spanish_shards()
@@ -258,7 +267,10 @@ def _discover_from_sitemap(limit: int) -> list[str]:
         json.dump({"urls": tenerife_urls, "generated_at": pd.Timestamp.now().isoformat()}, f, indent=2)
     logger.info(f"Descubrimiento guardado en caché: {DISCOVERY_CACHE_FILE}")
 
-    return tenerife_urls[:limit]
+    # Sin recortar por `limit` acá tampoco — ver docstring. `limit` solo se
+    # usa arriba para decidir cuándo dejar de recorrer shards, no para
+    # truncar lo que se devuelve.
+    return tenerife_urls
 
 
 def discover_establishment_urls(limit: int = config.MAX_ESTABLISHMENTS_PER_RUN) -> list[str]:
@@ -266,7 +278,15 @@ def discover_establishment_urls(limit: int = config.MAX_ESTABLISHMENTS_PER_RUN) 
     sitemaps oficiales de Booking (permitido por robots.txt).
 
     Si config.TEST_ESTABLISHMENT_URLS tiene contenido, se usa esa lista fija
-    en su lugar (útil para pruebas rápidas sin depender del sitemap).
+    en su lugar (útil para pruebas rápidas sin depender del sitemap) — esa
+    lista SÍ se recorta por `limit` acá mismo, a diferencia del camino del
+    sitemap: es chica y fija a propósito, no tiene el problema de "siempre
+    los mismos primeros N" que sí tiene el caché de miles de candidatos.
+
+    El camino del sitemap devuelve TODOS los candidatos disponibles, sin
+    recortar (ver _discover_from_sitemap) — quien llame a esta función debe
+    aplicar filter_pending() sobre el resultado completo y recortar a
+    config.MAX_ESTABLISHMENTS_PER_RUN recién después (ver main()).
     """
     if config.TEST_ESTABLISHMENT_URLS:
         logger.warning(
@@ -343,6 +363,47 @@ def _dismiss_cookie_banner(driver) -> None:
         time.sleep(1)
     except (NoSuchElementException, ElementNotInteractableException):
         pass
+
+
+def _dismiss_google_signin_banner(driver) -> None:
+    """Intenta cerrar el banner 'Iniciar sesión con Google' (Google One Tap)
+    si aparece. No falla si no lo encuentra (best-effort) — mismo patrón que
+    _dismiss_cookie_banner().
+
+    A diferencia del banner de cookies, este widget vive DENTRO de un
+    <iframe> de accounts.google.com (div#credential_picker_container >
+    iframe) — Google no permite embeberlo directo en el DOM del sitio. Hace
+    falta cambiar de contexto con switch_to.frame() para poder clickear su
+    botón de cerrar (aria-label="Cerrar", clases generadas por Google que
+    cambian — no confiar en ellas), y volver con switch_to.default_content()
+    después, pase lo que pase adentro (si no, el resto del scraping queda
+    "atrapado" dentro del iframe y ningún selector del sitio principal
+    vuelve a encontrar nada).
+
+    Aparece de forma intermitente y con carga asíncrona (no está presente
+    apenas carga la página, tarda unos segundos en inyectarse) — por eso el
+    wait corto (2s) en vez de un find_element inmediato como en el banner de
+    cookies.
+    """
+    try:
+        iframe = WebDriverWait(driver, 2).until(
+            EC.presence_of_element_located(
+                (By.CSS_SELECTOR, "div#credential_picker_container iframe")
+            )
+        )
+    except TimeoutException:
+        return  # no apareció — es el caso más común, no hay nada que hacer
+
+    try:
+        driver.switch_to.frame(iframe)
+        close_button = driver.find_element(By.CSS_SELECTOR, '[aria-label="Cerrar"]')
+        driver.execute_script("arguments[0].click();", close_button)
+        logger.info("  Banner de 'Iniciar sesión con Google' cerrado.")
+        time.sleep(1)
+    except (NoSuchElementException, ElementNotInteractableException):
+        pass
+    finally:
+        driver.switch_to.default_content()
 
 
 def _get_establishment_type(driver) -> str | None:
@@ -531,6 +592,7 @@ def scrape_establishment(url: str) -> tuple[Establishment, list[Review]]:
         # precios) antes de empezar a interactuar — reduce stale elements.
         time.sleep(2.5)
         _dismiss_cookie_banner(driver)
+        _dismiss_google_signin_banner(driver)
 
         # --- Datos del establecimiento ---
         name = _retry_on_stale(
@@ -595,12 +657,26 @@ def scrape_establishment(url: str) -> tuple[Establishment, list[Review]]:
             establishment_type=establishment_type,
         )
 
+        # Establecimientos sin ninguna reseña muestran este banner en vez del
+        # botón "Leer todos los comentarios" — el botón [data-testid="fr-read-all-reviews"]
+        # nunca llega a existir en el DOM. Sin este chequeo, el código de abajo
+        # esperaba los PAGE_LOAD_TIMEOUT_SECONDS completos por un botón que
+        # nunca aparece, tiraba TimeoutException, y se perdía hasta el dato
+        # del establecimiento (la excepción se propaga y main() descarta todo
+        # el establecimiento en vez de guardarlo con 0 reseñas).
+        if driver.find_elements(By.CSS_SELECTOR, '[data-testid="no-reviews-banner"]'):
+            logger.info("  Sin reseñas para este establecimiento (no-reviews-banner detectado).")
+            return establishment, reviews
+
         # --- Abrir el panel de reseñas ---
         def _click_read_all():
-            # Reintenta cerrar el banner de cookies justo antes del clic —
-            # a veces reaparece o tarda en cerrarse después del primer intento
-            # al inicio de la función, y termina tapando este botón.
+            # Reintenta cerrar el banner de cookies y el de "Iniciar sesión
+            # con Google" justo antes del clic — a veces reaparecen o tardan
+            # en cerrarse/inyectarse después del primer intento al inicio de
+            # la función, y terminan tapando este botón (el de Google es el
+            # que más silenciosamente causa timeouts acá, ver skill).
             _dismiss_cookie_banner(driver)
+            _dismiss_google_signin_banner(driver)
 
             button = wait_obj.until(
                 EC.element_to_be_clickable(
@@ -723,7 +799,12 @@ def main():
         sys.exit(1)
 
     # Filtra los establecimientos que ya se scrapearon en una corrida anterior,
-    # para poder cortar y retomar sin duplicar trabajo (ver utils/progress_tracker.py)
+    # para poder cortar y retomar sin duplicar trabajo (ver utils/progress_tracker.py).
+    # IMPORTANTE: el filtro se aplica sobre `urls` COMPLETO (discover_establishment_urls
+    # ya no recorta por límite), y recién DESPUÉS se recorta a MAX_ESTABLISHMENTS_PER_RUN.
+    # Si se recortara antes de filtrar, cada corrida volvería a mirar siempre los
+    # mismos primeros N candidatos del caché — una vez completados, "pendientes"
+    # daría 0 para siempre, aunque el caché tenga miles más sin tocar.
     pending_urls = filter_pending(urls, _extract_establishment_id)
     skipped = len(urls) - len(pending_urls)
     if skipped:
@@ -732,6 +813,9 @@ def main():
     if not pending_urls:
         logger.info("No hay establecimientos pendientes. Nada que hacer.")
         return
+
+    logger.info(f"{len(pending_urls)} candidato(s) pendiente(s) en total; se procesan hasta {config.MAX_ESTABLISHMENTS_PER_RUN} en esta corrida.")
+    pending_urls = pending_urls[: config.MAX_ESTABLISHMENTS_PER_RUN]
 
     all_establishments: list[Establishment] = []
     all_reviews: list[Review] = []

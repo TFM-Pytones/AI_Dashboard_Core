@@ -56,14 +56,14 @@ MAX_DELAY_SECONDS = 8.0
 
 # --- Límites de una corrida, para no sobrecargar la infraestructura del sitio ---
 # Empieza bajo para probar rápido; sube estos números cuando ya confirmes que funciona.
-MAX_ESTABLISHMENTS_PER_RUN = 1000
+MAX_ESTABLISHMENTS_PER_RUN = 2
 MAX_REVIEWS_PER_ESTABLISHMENT = 30
 
 # --- User-Agent identificable y honesto (ver README: no spoofear como Googlebot u otro bot) ---
 CONTACT_INFO = "TFM-Tenerife-AI-Dashboard (uso academico, contacto: equipo@tfm-tenerife.example)"
 
 # --- Selenium ---
-HEADLESS = True
+HEADLESS = False  # True = sin abrir ventana de navegador, False = visible
 PAGE_LOAD_TIMEOUT_SECONDS = 30
 
 # --- Salida ---
