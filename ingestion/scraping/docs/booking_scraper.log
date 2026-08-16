@@ -14033,3 +14033,301 @@ Stacktrace:
 2026-08-11 00:14:38 - INFO - booking_scraper - Scrapeando establecimiento: https://www.booking.com/hotel/es/floritas-23-2.es.html
 2026-08-11 00:14:44 - INFO - booking_scraper -   Banner de cookies cerrado.
 2026-08-11 00:14:50 - INFO - booking_scraper -   Sin reseñas para este establecimiento (no-reviews-banner detectado).
+2026-08-15 17:51:43 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-08-15 17:51:43 - INFO - __main__ - Resolviendo ChromeDriver (una sola vez para toda la corrida)...
+2026-08-15 17:51:51 - INFO - __main__ - Usando caché de descubrimiento: C:\Users\jcabr\AI_Dashboard_Core\ingestion\scraping\sitemap_discovery_cache.json
+2026-08-15 17:51:51 - INFO - __main__ - 922 establecimiento(s) ya completados en corridas anteriores, se omiten.
+2026-08-15 17:51:51 - INFO - __main__ - 20019 candidato(s) pendiente(s) en total; se procesan hasta 5 en esta corrida.
+2026-08-15 17:51:51 - INFO - __main__ - [1/5] Procesando https://www.booking.com/hotel/es/live-la-caleta-vista-al-mar.es.html
+2026-08-15 17:51:51 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/live-la-caleta-vista-al-mar.es.html
+2026-08-15 17:51:58 - INFO - __main__ -   Banner de 'Iniciar sesión con Google' cerrado.
+2026-08-15 17:52:07 - INFO - __main__ -   Sin reseñas para este establecimiento (no-reviews-banner detectado).
+2026-08-15 17:52:11 - INFO - __main__ - Guardado completo: 1 establecimientos, 0 reseñas.
+2026-08-15 17:52:17 - INFO - __main__ - [2/5] Procesando https://www.booking.com/hotel/es/floritas-23-2.es.html
+2026-08-15 17:52:17 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/floritas-23-2.es.html
+2026-08-15 17:52:23 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 17:52:24 - INFO - __main__ -   Banner de 'Iniciar sesión con Google' cerrado.
+2026-08-15 17:52:29 - INFO - __main__ -   Sin reseñas para este establecimiento (no-reviews-banner detectado).
+2026-08-15 17:52:35 - INFO - __main__ - Guardado completo: 1 establecimientos, 0 reseñas.
+2026-08-15 17:52:43 - INFO - __main__ - [3/5] Procesando https://www.booking.com/hotel/es/panoramic-sea-view-apartment-los-cristianos.es.html
+2026-08-15 17:52:43 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/panoramic-sea-view-apartment-los-cristianos.es.html
+2026-08-15 17:52:58 - INFO - __main__ -   Sin reseñas para este establecimiento (no-reviews-banner detectado).
+2026-08-15 17:53:00 - INFO - __main__ - Guardado completo: 1 establecimientos, 0 reseñas.
+2026-08-15 17:53:05 - INFO - __main__ - [4/5] Procesando https://www.booking.com/hotel/es/paraiso-del-sol-adeje3.es.html
+2026-08-15 17:53:05 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/paraiso-del-sol-adeje3.es.html
+2026-08-15 17:53:17 - INFO - __main__ -   Geocodificación sin resultado, reintentando sin 's/n': 'Av. Playa Paraíso, 19 Blq. 3, Puerta Bajo A, Paraiso I, 38678 Adeje, España'
+2026-08-15 17:53:17 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38678 Adeje, España'
+2026-08-15 17:53:24 - INFO - __main__ -   Sin reseñas para este establecimiento (no-reviews-banner detectado).
+2026-08-15 17:53:28 - INFO - __main__ - Guardado completo: 1 establecimientos, 0 reseñas.
+2026-08-15 17:53:34 - INFO - __main__ - [5/5] Procesando https://www.booking.com/hotel/es/113-cactus-heart-of-los-cristianos.es.html
+2026-08-15 17:53:34 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/113-cactus-heart-of-los-cristianos.es.html
+2026-08-15 17:53:40 - INFO - __main__ -   Banner de 'Iniciar sesión con Google' cerrado.
+2026-08-15 17:53:43 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38650 Los Cristianos, España'
+2026-08-15 17:53:49 - INFO - __main__ -   Sin reseñas para este establecimiento (no-reviews-banner detectado).
+2026-08-15 17:53:55 - INFO - __main__ - Guardado completo: 1 establecimientos, 0 reseñas.
+2026-08-15 17:54:00 - INFO - __main__ - === Corrida finalizada: 5 establecimientos, 0 reseñas en total (0 descartados por no ser de Tenerife) ===
+2026-08-15 18:16:45 - INFO - booking_scraper - Scrapeando establecimiento: https://www.booking.com/hotel/es/floritas-23-2.es.html
+2026-08-15 18:16:45 - INFO - booking_scraper - Resolviendo ChromeDriver (una sola vez para toda la corrida)...
+2026-08-15 18:17:04 - INFO - booking_scraper -   Sin reseñas para este establecimiento (no-reviews-banner detectado).
+2026-08-15 18:17:07 - INFO - booking_scraper - Guardado completo: 1 establecimientos, 0 reseñas.
+2026-08-15 18:20:12 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-08-15 18:20:12 - INFO - __main__ - Resolviendo ChromeDriver (una sola vez para toda la corrida)...
+2026-08-15 18:20:18 - INFO - __main__ - Usando caché de descubrimiento: C:\Users\jcabr\AI_Dashboard_Core\ingestion\scraping\sitemap_discovery_cache.json
+2026-08-15 18:20:18 - INFO - __main__ - 927 establecimiento(s) ya completados en corridas anteriores, se omiten.
+2026-08-15 18:20:18 - INFO - __main__ - 20014 candidato(s) pendiente(s) en total; se procesan hasta 5 en esta corrida.
+2026-08-15 18:20:18 - INFO - __main__ - [1/5] Procesando https://www.booking.com/hotel/es/casa-blanca-santa-ursula.es.html
+2026-08-15 18:20:18 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-blanca-santa-ursula.es.html
+2026-08-15 18:20:31 - INFO - __main__ -   Sin reseñas para este establecimiento (no-reviews-banner detectado).
+2026-08-15 18:20:33 - INFO - __main__ - Guardado completo: 1 establecimientos, 0 reseñas.
+2026-08-15 18:20:39 - INFO - __main__ - [2/5] Procesando https://www.booking.com/hotel/es/luxurious-villa-in-puerto-de-la-cruz-with-pool-and-great-views.es.html
+2026-08-15 18:20:39 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/luxurious-villa-in-puerto-de-la-cruz-with-pool-and-great-views.es.html
+2026-08-15 18:20:45 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:20:46 - INFO - __main__ -   Banner de 'Iniciar sesión con Google' cerrado.
+2026-08-15 18:20:54 - INFO - __main__ -   Sin reseñas para este establecimiento (no-reviews-banner detectado).
+2026-08-15 18:21:01 - INFO - __main__ - Guardado completo: 1 establecimientos, 0 reseñas.
+2026-08-15 18:21:07 - INFO - __main__ - [3/5] Procesando https://www.booking.com/hotel/es/ocean-view-palm-mar1.es.html
+2026-08-15 18:21:07 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/ocean-view-palm-mar1.es.html
+2026-08-15 18:21:13 - INFO - __main__ -   Banner de 'Iniciar sesión con Google' cerrado.
+2026-08-15 18:21:22 - INFO - __main__ -   Sin reseñas para este establecimiento (no-reviews-banner detectado).
+2026-08-15 18:21:25 - INFO - __main__ - Guardado completo: 1 establecimientos, 0 reseñas.
+2026-08-15 18:21:30 - INFO - __main__ - [4/5] Procesando https://www.booking.com/hotel/es/los-gigantes-fantastic-views-acantilados-de-los-gigantes.es.html
+2026-08-15 18:21:30 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/los-gigantes-fantastic-views-acantilados-de-los-gigantes.es.html
+2026-08-15 18:21:46 - INFO - __main__ -   Sin reseñas para este establecimiento (no-reviews-banner detectado).
+2026-08-15 18:21:48 - INFO - __main__ - Guardado completo: 1 establecimientos, 0 reseñas.
+2026-08-15 18:21:55 - INFO - __main__ - [5/5] Procesando https://www.booking.com/hotel/es/winahost-loft-santa-cruz.es.html
+2026-08-15 18:21:55 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/winahost-loft-santa-cruz.es.html
+2026-08-15 18:22:09 - INFO - __main__ -   Sin reseñas para este establecimiento (no-reviews-banner detectado).
+2026-08-15 18:22:13 - INFO - __main__ - Guardado completo: 1 establecimientos, 0 reseñas.
+2026-08-15 18:22:17 - INFO - __main__ - === Corrida finalizada: 5 establecimientos, 0 reseñas en total (0 descartados por no ser de Tenerife) ===
+2026-08-15 18:33:40 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-08-15 18:33:40 - INFO - __main__ - Resolviendo ChromeDriver (una sola vez para toda la corrida)...
+2026-08-15 18:34:05 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-08-15 18:34:05 - INFO - __main__ - Resolviendo ChromeDriver (una sola vez para toda la corrida)...
+2026-08-15 18:34:10 - INFO - __main__ - Usando caché de descubrimiento: C:\Users\jcabr\AI_Dashboard_Core\ingestion\scraping\sitemap_discovery_cache.json
+2026-08-15 18:34:10 - INFO - __main__ - 932 establecimiento(s) ya completados en corridas anteriores, se omiten.
+2026-08-15 18:34:10 - INFO - __main__ - 20009 candidato(s) pendiente(s) en total; se procesan hasta 50 en esta corrida.
+2026-08-15 18:34:10 - INFO - __main__ - [1/50] Procesando https://www.booking.com/hotel/es/casa-canaria-guimar.es.html
+2026-08-15 18:34:10 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-canaria-guimar.es.html
+2026-08-15 18:34:16 - INFO - __main__ -   Banner de 'Iniciar sesión con Google' cerrado.
+2026-08-15 18:34:23 - INFO - __main__ -   Sin reseñas para este establecimiento (no-reviews-banner detectado).
+2026-08-15 18:34:25 - INFO - __main__ - Guardado completo: 1 establecimientos, 0 reseñas.
+2026-08-15 18:34:33 - INFO - __main__ - [2/50] Procesando https://www.booking.com/hotel/es/home2book-family-home-with-jacuzzi-in-candelaria.es.html
+2026-08-15 18:34:33 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/home2book-family-home-with-jacuzzi-in-candelaria.es.html
+2026-08-15 18:34:48 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:34:57 - INFO - __main__ -   Página 1: 1 reseñas (1 acumuladas)
+2026-08-15 18:34:57 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-15 18:34:59 - INFO - __main__ - Guardado completo: 1 establecimientos, 1 reseñas.
+2026-08-15 18:35:04 - INFO - __main__ - [3/50] Procesando https://www.booking.com/hotel/es/acogedor-estudio-con-terraza-y-piscina-privada-en-rafol-d-almunia-es-373-65.es.html
+2026-08-15 18:35:04 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/acogedor-estudio-con-terraza-y-piscina-privada-en-rafol-d-almunia-es-373-65.es.html
+2026-08-15 18:35:09 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:35:10 - INFO - __main__ -   Banner de 'Iniciar sesión con Google' cerrado.
+2026-08-15 18:35:14 - WARNING - __main__ -   Descartado (no es Tenerife): 'Acogedor estudio con terraza y piscina privada en Rafol d'Almunia - ES-373-65' (https://www.booking.com/hotel/es/acogedor-estudio-con-terraza-y-piscina-privada-en-rafol-d-almunia-es-373-65.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:35:19 - INFO - __main__ - [4/50] Procesando https://www.booking.com/hotel/es/casa-confortable-3-hab-para-6-jardin-y-piscina-cerca-de-la-playa-en-denia-es-373.es.html
+2026-08-15 18:35:19 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-confortable-3-hab-para-6-jardin-y-piscina-cerca-de-la-playa-en-denia-es-373.es.html
+2026-08-15 18:35:32 - WARNING - __main__ -   Descartado (no es Tenerife): 'Casa confortable 3 hab para 6, jardín y piscina, cerca de la playa en Denia - ES-373-60' (https://www.booking.com/hotel/es/casa-confortable-3-hab-para-6-jardin-y-piscina-cerca-de-la-playa-en-denia-es-373.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:35:38 - INFO - __main__ - [5/50] Procesando https://www.booking.com/hotel/es/villa-de-lujo-con-piscina-privada-y-aire-acondicionado-l-estartit-es-323-95.es.html
+2026-08-15 18:35:38 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/villa-de-lujo-con-piscina-privada-y-aire-acondicionado-l-estartit-es-323-95.es.html
+2026-08-15 18:35:44 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:35:46 - INFO - __main__ -   Banner de 'Iniciar sesión con Google' cerrado.
+2026-08-15 18:35:49 - WARNING - __main__ -   Descartado (no es Tenerife): 'Villa de Lujo con Piscina Privada y Aire Acondicionado - L'Estartit - ES-323-95' (https://www.booking.com/hotel/es/villa-de-lujo-con-piscina-privada-y-aire-acondicionado-l-estartit-es-323-95.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:35:54 - INFO - __main__ - [6/50] Procesando https://www.booking.com/hotel/es/victoria-las-americas.es.html
+2026-08-15 18:35:54 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/victoria-las-americas.es.html
+2026-08-15 18:36:19 - INFO - __main__ -   Sin reseñas para este establecimiento (no-reviews-banner detectado).
+2026-08-15 18:36:24 - INFO - __main__ - Guardado completo: 1 establecimientos, 0 reseñas.
+2026-08-15 18:36:30 - INFO - __main__ - [7/50] Procesando https://www.booking.com/hotel/es/espai-oliveres-barcelona-villa-con-piscina.es.html
+2026-08-15 18:36:30 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/espai-oliveres-barcelona-villa-con-piscina.es.html
+2026-08-15 18:36:34 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:36:41 - WARNING - __main__ -   Descartado (no es Tenerife): 'Espai Oliveres Barcelona Villa con piscina' (https://www.booking.com/hotel/es/espai-oliveres-barcelona-villa-con-piscina.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:36:47 - INFO - __main__ - [8/50] Procesando https://www.booking.com/hotel/es/apartamento-plaza-falla-caleta.es.html
+2026-08-15 18:36:47 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartamento-plaza-falla-caleta.es.html
+2026-08-15 18:36:53 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:36:59 - WARNING - __main__ -   Descartado (no es Tenerife): 'Apartamento Plaza Falla Caleta' (https://www.booking.com/hotel/es/apartamento-plaza-falla-caleta.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:37:04 - INFO - __main__ - [9/50] Procesando https://www.booking.com/hotel/es/secret-garden-boutique-homestay-near-the-metro.es.html
+2026-08-15 18:37:04 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/secret-garden-boutique-homestay-near-the-metro.es.html
+2026-08-15 18:37:09 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:37:16 - WARNING - __main__ -   Descartado (no es Tenerife): 'Secret Garden - Boutique Homestay Near the Metro' (https://www.booking.com/hotel/es/secret-garden-boutique-homestay-near-the-metro.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:37:22 - INFO - __main__ - [10/50] Procesando https://www.booking.com/hotel/es/sun-and-calm-las-floritas.es.html
+2026-08-15 18:37:22 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/sun-and-calm-las-floritas.es.html
+2026-08-15 18:37:47 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:37:57 - INFO - __main__ -   Página 1: 2 reseñas (2 acumuladas)
+2026-08-15 18:37:57 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-15 18:38:03 - INFO - __main__ - Guardado completo: 1 establecimientos, 2 reseñas.
+2026-08-15 18:38:10 - INFO - __main__ - [11/50] Procesando https://www.booking.com/hotel/es/rudma-los-bermejales-residencia-universitaria.es.html
+2026-08-15 18:38:10 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/rudma-los-bermejales-residencia-universitaria.es.html
+2026-08-15 18:38:15 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:38:16 - INFO - __main__ -   Banner de 'Iniciar sesión con Google' cerrado.
+2026-08-15 18:38:21 - WARNING - __main__ -   Descartado (no es Tenerife): 'Residencia Universitaria "RUDMA LOS BERMEJALES"' (https://www.booking.com/hotel/es/rudma-los-bermejales-residencia-universitaria.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:38:25 - INFO - __main__ - [12/50] Procesando https://www.booking.com/hotel/es/apartamento-moderno-con-terraza-y-piscina-a-50m-de-la-playa-hisp-236-151.es.html
+2026-08-15 18:38:25 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartamento-moderno-con-terraza-y-piscina-a-50m-de-la-playa-hisp-236-151.es.html
+2026-08-15 18:38:29 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:38:30 - INFO - __main__ -   Banner de 'Iniciar sesión con Google' cerrado.
+2026-08-15 18:38:37 - WARNING - __main__ -   Descartado (no es Tenerife): 'Apartamento moderno con terraza y piscina a 50m de la playa - HISP-236-151' (https://www.booking.com/hotel/es/apartamento-moderno-con-terraza-y-piscina-a-50m-de-la-playa-hisp-236-151.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:38:44 - INFO - __main__ - [13/50] Procesando https://www.booking.com/hotel/es/casa-de-vacaciones-con-piscina-y-aire-acondicionado-en-roses-hisp-312-70.es.html
+2026-08-15 18:38:44 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-de-vacaciones-con-piscina-y-aire-acondicionado-en-roses-hisp-312-70.es.html
+2026-08-15 18:38:48 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:38:49 - INFO - __main__ -   Banner de 'Iniciar sesión con Google' cerrado.
+2026-08-15 18:38:57 - WARNING - __main__ -   Descartado (no es Tenerife): 'Casa de vacaciones con piscina y aire acondicionado en Roses - HISP-312-70' (https://www.booking.com/hotel/es/casa-de-vacaciones-con-piscina-y-aire-acondicionado-en-roses-hisp-312-70.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:39:01 - INFO - __main__ - [14/50] Procesando https://www.booking.com/hotel/es/casa-familiar-cerca-de-la-playa-con-piscina-privada-en-el-verger-es-373-72.es.html
+2026-08-15 18:39:01 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-familiar-cerca-de-la-playa-con-piscina-privada-en-el-verger-es-373-72.es.html
+2026-08-15 18:39:22 - WARNING - __main__ -   Descartado (no es Tenerife): 'Casa Familiar Cerca de la Playa con Piscina Privada en El Verger - ES-373-72' (https://www.booking.com/hotel/es/casa-familiar-cerca-de-la-playa-con-piscina-privada-en-el-verger-es-373-72.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:39:27 - INFO - __main__ - [15/50] Procesando https://www.booking.com/hotel/es/villa-de-lujo-en-els-poblets-con-piscina-y-parking-es-373-75.es.html
+2026-08-15 18:39:27 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/villa-de-lujo-en-els-poblets-con-piscina-y-parking-es-373-75.es.html
+2026-08-15 18:39:39 - WARNING - __main__ -   Descartado (no es Tenerife): 'Villa de Lujo en Els Poblets con Piscina y Parking - ES-373-75' (https://www.booking.com/hotel/es/villa-de-lujo-en-els-poblets-con-piscina-y-parking-es-373-75.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:39:46 - INFO - __main__ - [16/50] Procesando https://www.booking.com/hotel/es/chalet-con-piscina-la-barraca-de-aguas-vivas1.es.html
+2026-08-15 18:39:46 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/chalet-con-piscina-la-barraca-de-aguas-vivas1.es.html
+2026-08-15 18:39:51 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:39:52 - INFO - __main__ -   Banner de 'Iniciar sesión con Google' cerrado.
+2026-08-15 18:40:04 - WARNING - __main__ -   Descartado (no es Tenerife): 'Chalet Piscina Privada' (https://www.booking.com/hotel/es/chalet-con-piscina-la-barraca-de-aguas-vivas1.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:40:08 - INFO - __main__ - [17/50] Procesando https://www.booking.com/hotel/es/sunset-adhara-penthouse-panoramablick-wlan.es.html
+2026-08-15 18:40:08 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/sunset-adhara-penthouse-panoramablick-wlan.es.html
+2026-08-15 18:40:12 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:40:18 - WARNING - __main__ -   Descartado (no es Tenerife): 'Sunset Adhara Penthouse - Panoramablick - nahe der Lagunen - WLAN' (https://www.booking.com/hotel/es/sunset-adhara-penthouse-panoramablick-wlan.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:40:24 - INFO - __main__ - [18/50] Procesando https://www.booking.com/hotel/es/duplex-con-piscina-ronda.es.html
+2026-08-15 18:40:24 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/duplex-con-piscina-ronda.es.html
+2026-08-15 18:40:54 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:40:59 - WARNING - __main__ -   Descartado (no es Tenerife): 'Avanel Private Pool Penthouse' (https://www.booking.com/hotel/es/duplex-con-piscina-ronda.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:41:06 - INFO - __main__ - [19/50] Procesando https://www.booking.com/hotel/es/ribiera-park-salou-climatizado-y-con-piscina.es.html
+2026-08-15 18:41:06 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/ribiera-park-salou-climatizado-y-con-piscina.es.html
+2026-08-15 18:41:15 - WARNING - __main__ -   Descartado (no es Tenerife): 'Ribiera Park Salou, climatizado y con piscina' (https://www.booking.com/hotel/es/ribiera-park-salou-climatizado-y-con-piscina.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:41:21 - INFO - __main__ - [20/50] Procesando https://www.booking.com/hotel/es/playa-honda-design-comfort-amp-pool.es.html
+2026-08-15 18:41:21 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/playa-honda-design-comfort-amp-pool.es.html
+2026-08-15 18:41:25 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:41:29 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38660 Playa de las Américas, España'
+2026-08-15 18:41:34 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:41:47 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-15 18:41:54 - INFO - __main__ -   Página 2: 1 reseñas (11 acumuladas)
+2026-08-15 18:41:56 - INFO - __main__ - Guardado completo: 1 establecimientos, 11 reseñas.
+2026-08-15 18:42:04 - INFO - __main__ - [21/50] Procesando https://www.booking.com/hotel/es/santiago-beach-costa-adeje.es.html
+2026-08-15 18:42:04 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/santiago-beach-costa-adeje.es.html
+2026-08-15 18:42:08 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:42:12 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38660 Costa Adeje, España'
+2026-08-15 18:42:17 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:42:27 - INFO - __main__ -   Página 1: 1 reseñas (1 acumuladas)
+2026-08-15 18:42:27 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-15 18:43:03 - INFO - __main__ - Guardado completo: 1 establecimientos, 1 reseñas.
+2026-08-15 18:43:08 - INFO - __main__ - [22/50] Procesando https://www.booking.com/hotel/es/casa-altamarea-oasis-tamarindo.es.html
+2026-08-15 18:43:08 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-altamarea-oasis-tamarindo.es.html
+2026-08-15 18:43:15 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:43:21 - WARNING - __main__ -   Descartado (no es Tenerife): 'Casa Altamarea Oasis Tamarindo' (https://www.booking.com/hotel/es/casa-altamarea-oasis-tamarindo.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:43:27 - INFO - __main__ - [23/50] Procesando https://www.booking.com/hotel/es/sitges-casablanca.es.html
+2026-08-15 18:43:27 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/sitges-casablanca.es.html
+2026-08-15 18:43:33 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:43:39 - WARNING - __main__ -   Descartado (no es Tenerife): 'Sitges Casablanca' (https://www.booking.com/hotel/es/sitges-casablanca.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:43:45 - INFO - __main__ - [24/50] Procesando https://www.booking.com/hotel/es/palm-beach-home-golf-almerimar.es.html
+2026-08-15 18:43:45 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/palm-beach-home-golf-almerimar.es.html
+2026-08-15 18:43:51 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:43:57 - WARNING - __main__ -   Descartado (no es Tenerife): 'Palm Beach Home Golf Almerimar' (https://www.booking.com/hotel/es/palm-beach-home-golf-almerimar.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:44:01 - INFO - __main__ - [25/50] Procesando https://www.booking.com/hotel/es/new-two-bedroom-apartment-big-terrace-amp-sea-view-costa-adeje.es.html
+2026-08-15 18:44:01 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/new-two-bedroom-apartment-big-terrace-amp-sea-view-costa-adeje.es.html
+2026-08-15 18:44:17 - INFO - __main__ -   Sin reseñas para este establecimiento (no-reviews-banner detectado).
+2026-08-15 18:44:36 - INFO - __main__ - Guardado completo: 1 establecimientos, 0 reseñas.
+2026-08-15 18:44:43 - INFO - __main__ - [26/50] Procesando https://www.booking.com/hotel/es/apartamento-familiar-con-piscina-y-garaje-playa-de-gandia-con-vistas-al-mar.es.html
+2026-08-15 18:44:43 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartamento-familiar-con-piscina-y-garaje-playa-de-gandia-con-vistas-al-mar.es.html
+2026-08-15 18:44:51 - INFO - __main__ -   Banner de 'Iniciar sesión con Google' cerrado.
+2026-08-15 18:44:55 - WARNING - __main__ -   Descartado (no es Tenerife): 'Apartamento Familiar con piscina y Garaje Playa de Gandía con vistas al mar' (https://www.booking.com/hotel/es/apartamento-familiar-con-piscina-y-garaje-playa-de-gandia-con-vistas-al-mar.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:44:59 - INFO - __main__ - [27/50] Procesando https://www.booking.com/hotel/es/atico-cardon-beach-arona.es.html
+2026-08-15 18:44:59 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/atico-cardon-beach-arona.es.html
+2026-08-15 18:45:12 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:45:19 - INFO - __main__ -   Página 1: 1 reseñas (1 acumuladas)
+2026-08-15 18:45:19 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-15 18:45:21 - INFO - __main__ - Guardado completo: 1 establecimientos, 1 reseñas.
+2026-08-15 18:45:28 - INFO - __main__ - [28/50] Procesando https://www.booking.com/hotel/es/casa-gara-playa-honda.es.html
+2026-08-15 18:45:28 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-gara-playa-honda.es.html
+2026-08-15 18:45:39 - WARNING - __main__ -   Descartado (no es Tenerife): 'Casa GARA' (https://www.booking.com/hotel/es/casa-gara-playa-honda.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:45:46 - INFO - __main__ - [29/50] Procesando https://www.booking.com/hotel/es/casa-mar-playa-honda.es.html
+2026-08-15 18:45:46 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-mar-playa-honda.es.html
+2026-08-15 18:46:03 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:46:04 - INFO - __main__ -   Banner de 'Iniciar sesión con Google' cerrado.
+2026-08-15 18:46:07 - WARNING - __main__ -   Descartado (no es Tenerife): 'Casa MAR' (https://www.booking.com/hotel/es/casa-mar-playa-honda.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:46:12 - INFO - __main__ - [30/50] Procesando https://www.booking.com/hotel/es/el-balcon-de-aguilas.es.html
+2026-08-15 18:46:12 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/el-balcon-de-aguilas.es.html
+2026-08-15 18:46:17 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:46:23 - WARNING - __main__ -   Descartado (no es Tenerife): 'El balcón de Águilas' (https://www.booking.com/hotel/es/el-balcon-de-aguilas.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:46:28 - INFO - __main__ - [31/50] Procesando https://www.booking.com/hotel/es/penthouse-with-terrace-and-ocean-views-on-the-beachfront.es.html
+2026-08-15 18:46:28 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/penthouse-with-terrace-and-ocean-views-on-the-beachfront.es.html
+2026-08-15 18:46:33 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:46:39 - WARNING - __main__ -   Descartado (no es Tenerife): 'Ático con terraza y vistas al mar en primera línea' (https://www.booking.com/hotel/es/penthouse-with-terrace-and-ocean-views-on-the-beachfront.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:46:46 - INFO - __main__ - [32/50] Procesando https://www.booking.com/hotel/es/blue-coast-santa-pola-panoramic-ocean-views.es.html
+2026-08-15 18:46:46 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/blue-coast-santa-pola-panoramic-ocean-views.es.html
+2026-08-15 18:46:56 - WARNING - __main__ -   Descartado (no es Tenerife): 'Blue Coast Santa Pola - Panoramic ocean views' (https://www.booking.com/hotel/es/blue-coast-santa-pola-panoramic-ocean-views.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:47:00 - INFO - __main__ - [33/50] Procesando https://www.booking.com/hotel/es/casas-rurales-las-lagunas-alcaraz.es.html
+2026-08-15 18:47:00 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casas-rurales-las-lagunas-alcaraz.es.html
+2026-08-15 18:47:05 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:47:06 - INFO - __main__ -   Banner de 'Iniciar sesión con Google' cerrado.
+2026-08-15 18:47:11 - WARNING - __main__ -   Descartado (no es Tenerife): 'Casas Rurales Las Lagunas' (https://www.booking.com/hotel/es/casas-rurales-las-lagunas-alcaraz.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:47:16 - INFO - __main__ - [34/50] Procesando https://www.booking.com/hotel/es/charming-street-studio-in-tegueste.es.html
+2026-08-15 18:47:16 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/charming-street-studio-in-tegueste.es.html
+2026-08-15 18:47:20 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:47:21 - INFO - __main__ -   Banner de 'Iniciar sesión con Google' cerrado.
+2026-08-15 18:47:28 - INFO - __main__ -   Sin reseñas para este establecimiento (no-reviews-banner detectado).
+2026-08-15 18:47:53 - INFO - __main__ - Guardado completo: 1 establecimientos, 0 reseñas.
+2026-08-15 18:47:59 - INFO - __main__ - [35/50] Procesando https://www.booking.com/hotel/es/apartamento-en-menorca-con-piscina-y-cerca-playa.es.html
+2026-08-15 18:47:59 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartamento-en-menorca-con-piscina-y-cerca-playa.es.html
+2026-08-15 18:48:03 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:48:09 - WARNING - __main__ -   Descartado (no es Tenerife): 'Apartamento en Menorca con piscina y cerca playa' (https://www.booking.com/hotel/es/apartamento-en-menorca-con-piscina-y-cerca-playa.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:48:16 - INFO - __main__ - [36/50] Procesando https://www.booking.com/hotel/es/precioso-apartamento-duplex-orientado-a-piscina.es.html
+2026-08-15 18:48:16 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/precioso-apartamento-duplex-orientado-a-piscina.es.html
+2026-08-15 18:48:26 - WARNING - __main__ -   Descartado (no es Tenerife): 'Precioso Apartamento duplex orientado a piscina' (https://www.booking.com/hotel/es/precioso-apartamento-duplex-orientado-a-piscina.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:48:31 - INFO - __main__ - [37/50] Procesando https://www.booking.com/hotel/es/modern-penthouse-with-terrace-on-gran-via-de-carles-iii-andorra.es.html
+2026-08-15 18:48:31 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/modern-penthouse-with-terrace-on-gran-via-de-carles-iii-andorra.es.html
+2026-08-15 18:48:41 - WARNING - __main__ -   Descartado (no es Tenerife): 'Spacest - Gran Via de Carles III A' (https://www.booking.com/hotel/es/modern-penthouse-with-terrace-on-gran-via-de-carles-iii-andorra.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:48:47 - INFO - __main__ - [38/50] Procesando https://www.booking.com/hotel/es/hostal-cala-verde-villaricos1.es.html
+2026-08-15 18:48:47 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/hostal-cala-verde-villaricos1.es.html
+2026-08-15 18:48:52 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:48:58 - WARNING - __main__ -   Descartado (no es Tenerife): 'Hostal Cala Verde' (https://www.booking.com/hotel/es/hostal-cala-verde-villaricos1.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:49:04 - INFO - __main__ - [39/50] Procesando https://www.booking.com/hotel/es/tagoro-park-218.es.html
+2026-08-15 18:49:04 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/tagoro-park-218.es.html
+2026-08-15 18:49:12 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38630 Costa del Silencio, España'
+2026-08-15 18:49:19 - INFO - __main__ -   Sin reseñas para este establecimiento (no-reviews-banner detectado).
+2026-08-15 18:49:42 - INFO - __main__ - Guardado completo: 1 establecimientos, 0 reseñas.
+2026-08-15 18:49:49 - INFO - __main__ - [40/50] Procesando https://www.booking.com/hotel/es/los-abuelos-20.es.html
+2026-08-15 18:49:49 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/los-abuelos-20.es.html
+2026-08-15 18:49:53 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:49:54 - INFO - __main__ -   Banner de 'Iniciar sesión con Google' cerrado.
+2026-08-15 18:49:58 - WARNING - __main__ -   Descartado (no es Tenerife): 'Los Abuelos 20 - Hello Vejer' (https://www.booking.com/hotel/es/los-abuelos-20.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:50:01 - INFO - __main__ - [41/50] Procesando https://www.booking.com/hotel/es/live-santa-cruz-islas-canarias-izquierda.es.html
+2026-08-15 18:50:01 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/live-santa-cruz-islas-canarias-izquierda.es.html
+2026-08-15 18:50:06 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:50:10 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38007 Santa María de Gracia, España'
+2026-08-15 18:50:19 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:50:33 - INFO - __main__ -   Página 1: 5 reseñas (5 acumuladas)
+2026-08-15 18:50:33 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-15 18:51:14 - INFO - __main__ - Guardado completo: 1 establecimientos, 5 reseñas.
+2026-08-15 18:51:20 - INFO - __main__ - [42/50] Procesando https://www.booking.com/hotel/es/preciosa-casa-de-vacaciones-con-piscina-privada-6p.es.html
+2026-08-15 18:51:20 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/preciosa-casa-de-vacaciones-con-piscina-privada-6p.es.html
+2026-08-15 18:51:25 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:51:32 - WARNING - __main__ -   Descartado (no es Tenerife): 'Lovely Holiday Home with Private Pool for 6' (https://www.booking.com/hotel/es/preciosa-casa-de-vacaciones-con-piscina-privada-6p.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:51:39 - INFO - __main__ - [43/50] Procesando https://www.booking.com/hotel/es/gatu-atikus-el-puerto-de-santa-maria2.es.html
+2026-08-15 18:51:39 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/gatu-atikus-el-puerto-de-santa-maria2.es.html
+2026-08-15 18:51:44 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:51:49 - WARNING - __main__ -   Descartado (no es Tenerife): 'GATU Atikus con Parking GRATIS y piscina' (https://www.booking.com/hotel/es/gatu-atikus-el-puerto-de-santa-maria2.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:51:53 - INFO - __main__ - [44/50] Procesando https://www.booking.com/hotel/es/apartamento-laguna-torrevieja.es.html
+2026-08-15 18:51:53 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartamento-laguna-torrevieja.es.html
+2026-08-15 18:51:58 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:52:03 - WARNING - __main__ -   Descartado (no es Tenerife): 'Apartamento Laguna Torrevieja' (https://www.booking.com/hotel/es/apartamento-laguna-torrevieja.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:52:07 - INFO - __main__ - [45/50] Procesando https://www.booking.com/hotel/es/gran-casa-con-piscina-privada-wifi-y-barbacoa-a-15min-de-la-playa-hisp-7-13.es.html
+2026-08-15 18:52:07 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/gran-casa-con-piscina-privada-wifi-y-barbacoa-a-15min-de-la-playa-hisp-7-13.es.html
+2026-08-15 18:52:15 - WARNING - __main__ -   Descartado (no es Tenerife): 'Gran Casa con Piscina Privada, WiFi y Barbacoa a 15min de la Playa - HISP-7-13' (https://www.booking.com/hotel/es/gran-casa-con-piscina-privada-wifi-y-barbacoa-a-15min-de-la-playa-hisp-7-13.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:52:19 - INFO - __main__ - [46/50] Procesando https://www.booking.com/hotel/es/chalet-comodo-en-denia-para-4-personas-es-373-1.es.html
+2026-08-15 18:52:19 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/chalet-comodo-en-denia-para-4-personas-es-373-1.es.html
+2026-08-15 18:52:23 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:52:24 - INFO - __main__ -   Banner de 'Iniciar sesión con Google' cerrado.
+2026-08-15 18:52:27 - WARNING - __main__ -   Descartado (no es Tenerife): 'Chalet cómodo en Denia para 4 personas - ES-373-1' (https://www.booking.com/hotel/es/chalet-comodo-en-denia-para-4-personas-es-373-1.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:52:31 - INFO - __main__ - [47/50] Procesando https://www.booking.com/hotel/es/villa-divina-con-gran-piscina-privada-en-l-escala-hisp-7-92.es.html
+2026-08-15 18:52:31 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/villa-divina-con-gran-piscina-privada-en-l-escala-hisp-7-92.es.html
+2026-08-15 18:52:56 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:52:57 - INFO - __main__ -   Banner de 'Iniciar sesión con Google' cerrado.
+2026-08-15 18:53:01 - WARNING - __main__ -   Descartado (no es Tenerife): 'Villa Divina con gran piscina privada en L'Escala - HISP-7-92' (https://www.booking.com/hotel/es/villa-divina-con-gran-piscina-privada-en-l-escala-hisp-7-92.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:53:09 - INFO - __main__ - [48/50] Procesando https://www.booking.com/hotel/es/casa-espaciosa-con-gran-terraza-y-piscina-privada-en-zona-tranquila-de-l-escala.es.html
+2026-08-15 18:53:09 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-espaciosa-con-gran-terraza-y-piscina-privada-en-zona-tranquila-de-l-escala.es.html
+2026-08-15 18:53:17 - WARNING - __main__ -   Descartado (no es Tenerife): 'Casa Espaciosa con Gran Terraza y Piscina Privada en Zona Tranquila de L'Escala - HISP-7-4' (https://www.booking.com/hotel/es/casa-espaciosa-con-gran-terraza-y-piscina-privada-en-zona-tranquila-de-l-escala.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:53:23 - INFO - __main__ - [49/50] Procesando https://www.booking.com/hotel/es/espectacular-apartamento-con-piscina-y-parking-en-l-escala-hisp-7-31.es.html
+2026-08-15 18:53:23 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/espectacular-apartamento-con-piscina-y-parking-en-l-escala-hisp-7-31.es.html
+2026-08-15 18:53:27 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:53:33 - WARNING - __main__ -   Descartado (no es Tenerife): 'Espectacular apartamento con piscina y parking en L'Escala - HISP-7-31' (https://www.booking.com/hotel/es/espectacular-apartamento-con-piscina-y-parking-en-l-escala-hisp-7-31.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:53:38 - INFO - __main__ - [50/50] Procesando https://www.booking.com/hotel/es/apartamento-en-primera-linea-de-playa-en-denia-con-wi-fi-jardin-y-piscina-es-373.es.html
+2026-08-15 18:53:38 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartamento-en-primera-linea-de-playa-en-denia-con-wi-fi-jardin-y-piscina-es-373.es.html
+2026-08-15 18:53:43 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-15 18:53:44 - INFO - __main__ -   Banner de 'Iniciar sesión con Google' cerrado.
+2026-08-15 18:53:48 - WARNING - __main__ -   Descartado (no es Tenerife): 'Apartamento en primera línea de playa en Denia con Wi-Fi, jardín y piscina - ES-373-34' (https://www.booking.com/hotel/es/apartamento-en-primera-linea-de-playa-en-denia-con-wi-fi-jardin-y-piscina-es-373.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-15 18:53:53 - INFO - __main__ - === Corrida finalizada: 11 establecimientos, 21 reseñas en total (39 descartados por no ser de Tenerife) ===

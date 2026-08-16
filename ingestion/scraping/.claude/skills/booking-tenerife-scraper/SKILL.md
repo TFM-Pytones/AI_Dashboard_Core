@@ -168,6 +168,25 @@ if driver.find_elements(By.CSS_SELECTOR, '[data-testid="no-reviews-banner"]'):
 
 Verificado en vivo contra las 2 URLs de arriba: antes del fix, 52.3s y 47.4s hasta `TimeoutException` (establecimiento perdido); después, 18.3s y 14.3s, establecimiento guardado correctamente con 0 reseñas.
 
+### Efecto dominó del fix anterior: `pd.DataFrame([])` con lista vacía no tiene NINGUNA columna, no solo 0 filas
+
+El fix de "sin reseñas" de arriba expuso un bug distinto en `save_and_upload()`: `pd.DataFrame([vars(r) for r in reviews])` con `reviews = []` produce un DataFrame **sin columnas en absoluto** (ni `review_id` ni ninguna otra) — pandas infiere las columnas del contenido, y con una lista vacía no tiene de dónde inferirlas. El Parquet que se sube a Blob queda igual de vacío de columnas, y cualquier código río abajo que haga `df["review_id"]` (ej. `validate_booking_data.py`) revienta con `KeyError`, no con un error claro de "0 filas".
+
+**Fix**: pasar `columns=` explícito a `pd.DataFrame(...)`, derivado de los campos del dataclass (no hardcodeado, para no desincronizarse si el dataclass cambia):
+```python
+from dataclasses import fields
+
+df_reviews = pd.DataFrame(
+    [vars(r) for r in reviews],
+    columns=[f.name for f in fields(Review)],
+)
+```
+Con esto, un establecimiento sin reseñas produce un Parquet con las 6 columnas correctas y 0 filas — no un Parquet vacío de columnas.
+
+**`validate_booking_data.py` también necesita defenderse en dos niveles**, no solo confiar en que el Parquet nuevo ya viene bien: (1) si faltan columnas esperadas del todo (Parquets viejos subidos ANTES de este fix, que van a seguir así para siempre en Bronce — capa append-only, no se reescriben), avisar qué columnas faltan y cortar ahí, sin tocar ninguna columna que no existe; (2) si el DataFrame tiene las columnas correctas pero 0 filas (el caso normal post-fix), avisar "este establecimiento no tiene reseñas" y cortar ahí también, en vez de ejecutar chequeos que no dicen nada útil sobre un DataFrame vacío (`value_counts()` vacío, `describe()` con puros `NaN`).
+
+Verificado con 3 casos (dos simulados + uno real subido a Blob y vuelto a descargar): Parquet nuevo con columnas correctas y 0 filas → aviso claro, sin crash; Parquet viejo sin columnas → error claro listando qué falta, sin `KeyError`; caso normal con reseñas → sin cambios, todos los chequeos corren igual que siempre.
+
 ### Cuelgue silencioso e invisible: `ChromeDriverManager().install()` dentro del loop
 
 Si `build_driver()` llama a `ChromeDriverManager().install()` cada vez que se construye un driver (una vez por establecimiento), cada llamada hace una consulta de red para verificar/descargar la versión correcta del binario. Un hipo de conexión ahí puede colgar el script 10-20+ minutos **sin ningún log y sin que Chrome llegue a abrirse** (confirmado: sin proceso `chrome.exe` corriendo durante el cuelgue) — invisible al manejo normal de timeouts (`TimeoutException`, `PAGE_LOAD_TIMEOUT_SECONDS`) porque ocurre ANTES de que exista un driver o una página cargando.

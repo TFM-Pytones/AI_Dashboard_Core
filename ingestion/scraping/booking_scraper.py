@@ -25,7 +25,7 @@ import re
 import sys
 import time
 import xml.etree.ElementTree as ET
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from pathlib import Path
 
 import pandas as pd
@@ -758,8 +758,20 @@ def save_and_upload(establishments: list[Establishment], reviews: list[Review]) 
         logger.warning("No hay datos para guardar en esta corrida.")
         return
 
-    df_establishments = pd.DataFrame([vars(e) for e in establishments])
-    df_reviews = pd.DataFrame([vars(r) for r in reviews])
+    # columns= explícito (a partir de los campos del dataclass), en vez de
+    # dejar que pandas infiera las columnas del contenido: con una lista
+    # vacía (ej. establecimiento sin reseñas, ver no-reviews-banner más
+    # arriba), pd.DataFrame([]) produce un DataFrame SIN NINGUNA columna —
+    # ni siquiera review_id — no solo sin filas. Rompe cualquier código río
+    # abajo que espere esas columnas (ver validate_booking_data.py).
+    df_establishments = pd.DataFrame(
+        [vars(e) for e in establishments],
+        columns=[f.name for f in fields(Establishment)],
+    )
+    df_reviews = pd.DataFrame(
+        [vars(r) for r in reviews],
+        columns=[f.name for f in fields(Review)],
+    )
 
     timestamp = pd.Timestamp.now().strftime("%Y-%m-%d_%H%M%S")
 

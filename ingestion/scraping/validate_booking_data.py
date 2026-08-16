@@ -123,12 +123,31 @@ def validate_establishments(df: pd.DataFrame) -> None:
         print("  [OK] Todos los establecimientos tienen coordenadas")
 
 
+REQUIRED_REVIEW_COLUMNS = [
+    "review_id", "establishment_id", "rating", "review_text", "review_date", "reviewer_country",
+]
+
+
 def validate_reviews(df: pd.DataFrame, establishment_ids: set) -> None:
     print("\n" + "=" * 60)
     print("RESEÑAS")
     print("=" * 60)
     print(f"Filas: {len(df)}")
     print(f"Columnas: {list(df.columns)}")
+
+    # Un Parquet de reseñas de una versión anterior del scraper (antes del
+    # fix de save_and_upload) puede no tener columnas en absoluto cuando el
+    # establecimiento no tenía reseñas — sin este chequeo, cualquier
+    # df["columna"] de más abajo revienta con un KeyError sin capturar.
+    missing_columns = [c for c in REQUIRED_REVIEW_COLUMNS if c not in df.columns]
+    if missing_columns:
+        print(f"  [ERROR] Faltan columnas esperadas: {missing_columns} — Parquet corrupto o de una versión anterior del scraper. Se omiten los chequeos de reseñas.")
+        return
+
+    if df.empty:
+        print("  [AVISO] Este establecimiento no tiene reseñas (0 filas) — nada que validar.")
+        return
+
     print("\nPrimeras 5 reseñas:")
     print(df.head(5).to_string())
 
