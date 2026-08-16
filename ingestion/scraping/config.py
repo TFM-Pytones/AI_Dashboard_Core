@@ -56,7 +56,7 @@ MAX_DELAY_SECONDS = 8.0
 
 # --- Límites de una corrida, para no sobrecargar la infraestructura del sitio ---
 # Empieza bajo para probar rápido; sube estos números cuando ya confirmes que funciona.
-MAX_ESTABLISHMENTS_PER_RUN = 50
+MAX_ESTABLISHMENTS_PER_RUN = 20
 MAX_REVIEWS_PER_ESTABLISHMENT = 30
 
 # --- User-Agent identificable y honesto (ver README: no spoofear como Googlebot u otro bot) ---

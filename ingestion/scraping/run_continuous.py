@@ -30,7 +30,7 @@ logger = get_logger("run_continuous", log_file=config.LOG_FILE)
 # maneja config.MIN_DELAY_SECONDS/MAX_DELAY_SECONDS dentro de cada corrida).
 # Un lote entero de MAX_ESTABLISHMENTS_PER_RUN ya toma tiempo real; esta
 # pausa es un respiro adicional entre lotes completos.
-PAUSE_BETWEEN_BATCHES_SECONDS = 30  # 15 minutos
+PAUSE_BETWEEN_BATCHES_SECONDS = 3 * 60  # 15 minutos
 
 # Si un lote entero devuelve 0 procesados 3 veces seguidas, probablemente
 # se agotó el caché de candidatos (sitemap_discovery_cache.json) — no tiene
