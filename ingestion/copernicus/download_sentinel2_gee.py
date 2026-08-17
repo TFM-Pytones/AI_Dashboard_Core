@@ -69,7 +69,7 @@ logger = logging.getLogger("Sentinel2GEEIngestion")
 
 # Bounding box de Tenerife (WGS84 EPSG:4326)
 # Márgenes ligeramente ampliados para capturar la costa completa
-TENERIFE_BBOX = [-16.92, 27.97, -16.09, 28.59]
+TENERIFE_BBOX = [-16.95, 27.97, -16.09, 28.59]
 
 # GEE: colección Sentinel-2 Surface Reflectance (armonizada entre procesadores)
 GEE_COLLECTION = "COPERNICUS/S2_SR_HARMONIZED"
@@ -307,7 +307,9 @@ class Sentinel2GEEPipeline:
         except Exception as exc:
             logger.error(
                 f"❌ Error al inicializar GEE: {exc}\n"
-                "   Asegúrate de haber ejecutado: earthengine authenticate"
+                "   NOTA: Los tokens de Google Earth Engine caducan a los pocos días por seguridad.\n"
+                "   Si estabas autenticado y de repente falla, renueva el token ejecutando:\n"
+                "   earthengine authenticate --force"
             )
             raise
 
