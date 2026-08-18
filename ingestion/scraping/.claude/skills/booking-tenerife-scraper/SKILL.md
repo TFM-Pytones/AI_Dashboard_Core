@@ -48,8 +48,6 @@ Las clases CSS de Booking son hashes generados (tipo `f6e3a11b0d`) que cambian c
 | Dirección | `[data-testid="PropertyHeaderAddressDesktop-wrapper"]` | Contiene un tooltip anidado que hay que restar (ver abajo) |
 | Tipo de establecimiento | `[data-testid="breadcrumb-nav"]` | Último `<li>`, patrón `"...Nombre (Tipo) (País)"` — penúltimo grupo entre paréntesis es el tipo |
 | Banner de cookies | `#onetrust-accept-btn-handler` | Aparece de forma inconsistente, cerrar más de una vez |
-| Banner "Iniciar sesión con Google" | `div#credential_picker_container iframe`, botón cerrar `[aria-label="Cerrar"]` DENTRO del iframe | Requiere `switch_to.frame()`/`default_content()`, ver sección de errores |
-| Sin reseñas | `[data-testid="no-reviews-banner"]` | Si está presente, `fr-read-all-reviews` nunca existe — no esperar por él |
 
 ### Extraer país del reseñador (correcto)
 
@@ -123,87 +121,6 @@ No alcanza con cerrarlo solo al cargar la página — puede reaparecer o tardar 
 
 Fallo transitorio de red, no de código. Capturar con `except TimeoutException`, loggear y continuar con el siguiente establecimiento — no reintentar automáticamente dentro de la misma corrida (se reintenta solo en la próxima corrida vía el progress tracker, ver abajo).
 
-### Interferencia nueva: banner "Iniciar sesión con Google" (One Tap), distinta al banner de cookies
-
-Booking a veces muestra el widget nativo de Google ("Google One Tap") superpuesto a la página — aparece de forma intermitente y con carga ASÍNCRONA (tarda unos segundos en inyectarse, no está apenas carga la página). Tapa el botón "Leer todos los comentarios" y puede causar un timeout en el clic si no se cierra.
-
-A diferencia del banner de cookies, este vive DENTRO de un `<iframe>` de `accounts.google.com` — Google no lo embebe directo en el DOM del sitio:
-```html
-<div id="credential_picker_container">
-  <iframe title="Cuadro de diálogo Iniciar sesión con Google" src="https://accounts.google.com/gsi/iframe/select?...">
-```
-Botón de cerrar dentro del iframe: `[aria-label="Cerrar"]` (las clases de Google son generadas/inestables, igual que los hashes CSS de Booking — no confiar en ellas, usar el atributo semántico). Hace falta cambiar de contexto para poder clickearlo:
-```python
-try:
-    iframe = WebDriverWait(driver, 2).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "div#credential_picker_container iframe"))
-    )
-except TimeoutException:
-    return  # no apareció — caso más común, nada que hacer
-
-try:
-    driver.switch_to.frame(iframe)
-    close_button = driver.find_element(By.CSS_SELECTOR, '[aria-label="Cerrar"]')
-    driver.execute_script("arguments[0].click();", close_button)
-except (NoSuchElementException, ElementNotInteractableException):
-    pass
-finally:
-    driver.switch_to.default_content()  # SIEMPRE volver, pase lo que pase adentro
-```
-`switch_to.default_content()` va en un `finally` — si no se vuelve al contexto principal, todos los selectores del sitio (`h2`, `data-testid`, etc.) dejan de encontrar nada después, como si la página estuviera vacía. Llamar a esta función en los mismos dos puntos que `_dismiss_cookie_banner()`: al inicio de la página y justo antes del clic en "Leer todos los comentarios".
-
-**Ojo con el diagnóstico**: verificado en vivo que el banner de Google SÍ aparece y SÍ se cierra bien con este código, pero en dos URLs reportadas como "cuelgan por el banner de Google" (`live-la-caleta-vista-al-mar`, `floritas-23-2`), la causa real de esos timeouts puntuales resultó ser otra cosa (ver siguiente hallazgo) — dos problemas distintos pueden producir el mismo síntoma (timeout en el clic de reseñas). No asumir causa por correlación; instrumentar con timestamps paso a paso hasta encontrar dónde se traba exactamente.
-
-### Establecimientos sin reseñas: `no-reviews-banner`, no hay botón que esperar
-
-Si un establecimiento no tiene ninguna reseña en Booking, el DOM nunca tiene `[data-testid="fr-read-all-reviews"]` — en su lugar aparece `[data-testid="no-reviews-banner"]`. Sin chequear esto antes de intentar el clic, el código esperaba los `PAGE_LOAD_TIMEOUT_SECONDS` completos (30s) por un botón que nunca iba a existir, tiraba `TimeoutException`, y como esa excepción se propaga fuera de `scrape_establishment()`, `main()` la atrapaba en el `except Exception` genérico del loop y **descartaba TODO el establecimiento** (ni el nombre ni la dirección quedaban guardados, no solo las reseñas).
-
-Fix: chequear `no-reviews-banner` temprano (apenas se arma el objeto `Establishment`, antes de intentar abrir el panel) y devolver el establecimiento con `reviews=[]` de inmediato, sin esperar nada:
-```python
-if driver.find_elements(By.CSS_SELECTOR, '[data-testid="no-reviews-banner"]'):
-    logger.info("  Sin reseñas para este establecimiento (no-reviews-banner detectado).")
-    return establishment, reviews  # reviews=[] en este punto, no hace falta esperar nada más
-```
-`driver.find_elements` (plural) no tira excepción si no encuentra nada — no hace falta try/except acá, a diferencia de `find_element` (singular).
-
-Verificado en vivo contra las 2 URLs de arriba: antes del fix, 52.3s y 47.4s hasta `TimeoutException` (establecimiento perdido); después, 18.3s y 14.3s, establecimiento guardado correctamente con 0 reseñas.
-
-### Efecto dominó del fix anterior: `pd.DataFrame([])` con lista vacía no tiene NINGUNA columna, no solo 0 filas
-
-El fix de "sin reseñas" de arriba expuso un bug distinto en `save_and_upload()`: `pd.DataFrame([vars(r) for r in reviews])` con `reviews = []` produce un DataFrame **sin columnas en absoluto** (ni `review_id` ni ninguna otra) — pandas infiere las columnas del contenido, y con una lista vacía no tiene de dónde inferirlas. El Parquet que se sube a Blob queda igual de vacío de columnas, y cualquier código río abajo que haga `df["review_id"]` (ej. `validate_booking_data.py`) revienta con `KeyError`, no con un error claro de "0 filas".
-
-**Fix**: pasar `columns=` explícito a `pd.DataFrame(...)`, derivado de los campos del dataclass (no hardcodeado, para no desincronizarse si el dataclass cambia):
-```python
-from dataclasses import fields
-
-df_reviews = pd.DataFrame(
-    [vars(r) for r in reviews],
-    columns=[f.name for f in fields(Review)],
-)
-```
-Con esto, un establecimiento sin reseñas produce un Parquet con las 6 columnas correctas y 0 filas — no un Parquet vacío de columnas.
-
-**`validate_booking_data.py` también necesita defenderse en dos niveles**, no solo confiar en que el Parquet nuevo ya viene bien: (1) si faltan columnas esperadas del todo (Parquets viejos subidos ANTES de este fix, que van a seguir así para siempre en Bronce — capa append-only, no se reescriben), avisar qué columnas faltan y cortar ahí, sin tocar ninguna columna que no existe; (2) si el DataFrame tiene las columnas correctas pero 0 filas (el caso normal post-fix), avisar "este establecimiento no tiene reseñas" y cortar ahí también, en vez de ejecutar chequeos que no dicen nada útil sobre un DataFrame vacío (`value_counts()` vacío, `describe()` con puros `NaN`).
-
-Verificado con 3 casos (dos simulados + uno real subido a Blob y vuelto a descargar): Parquet nuevo con columnas correctas y 0 filas → aviso claro, sin crash; Parquet viejo sin columnas → error claro listando qué falta, sin `KeyError`; caso normal con reseñas → sin cambios, todos los chequeos corren igual que siempre.
-
-### Cuelgue silencioso e invisible: `ChromeDriverManager().install()` dentro del loop
-
-Si `build_driver()` llama a `ChromeDriverManager().install()` cada vez que se construye un driver (una vez por establecimiento), cada llamada hace una consulta de red para verificar/descargar la versión correcta del binario. Un hipo de conexión ahí puede colgar el script 10-20+ minutos **sin ningún log y sin que Chrome llegue a abrirse** (confirmado: sin proceso `chrome.exe` corriendo durante el cuelgue) — invisible al manejo normal de timeouts (`TimeoutException`, `PAGE_LOAD_TIMEOUT_SECONDS`) porque ocurre ANTES de que exista un driver o una página cargando.
-
-**Solución**: resolver la ruta del ChromeDriver una sola vez por corrida, cacheada a nivel de módulo, y que `build_driver()` reutilice esa ruta en cada llamada:
-```python
-_chromedriver_path: str | None = None
-
-def _get_chromedriver_path() -> str:
-    global _chromedriver_path
-    if _chromedriver_path is None:
-        logger.info("Resolviendo ChromeDriver (una sola vez para toda la corrida)...")
-        _chromedriver_path = ChromeDriverManager().install()
-    return _chromedriver_path
-```
-Además, llamar a `_get_chromedriver_path()` explícitamente al inicio de `main()` (antes del loop de establecimientos) para fallar rápido y con log claro ante un problema de red, en vez de que el cuelgue aparezca recién en medio de la corrida, en un establecimiento arbitrario.
-
 ## Geocodificación de direcciones (Nominatim/OpenStreetMap)
 
 Nominatim falla con direcciones españolas específicas. Encadenar 3 niveles de fallback, del más preciso al más genérico:
@@ -255,6 +172,31 @@ ORDER BY establishment_id, fetched_at DESC
 - Si aparecen 403/CAPTCHAs (no solo timeouts) al escalar, ese es el punto para retomar la necesidad de proxies (issue #3 original ya lo anticipaba).
 - Para dejarlo corriendo días/semanas: un wrapper externo que relance el script en loop con pausas entre lotes, deteniéndose solo, cuando el caché de descubrimiento se agota (varios lotes seguidos sin candidatos pendientes).
 
+## VM con recursos limitados: vigilar DISCO, no solo RAM
+
+La VM del proyecto (`mv-orquestador-tfm`) tiene 29GB de disco y ~842MiB de RAM — ambos son escasos, pero el disco es fácil de subestimar. Un `pip install -r requirements.txt` completo en la VM (en vez de instalar solo lo que el scraper necesita) puede arrastrar `torch`/`transformers`/dependencias NVIDIA/`triton`, sumando **varios GB** (`triton` solo pesa ~594MB) y dejar el disco casi lleno sin previo aviso visible en los logs del scraper.
+
+**Síntoma que esto produce**: Selenium falla con `invalid session id: session deleted as the browser has closed the connection` — Chrome se cierra abruptamente porque no puede escribir sus archivos temporales. Este error se parece a un crash aleatorio, pero la causa real está en `df -h /`, no en el código Python ni en Booking.
+
+**Diagnóstico correcto, en orden**:
+```bash
+df -h /                                                    # 1. confirmar % de uso real del disco
+sudo dmesg | grep -i "oom\|killed process" | tail -20      # 2. descartar RAM (OOM-Killer) como causa
+du -sh ~/AI_Dashboard_Core/.venv/lib/python*/site-packages/* 2>/dev/null | sort -rh | head -10  # 3. encontrar qué pesa
+```
+
+**Arreglo seguro** (no toca dependencias que otros módulos del equipo sí usan, como `scipy`, `sklearn`, `rasterio`, `pandas`, `pyarrow`):
+```bash
+pip uninstall triton torch transformers sentencepiece -y
+pip list | grep -i nvidia    # confirmar residuos, pip no siempre limpia dependencias transitivas
+pip uninstall nvidia-cublas-cu12 nvidia-cuda-cupti-cu12 nvidia-cuda-nvrtc-cu12 \
+    nvidia-cuda-runtime-cu12 nvidia-cufft-cu12 nvidia-cufile-cu12 nvidia-curand-cu12 \
+    nvidia-cusparse-cu12 nvidia-cusparselt-cu12 nvidia-nccl-cu12 nvidia-nvjitlink-cu12 \
+    nvidia-nvshmem-cu12 nvidia-nvtx-cu12 -y
+```
+
+**Consecuencia en los datos, cuando esto ya pasó**: puede dejar reseñas "huérfanas" (guardadas en Bronce sin su establecimiento correspondiente, por interrupción a mitad del guardado incremental). El `INNER JOIN` en `silver_booking_reviews.sql` contra establecimientos válidos ya filtra esto automáticamente — no requiere limpieza manual en Bronce. Ver `docs/incidente_disco_lleno_vm.md` para el caso real documentado (30 reseñas huérfanas de ~9500, filtradas sin intervención).
+
 ## Encoding en Windows: emojis rompen la consola por defecto
 
 La consola de Windows usa `cp1252` por defecto, no UTF-8 — un emoji en una reseña real (ej. `🥰`) puede crashear un script con `UnicodeEncodeError` al imprimir o loguear. Arreglo permanente, no workaround manual (`PYTHONIOENCODING=utf-8` puntual):
@@ -271,46 +213,7 @@ def ensure_utf8_console():
 ```
 Llamarlo automáticamente al inicio de `get_logger()`. **Importante**: cualquier script que NO use `get_logger()` (ej. uno que solo hace `print()`, como `validate_booking_data.py`) NO queda cubierto automáticamente — necesita `from utils.logger import ensure_utf8_console; ensure_utf8_console()` explícito al inicio. Por convención del equipo, todo script nuevo debería usar `get_logger()` desde el principio para evitar este caso borde.
 
-## `get_logger()` escribe a stderr, no a stdout — cuidado al parsear el output de un subproceso
 
-`logging.StreamHandler()` (usado en `utils/logger.py`) usa **`sys.stderr` por defecto** si no se le pasa un stream explícito — confirmado con `logging.StreamHandler().stream is sys.stderr`. Esto significa que TODO el logging de `booking_scraper.py` (incluido cualquier marcador de texto que otro script busque en su output, ej. `"No hay establecimientos pendientes"`) sale por stderr, no por stdout.
-
-Si otro script lanza `booking_scraper.py` como subproceso y necesita inspeccionar su output (ej. `run_continuous.py` buscando ese marcador para saber cuándo detener el loop), **hay que capturar/fusionar stderr, no solo stdout** — de lo contrario el chequeo nunca encuentra lo que busca, silenciosamente, sin ningún error. Con `subprocess.Popen`, fusionar con `stderr=subprocess.STDOUT`; con `subprocess.run`, no alcanza con revisar solo `result.stdout`.
-
-## Streaming en tiempo real de un subproceso largo (`run_continuous.py` → `booking_scraper.py`)
-
-`subprocess.run(..., capture_output=True)` bufferea TODO el output hasta que el proceso termina — inútil para monitorear una corrida larga sin supervisión (no se ve nada hasta el final). Usar `subprocess.Popen` con `stdout=PIPE`, `stderr=STDOUT` (ver arriba), `text=True`, `encoding="utf-8"` explícito (si no, en Windows se decodifica con cp1252 y rompe acentos) y `bufsize=1`, luego iterar `for line in process.stdout: print(line, end="")` — cada línea se entrega apenas se produce. Acumular las líneas en una lista aparte para poder buscar marcadores en el output completo después de que el proceso termine (`process.wait()`).
-
-**Cómo probar que el streaming es real** (no solo "parece funcionar"): el caché de descubrimiento se agota rápido para límites chicos si ya se scrapearon miles de establecimientos en corridas previas (los primeros N candidatos, deterministas, ya están completados) — un lote de prueba puede terminar en segundos sin generar líneas espaciadas en el tiempo, lo cual no prueba nada. Mejor: apuntar `SCRIPT_PATH` a un script descartable que imprima líneas con `time.sleep()` entre medio (por stdout Y stderr) y confirmar con timestamps que cada línea llega a su propio momento, no todas juntas al final.
-
-
-
-## Falsa alarma confirmada: "review_date con el país pegado al final" era un artefacto de terminal, no un bug real
-
-Se reportó ver valores tipo `'4 de mayo de 2026España'` en `review_date` (país de `reviewer_country` pegado sin espacio). Investigado a fondo, en ningún nivel apareció el problema real:
-1. Parquet leído directo de Blob (sin pasar por ninguna terminal): `review_date` y `reviewer_country` separados y limpios.
-2. Barrido de las ~800 reseñas de la corrida completa del día buscando el patrón "dígito pegado a letra": cero coincidencias.
-3. DOM real de Booking en vivo: `[data-testid="review-date"]` es un `<span>` aislado, sin nada anidado que pudiera arrastrar el país.
-
-Causa real: una terminal angosta corta visualmente la línea larga de `df.to_string()` justo entre la columna `review_date` y la columna `reviewer_country`, dando la ilusión de que están concatenadas cuando en realidad son dos columnas separadas por espacios que ya no entraron en el ancho visible.
-
-**Antes de asumir que hay un bug de scraping por algo visto en consola**: leer el valor puntual con `repr()` sobre el parquet crudo (sin pasar por un `print(df.to_string())` de una fila ancha) — si ahí aparece limpio, el problema es de visualización, no de datos. Evita "arreglar" con código especulativo un bug que no existe.
-
-## Bug de diseño (corregido): recortar por `limit` ANTES de filtrar completados congela el "pendientes" en 0
-
-`discover_establishment_urls()` / `_discover_from_sitemap()` recortaban el resultado a `limit` (=`config.MAX_ESTABLISHMENTS_PER_RUN`) ANTES de que `main()` aplicara `filter_pending()`. Efecto: cada corrida nueva volvía a pedir siempre los mismos primeros N candidatos del caché (`cached["urls"][:limit]`), nunca avanzaba a las posiciones siguientes. Una vez que esos primeros N quedaban `mark_completed()`, cualquier corrida futura con el mismo límite filtraba esos N a 0 pendientes y terminaba ahí — **aunque el caché tuviera miles de candidatos más sin tocar**. Silencioso: no tira error, solo logea "No hay establecimientos pendientes. Nada que hacer." y listo.
-
-Por qué no se notó antes: una corrida larga en un solo proceso (`python booking_scraper.py` corriendo horas con `MAX_ESTABLISHMENTS_PER_RUN` alto) no lo sufre — el filtrado pasa una sola vez al arrancar y el loop interno de esa misma llamada sí avanza célula por célula, completando de a uno genuino. El bug solo aparece entre invocaciones SEPARADAS del proceso con el mismo límite (exactamente el caso de `run_continuous.py`, que relanza `booking_scraper.py` como subproceso nuevo en cada lote) — ahí es donde de verdad importa, porque es la forma pensada para corridas largas sin supervisión.
-
-**Fix**: `discover_establishment_urls()` (y `_discover_from_sitemap()`) devuelven TODOS los candidatos disponibles, sin recortar. `main()` aplica `filter_pending()` sobre la lista completa y recién DESPUÉS recorta a `config.MAX_ESTABLISHMENTS_PER_RUN`:
-```python
-pending_urls = filter_pending(urls, _extract_establishment_id)  # sobre la lista completa
-...
-pending_urls = pending_urls[: config.MAX_ESTABLISHMENTS_PER_RUN]  # recién acá se recorta
-```
-Excepción a propósito: `config.TEST_ESTABLISHMENT_URLS` (lista manual chica para pruebas rápidas) SÍ sigue recortando por `limit` dentro de `discover_establishment_urls()`, sin este cambio — no tiene el problema de fondo (no es un caché de miles de candidatos) y se quiere que siga devolviendo siempre la misma sublista fija.
-
-**Verificado contra el caché real** (20.941 candidatos, 953 ya completados): antes del fix, pedir un lote con `MAX_ESTABLISHMENTS_PER_RUN=2` daba 0 pendientes (los primeros 2 raw del caché ya estaban hechos). Después del fix, el mismo caso trae 2 candidatos genuinamente nuevos, y un chequeo de solapamiento confirma 0 IDs del lote nuevo presentes en `scraping_progress.json`.
 
 ## Validación de una corrida completa (no solo el último archivo)
 
@@ -319,35 +222,6 @@ Excepción a propósito: `config.TEST_ESTABLISHMENT_URLS` (lista manual chica pa
 **Limitación conocida**: si se corre el scraper dos veces seguidas con poca pausa entre una y otra, el agrupamiento por hueco puede fusionar ambas corridas en una sola sin avisar. Mejora futura (no implementada aún): agregar un `run_id` real, generado una vez al inicio de `main()`, e incluirlo en el nombre de archivo o como columna del Parquet — eliminaría la necesidad de heurística.
 
 
-
-## `build_driver()` multiplataforma: Windows (laptop) vs Linux (VM de Azure)
-
-En la VM de Azure (Ubuntu) Chrome necesita flags que en Windows no hacen falta. Detectar con `platform.system() == "Linux"` y aplicarlos condicionalmente, dejando el resto de `build_driver()` idéntico:
-
-```python
-if platform.system() == "Linux":
-    options.binary_location = "/usr/bin/google-chrome"
-    options.add_argument("--no-sandbox")           # la VM suele correr el proceso como root
-    options.add_argument("--disable-dev-shm-usage") # /dev/shm es chico por defecto en muchas VMs, Chrome crashea sin esto
-    options.add_argument("--disable-gpu")           # sin GPU real en el servidor
-    options.add_argument(f"--user-data-dir=/tmp/chrome-user-data-{os.getpid()}")  # único por proceso, permite correr instancias en paralelo
-```
-
-### Trampa: Chrome vía Snap falla con Selenium en Ubuntu
-
-Si Chrome/Chromium se instaló vía `snap install chromium` (el default en Ubuntu Desktop reciente), Selenium falla al arrancar el driver con:
-```
-session not created: probably user data directory is already in use, or Chrome failed to start
-Message: unknown error: DevToolsActivePort file doesn't exist
-```
-Causa: el sandboxing de Snap interfiere con cómo Chrome expone el puerto de DevTools que Selenium necesita para conectarse — no es arreglable solo con `--no-sandbox` u otros flags.
-
-**Solución que funcionó**: desinstalar la versión Snap e instalar `google-chrome-stable` directo del repositorio oficial de Google (`.deb`), no Chromium vía Snap:
-```bash
-wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-sudo apt install ./google-chrome-stable_current_amd64.deb
-```
-Por eso `options.binary_location` apunta a `/usr/bin/google-chrome` explícitamente en Linux — sin esto, Selenium puede intentar usar un Chromium de Snap residual si quedó instalado.
 
 ## Anti-patrón detectado: cuidado al mezclar ramas de Git con archivos README compartidos
 

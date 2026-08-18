@@ -46,6 +46,8 @@ checkpoints.json
 source_datasets.hash.json
 # 8. Archivos de skills de claude
 .claude
+!ingestion/scraping/.claude/
+!ingestion/scraping/.claude/**
 # Next.js / frontend
 node_modules/
 .next/
