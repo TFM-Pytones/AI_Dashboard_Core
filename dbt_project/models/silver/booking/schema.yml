@@ -1,0 +1,51 @@
+version: 2
+
+models:
+  - name: silver_booking_establishments
+    description: "Establecimientos de Booking en Tenerife, deduplicados por establishment_id."
+    columns:
+      - name: establishment_id
+        description: "Slug único del establecimiento, extraído de la URL de Booking."
+        tests:
+          - unique
+          - not_null
+      - name: name
+        tests:
+          - not_null
+      - name: latitude
+        description: "Puede ser NULL en casos donde falló la geocodificación (limitación conocida)."
+        tests:
+          - not_null:
+              config:
+                severity: warn
+      - name: longitude
+        tests:
+          - not_null:
+              config:
+                severity: warn
+
+  - name: silver_booking_reviews
+    description: "Reseñas de Booking, deduplicadas por review_id, solo de establecimientos válidos en Tenerife."
+    columns:
+      - name: review_id
+        description: "Hash MD5 determinístico del texto de la reseña (o data-review-id si Booking lo expone)."
+        tests:
+          - unique
+          - not_null
+      - name: establishment_id
+        description: "Debe existir en silver_booking_establishments (integridad referencial)."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('silver_booking_establishments')
+                field: establishment_id
+      - name: rating
+        description: "Puede ser NULL en un pequeño porcentaje de casos (~0.5%) donde el badge de puntuación no se logró extraer — limitación conocida, ver skill booking-tenerife-scraper."
+        tests:
+          - not_null:
+              config:
+                severity: warn
+      - name: review_text
+        tests:
+          - not_null
