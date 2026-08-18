@@ -50,6 +50,32 @@ def get_pg_engine():
     return create_engine(connection_string, connect_args={"sslmode": "require"})
 
 
+# Columnas que DEBEN ser numéricas — si pandas las combina como "object" al
+# concatenar Parquets de distintas corridas/fuentes (laptop + VM, con
+# pequeñas diferencias de cómo se generó cada archivo), Postgres terminaría
+# creando la columna como TEXT en vez de NUMERIC/FLOAT, rompiendo comparaciones
+# numéricas más adelante (ej. en los modelos/tests de dbt).
+NUMERIC_COLUMNS_BY_TABLE = {
+    "booking_establishments": ["latitude", "longitude"],
+    "booking_reviews": ["rating"],
+}
+
+
+def _normalize_numeric_columns(df: pd.DataFrame, table_name: str) -> pd.DataFrame:
+    """Fuerza a numérico (float) las columnas que deben serlo, sin importar
+    cómo haya quedado el dtype tras el pd.concat() de múltiples Parquets.
+    Valores no convertibles quedan como NaN (errors='coerce'), no rompen la carga.
+    """
+    columns = NUMERIC_COLUMNS_BY_TABLE.get(table_name, [])
+    for col in columns:
+        if col in df.columns:
+            before_dtype = df[col].dtype
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+            if before_dtype != df[col].dtype:
+                print(f"  [AVISO] Columna '{col}' normalizada: {before_dtype} -> {df[col].dtype}")
+    return df
+
+
 def download_parquet_to_df(blob_name: str) -> pd.DataFrame:
     container_client = get_container_client("bronce-raw")
     blob_client = container_client.get_blob_client(blob_name)
@@ -85,6 +111,8 @@ def ingest_prefix(prefix: str, table_name: str, engine) -> int:
 
     full_df = pd.concat(dataframes, ignore_index=True)
     print(f"Total combinado: {len(full_df)} filas (antes de subir, puede tener duplicados — se resuelven en dbt)")
+
+    full_df = _normalize_numeric_columns(full_df, table_name)
 
     full_df.to_sql(
         name=table_name,
