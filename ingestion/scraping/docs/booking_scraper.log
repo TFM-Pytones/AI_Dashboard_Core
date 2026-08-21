@@ -18188,3 +18188,54 @@ Stacktrace:
 2026-08-16 18:35:19 - INFO - __main__ - Guardado completo: 1 establecimientos, 0 reseñas.
 2026-08-16 18:35:23 - INFO - __main__ - === Corrida finalizada: 13 establecimientos, 31 reseñas en total (86 descartados por no ser de Tenerife) ===
 2026-08-16 18:35:39 - INFO - run_continuous - Lote #5 finalizado. Pausando 15 minutos antes del siguiente...
+2026-08-21 19:08:08 - INFO - booking_scraper_deep - === Iniciando scraping profundo (establecimientos con mucho volumen) ===
+2026-08-21 19:08:08 - WARNING - booking_scraper_deep - MODO PRUEBA activo: TEST_LIMIT=5 — no es la corrida completa.
+2026-08-21 19:08:08 - INFO - booking_scraper_deep - 5 establecimientos ya scrapeados encontrados en Silver.
+2026-08-21 19:08:08 - INFO - booking_scraper_deep - 5 pendientes de evaluar (ya se excluyeron los procesados en corridas anteriores de este script).
+2026-08-21 19:08:08 - INFO - booking_scraper_deep - [1/5] Evaluando puerto-palace
+2026-08-21 19:08:08 - INFO - booking_scraper - Verificando ChromeDriver (una sola vez para toda la corrida)...
+2026-08-21 19:09:04 - INFO - booking_scraper_deep - === Iniciando scraping profundo (establecimientos con mucho volumen) ===
+2026-08-21 19:09:04 - WARNING - booking_scraper_deep - MODO PRUEBA activo: TEST_LIMIT=5 — no es la corrida completa.
+2026-08-21 19:09:04 - INFO - booking_scraper_deep - 5 establecimientos ya scrapeados encontrados en Silver.
+2026-08-21 19:09:04 - INFO - booking_scraper_deep - 5 pendientes de evaluar (ya se excluyeron los procesados en corridas anteriores de este script).
+2026-08-21 19:09:04 - INFO - booking_scraper_deep - [1/5] Evaluando puerto-palace
+2026-08-21 19:09:04 - INFO - booking_scraper - Verificando ChromeDriver (una sola vez para toda la corrida)...
+2026-08-21 19:09:14 - INFO - booking_scraper -   Banner de cookies cerrado.
+2026-08-21 19:09:15 - INFO - booking_scraper_deep -   puerto-palace: 5218 reseñas totales en Booking
+2026-08-21 19:09:17 - INFO - booking_scraper_deep -   puerto-palace: supera 30, re-scrapeando con límite 200
+2026-08-21 19:09:17 - INFO - booking_scraper - Scrapeando establecimiento: https://www.booking.com/hotel/es/puerto-palace.es.html
+2026-08-21 19:09:22 - INFO - booking_scraper -   Banner de cookies cerrado.
+2026-08-21 19:09:23 - INFO - booking_scraper -   Geocodificación sin resultado, reintentando sin 's/n': 'Doctor Cobiella Zaera, 38400 Puerto de la Cruz, España'
+2026-08-21 19:09:32 - INFO - booking_scraper -   Banner de cookies cerrado.
+2026-08-21 19:09:40 - INFO - booking_scraper -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-21 19:09:46 - INFO - booking_scraper -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-21 19:09:52 - INFO - booking_scraper -   Página 3: 10 reseñas (30 acumuladas)
+2026-08-21 19:09:58 - INFO - booking_scraper -   Página 4: 10 reseñas (40 acumuladas)
+2026-08-21 19:10:04 - INFO - booking_scraper -   Página 5: 10 reseñas (50 acumuladas)
+2026-08-21 19:10:11 - INFO - booking_scraper -   Página 6: 10 reseñas (60 acumuladas)
+2026-08-21 19:10:17 - INFO - booking_scraper -   Página 7: 10 reseñas (70 acumuladas)
+2026-08-21 19:10:24 - INFO - booking_scraper -   Página 8: 10 reseñas (80 acumuladas)
+2026-08-21 19:10:32 - INFO - booking_scraper -   Página 9: 10 reseñas (90 acumuladas)
+2026-08-21 19:10:41 - INFO - booking_scraper -   Página 10: 10 reseñas (100 acumuladas)
+2026-08-21 19:10:47 - INFO - booking_scraper -   Página 11: 10 reseñas (110 acumuladas)
+2026-08-21 19:10:54 - INFO - booking_scraper -   Página 12: 10 reseñas (120 acumuladas)
+2026-08-21 19:10:59 - INFO - booking_scraper -   Página 13: 10 reseñas (130 acumuladas)
+2026-08-21 19:11:06 - INFO - booking_scraper -   Página 14: 10 reseñas (140 acumuladas)
+2026-08-21 19:11:14 - INFO - booking_scraper -   Página 15: 10 reseñas (150 acumuladas)
+2026-08-21 19:11:19 - INFO - booking_scraper -   Página 16: 10 reseñas (160 acumuladas)
+2026-08-21 19:11:25 - INFO - booking_scraper -   Página 17: 10 reseñas (170 acumuladas)
+2026-08-21 19:11:31 - INFO - booking_scraper -   Página 18: 10 reseñas (180 acumuladas)
+2026-08-21 19:11:35 - INFO - booking_scraper -   Página 19: 10 reseñas (190 acumuladas)
+2026-08-21 19:11:39 - INFO - booking_scraper -   Página 20: 10 reseñas (200 acumuladas)
+2026-08-21 19:11:47 - INFO - booking_scraper - Guardado completo: 1 establecimientos, 200 reseñas.
+2026-08-21 19:11:47 - INFO - booking_scraper_deep - [2/5] Evaluando 12a-sunny-country-club-apartment-with-pool
+2026-08-21 19:11:51 - INFO - booking_scraper -   Banner de cookies cerrado.
+2026-08-21 19:11:52 - INFO - booking_scraper_deep -   12a-sunny-country-club-apartment-with-pool: 0 reseñas totales en Booking
+2026-08-21 19:11:54 - INFO - booking_scraper_deep - [3/5] Evaluando 134-parque-santiago-ii-amazing-terrace-pool-side
+2026-08-21 19:11:59 - INFO - booking_scraper -   Banner de cookies cerrado.
+2026-08-21 19:12:00 - INFO - booking_scraper_deep -   134-parque-santiago-ii-amazing-terrace-pool-side: 6 reseñas totales en Booking
+2026-08-21 19:12:02 - INFO - booking_scraper_deep - [4/5] Evaluando 188-tortugas-perfect-stay-by-sunkeyrents
+2026-08-21 19:12:07 - INFO - booking_scraper_deep -   188-tortugas-perfect-stay-by-sunkeyrents: 9 reseñas totales en Booking
+2026-08-21 19:12:09 - INFO - booking_scraper_deep - [5/5] Evaluando 11-beautiful-esmeralda-a-c-wifi-costa-adeje
+2026-08-21 19:12:13 - INFO - booking_scraper_deep -   11-beautiful-esmeralda-a-c-wifi-costa-adeje: 20 reseñas totales en Booking
+2026-08-21 19:12:16 - INFO - booking_scraper_deep - === Scraping profundo finalizado: 1 re-scrapeados en profundidad, 4 bajo el umbral de 30 reseñas ===

@@ -47,8 +47,23 @@ def _get_connection_string() -> str:
     return conn_str
 
 
+# Caché de clientes a nivel de módulo — evita abrir una conexión TCP/TLS
+# nueva por cada archivo cuando se descargan/suben muchos Parquet en un loop
+# (esto llegó a saturar routers domésticos con miles de conexiones nuevas
+# seguidas al procesar cientos/miles de archivos de Bronce).
+_cached_container_clients: dict[str, "object"] = {}
+
+
 def get_container_client(container: str = DEFAULT_CONTAINER):
-    """Devuelve un cliente conectado al contenedor indicado (por defecto, bronce-raw)."""
+    """Devuelve un cliente conectado al contenedor indicado (por defecto, bronce-raw).
+
+    Reutiliza la misma conexión entre llamadas (cacheada a nivel de módulo),
+    en vez de crear una conexión nueva cada vez — importante cuando se llama
+    en un loop sobre muchos archivos.
+    """
+    if container in _cached_container_clients:
+        return _cached_container_clients[container]
+
     conn_str = _get_connection_string()
     blob_service_client = BlobServiceClient.from_connection_string(conn_str)
     container_client = blob_service_client.get_container_client(container)
@@ -57,6 +72,7 @@ def get_container_client(container: str = DEFAULT_CONTAINER):
         container_client.create_container()
         print(f"Contenedor '{container}' no existía, se creó automáticamente.")
 
+    _cached_container_clients[container] = container_client
     return container_client
 
 
@@ -90,10 +106,25 @@ def upload_dataframe_as_parquet(
 
     container_client = get_container_client(container)
     blob_client = container_client.get_blob_client(blob_name)
-    blob_client.upload_blob(buffer, overwrite=overwrite)
 
-    print(f"[OK] Subido: {blob_name} -> contenedor '{container}' ({len(df)} filas)")
-    return blob_name
+    # Reintento: si el equipo se suspendió (suspensión/protector de pantalla)
+    # justo antes de este punto, la firma de la petición puede haber quedado
+    # vencida ("Request date header too old"). Un reintento genera una firma
+    # nueva con la hora actual y normalmente resuelve el problema de inmediato.
+    last_error = None
+    for attempt in range(1, 3 + 1):
+        try:
+            buffer.seek(0)  # rebobinar por si un intento previo ya lo consumió
+            blob_client.upload_blob(buffer, overwrite=overwrite)
+            print(f"[OK] Subido: {blob_name} -> contenedor '{container}' ({len(df)} filas)")
+            return blob_name
+        except Exception as e:
+            last_error = e
+            print(f"[AVISO] Fallo al subir (intento {attempt}/3): {e}")
+            import time
+            time.sleep(3)
+
+    raise last_error
 
 
 def list_files(container: str = DEFAULT_CONTAINER, prefix: str | None = None) -> list[str]:
