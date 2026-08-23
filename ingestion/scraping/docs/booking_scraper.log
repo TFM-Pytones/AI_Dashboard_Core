@@ -18239,3 +18239,32 @@ Stacktrace:
 2026-08-21 19:12:09 - INFO - booking_scraper_deep - [5/5] Evaluando 11-beautiful-esmeralda-a-c-wifi-costa-adeje
 2026-08-21 19:12:13 - INFO - booking_scraper_deep -   11-beautiful-esmeralda-a-c-wifi-costa-adeje: 20 reseñas totales en Booking
 2026-08-21 19:12:16 - INFO - booking_scraper_deep - === Scraping profundo finalizado: 1 re-scrapeados en profundidad, 4 bajo el umbral de 30 reseñas ===
+2026-08-23 23:20:03 - INFO - run_continuous - === Iniciando corrida continua de booking_scraper.py ===
+2026-08-23 23:20:03 - INFO - run_continuous - --- Lote #1 ---
+2026-08-23 23:20:03 - INFO - run_continuous - Lanzando un nuevo lote de booking_scraper.py...
+2026-08-23 23:20:10 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-08-23 23:20:10 - INFO - __main__ - Usando caché de descubrimiento: C:\Users\jcabr\AI_Dashboard_Core\ingestion\scraping\sitemap_discovery_cache.json
+2026-08-23 23:20:10 - INFO - __main__ - 100 establecimiento(s) ya completados en corridas anteriores, se omiten.
+2026-08-23 23:20:10 - INFO - __main__ - No hay establecimientos pendientes. Nada que hacer.
+2026-08-23 23:20:10 - INFO - run_continuous - Lote sin candidatos pendientes (1/3).
+2026-08-23 23:20:10 - INFO - run_continuous - Lote #1 finalizado. Pausando 3 minutos antes del siguiente...
+2026-08-23 23:27:42 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-08-23 23:27:42 - INFO - __main__ - Usando caché de descubrimiento: C:\Users\jcabr\AI_Dashboard_Core\ingestion\scraping\sitemap_discovery_cache.json
+2026-08-23 23:27:42 - INFO - __main__ - 1724 establecimiento(s) ya completados en corridas anteriores, se omiten.
+2026-08-23 23:27:42 - INFO - __main__ - 19217 pendientes en total; procesando este lote: 100 (límite MAX_ESTABLISHMENTS_PER_RUN=100)
+2026-08-23 23:27:42 - INFO - __main__ - [1/100] Procesando https://www.booking.com/hotel/es/torres-de-yomely-y12e.es.html
+2026-08-23 23:27:42 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/torres-de-yomely-y12e.es.html
+2026-08-23 23:27:42 - INFO - __main__ - Verificando ChromeDriver (una sola vez para toda la corrida)...
+2026-08-23 23:27:54 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-23 23:27:55 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38650 Playa de las Américas, España'
+2026-08-23 23:28:02 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-23 23:28:07 - INFO - __main__ -   Página 1: 6 reseñas (6 acumuladas)
+2026-08-23 23:28:07 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-23 23:28:10 - INFO - __main__ - Guardado completo: 1 establecimientos, 6 reseñas.
+2026-08-23 23:28:14 - INFO - __main__ - [2/100] Procesando https://www.booking.com/hotel/es/vistamar-with-ocean-view.es.html
+2026-08-23 23:28:14 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/vistamar-with-ocean-view.es.html
+2026-08-23 23:28:20 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-23 23:28:24 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-23 23:28:32 - INFO - __main__ -   Página 1: 1 reseñas (1 acumuladas)
+2026-08-23 23:28:32 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-23 23:28:35 - INFO - __main__ - Guardado completo: 1 establecimientos, 1 reseñas.

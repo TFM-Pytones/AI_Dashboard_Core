@@ -56,8 +56,8 @@ MAX_DELAY_SECONDS = 8.0
 
 # --- Límites de una corrida, para no sobrecargar la infraestructura del sitio ---
 # Empieza bajo para probar rápido; sube estos números cuando ya confirmes que funciona.
-MAX_ESTABLISHMENTS_PER_RUN = 50
-MAX_REVIEWS_PER_ESTABLISHMENT = 30
+MAX_ESTABLISHMENTS_PER_RUN = 100
+MAX_REVIEWS_PER_ESTABLISHMENT = 200
 
 # --- User-Agent identificable y honesto (ver README: no spoofear como Googlebot u otro bot) ---
 CONTACT_INFO = "TFM-Tenerife-AI-Dashboard (uso academico, contacto: equipo@tfm-tenerife.example)"

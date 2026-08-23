@@ -219,12 +219,20 @@ def _matches_tenerife(url: str) -> bool:
 def _discover_from_sitemap(limit: int) -> list[str]:
     """Recorre los shards de idioma español, filtra por país=España y
     por coincidencia de municipio de Tenerife en el slug.
+
+    IMPORTANTE: devuelve TODOS los candidatos encontrados, sin recortar por
+    `limit` acá — el recorte debe aplicarse en main(), DESPUÉS de filtrar
+    los ya completados (filter_pending). Recortar acá, antes del filtro,
+    causaba que la corrida se quedara "atascada" en los mismos primeros N
+    candidatos del caché para siempre: si esos N ya estaban completados,
+    el resultado siempre daba "0 pendientes", aunque el caché tuviera miles
+    de candidatos más sin tocar después de esa posición.
     """
     if DISCOVERY_CACHE_FILE.exists():
         logger.info(f"Usando caché de descubrimiento: {DISCOVERY_CACHE_FILE}")
         with open(DISCOVERY_CACHE_FILE, "r", encoding="utf-8") as f:
             cached = json.load(f)
-        return cached["urls"][:limit]
+        return cached["urls"]
 
     logger.info("Descargando índice de sitemaps de Booking...")
     shards = _get_spanish_shards()
@@ -761,10 +769,20 @@ def main():
 
     # Filtra los establecimientos que ya se scrapearon en una corrida anterior,
     # para poder cortar y retomar sin duplicar trabajo (ver utils/progress_tracker.py)
-    pending_urls = filter_pending(urls, _extract_establishment_id)
-    skipped = len(urls) - len(pending_urls)
+    pending_urls_all = filter_pending(urls, _extract_establishment_id)
+    skipped = len(urls) - len(pending_urls_all)
     if skipped:
         logger.info(f"{skipped} establecimiento(s) ya completados en corridas anteriores, se omiten.")
+
+    # El recorte a MAX_ESTABLISHMENTS_PER_RUN se aplica ACÁ, después de filtrar
+    # los ya completados — no antes (ver docstring de _discover_from_sitemap
+    # para el bug que esto corrige: recortar antes del filtro podía dejar la
+    # corrida "atascada" para siempre en los mismos primeros N candidatos).
+    pending_urls = pending_urls_all[:config.MAX_ESTABLISHMENTS_PER_RUN]
+    logger.info(
+        f"{len(pending_urls_all)} pendientes en total; procesando este lote: {len(pending_urls)} "
+        f"(límite MAX_ESTABLISHMENTS_PER_RUN={config.MAX_ESTABLISHMENTS_PER_RUN})"
+    )
 
     if not pending_urls:
         logger.info("No hay establecimientos pendientes. Nada que hacer.")
