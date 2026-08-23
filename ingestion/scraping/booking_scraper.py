@@ -21,6 +21,8 @@ import hashlib
 import json
 import os
 import platform
+import shutil
+import subprocess
 import re
 import sys
 import time
@@ -301,6 +303,44 @@ def _get_driver_path() -> str:
         logger.info("Verificando ChromeDriver (una sola vez para toda la corrida)...")
         _CACHED_DRIVER_PATH = ChromeDriverManager().install()
     return _CACHED_DRIVER_PATH
+
+
+def _cleanup_orphaned_chrome_profiles(min_age_minutes: int = 30) -> None:
+    """Borra carpetas de perfil temporal de Chrome en /tmp más viejas que
+    `min_age_minutes`, sin importar el nombre exacto que Chrome/Selenium
+    les haya puesto (se observó que no siempre respetan el nombre pedido
+    vía --user-data-dir, ej. aparecen como 'chrome-user-data-XXXXX' en vez
+    del prefijo que configuramos).
+
+    Solo Linux (la VM) — en Windows este problema no se presenta.
+    Filtra por antigüedad, no borra ciegamente todo lo que coincida con el
+    patrón, para no interferir con otra instancia de Chrome que pudiera
+    estar corriendo en paralelo (ej. run_continuous.py + booking_scraper_deep.py
+    a la vez) en el mismo momento.
+
+    Best-effort: cualquier error (permisos, etc.) se ignora silenciosamente,
+    nunca debe romper el scraping en sí.
+    """
+    try:
+        result = subprocess.run(
+            [
+                "find", "/tmp",
+                "-maxdepth", "1",
+                "-type", "d",
+                "-name", "chrome-*",
+                "-mmin", f"+{min_age_minutes}",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        orphaned_dirs = [d for d in result.stdout.strip().split("\n") if d]
+        if orphaned_dirs:
+            for d in orphaned_dirs:
+                shutil.rmtree(d, ignore_errors=True)
+            logger.info(f"  Limpieza: {len(orphaned_dirs)} perfil(es) temporal(es) de Chrome huérfano(s) eliminado(s).")
+    except Exception as e:
+        logger.warning(f"  No se pudo limpiar perfiles temporales de Chrome (no crítico): {e}")
 
 
 def build_driver() -> webdriver.Chrome:
@@ -668,6 +708,8 @@ def scrape_establishment(url: str, max_reviews: int | None = None) -> tuple[Esta
         raise
     finally:
         driver.quit()
+        if platform.system() == "Linux":
+            _cleanup_orphaned_chrome_profiles()
 
     return establishment, reviews[:max_reviews]
 
