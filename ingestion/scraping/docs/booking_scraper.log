@@ -18268,3 +18268,13 @@ Stacktrace:
 2026-08-23 23:28:32 - INFO - __main__ -   Página 1: 1 reseñas (1 acumuladas)
 2026-08-23 23:28:32 - INFO - __main__ -   No hay más páginas de reseñas.
 2026-08-23 23:28:35 - INFO - __main__ - Guardado completo: 1 establecimientos, 1 reseñas.
+2026-08-24 16:19:58 - INFO - run_continuous - === Iniciando corrida continua de booking_scraper.py ===
+2026-08-24 16:19:58 - INFO - run_continuous - --- Lote #1 ---
+2026-08-24 16:19:58 - INFO - run_continuous - Lanzando un nuevo lote de booking_scraper.py...
+2026-08-24 16:19:59 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-08-24 16:19:59 - INFO - __main__ - Usando caché de descubrimiento: /home/patron_tfm_mv/AI_Dashboard_Core/ingestion/scraping/sitemap_discovery_cache.json
+2026-08-24 16:19:59 - INFO - __main__ - 7069 establecimiento(s) ya completados en corridas anteriores, se omiten.
+2026-08-24 16:19:59 - INFO - __main__ - 13872 pendientes en total; procesando este lote: 100 (límite MAX_ESTABLISHMENTS_PER_RUN=100)
+2026-08-24 16:19:59 - INFO - __main__ - [1/100] Procesando https://www.booking.com/hotel/es/relaxing-tenerife-getaway-los-cristianos.es.html
+2026-08-24 16:19:59 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/relaxing-tenerife-getaway-los-cristianos.es.html
+2026-08-24 16:19:59 - INFO - __main__ - Verificando ChromeDriver (una sola vez para toda la corrida)...
