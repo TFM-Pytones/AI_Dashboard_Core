@@ -6,7 +6,7 @@ sources:
       # Clima
       - name: estaciones_agrocabildo
       - name: clima_horario_agrocabildo
-      
+
       # Modelos Atmosfericos / Satelite
       - name: open_meteo_era5land
       - name: open_meteo_forecast
@@ -40,7 +40,7 @@ sources:
       - name: youtube_comments
       - name: losviajeros_temas
       - name: losviajeros_mensajes
-      
+
       # ISTAC
       - name: istac_municipios
       - name: istac_mun_plazas_vv

@@ -1,93 +1,116 @@
 # ingestion/scraping/
 
-Extracción de reseñas y menciones sobre Tenerife en plataformas externas:
+Extracción de reseñas y menciones sobre Tenerife en plataformas externas.
 
-- **Issue #12** — Scraping de plataformas de reservas (TripAdvisor, Booking) con BeautifulSoup/Selenium. Necesita proxies y un servidor 24/7 (Issue #3).
-- **Issue #13** — Integración API de YouTube (`youtube.py`). Ver detalle abajo.
+**Issues relacionadas:**
+- **Issue #12** — Scraping de plataformas de reservas (Booking.com). ✅ *Funcional, corriendo en producción (laptop + VM)*
+- **Issue #13** — Integración API de YouTube (`youtube.py`). ✅ *completado*
 - **Issue #14** — Extracción de foros (Reddit vía PRAW).
-
-Cada fuente vive en su propio archivo/subcarpeta.
 
 ---
 
-## youtube.py (Issue #13)
+## 🔍 Booking.com (Issue #12)
 
-Busca vídeos sobre turismo en Tenerife en YouTube y descarga sus comentarios, cargándolos en
-Neon. Es la única de las tres fuentes de "percepción turística" que usa una API oficial en vez
-de scraping — no necesita proxies ni el servidor del Issue #3 para funcionar.
+### Objetivo
 
-### Por qué no se usó también "Google Reviews"
+Extraer establecimientos y reseñas de Booking.com en Tenerife, para alimentar el análisis de sentimiento y el dashboard geolocalizado del proyecto.
 
-El issue original pedía Google Reviews + YouTube. Se descartó la parte de reviews:
+### Estado actual
 
-- No existe una "API de reviews" suelta — sale de **Google Places API** (Place Details), y solo
-  el nivel **Enterprise + Atmosphere** incluye reviews.
-- Ese nivel exige una **cuenta de facturación de Google Cloud con tarjeta** (aunque no llegues a
-  gastar), y solo da **1.000 requests gratis/mes** — muy poco margen.
-- El mismo tipo de dato (opiniones/sentimiento turístico) ya lo cubren los issues **#12**
-  (TripAdvisor/Booking) y **#14** (Reddit), ambos gratis y sin tarjeta.
+- **Descubrimiento**: automático, vía sitemaps oficiales de Booking (`sitembk-hotel-es.*.xml.gz`), filtrado por país (`/hotel/es/`) + palabras clave de OpenStreetMap (Overpass API) para identificar Tenerife.
+- **Extracción**: Selenium headless, con manejo robusto de errores (reintentos ante elementos obsoletos, clics vía JavaScript, banner de cookies y de Google One Tap, establecimientos sin reseñas).
+- **Almacenamiento**: Parquet en Azure Blob Storage (`bronce-raw/booking/`), capa Bronce del Data Lakehouse.
+- **Ejecución**: en paralelo desde laptop y VM Azure (`mv-orquestador-tfm`), cada una con su propio `scraping_progress.json` para evitar reprocesar.
+- **Pipeline hacia Silver**: `ingest_booking_to_postgres.py` → Postgres esquema `bronze` → modelos dbt → esquema `silver`, con deduplicación y tests de calidad automatizados.
 
-Decisión: YouTube sí (gratis, sin tarjeta), Google Reviews no (coste + fricción sin aportar
-cobertura nueva).
+### Volumen actual (referencia, ver `docs/hallazgo_establecimientos_sin_resenas.md` para detalle metodológico)
+Cientos de establecimientos y miles de reseñas acumuladas — número creciendo con cada corrida de `run_continuous.py`.
 
-### Cómo funciona
+### Consideraciones legales y éticas
 
-1. Busca vídeos para una lista de términos (`SEARCH_TERMS` en el propio script: "Tenerife
-   turismo", "Tenerife travel", "visitar Tenerife", "Tenerife vacaciones") vía `search.list`.
-2. Para cada vídeo encontrado, saca el nº de visitas (`videos.list`) y pagina sus comentarios
-   (`commentThreads.list`, hasta `MAX_COMMENT_PAGES_PER_VIDEO` páginas de ~100 c/u).
-3. Guarda todo en `raw_data.youtube_videos` y `raw_data.youtube_comments` (esquema en
-   `sql/youtube_schema.sql`) con `INSERT ... ON CONFLICT` — **es seguro volver a ejecutarlo**,
-   no duplica filas, solo añade lo nuevo y actualiza contadores.
+Ver documentación completa en:
+- `docs/resumen_robots_tripadvisor.md`
+- `docs/resumen_robots_booking.md`
+- `docs/resumen_terminos_servicio.md`
 
-### Cuota y coste
+Resumen de reglas seguidas sin excepción:
+1. ❌ No se usa el buscador interno de Booking — descubrimiento vía sitemaps oficiales
+2. ❌ No se recolecta ningún dato personal del autor de reseñas (solo país, extraído de la bandera del avatar)
+3. ❌ No se republica el contenido extraído tal cual (solo uso interno/analítico para el TFM)
+4. ✅ Rate limiting con pausas aleatorias entre requests
+5. ✅ User-Agent identificable y rotado, sin spoofear bots conocidos
+6. ✅ Guardado incremental (cada establecimiento se sube apenas termina)
 
-La API de YouTube cobra en "unidades de cuota", con 10.000/día gratis por defecto y **sin
-necesidad de cuenta de facturación** (a diferencia de Places):
+### Estructura de archivos
 
-| Llamada | Coste | Uso en el script |
-|---|---|---|
-| `search.list` | 100 unidades | 1 vez por término de búsqueda (4 términos → 400) |
-| `videos.list` | 1 unidad | 1 vez por término, hasta 50 vídeos a la vez |
-| `commentThreads.list` | 1 unidad | 1 vez por página de comentarios por vídeo |
+```
+ingestion/scraping/
+├── README.md
+├── config.py                      # límites, pausas, credenciales de contacto
+├── booking_scraper.py             # scraper principal
+├── run_continuous.py              # wrapper para corridas largas por lotes
+├── ingest_booking_to_postgres.py  # puente Bronce -> Postgres (bronze)
+├── validate_booking_data.py       # validación de calidad post-scraping
+├── build_tenerife_keywords.py     # genera palabras clave desde OSM/Overpass
+├── docs/
+│   ├── resumen_robots_tripadvisor.md
+│   ├── resumen_robots_booking.md
+│   ├── resumen_terminos_servicio.md
+│   ├── hallazgo_establecimientos_sin_resenas.md
+│   └── booking_scraper.log        # log persistente, acumula todas las corridas
+├── .claude/skills/booking-tenerife-scraper/
+│   └── SKILL.md                   # conocimiento técnico acumulado (selectores,
+│                                    # bugs conocidos y sus arreglos, patrones)
+└── utils/
+    ├── azure_storage.py
+    ├── rate_limiter.py
+    ├── user_agents.py
+    ├── logger.py
+    └── progress_tracker.py
+```
 
-Una ejecución completa con la configuración actual gasta **~550-600 unidades** (~5-6% de la
-cuota diaria). Como el proyecto de Google Cloud no tiene facturación vinculada, si algún día se
-agotara la cuota, la API simplemente devolvería error — **nunca puede generar un cargo**.
+### Cómo ejecutar
 
-### Setup
+**Corrida única (pruebas cortas):**
+```bash
+python booking_scraper.py
+```
 
-1. Crear/activar un proyecto en [Google Cloud Console](https://console.cloud.google.com), habilitar
-   **"YouTube Data API v3"**, crear una API key restringida a esa API (no requiere tarjeta).
-2. Añadir al `.env` (ver `.env.example`):
-   ```
-   YOUTUBE_API_KEY=...
-   ```
-3. Ejecutar:
-   ```bash
-   python ingestion/scraping/youtube.py
-   ```
+**Corrida continua por lotes (producción, laptop o VM):**
+```bash
+python run_continuous.py
+```
+Configurar `MAX_ESTABLISHMENTS_PER_RUN` (config.py) y `PAUSE_BETWEEN_BATCHES_SECONDS` (run_continuous.py) según los recursos disponibles — ver nota de RAM abajo.
 
-### Última ejecución real (referencia)
+**Validar calidad de los datos scrapeados:**
+```bash
+python validate_booking_data.py --all --gap-minutes 600
+```
 
-41 vídeos únicos, 3.100 comentarios únicos guardados. Desglose por término de búsqueda:
+**Subir Bronce a Postgres:**
+```bash
+python ingest_booking_to_postgres.py
+```
 
-| Término | Vídeos | Comentarios |
-|---|---|---|
-| Tenerife turismo | 15 | 1.883 |
-| Tenerife travel | 14 | 599 |
-| Tenerife vacaciones | 6 | 316 |
-| visitar Tenerife | 6 | 302 |
+**Transformar a Silver (desde `dbt_project/`):**
+```bash
+dbt run --select tag:booking
+dbt test --select tag:booking
+```
 
-### Troubleshooting
+### Ejecución en la VM Azure (`mv-orquestador-tfm`)
 
-- **`403` al pedir comentarios de un vídeo concreto**: normal, significa que ese vídeo tiene los
-  comentarios desactivados — el script lo salta sin fallar.
-- **Error de cuota agotada**: espera al día siguiente (se resetea a medianoche hora del Pacífico)
-  o reduce `MAX_VIDEOS_PER_TERM` / `MAX_COMMENT_PAGES_PER_VIDEO` en `youtube.py`.
-- **`Falta YOUTUBE_API_KEY`**: revisa que el `.env` tenga la línea y que la hayas guardado.
+Ver manual completo en Obsidian / `docs/manual_vm_tmux.md` — resumen:
+- La VM tiene RAM muy limitada (~842 MiB) — usar lotes moderados (20-100 según lo observado en `free -h`)
+- Usar `tmux` para que el proceso sobreviva a desconexiones SSH
+- Copiar manualmente `.env`, `scraping_progress.json` y `sitemap_discovery_cache.json` entre laptop y VM (no viajan por Git)
 
-### Siguiente paso
+### Limitaciones conocidas (documentadas, no bloqueantes)
 
-Los comentarios en `raw_data.youtube_comments` son el input de `analytics/sentiment/` (Issues
-#16-19), donde se les aplica el modelo de sentimiento/tópicos.
+- Recall del descubrimiento limitado (~29-71% según corrida) — algunos establecimientos con slugs que no mencionan municipio ni coinciden con nombres de OSM no se descubren
+- ~0.5-1% de reseñas sin rating extraído (badge no disponible en el DOM en el momento del scraping)
+- Reseñas con puntuación pero sin comentario (Booking lo permite) generan `review_text` vacío — tratado como caso válido, no error
+- Pequeño porcentaje de direcciones con espacios faltantes en el texto (no afecta geocodificación)
+- Tabla `bronze.*` en Postgres acumula duplicados en cada corrida de `ingest_booking_to_postgres.py` (modo `append`) — la deduplicación real ocurre en el paso hacia `silver`
+
+Para el detalle técnico completo de cada bug encontrado y su solución, ver la skill `booking-tenerife-scraper`.

@@ -34,6 +34,11 @@ dbt_packages/
 # 6. Notas locales de trabajo (no compartir con el equipo)
 NOTAS_LOCALES.md
 
+
+# 7. Archivos de caché de scraping
+tenerife_osm_keywords.json
+sitemap_discovery_cache.json
+scraping_progress.json
 # 7. pyabsa (descarga checkpoints ~1GB y vuelca resultados en la raiz por defecto)
 checkpoints/
 checkpoints.json
@@ -41,10 +46,14 @@ checkpoints.json
 source_datasets.hash.json
 # 8. Archivos de skills de claude
 .claude
+!ingestion/scraping/.claude/
+!ingestion/scraping/.claude/**
 # Next.js / frontend
 node_modules/
 .next/
 next-env.d.ts
 
+
 # 9. Scripts temporales / scratch
 scratch/
+main
