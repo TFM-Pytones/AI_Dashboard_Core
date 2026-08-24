@@ -45,6 +45,11 @@ NOTAS_LOCALES.md
 >>>>>>> 2bbca33d1fa234a3ddf3522265ba28398b64eeef
 =======
 
+
+# 7. Archivos de caché de scraping
+tenerife_osm_keywords.json
+sitemap_discovery_cache.json
+scraping_progress.json
 # 7. pyabsa (descarga checkpoints ~1GB y vuelca resultados en la raiz por defecto)
 checkpoints/
 checkpoints.json
@@ -52,8 +57,18 @@ checkpoints.json
 source_datasets.hash.json
 # 8. Archivos de skills de claude
 .claude
+!ingestion/scraping/.claude/
+!ingestion/scraping/.claude/**
 # Next.js / frontend
 node_modules/
 .next/
 next-env.d.ts
+<<<<<<< HEAD
 >>>>>>> 730409bdd16c4f3529d6f5249cf57d9ab4c8835b
+=======
+
+
+# 9. Scripts temporales / scratch
+scratch/
+main
+>>>>>>> 6d4fc8b5cc4767239f25b915bac5abba119d27e0
