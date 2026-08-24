@@ -42,6 +42,20 @@ def download_blob_to_dataframe(blob_service_client, blob_name: str) -> pd.DataFr
         return pd.read_csv(io.BytesIO(content_bytes))
     elif blob_name.endswith('.parquet'):
         return pd.read_parquet(io.BytesIO(content_bytes))
+    elif blob_name.endswith('.geojson'):
+        import json
+        geojson_dict = json.loads(content_bytes.decode('utf-8'))
+        records = []
+        for feature in geojson_dict.get('features', []):
+            props = feature.get('properties', {})
+            geom = feature.get('geometry', {})
+            if geom and geom.get('type') == 'Point':
+                coords = geom.get('coordinates', [])
+                if len(coords) == 2:
+                    props['lon'] = coords[0]
+                    props['lat'] = coords[1]
+            records.append(props)
+        return pd.DataFrame(records)
     else:
         raise ValueError(f"Formato no soportado para lectura directa en DataFrame: {blob_name}")
 
@@ -93,6 +107,7 @@ def main():
         # Spatial Vectorial (como DataFrame)
         "limites_municipales.parquet": "limites_municipales",
         "zonas_turisticas.parquet": "zonas_turisticas",
+        "espacial/osm/osm_pois_tenerife.geojson": "osm_pois_tenerife",
         # Metadatos Estaciones
         "estaciones_agrocabildo.parquet": "estaciones_agrocabildo",
         # Forecast / Validacion

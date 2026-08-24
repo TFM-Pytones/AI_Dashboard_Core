@@ -19,6 +19,7 @@ pyarrow
 
 # Web Scrapping y APIs
 requests==2.34.2
+geopy>=2.4.0
 
 # Transformacion de datos (dbt)
 dbt-core==1.11.12
