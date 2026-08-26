@@ -21,11 +21,13 @@ import hashlib
 import json
 import os
 import platform
+import shutil
+import subprocess
 import re
 import sys
 import time
 import xml.etree.ElementTree as ET
-from dataclasses import dataclass, fields
+from dataclasses import dataclass
 from pathlib import Path
 
 import pandas as pd
@@ -218,14 +220,13 @@ def _discover_from_sitemap(limit: int) -> list[str]:
     """Recorre los shards de idioma español, filtra por país=España y
     por coincidencia de municipio de Tenerife en el slug.
 
-    Devuelve TODOS los candidatos disponibles (del caché o recién
-    descubiertos), SIN recortar por `limit` — el recorte a
-    config.MAX_ESTABLISHMENTS_PER_RUN debe pasar en main(), después de
-    filtrar los ya completados (filter_pending). Si se recortara acá antes
-    de filtrar, cada corrida volvería a mirar siempre los mismos primeros
-    N candidatos del caché: una vez completados, "pendientes" da 0 para
-    siempre, aunque el caché tenga miles de candidatos más sin tocar más
-    adelante en la lista.
+    IMPORTANTE: devuelve TODOS los candidatos encontrados, sin recortar por
+    `limit` acá — el recorte debe aplicarse en main(), DESPUÉS de filtrar
+    los ya completados (filter_pending). Recortar acá, antes del filtro,
+    causaba que la corrida se quedara "atascada" en los mismos primeros N
+    candidatos del caché para siempre: si esos N ya estaban completados,
+    el resultado siempre daba "0 pendientes", aunque el caché tuviera miles
+    de candidatos más sin tocar después de esa posición.
     """
     if DISCOVERY_CACHE_FILE.exists():
         logger.info(f"Usando caché de descubrimiento: {DISCOVERY_CACHE_FILE}")
@@ -267,10 +268,7 @@ def _discover_from_sitemap(limit: int) -> list[str]:
         json.dump({"urls": tenerife_urls, "generated_at": pd.Timestamp.now().isoformat()}, f, indent=2)
     logger.info(f"Descubrimiento guardado en caché: {DISCOVERY_CACHE_FILE}")
 
-    # Sin recortar por `limit` acá tampoco — ver docstring. `limit` solo se
-    # usa arriba para decidir cuándo dejar de recorrer shards, no para
-    # truncar lo que se devuelve.
-    return tenerife_urls
+    return tenerife_urls[:limit]
 
 
 def discover_establishment_urls(limit: int = config.MAX_ESTABLISHMENTS_PER_RUN) -> list[str]:
@@ -278,15 +276,7 @@ def discover_establishment_urls(limit: int = config.MAX_ESTABLISHMENTS_PER_RUN) 
     sitemaps oficiales de Booking (permitido por robots.txt).
 
     Si config.TEST_ESTABLISHMENT_URLS tiene contenido, se usa esa lista fija
-    en su lugar (útil para pruebas rápidas sin depender del sitemap) — esa
-    lista SÍ se recorta por `limit` acá mismo, a diferencia del camino del
-    sitemap: es chica y fija a propósito, no tiene el problema de "siempre
-    los mismos primeros N" que sí tiene el caché de miles de candidatos.
-
-    El camino del sitemap devuelve TODOS los candidatos disponibles, sin
-    recortar (ver _discover_from_sitemap) — quien llame a esta función debe
-    aplicar filter_pending() sobre el resultado completo y recortar a
-    config.MAX_ESTABLISHMENTS_PER_RUN recién después (ver main()).
+    en su lugar (útil para pruebas rápidas sin depender del sitemap).
     """
     if config.TEST_ESTABLISHMENT_URLS:
         logger.warning(
@@ -301,36 +291,68 @@ def discover_establishment_urls(limit: int = config.MAX_ESTABLISHMENTS_PER_RUN) 
 # 2. Scraping de un establecimiento individual
 # ---------------------------------------------------------------------------
 
-_chromedriver_path: str | None = None
+_CACHED_DRIVER_PATH: str | None = None
 
 
-def _get_chromedriver_path() -> str:
-    """Resuelve la ruta al binario de ChromeDriver, cacheada a nivel de módulo.
+def _get_driver_path() -> str:
+    """Verifica/descarga el ChromeDriver UNA SOLA VEZ por corrida completa,
+    no una vez por establecimiento.
 
-    ChromeDriverManager().install() hace una consulta de red para verificar
-    la versión correcta. Si se llama una vez por establecimiento (dentro de
-    build_driver()), un hipo de red silencioso ahí cuelga el script ANTES de
-    que Chrome llegue a abrirse — sin ningún log y sin que lo detecte ningún
-    timeout de Selenium/página, porque el cuelgue ocurre antes de que exista
-    un driver (ver skill booking-tenerife-scraper). Resolverla una sola vez
-    por corrida evita repetir esa consulta de red en cada llamada.
+    Por qué esto importa: ChromeDriverManager().install() hace una llamada
+    de red cada vez que se ejecuta (verifica versión más reciente). Si esto
+    corre una vez por establecimiento (cientos de veces en una corrida
+    grande), cualquier hipo de conexión durante esa llamada puede colgar
+    el script silenciosamente por varios minutos ANTES de que Chrome
+    siquiera se abra — invisible para el manejo de timeouts normal, porque
+    ocurre fuera de cualquier bloque con try/except o timeout explícito.
     """
-    global _chromedriver_path
-    if _chromedriver_path is None:
-        logger.info("Resolviendo ChromeDriver (una sola vez para toda la corrida)...")
-        _chromedriver_path = ChromeDriverManager().install()
-    return _chromedriver_path
+    global _CACHED_DRIVER_PATH
+    if _CACHED_DRIVER_PATH is None:
+        logger.info("Verificando ChromeDriver (una sola vez para toda la corrida)...")
+        _CACHED_DRIVER_PATH = ChromeDriverManager().install()
+    return _CACHED_DRIVER_PATH
+
+
+def _cleanup_orphaned_chrome_profiles(min_age_minutes: int = 30) -> None:
+    """Borra carpetas de perfil temporal de Chrome en /tmp más viejas que
+    `min_age_minutes`, sin importar el nombre exacto que Chrome/Selenium
+    les haya puesto (se observó que no siempre respetan el nombre pedido
+    vía --user-data-dir, ej. aparecen como 'chrome-user-data-XXXXX' en vez
+    del prefijo que configuramos).
+
+    Solo Linux (la VM) — en Windows este problema no se presenta.
+    Filtra por antigüedad, no borra ciegamente todo lo que coincida con el
+    patrón, para no interferir con otra instancia de Chrome que pudiera
+    estar corriendo en paralelo (ej. run_continuous.py + booking_scraper_deep.py
+    a la vez) en el mismo momento.
+
+    Best-effort: cualquier error (permisos, etc.) se ignora silenciosamente,
+    nunca debe romper el scraping en sí.
+    """
+    try:
+        result = subprocess.run(
+            [
+                "find", "/tmp",
+                "-maxdepth", "1",
+                "-type", "d",
+                "-name", "chrome-*",
+                "-mmin", f"+{min_age_minutes}",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        orphaned_dirs = [d for d in result.stdout.strip().split("\n") if d]
+        if orphaned_dirs:
+            for d in orphaned_dirs:
+                shutil.rmtree(d, ignore_errors=True)
+            logger.info(f"  Limpieza: {len(orphaned_dirs)} perfil(es) temporal(es) de Chrome huérfano(s) eliminado(s).")
+    except Exception as e:
+        logger.warning(f"  No se pudo limpiar perfiles temporales de Chrome (no crítico): {e}")
 
 
 def build_driver() -> webdriver.Chrome:
-    """Arma el driver de Chrome, headless por defecto (ver config.HEADLESS).
-
-    En Linux (VM de Azure) hace falta configuración adicional que en Windows
-    no aplica: binario de google-chrome-stable explícito, flags de sandbox
-    para correr como root/sin GUI, y un --user-data-dir único por proceso
-    para poder correr varias instancias en paralelo sin conflicto (ver skill
-    booking-tenerife-scraper para el porqué de cada flag).
-    """
+    """Arma el driver de Chrome, headless por defecto (ver config.HEADLESS)."""
     options = Options()
     if config.HEADLESS:
         options.add_argument("--headless=new")
@@ -345,9 +367,9 @@ def build_driver() -> webdriver.Chrome:
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--disable-gpu")
-        options.add_argument(f"--user-data-dir=/tmp/chrome-user-data-{os.getpid()}")
+        options.add_argument(f"--user-data-dir=/tmp/chrome-data-{os.getpid()}")
 
-    service = Service(_get_chromedriver_path())
+    service = Service(_get_driver_path())
     driver = webdriver.Chrome(service=service, options=options)
     driver.set_page_load_timeout(config.PAGE_LOAD_TIMEOUT_SECONDS)
     return driver
@@ -363,47 +385,6 @@ def _dismiss_cookie_banner(driver) -> None:
         time.sleep(1)
     except (NoSuchElementException, ElementNotInteractableException):
         pass
-
-
-def _dismiss_google_signin_banner(driver) -> None:
-    """Intenta cerrar el banner 'Iniciar sesión con Google' (Google One Tap)
-    si aparece. No falla si no lo encuentra (best-effort) — mismo patrón que
-    _dismiss_cookie_banner().
-
-    A diferencia del banner de cookies, este widget vive DENTRO de un
-    <iframe> de accounts.google.com (div#credential_picker_container >
-    iframe) — Google no permite embeberlo directo en el DOM del sitio. Hace
-    falta cambiar de contexto con switch_to.frame() para poder clickear su
-    botón de cerrar (aria-label="Cerrar", clases generadas por Google que
-    cambian — no confiar en ellas), y volver con switch_to.default_content()
-    después, pase lo que pase adentro (si no, el resto del scraping queda
-    "atrapado" dentro del iframe y ningún selector del sitio principal
-    vuelve a encontrar nada).
-
-    Aparece de forma intermitente y con carga asíncrona (no está presente
-    apenas carga la página, tarda unos segundos en inyectarse) — por eso el
-    wait corto (2s) en vez de un find_element inmediato como en el banner de
-    cookies.
-    """
-    try:
-        iframe = WebDriverWait(driver, 2).until(
-            EC.presence_of_element_located(
-                (By.CSS_SELECTOR, "div#credential_picker_container iframe")
-            )
-        )
-    except TimeoutException:
-        return  # no apareció — es el caso más común, no hay nada que hacer
-
-    try:
-        driver.switch_to.frame(iframe)
-        close_button = driver.find_element(By.CSS_SELECTOR, '[aria-label="Cerrar"]')
-        driver.execute_script("arguments[0].click();", close_button)
-        logger.info("  Banner de 'Iniciar sesión con Google' cerrado.")
-        time.sleep(1)
-    except (NoSuchElementException, ElementNotInteractableException):
-        pass
-    finally:
-        driver.switch_to.default_content()
 
 
 def _get_establishment_type(driver) -> str | None:
@@ -572,12 +553,18 @@ def _parse_review_card(card) -> Review | None:
         return None
 
 
-def scrape_establishment(url: str) -> tuple[Establishment, list[Review]]:
+def scrape_establishment(url: str, max_reviews: int | None = None) -> tuple[Establishment, list[Review]]:
     """Extrae los datos del establecimiento y sus reseñas desde una URL de ficha.
 
     Selectores confirmados inspeccionando una ficha real de Booking
     (ver conversación de diseño — usan data-testid, más estables que clases CSS).
+
+    max_reviews: si no se especifica, usa config.MAX_REVIEWS_PER_ESTABLISHMENT
+    (comportamiento por defecto de siempre). Permite pedir un límite distinto
+    puntualmente — ej. booking_scraper_deep.py pide 200 para establecimientos
+    con mucho volumen de reseñas, sin afectar la corrida normal.
     """
+    max_reviews = max_reviews or config.MAX_REVIEWS_PER_ESTABLISHMENT
     logger.info(f"Scrapeando establecimiento: {url}")
     establishment_id = _extract_establishment_id(url)
 
@@ -592,7 +579,6 @@ def scrape_establishment(url: str) -> tuple[Establishment, list[Review]]:
         # precios) antes de empezar a interactuar — reduce stale elements.
         time.sleep(2.5)
         _dismiss_cookie_banner(driver)
-        _dismiss_google_signin_banner(driver)
 
         # --- Datos del establecimiento ---
         name = _retry_on_stale(
@@ -657,26 +643,12 @@ def scrape_establishment(url: str) -> tuple[Establishment, list[Review]]:
             establishment_type=establishment_type,
         )
 
-        # Establecimientos sin ninguna reseña muestran este banner en vez del
-        # botón "Leer todos los comentarios" — el botón [data-testid="fr-read-all-reviews"]
-        # nunca llega a existir en el DOM. Sin este chequeo, el código de abajo
-        # esperaba los PAGE_LOAD_TIMEOUT_SECONDS completos por un botón que
-        # nunca aparece, tiraba TimeoutException, y se perdía hasta el dato
-        # del establecimiento (la excepción se propaga y main() descarta todo
-        # el establecimiento en vez de guardarlo con 0 reseñas).
-        if driver.find_elements(By.CSS_SELECTOR, '[data-testid="no-reviews-banner"]'):
-            logger.info("  Sin reseñas para este establecimiento (no-reviews-banner detectado).")
-            return establishment, reviews
-
         # --- Abrir el panel de reseñas ---
         def _click_read_all():
-            # Reintenta cerrar el banner de cookies y el de "Iniciar sesión
-            # con Google" justo antes del clic — a veces reaparecen o tardan
-            # en cerrarse/inyectarse después del primer intento al inicio de
-            # la función, y terminan tapando este botón (el de Google es el
-            # que más silenciosamente causa timeouts acá, ver skill).
+            # Reintenta cerrar el banner de cookies justo antes del clic —
+            # a veces reaparece o tarda en cerrarse después del primer intento
+            # al inicio de la función, y termina tapando este botón.
             _dismiss_cookie_banner(driver)
-            _dismiss_google_signin_banner(driver)
 
             button = wait_obj.until(
                 EC.element_to_be_clickable(
@@ -694,7 +666,7 @@ def scrape_establishment(url: str) -> tuple[Establishment, list[Review]]:
 
         # --- Paginar reseñas ---
         page = 1
-        while len(reviews) < config.MAX_REVIEWS_PER_ESTABLISHMENT:
+        while len(reviews) < max_reviews:
             def _get_cards():
                 wait_obj.until(
                     EC.presence_of_all_elements_located(
@@ -716,7 +688,7 @@ def scrape_establishment(url: str) -> tuple[Establishment, list[Review]]:
 
             logger.info(f"  Página {page}: {len(cards)} reseñas ({len(reviews)} acumuladas)")
 
-            if len(reviews) >= config.MAX_REVIEWS_PER_ESTABLISHMENT:
+            if len(reviews) >= max_reviews:
                 break
 
             try:
@@ -744,8 +716,10 @@ def scrape_establishment(url: str) -> tuple[Establishment, list[Review]]:
         raise
     finally:
         driver.quit()
+        if platform.system() == "Linux":
+            _cleanup_orphaned_chrome_profiles()
 
-    return establishment, reviews[: config.MAX_REVIEWS_PER_ESTABLISHMENT]
+    return establishment, reviews[:max_reviews]
 
 
 # ---------------------------------------------------------------------------
@@ -758,20 +732,8 @@ def save_and_upload(establishments: list[Establishment], reviews: list[Review]) 
         logger.warning("No hay datos para guardar en esta corrida.")
         return
 
-    # columns= explícito (a partir de los campos del dataclass), en vez de
-    # dejar que pandas infiera las columnas del contenido: con una lista
-    # vacía (ej. establecimiento sin reseñas, ver no-reviews-banner más
-    # arriba), pd.DataFrame([]) produce un DataFrame SIN NINGUNA columna —
-    # ni siquiera review_id — no solo sin filas. Rompe cualquier código río
-    # abajo que espere esas columnas (ver validate_booking_data.py).
-    df_establishments = pd.DataFrame(
-        [vars(e) for e in establishments],
-        columns=[f.name for f in fields(Establishment)],
-    )
-    df_reviews = pd.DataFrame(
-        [vars(r) for r in reviews],
-        columns=[f.name for f in fields(Review)],
-    )
+    df_establishments = pd.DataFrame([vars(e) for e in establishments])
+    df_reviews = pd.DataFrame([vars(r) for r in reviews])
 
     timestamp = pd.Timestamp.now().strftime("%Y-%m-%d_%H%M%S")
 
@@ -799,11 +761,6 @@ def save_and_upload(establishments: list[Establishment], reviews: list[Review]) 
 def main():
     logger.info("=== Iniciando scraper de Booking.com ===")
 
-    # Resuelve el ChromeDriver una sola vez, al inicio, para fallar rápido
-    # y con log claro ante un hipo de red — en vez de colgarse en silencio
-    # en medio de la corrida (ver _get_chromedriver_path).
-    _get_chromedriver_path()
-
     try:
         urls = discover_establishment_urls()
     except NotImplementedError as e:
@@ -811,23 +768,25 @@ def main():
         sys.exit(1)
 
     # Filtra los establecimientos que ya se scrapearon en una corrida anterior,
-    # para poder cortar y retomar sin duplicar trabajo (ver utils/progress_tracker.py).
-    # IMPORTANTE: el filtro se aplica sobre `urls` COMPLETO (discover_establishment_urls
-    # ya no recorta por límite), y recién DESPUÉS se recorta a MAX_ESTABLISHMENTS_PER_RUN.
-    # Si se recortara antes de filtrar, cada corrida volvería a mirar siempre los
-    # mismos primeros N candidatos del caché — una vez completados, "pendientes"
-    # daría 0 para siempre, aunque el caché tenga miles más sin tocar.
-    pending_urls = filter_pending(urls, _extract_establishment_id)
-    skipped = len(urls) - len(pending_urls)
+    # para poder cortar y retomar sin duplicar trabajo (ver utils/progress_tracker.py)
+    pending_urls_all = filter_pending(urls, _extract_establishment_id)
+    skipped = len(urls) - len(pending_urls_all)
     if skipped:
         logger.info(f"{skipped} establecimiento(s) ya completados en corridas anteriores, se omiten.")
+
+    # El recorte a MAX_ESTABLISHMENTS_PER_RUN se aplica ACÁ, después de filtrar
+    # los ya completados — no antes (ver docstring de _discover_from_sitemap
+    # para el bug que esto corrige: recortar antes del filtro podía dejar la
+    # corrida "atascada" para siempre en los mismos primeros N candidatos).
+    pending_urls = pending_urls_all[:config.MAX_ESTABLISHMENTS_PER_RUN]
+    logger.info(
+        f"{len(pending_urls_all)} pendientes en total; procesando este lote: {len(pending_urls)} "
+        f"(límite MAX_ESTABLISHMENTS_PER_RUN={config.MAX_ESTABLISHMENTS_PER_RUN})"
+    )
 
     if not pending_urls:
         logger.info("No hay establecimientos pendientes. Nada que hacer.")
         return
-
-    logger.info(f"{len(pending_urls)} candidato(s) pendiente(s) en total; se procesan hasta {config.MAX_ESTABLISHMENTS_PER_RUN} en esta corrida.")
-    pending_urls = pending_urls[: config.MAX_ESTABLISHMENTS_PER_RUN]
 
     all_establishments: list[Establishment] = []
     all_reviews: list[Review] = []
