@@ -184,7 +184,7 @@ def process_and_geocode():
             
             # Resultado final
             if location:
-                logger.info(f"✅ {table} | ÉXITO: {query_used} -> {location.latitude}, {location.longitude}")
+                logger.info(f"{table} | ÉXITO: {query_used} -> {location.latitude}, {location.longitude}")
                 cache[id_registro] = {'lat': location.latitude, 'lon': location.longitude, 'query': query_used}
                 lookup_data.append({
                     "establishment_id": id_registro,
@@ -192,7 +192,7 @@ def process_and_geocode():
                     "longitud_geocoded": location.longitude
                 })
             else:
-                logger.info(f"❌ {table} | FALLO: No se encontró {clean_str if clean_str else query_used}")
+                logger.info(f"{table} | FALLO: No se encontró {clean_str if clean_str else query_used}")
                 cache[id_registro] = {'lat': None, 'lon': None, 'query': clean_str if clean_str else query_used}
                 
         except (GeocoderTimedOut, GeocoderUnavailable) as e:
@@ -223,9 +223,9 @@ def process_and_geocode():
                 index=False,
                 method="multi"
             )
-            logger.info("✅ Tabla bronze.booking_geocoding_lookup actualizada correctamente.")
+            logger.info("Tabla bronze.booking_geocoding_lookup actualizada correctamente.")
         except Exception as e:
-            logger.error(f"❌ Error guardando tabla en postgres: {e}")
+            logger.error(f"Error guardando tabla en postgres: {e}")
     else:
         logger.info("No hay coordenadas nuevas que guardar en la base de datos.")
 

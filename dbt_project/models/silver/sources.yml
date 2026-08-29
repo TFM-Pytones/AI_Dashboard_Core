@@ -6,6 +6,7 @@ sources:
       # Clima
       - name: estaciones_agrocabildo
       - name: clima_horario_agrocabildo
+      - name: sensores_meteorologicos
 
       # Modelos Atmosfericos / Satelite
       - name: open_meteo_era5land
@@ -19,7 +20,9 @@ sources:
       - name: satelite_stats
       - name: limites_municipales
       - name: zonas_turisticas
-      - name: osm_pois_tenerife
+      - name: osm_pois
+      - name: bienes_interes_cultural
+      - name: oficinas_turismo
       
       # Movilidad
       - name: gtfs_paradas
@@ -40,11 +43,24 @@ sources:
       - name: youtube_comments
       - name: losviajeros_temas
       - name: losviajeros_mensajes
+      - name: tripadvisor_resenas
+      - name: tripadvisor_ubicaciones
 
       # ISTAC
-      - name: istac_municipios
-      - name: istac_mun_plazas_vv
-      - name: istac_mun_tasa_ocupacion_vv
+      - name: istac_mun_alojamientos_abiertos
+      - name: istac_mun_alojamientos_abiertos_vv
+      - name: istac_mun_edad_media
+      - name: istac_mun_empleo_hosteleria
       - name: istac_mun_estancia_media_vv
       - name: istac_mun_ingresos_vv
-      - name: istac_mun_alojamientos_abiertos_vv
+      - name: istac_mun_paro_registrado
+      - name: istac_mun_pernoctaciones
+      - name: istac_mun_plazas_ofertadas
+      - name: istac_mun_plazas_vv
+      - name: istac_mun_pob_turistica_equiv
+      - name: istac_mun_poblacion_15_64
+      - name: istac_mun_poblacion_65_mas
+      - name: istac_mun_poblacion_total
+      - name: istac_mun_tasa_ocupacion_plazas
+      - name: istac_mun_tasa_ocupacion_vv
+      - name: istac_mun_viajeros_entrados

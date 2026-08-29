@@ -161,7 +161,7 @@ def process_and_ingest():
     
     logging.info(f"\nSubiendo a PostgreSQL {schema}.{table_name}...")
     df.to_sql(table_name, con=engine, schema=schema, if_exists="replace", index=False)
-    logging.info("🎉 ¡MDT completado: Elevation + Slope + Aspect + Hillshade por hexágono H3!")
+    logging.info("MDT completado: Elevation, Slope, Aspect y Hillshade por hexágono H3")
 
 if __name__ == "__main__":
     process_and_ingest()

@@ -12,6 +12,6 @@ SELECT
     NULL AS municipio,
     NULL AS cod_municipio,
     ROUND(CAST(ST_Area(geometry::geography) / 1000000.0 AS NUMERIC), 2) AS area_km2,
-    geometry
+    ST_Transform(ST_SetSRID(geometry, COALESCE(NULLIF(ST_SRID(geometry), 0), 4326)), 4326) AS geometry
 FROM {{ source('bronze', 'espacios_naturales') }}
 WHERE geometry IS NOT NULL

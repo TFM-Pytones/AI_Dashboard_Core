@@ -39,4 +39,5 @@ LEFT JOIN tasa t ON p.municipio = t.municipio AND p.periodo = t.periodo
 LEFT JOIN estancia e ON p.municipio = e.municipio AND p.periodo = e.periodo
 LEFT JOIN ingresos i ON p.municipio = i.municipio AND p.periodo = i.periodo
 LEFT JOIN alojamientos a ON p.municipio = a.municipio AND p.periodo = a.periodo
+WHERE CAST(SUBSTRING(TRIM(p.periodo) FROM 1 FOR 4) AS INTEGER) >= 2022
 ORDER BY p.municipio ASC, p.periodo DESC

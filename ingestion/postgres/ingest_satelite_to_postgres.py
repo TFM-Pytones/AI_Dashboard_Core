@@ -94,7 +94,7 @@ def process_and_ingest():
             df.to_sql(table_name, con=engine, schema=schema, if_exists=mode, index=False)
             first_file = False
             
-    logging.info("🎉 ¡Proceso completado para todos los trimestres de Sentinel-2!")
+    logging.info("¡Proceso completado para todos los trimestres de Sentinel-2!")
 
 if __name__ == "__main__":
     process_and_ingest()
