@@ -35,8 +35,8 @@ El modelo cubre el periodo **enero 2019 – diciembre 2025**, con las siguientes
 | Año | Estado | Incluir en modelo | Razón |
 |-----|--------|-------------------|--------|
 | 2019 | Pre-COVID — año de referencia (~19M pernoctaciones) | ✅ Sí | Línea base normal |
-| 2020 | COVID — colapso total (-75% pernoctaciones) | ❌ **Excluir** | Outlier exógeno |
-| 2021 | Restricciones parciales (-45%) | ❌ **Excluir** | Outlier exógeno |
+| 2020 | COVID — colapso total (-75% pernoctaciones) | **Excluir** | Outlier exógeno |
+| 2021 | Restricciones parciales (-45%) | **Excluir** | Outlier exógeno |
 | 2022 | Recuperación fuerte | ✅ Sí | Normalización |
 | 2023 | Normalización completa | ✅ Sí | Año representativo |
 | 2024 | Post-COVID estabilizado | ✅ Sí | Año representativo |
@@ -1432,7 +1432,7 @@ Sin alertas configuradas en Airflow, un pipeline de ingesta puede fallar silenci
   def notify_failure(context):
       send_email(
           to=['equipo@tfm-tenerife.com'],
-          subject=f"❌ DAG FALLIDO: {context['dag'].dag_id}",
+          subject=f"DAG FALLIDO: {context['dag'].dag_id}",
           html_content=f"""
               <b>DAG:</b> {context['dag'].dag_id}<br>
               <b>Task:</b> {context['task_instance'].task_id}<br>

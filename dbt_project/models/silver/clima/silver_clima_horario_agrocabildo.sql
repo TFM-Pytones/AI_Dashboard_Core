@@ -53,11 +53,15 @@ lecturas_con_umbrales AS (
 )
 
 SELECT 
-    id_estacion,
-    id_sensor,
-    "timestamp",
-    valor_limpio,
-    es_validado,
-    es_extremo
-FROM lecturas_con_umbrales
-WHERE valor_limpio IS NOT NULL
+    l.id_estacion,
+    l.id_sensor,
+    s.sensor_nombre AS variable_nombre,
+    s.sensor_unidad AS variable_unidad,
+    l."timestamp",
+    l.valor_limpio,
+    l.es_validado,
+    l.es_extremo
+FROM lecturas_con_umbrales l
+LEFT JOIN {{ source('bronze', 'sensores_meteorologicos') }} s 
+    ON l.id_sensor = s.sensor_id
+WHERE l.valor_limpio IS NOT NULL

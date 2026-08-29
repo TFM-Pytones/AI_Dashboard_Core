@@ -16,7 +16,7 @@ SELECT
     -- Centroide para joins de puntos sin PostGIS
     ST_X(ST_Centroid(geometry)) AS centroide_lon,
     ST_Y(ST_Centroid(geometry)) AS centroide_lat,
-    geometry
+    ST_Transform(ST_SetSRID(geometry, COALESCE(NULLIF(ST_SRID(geometry), 0), 4326)), 4326) AS geometry
 FROM {{ source('bronze', 'limites_municipales') }}
 WHERE cod_municipio IS NOT NULL
   AND geometry IS NOT NULL
