@@ -48,6 +48,19 @@ TENERIFE_MUNICIPALITIES = [
     "bajamar",
     "los-gigantes",
     "san-isidro-tenerife",
+    # --- Agregados Issue #12 (priorización por municipio) ---
+    # Grupo A: sin cobertura alguna hasta ahora, objetivo de priorización
+    # (ver build_priority_keywords.py y GROUP_A_MUNICIPALITIES en booking_scraper.py)
+    "la-matanza-de-acentejo",
+    "la-victoria-de-acentejo",
+    "san-juan-de-la-rambla",
+    "arafo",
+    "la-guancha",
+    "el-tanque",
+    # Grupo B: colateral, solo mejora recall general, sin tratamiento especial de bbox/Overpass
+    "santiago-del-teide",
+    "guia-de-isora",
+    "los-silos",
 ]
 
 # --- Rate limiting ---

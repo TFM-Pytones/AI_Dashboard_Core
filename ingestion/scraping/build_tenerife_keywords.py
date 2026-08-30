@@ -27,6 +27,15 @@ import requests
 
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 OUTPUT_FILE = Path(__file__).resolve().parent / "tenerife_osm_keywords.json"
+DISCOVERY_CACHE_FILE = Path(__file__).resolve().parent / "sitemap_discovery_cache.json"
+
+# Umbral del filtro de especificidad (ver filter_keywords_by_specificity):
+# una keyword que matchea más URLs que esto en el caché de descubrimiento
+# existente no es un nombre propio raro, es vocabulario genérico común en
+# toda España. Los 6 municipios objetivo de priorización (Issue #12) tienen
+# entre 1 y 8 establecimientos reales — parámetro fácil de ajustar, no
+# hardcodeado en medio de la lógica.
+SPECIFICITY_MAX_MATCHES = 20
 
 # Bounding box aproximado de Tenerife (lat_min, lon_min, lat_max, lon_max)
 # Suficientemente ajustado para no traer de otras islas canarias.
@@ -74,6 +83,51 @@ def slugify(name: str) -> list[str]:
     return []
 
 
+def load_discovery_cache_urls() -> list[str]:
+    """Carga las URLs de sitemap_discovery_cache.json — el universo
+    representativo real de URLs de Booking ya descubiertas, usado por
+    filter_keywords_by_specificity() para medir qué tan específica es cada
+    keyword. Devuelve [] si el caché todavía no existe (no bloquea: el
+    filtro de especificidad simplemente no se puede aplicar en ese caso).
+    """
+    if not DISCOVERY_CACHE_FILE.exists():
+        return []
+    with open(DISCOVERY_CACHE_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)["urls"]
+
+
+def filter_keywords_by_specificity(
+    keywords: list[str],
+    cache_urls: list[str],
+    max_matches: int = SPECIFICITY_MAX_MATCHES,
+) -> list[str]:
+    """Descarta keywords que no son específicas, midiendo cuántas URLs del
+    caché de descubrimiento ya existente las contienen como substring.
+
+    Por qué esto en vez de una lista de palabras prohibidas a mano: ni la
+    longitud (`san-juan`, `casablanca` son largas) ni ser un bigrama
+    (`vivienda-vacacional` es un bigrama pero es vocabulario de categoría,
+    no un nombre propio) garantizan especificidad. Medir el conteo real de
+    matches contra un universo representativo (~20.941 URLs ya conocidas)
+    es una señal directa: una keyword que aparece en cientos de URLs no es
+    un nombre de alojamiento raro, es un término común en toda España — y
+    no hace falta mantener/actualizar una lista negra a mano cada vez que
+    aparece un término genérico nuevo.
+
+    Loguea (print) cada keyword descartada junto con su conteo real, para
+    poder auditar las bajas antes de confiar en el archivo resultante.
+    """
+    cache_urls_lower = [u.lower() for u in cache_urls]
+    kept = []
+    for kw in keywords:
+        count = sum(1 for u in cache_urls_lower if kw in u)
+        if count > max_matches:
+            print(f'    "{kw}" descartada por no específica: {count} matches (umbral: {max_matches})')
+        else:
+            kept.append(kw)
+    return kept
+
+
 def fetch_tenerife_accommodation_names() -> list[str]:
     print("Consultando Overpass API (OpenStreetMap) por alojamientos en Tenerife...")
     resp = requests.post(
@@ -105,6 +159,20 @@ def main():
 
     keywords_list = sorted(keywords)
     print(f"{len(keywords_list)} palabras clave únicas generadas a partir de los nombres.")
+
+    cache_urls = load_discovery_cache_urls()
+    if cache_urls:
+        print(
+            f"Filtrando {len(keywords_list)} keywords por especificidad contra "
+            f"{len(cache_urls)} URLs del caché de descubrimiento (umbral: {SPECIFICITY_MAX_MATCHES})..."
+        )
+        keywords_list = filter_keywords_by_specificity(keywords_list, cache_urls)
+        print(f"{len(keywords_list)} keywords sobrevivieron el filtro de especificidad.")
+    else:
+        print(
+            "[AVISO] No se encontró sitemap_discovery_cache.json — no se pudo aplicar el "
+            "filtro de especificidad, se guardan todas las keywords generadas sin filtrar."
+        )
 
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         json.dump(
