@@ -18278,3 +18278,1185 @@ Stacktrace:
 2026-08-24 16:19:59 - INFO - __main__ - [1/100] Procesando https://www.booking.com/hotel/es/relaxing-tenerife-getaway-los-cristianos.es.html
 2026-08-24 16:19:59 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/relaxing-tenerife-getaway-los-cristianos.es.html
 2026-08-24 16:19:59 - INFO - __main__ - Verificando ChromeDriver (una sola vez para toda la corrida)...
+2026-08-28 20:04:31 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-08-28 20:04:31 - INFO - __main__ - Usando caché de descubrimiento: C:\Users\jcabr\AI_Dashboard_Core\ingestion\scraping\sitemap_discovery_cache.json
+2026-08-28 20:04:31 - INFO - __main__ - 2490 establecimiento(s) ya completados en corridas anteriores, se omiten.
+2026-08-28 20:04:31 - INFO - __main__ - 5 de 5 establecimientos de este lote son prioritarios (Grupo A): 2 de La Guancha, 2 de La Matanza de Acentejo, 1 de San Juan de la Rambla
+2026-08-28 20:04:31 - INFO - __main__ - 19060 pendientes en total; procesando este lote: 5 (límite MAX_ESTABLISHMENTS_PER_RUN=5)
+2026-08-28 20:04:31 - INFO - __main__ - [1/5] Procesando https://www.booking.com/hotel/es/adosado-la-guancha.es.html
+2026-08-28 20:04:31 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/adosado-la-guancha.es.html
+2026-08-28 20:04:31 - INFO - __main__ - Verificando ChromeDriver (una sola vez para toda la corrida)...
+2026-08-28 20:04:40 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:04:48 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:04:53 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 20:05:00 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 20:05:06 - INFO - __main__ -   Página 3: 10 reseñas (30 acumuladas)
+2026-08-28 20:05:15 - INFO - __main__ -   Página 4: 10 reseñas (40 acumuladas)
+2026-08-28 20:05:20 - INFO - __main__ -   Página 5: 10 reseñas (50 acumuladas)
+2026-08-28 20:05:28 - INFO - __main__ -   Página 6: 10 reseñas (60 acumuladas)
+2026-08-28 20:05:35 - INFO - __main__ -   Página 7: 10 reseñas (70 acumuladas)
+2026-08-28 20:05:43 - INFO - __main__ -   Página 8: 10 reseñas (80 acumuladas)
+2026-08-28 20:05:52 - INFO - __main__ -   Página 9: 10 reseñas (90 acumuladas)
+2026-08-28 20:05:56 - INFO - __main__ -   Página 10: 10 reseñas (100 acumuladas)
+2026-08-28 20:06:00 - INFO - __main__ -   Página 11: 10 reseñas (110 acumuladas)
+2026-08-28 20:06:06 - INFO - __main__ -   Página 12: 10 reseñas (120 acumuladas)
+2026-08-28 20:06:12 - INFO - __main__ -   Página 13: 10 reseñas (130 acumuladas)
+2026-08-28 20:06:16 - INFO - __main__ -   Página 14: 10 reseñas (140 acumuladas)
+2026-08-28 20:06:22 - INFO - __main__ -   Página 15: 10 reseñas (150 acumuladas)
+2026-08-28 20:06:31 - INFO - __main__ -   Página 16: 4 reseñas (154 acumuladas)
+2026-08-28 20:06:34 - INFO - __main__ - Guardado completo: 1 establecimientos, 154 reseñas.
+2026-08-28 20:06:40 - INFO - __main__ - [2/5] Procesando https://www.booking.com/hotel/es/apartamento-el-jardin-la-matanza-de-acentejo.es.html
+2026-08-28 20:06:40 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartamento-el-jardin-la-matanza-de-acentejo.es.html
+2026-08-28 20:06:45 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:06:46 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38379 La Matanza de Acentejo, España'
+2026-08-28 20:06:52 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:06:59 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 20:07:05 - INFO - __main__ -   Página 2: 3 reseñas (13 acumuladas)
+2026-08-28 20:07:07 - INFO - __main__ - Guardado completo: 1 establecimientos, 13 reseñas.
+2026-08-28 20:07:12 - INFO - __main__ - [3/5] Procesando https://www.booking.com/hotel/es/apartamentos-la-pena-la-guancha.es.html
+2026-08-28 20:07:12 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartamentos-la-pena-la-guancha.es.html
+2026-08-28 20:07:17 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:07:22 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:07:29 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 20:07:37 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 20:07:42 - INFO - __main__ -   Página 3: 10 reseñas (30 acumuladas)
+2026-08-28 20:07:47 - INFO - __main__ -   Página 4: 10 reseñas (40 acumuladas)
+2026-08-28 20:07:51 - INFO - __main__ -   Página 5: 6 reseñas (46 acumuladas)
+2026-08-28 20:07:55 - INFO - __main__ - Guardado completo: 1 establecimientos, 46 reseñas.
+2026-08-28 20:08:01 - INFO - __main__ - [4/5] Procesando https://www.booking.com/hotel/es/apartment-la-gomera-i-san-juan-de-la-rambla.es.html
+2026-08-28 20:08:01 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartment-la-gomera-i-san-juan-de-la-rambla.es.html
+2026-08-28 20:08:13 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:08:23 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 20:08:28 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 20:08:35 - INFO - __main__ -   Página 3: 4 reseñas (24 acumuladas)
+2026-08-28 20:08:38 - INFO - __main__ - Guardado completo: 1 establecimientos, 24 reseñas.
+2026-08-28 20:08:41 - INFO - __main__ - [5/5] Procesando https://www.booking.com/hotel/es/apartment-wohnung-in-la-matanza-de-acentejo-mit-terrasse-gemeinsamem-pool-und-ga.es.html
+2026-08-28 20:08:41 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartment-wohnung-in-la-matanza-de-acentejo-mit-terrasse-gemeinsamem-pool-und-ga.es.html
+2026-08-28 20:08:53 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:09:25 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/apartment-wohnung-in-la-matanza-de-acentejo-mit-terrasse-gemeinsamem-pool-und-ga.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbf3353+fd93]
+	chromedriver!GetHandleVerifier [0xbf3394+fdd4]
+	chromedriver!(No symbol) [0x9e9220]
+	chromedriver!(No symbol) [0xa332fb]
+	chromedriver!(No symbol) [0xa3351b]
+	chromedriver!(No symbol) [0xa75b82]
+	chromedriver!(No symbol) [0xa558c4]
+	chromedriver!(No symbol) [0xa734d9]
+	chromedriver!(No symbol) [0xa55616]
+	chromedriver!(No symbol) [0xa287e9]
+	chromedriver!(No symbol) [0xa295b4]
+	chromedriver!GetHandleVerifier [0xe8f51a+2abf5a]
+	chromedriver!GetHandleVerifier [0xe8aa21+2a7461]
+	chromedriver!GetHandleVerifier [0xc1f374+3bdb4]
+	chromedriver!GetHandleVerifier [0xc0e036+2aa76]
+	chromedriver!GetHandleVerifier [0xc14efd+3193d]
+	chromedriver!GetHandleVerifier [0xbfc8a8+192e8]
+	chromedriver!GetHandleVerifier [0xbfca55+19495]
+	chromedriver!GetHandleVerifier [0xbe53ff+1e3f]
+	KERNEL32!BaseThreadInitThunk [0x761d5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x7769e12b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x7769e0b1+231]
+
+2026-08-28 20:09:27 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/apartment-wohnung-in-la-matanza-de-acentejo-mit-terrasse-gemeinsamem-pool-und-ga.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0xbf3353+fd93]
+	chromedriver!GetHandleVerifier [0xbf3394+fdd4]
+	chromedriver!(No symbol) [0x9e9220]
+	chromedriver!(No symbol) [0xa332fb]
+	chromedriver!(No symbol) [0xa3351b]
+	chromedriver!(No symbol) [0xa75b82]
+	chromedriver!(No symbol) [0xa558c4]
+	chromedriver!(No symbol) [0xa734d9]
+	chromedriver!(No symbol) [0xa55616]
+	chromedriver!(No symbol) [0xa287e9]
+	chromedriver!(No symbol) [0xa295b4]
+	chromedriver!GetHandleVerifier [0xe8f51a+2abf5a]
+	chromedriver!GetHandleVerifier [0xe8aa21+2a7461]
+	chromedriver!GetHandleVerifier [0xc1f374+3bdb4]
+	chromedriver!GetHandleVerifier [0xc0e036+2aa76]
+	chromedriver!GetHandleVerifier [0xc14efd+3193d]
+	chromedriver!GetHandleVerifier [0xbfc8a8+192e8]
+	chromedriver!GetHandleVerifier [0xbfca55+19495]
+	chromedriver!GetHandleVerifier [0xbe53ff+1e3f]
+	KERNEL32!BaseThreadInitThunk [0x761d5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x7769e12b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x7769e0b1+231]
+
+2026-08-28 20:09:27 - INFO - __main__ - === Corrida finalizada: 4 establecimientos, 237 reseñas en total (0 descartados por no ser de Tenerife) ===
+2026-08-28 20:26:20 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-08-28 20:26:20 - INFO - __main__ - Usando caché de descubrimiento: C:\Users\jcabr\AI_Dashboard_Core\ingestion\scraping\sitemap_discovery_cache.json
+2026-08-28 20:26:20 - INFO - __main__ - 2494 establecimiento(s) ya completados en corridas anteriores, se omiten.
+2026-08-28 20:26:20 - INFO - __main__ - 20 de 20 establecimientos de este lote son prioritarios (Grupo A): 2 de Arafo, 3 de El Tanque, 9 de La Guancha, 3 de La Matanza de Acentejo, 1 de La Victoria de Acentejo, 2 de San Juan de la Rambla
+2026-08-28 20:26:20 - INFO - __main__ - 19056 pendientes en total; procesando este lote: 20 (límite MAX_ESTABLISHMENTS_PER_RUN=20)
+2026-08-28 20:26:20 - INFO - __main__ - [1/20] Procesando https://www.booking.com/hotel/es/apartment-wohnung-in-la-matanza-de-acentejo-mit-terrasse-gemeinsamem-pool-und-ga.es.html
+2026-08-28 20:26:20 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartment-wohnung-in-la-matanza-de-acentejo-mit-terrasse-gemeinsamem-pool-und-ga.es.html
+2026-08-28 20:26:20 - INFO - __main__ - Verificando ChromeDriver (una sola vez para toda la corrida)...
+2026-08-28 20:26:36 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:27:07 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/apartment-wohnung-in-la-matanza-de-acentejo-mit-terrasse-gemeinsamem-pool-und-ga.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x423353+fd93]
+	chromedriver!GetHandleVerifier [0x423394+fdd4]
+	chromedriver!(No symbol) [0x219220]
+	chromedriver!(No symbol) [0x2632fb]
+	chromedriver!(No symbol) [0x26351b]
+	chromedriver!(No symbol) [0x2a5b82]
+	chromedriver!(No symbol) [0x2858c4]
+	chromedriver!(No symbol) [0x2a34d9]
+	chromedriver!(No symbol) [0x285616]
+	chromedriver!(No symbol) [0x2587e9]
+	chromedriver!(No symbol) [0x2595b4]
+	chromedriver!GetHandleVerifier [0x6bf51a+2abf5a]
+	chromedriver!GetHandleVerifier [0x6baa21+2a7461]
+	chromedriver!GetHandleVerifier [0x44f374+3bdb4]
+	chromedriver!GetHandleVerifier [0x43e036+2aa76]
+	chromedriver!GetHandleVerifier [0x444efd+3193d]
+	chromedriver!GetHandleVerifier [0x42c8a8+192e8]
+	chromedriver!GetHandleVerifier [0x42ca55+19495]
+	chromedriver!GetHandleVerifier [0x4153ff+1e3f]
+	KERNEL32!BaseThreadInitThunk [0x761d5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x7769e12b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x7769e0b1+231]
+	(No symbol) [(nil)]
+
+2026-08-28 20:27:12 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/apartment-wohnung-in-la-matanza-de-acentejo-mit-terrasse-gemeinsamem-pool-und-ga.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x423353+fd93]
+	chromedriver!GetHandleVerifier [0x423394+fdd4]
+	chromedriver!(No symbol) [0x219220]
+	chromedriver!(No symbol) [0x2632fb]
+	chromedriver!(No symbol) [0x26351b]
+	chromedriver!(No symbol) [0x2a5b82]
+	chromedriver!(No symbol) [0x2858c4]
+	chromedriver!(No symbol) [0x2a34d9]
+	chromedriver!(No symbol) [0x285616]
+	chromedriver!(No symbol) [0x2587e9]
+	chromedriver!(No symbol) [0x2595b4]
+	chromedriver!GetHandleVerifier [0x6bf51a+2abf5a]
+	chromedriver!GetHandleVerifier [0x6baa21+2a7461]
+	chromedriver!GetHandleVerifier [0x44f374+3bdb4]
+	chromedriver!GetHandleVerifier [0x43e036+2aa76]
+	chromedriver!GetHandleVerifier [0x444efd+3193d]
+	chromedriver!GetHandleVerifier [0x42c8a8+192e8]
+	chromedriver!GetHandleVerifier [0x42ca55+19495]
+	chromedriver!GetHandleVerifier [0x4153ff+1e3f]
+	KERNEL32!BaseThreadInitThunk [0x761d5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x7769e12b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x7769e0b1+231]
+	(No symbol) [(nil)]
+
+2026-08-28 20:27:12 - INFO - __main__ - [2/20] Procesando https://www.booking.com/hotel/es/arafo-sunset-villa.es.html
+2026-08-28 20:27:12 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/arafo-sunset-villa.es.html
+2026-08-28 20:27:19 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:27:26 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:27:36 - INFO - __main__ -   Página 1: 4 reseñas (4 acumuladas)
+2026-08-28 20:27:36 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-28 20:27:42 - INFO - __main__ - Guardado completo: 1 establecimientos, 4 reseñas.
+2026-08-28 20:27:45 - INFO - __main__ - [3/20] Procesando https://www.booking.com/hotel/es/atico-san-jose-la-victoria-de-acentejo.es.html
+2026-08-28 20:27:45 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/atico-san-jose-la-victoria-de-acentejo.es.html
+2026-08-28 20:27:52 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:28:01 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:28:20 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 20:28:33 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 20:28:41 - INFO - __main__ -   Página 3: 10 reseñas (30 acumuladas)
+2026-08-28 20:28:45 - INFO - __main__ -   Página 4: 4 reseñas (34 acumuladas)
+2026-08-28 20:28:50 - INFO - __main__ - Guardado completo: 1 establecimientos, 34 reseñas.
+2026-08-28 20:28:58 - INFO - __main__ - [4/20] Procesando https://www.booking.com/hotel/es/bellavista-la-guancha.es.html
+2026-08-28 20:28:58 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/bellavista-la-guancha.es.html
+2026-08-28 20:29:04 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:29:11 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:29:17 - INFO - __main__ -   Página 1: 1 reseñas (1 acumuladas)
+2026-08-28 20:29:17 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-28 20:29:19 - INFO - __main__ - Guardado completo: 1 establecimientos, 1 reseñas.
+2026-08-28 20:29:26 - INFO - __main__ - [5/20] Procesando https://www.booking.com/hotel/es/buena-vista-la-guancha.es.html
+2026-08-28 20:29:26 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/buena-vista-la-guancha.es.html
+2026-08-28 20:29:32 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:29:36 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38449 La Guancha, España'
+2026-08-28 20:29:40 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:29:56 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 20:30:17 - INFO - __main__ -   Página 2: 3 reseñas (13 acumuladas)
+2026-08-28 20:30:22 - INFO - __main__ - Guardado completo: 1 establecimientos, 13 reseñas.
+2026-08-28 20:30:29 - INFO - __main__ - [6/20] Procesando https://www.booking.com/hotel/es/camper-la-guancha.es.html
+2026-08-28 20:30:29 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/camper-la-guancha.es.html
+2026-08-28 20:30:36 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:30:43 - WARNING - __main__ -   Descartado (no es Tenerife): 'Camper La Guancha' (https://www.booking.com/hotel/es/camper-la-guancha.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-28 20:30:47 - INFO - __main__ - [7/20] Procesando https://www.booking.com/hotel/es/casa-blanca-la-matanza-de-acentejo.es.html
+2026-08-28 20:30:47 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-blanca-la-matanza-de-acentejo.es.html
+2026-08-28 20:30:54 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:31:06 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:31:18 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 20:31:25 - INFO - __main__ -   Página 2: 4 reseñas (14 acumuladas)
+2026-08-28 20:31:27 - INFO - __main__ - Guardado completo: 1 establecimientos, 14 reseñas.
+2026-08-28 20:31:33 - INFO - __main__ - [8/20] Procesando https://www.booking.com/hotel/es/casa-candelaria-la-guancha.es.html
+2026-08-28 20:31:33 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-candelaria-la-guancha.es.html
+2026-08-28 20:31:40 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:31:42 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38440 La Guancha, España'
+2026-08-28 20:31:48 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:31:57 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 20:32:03 - INFO - __main__ -   Página 2: 1 reseñas (11 acumuladas)
+2026-08-28 20:32:06 - INFO - __main__ - Guardado completo: 1 establecimientos, 11 reseñas.
+2026-08-28 20:32:11 - INFO - __main__ - [9/20] Procesando https://www.booking.com/hotel/es/casa-carmela-la-guancha1.es.html
+2026-08-28 20:32:11 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-carmela-la-guancha1.es.html
+2026-08-28 20:32:16 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:32:25 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:32:32 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 20:32:37 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 20:32:41 - INFO - __main__ -   Página 3: 4 reseñas (24 acumuladas)
+2026-08-28 20:32:45 - INFO - __main__ - Guardado completo: 1 establecimientos, 24 reseñas.
+2026-08-28 20:32:53 - INFO - __main__ - [10/20] Procesando https://www.booking.com/hotel/es/casa-carmen-la-guancha.es.html
+2026-08-28 20:32:53 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-carmen-la-guancha.es.html
+2026-08-28 20:32:57 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:32:59 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38440 La Guancha, España'
+2026-08-28 20:33:06 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:33:16 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 20:33:20 - INFO - __main__ -   Página 2: 2 reseñas (12 acumuladas)
+2026-08-28 20:33:23 - INFO - __main__ - Guardado completo: 1 establecimientos, 12 reseñas.
+2026-08-28 20:33:29 - INFO - __main__ - [11/20] Procesando https://www.booking.com/hotel/es/casa-con-vista-san-juan-de-la-rambla.es.html
+2026-08-28 20:33:29 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-con-vista-san-juan-de-la-rambla.es.html
+2026-08-28 20:33:33 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:33:35 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38428 San Juan de la Rambla, España'
+2026-08-28 20:33:40 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:33:48 - INFO - __main__ -   Página 1: 8 reseñas (8 acumuladas)
+2026-08-28 20:33:48 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-28 20:33:51 - INFO - __main__ - Guardado completo: 1 establecimientos, 8 reseñas.
+2026-08-28 20:33:57 - INFO - __main__ - [12/20] Procesando https://www.booking.com/hotel/es/casa-del-tanque.es.html
+2026-08-28 20:33:57 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-del-tanque.es.html
+2026-08-28 20:34:01 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:34:09 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:34:19 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 20:34:24 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 20:34:53 - INFO - __main__ -   Página 3: 10 reseñas (30 acumuladas)
+2026-08-28 20:35:01 - INFO - __main__ -   Página 4: 5 reseñas (35 acumuladas)
+2026-08-28 20:35:04 - INFO - __main__ - Guardado completo: 1 establecimientos, 35 reseñas.
+2026-08-28 20:35:08 - INFO - __main__ - [13/20] Procesando https://www.booking.com/hotel/es/casa-el-comisario.es.html
+2026-08-28 20:35:08 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-el-comisario.es.html
+2026-08-28 20:35:14 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:35:23 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:35:32 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 20:35:39 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 20:35:46 - INFO - __main__ -   Página 3: 10 reseñas (30 acumuladas)
+2026-08-28 20:35:50 - INFO - __main__ -   Página 4: 10 reseñas (40 acumuladas)
+2026-08-28 20:35:55 - INFO - __main__ -   Página 5: 10 reseñas (50 acumuladas)
+2026-08-28 20:36:05 - INFO - __main__ -   Página 6: 10 reseñas (60 acumuladas)
+2026-08-28 20:36:09 - INFO - __main__ -   Página 7: 10 reseñas (70 acumuladas)
+2026-08-28 20:36:16 - INFO - __main__ -   Página 8: 10 reseñas (80 acumuladas)
+2026-08-28 20:36:23 - INFO - __main__ -   Página 9: 10 reseñas (90 acumuladas)
+2026-08-28 20:36:29 - INFO - __main__ -   Página 10: 10 reseñas (100 acumuladas)
+2026-08-28 20:36:37 - INFO - __main__ -   Página 11: 10 reseñas (110 acumuladas)
+2026-08-28 20:36:46 - INFO - __main__ -   Página 12: 10 reseñas (120 acumuladas)
+2026-08-28 20:36:56 - INFO - __main__ -   Página 13: 10 reseñas (130 acumuladas)
+2026-08-28 20:37:02 - INFO - __main__ -   Página 14: 10 reseñas (140 acumuladas)
+2026-08-28 20:37:09 - INFO - __main__ -   Página 15: 10 reseñas (150 acumuladas)
+2026-08-28 20:37:14 - INFO - __main__ -   Página 16: 10 reseñas (160 acumuladas)
+2026-08-28 20:37:20 - INFO - __main__ -   Página 17: 10 reseñas (170 acumuladas)
+2026-08-28 20:37:25 - INFO - __main__ -   Página 18: 10 reseñas (180 acumuladas)
+2026-08-28 20:37:33 - INFO - __main__ -   Página 19: 10 reseñas (190 acumuladas)
+2026-08-28 20:37:41 - INFO - __main__ -   Página 20: 10 reseñas (200 acumuladas)
+2026-08-28 20:37:45 - INFO - __main__ - Guardado completo: 1 establecimientos, 200 reseñas.
+2026-08-28 20:37:53 - INFO - __main__ - [14/20] Procesando https://www.booking.com/hotel/es/casa-julian-san-juan-de-la-rambla.es.html
+2026-08-28 20:37:53 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-julian-san-juan-de-la-rambla.es.html
+2026-08-28 20:37:58 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:38:05 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:38:13 - INFO - __main__ -   Página 1: 7 reseñas (7 acumuladas)
+2026-08-28 20:38:13 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-28 20:38:16 - INFO - __main__ - Guardado completo: 1 establecimientos, 7 reseñas.
+2026-08-28 20:38:20 - INFO - __main__ - [15/20] Procesando https://www.booking.com/hotel/es/casa-la-centinela-la-guancha.es.html
+2026-08-28 20:38:20 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-la-centinela-la-guancha.es.html
+2026-08-28 20:38:24 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:38:26 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38440 La Guancha, España'
+2026-08-28 20:38:33 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:38:43 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 20:39:00 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 20:39:07 - INFO - __main__ -   Página 3: 9 reseñas (29 acumuladas)
+2026-08-28 20:39:10 - INFO - __main__ - Guardado completo: 1 establecimientos, 29 reseñas.
+2026-08-28 20:39:17 - INFO - __main__ - [16/20] Procesando https://www.booking.com/hotel/es/casa-la-molineta-la-hidalga-arafo.es.html
+2026-08-28 20:39:17 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-la-molineta-la-hidalga-arafo.es.html
+2026-08-28 20:39:21 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:39:23 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38550 Chiquenge, España'
+2026-08-28 20:39:23 - WARNING - __main__ - No se pudo geocodificar 'Calle Cuatro esquinas 13, 38550 Chiquenge, España' (ni con variantes simplificadas)
+2026-08-28 20:39:28 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:39:59 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/casa-la-molineta-la-hidalga-arafo.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x423353+fd93]
+	chromedriver!GetHandleVerifier [0x423394+fdd4]
+	chromedriver!(No symbol) [0x219220]
+	chromedriver!(No symbol) [0x2632fb]
+	chromedriver!(No symbol) [0x26351b]
+	chromedriver!(No symbol) [0x2a5b82]
+	chromedriver!(No symbol) [0x2858c4]
+	chromedriver!(No symbol) [0x2a34d9]
+	chromedriver!(No symbol) [0x285616]
+	chromedriver!(No symbol) [0x2587e9]
+	chromedriver!(No symbol) [0x2595b4]
+	chromedriver!GetHandleVerifier [0x6bf51a+2abf5a]
+	chromedriver!GetHandleVerifier [0x6baa21+2a7461]
+	chromedriver!GetHandleVerifier [0x44f374+3bdb4]
+	chromedriver!GetHandleVerifier [0x43e036+2aa76]
+	chromedriver!GetHandleVerifier [0x444efd+3193d]
+	chromedriver!GetHandleVerifier [0x42c8a8+192e8]
+	chromedriver!GetHandleVerifier [0x42ca55+19495]
+	chromedriver!GetHandleVerifier [0x4153ff+1e3f]
+	KERNEL32!BaseThreadInitThunk [0x761d5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x7769e12b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x7769e0b1+231]
+	(No symbol) [(nil)]
+
+2026-08-28 20:40:01 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/casa-la-molineta-la-hidalga-arafo.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x423353+fd93]
+	chromedriver!GetHandleVerifier [0x423394+fdd4]
+	chromedriver!(No symbol) [0x219220]
+	chromedriver!(No symbol) [0x2632fb]
+	chromedriver!(No symbol) [0x26351b]
+	chromedriver!(No symbol) [0x2a5b82]
+	chromedriver!(No symbol) [0x2858c4]
+	chromedriver!(No symbol) [0x2a34d9]
+	chromedriver!(No symbol) [0x285616]
+	chromedriver!(No symbol) [0x2587e9]
+	chromedriver!(No symbol) [0x2595b4]
+	chromedriver!GetHandleVerifier [0x6bf51a+2abf5a]
+	chromedriver!GetHandleVerifier [0x6baa21+2a7461]
+	chromedriver!GetHandleVerifier [0x44f374+3bdb4]
+	chromedriver!GetHandleVerifier [0x43e036+2aa76]
+	chromedriver!GetHandleVerifier [0x444efd+3193d]
+	chromedriver!GetHandleVerifier [0x42c8a8+192e8]
+	chromedriver!GetHandleVerifier [0x42ca55+19495]
+	chromedriver!GetHandleVerifier [0x4153ff+1e3f]
+	KERNEL32!BaseThreadInitThunk [0x761d5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x7769e12b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x7769e0b1+231]
+	(No symbol) [(nil)]
+
+2026-08-28 20:40:01 - INFO - __main__ - [17/20] Procesando https://www.booking.com/hotel/es/casa-lourdes-la-guancha.es.html
+2026-08-28 20:40:01 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-lourdes-la-guancha.es.html
+2026-08-28 20:40:10 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:40:19 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:40:26 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 20:40:31 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 20:40:35 - INFO - __main__ -   Página 3: 10 reseñas (30 acumuladas)
+2026-08-28 20:40:39 - INFO - __main__ -   Página 4: 10 reseñas (40 acumuladas)
+2026-08-28 20:40:46 - INFO - __main__ -   Página 5: 10 reseñas (50 acumuladas)
+2026-08-28 20:40:54 - INFO - __main__ -   Página 6: 10 reseñas (60 acumuladas)
+2026-08-28 20:41:00 - INFO - __main__ -   Página 7: 10 reseñas (70 acumuladas)
+2026-08-28 20:41:05 - INFO - __main__ -   Página 8: 10 reseñas (80 acumuladas)
+2026-08-28 20:41:12 - INFO - __main__ -   Página 9: 10 reseñas (90 acumuladas)
+2026-08-28 20:41:19 - INFO - __main__ -   Página 10: 10 reseñas (100 acumuladas)
+2026-08-28 20:41:24 - INFO - __main__ -   Página 11: 5 reseñas (105 acumuladas)
+2026-08-28 20:41:27 - INFO - __main__ - Guardado completo: 1 establecimientos, 105 reseñas.
+2026-08-28 20:41:34 - INFO - __main__ - [18/20] Procesando https://www.booking.com/hotel/es/casa-mara-el-tanque.es.html
+2026-08-28 20:41:34 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-mara-el-tanque.es.html
+2026-08-28 20:41:39 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:41:41 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38435 Las Cruces, España'
+2026-08-28 20:41:49 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:41:55 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 20:42:02 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 20:42:06 - INFO - __main__ -   Página 3: 10 reseñas (30 acumuladas)
+2026-08-28 20:42:13 - INFO - __main__ -   Página 4: 10 reseñas (40 acumuladas)
+2026-08-28 20:42:21 - INFO - __main__ -   Página 5: 10 reseñas (50 acumuladas)
+2026-08-28 20:42:30 - INFO - __main__ -   Página 6: 10 reseñas (60 acumuladas)
+2026-08-28 20:42:35 - INFO - __main__ -   Página 7: 10 reseñas (70 acumuladas)
+2026-08-28 20:42:42 - INFO - __main__ -   Página 8: 10 reseñas (80 acumuladas)
+2026-08-28 20:42:48 - INFO - __main__ -   Página 9: 10 reseñas (90 acumuladas)
+2026-08-28 20:42:53 - INFO - __main__ -   Página 10: 10 reseñas (100 acumuladas)
+2026-08-28 20:42:58 - INFO - __main__ -   Página 11: 10 reseñas (110 acumuladas)
+2026-08-28 20:43:04 - INFO - __main__ -   Página 12: 10 reseñas (120 acumuladas)
+2026-08-28 20:43:11 - INFO - __main__ -   Página 13: 10 reseñas (130 acumuladas)
+2026-08-28 20:43:16 - INFO - __main__ -   Página 14: 10 reseñas (140 acumuladas)
+2026-08-28 20:43:24 - INFO - __main__ -   Página 15: 10 reseñas (150 acumuladas)
+2026-08-28 20:43:28 - INFO - __main__ -   Página 16: 10 reseñas (160 acumuladas)
+2026-08-28 20:43:34 - INFO - __main__ -   Página 17: 10 reseñas (170 acumuladas)
+2026-08-28 20:43:42 - INFO - __main__ -   Página 18: 10 reseñas (180 acumuladas)
+2026-08-28 20:43:49 - INFO - __main__ -   Página 19: 10 reseñas (190 acumuladas)
+2026-08-28 20:43:56 - INFO - __main__ -   Página 20: 10 reseñas (200 acumuladas)
+2026-08-28 20:43:58 - INFO - __main__ - Guardado completo: 1 establecimientos, 200 reseñas.
+2026-08-28 20:44:03 - INFO - __main__ - [19/20] Procesando https://www.booking.com/hotel/es/casa-margarita-la-guancha.es.html
+2026-08-28 20:44:03 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-margarita-la-guancha.es.html
+2026-08-28 20:44:13 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:44:19 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 20:44:25 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 20:44:32 - INFO - __main__ -   Página 3: 10 reseñas (30 acumuladas)
+2026-08-28 20:44:40 - INFO - __main__ -   Página 4: 10 reseñas (40 acumuladas)
+2026-08-28 20:44:43 - INFO - __main__ - Guardado completo: 1 establecimientos, 40 reseñas.
+2026-08-28 20:44:47 - INFO - __main__ - [20/20] Procesando https://www.booking.com/hotel/es/casa-marianne-la-matanza-de-acentejo.es.html
+2026-08-28 20:44:47 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-marianne-la-matanza-de-acentejo.es.html
+2026-08-28 20:44:51 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:45:01 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:45:08 - INFO - __main__ -   Página 1: 7 reseñas (7 acumuladas)
+2026-08-28 20:45:08 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-28 20:45:11 - INFO - __main__ - Guardado completo: 1 establecimientos, 7 reseñas.
+2026-08-28 20:45:15 - INFO - __main__ - === Corrida finalizada: 17 establecimientos, 744 reseñas en total (1 descartados por no ser de Tenerife) ===
+2026-08-28 20:45:51 - INFO - __main__ - === Iniciando scraper de Booking.com ===
+2026-08-28 20:45:51 - INFO - __main__ - Usando caché de descubrimiento: C:\Users\jcabr\AI_Dashboard_Core\ingestion\scraping\sitemap_discovery_cache.json
+2026-08-28 20:45:51 - INFO - __main__ - 2512 establecimiento(s) ya completados en corridas anteriores, se omiten.
+2026-08-28 20:45:51 - INFO - __main__ - 50 de 50 establecimientos de este lote son prioritarios (Grupo A): 11 de Arafo, 7 de El Tanque, 11 de La Guancha, 13 de La Matanza de Acentejo, 2 de La Victoria de Acentejo, 6 de San Juan de la Rambla
+2026-08-28 20:45:51 - INFO - __main__ - 19038 pendientes en total; procesando este lote: 50 (límite MAX_ESTABLISHMENTS_PER_RUN=50)
+2026-08-28 20:45:51 - INFO - __main__ - [1/50] Procesando https://www.booking.com/hotel/es/apartment-wohnung-in-la-matanza-de-acentejo-mit-terrasse-gemeinsamem-pool-und-ga.es.html
+2026-08-28 20:45:51 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/apartment-wohnung-in-la-matanza-de-acentejo-mit-terrasse-gemeinsamem-pool-und-ga.es.html
+2026-08-28 20:45:51 - INFO - __main__ - Verificando ChromeDriver (una sola vez para toda la corrida)...
+2026-08-28 20:45:59 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:46:07 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:46:38 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/apartment-wohnung-in-la-matanza-de-acentejo-mit-terrasse-gemeinsamem-pool-und-ga.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x423353+fd93]
+	chromedriver!GetHandleVerifier [0x423394+fdd4]
+	chromedriver!(No symbol) [0x219220]
+	chromedriver!(No symbol) [0x2632fb]
+	chromedriver!(No symbol) [0x26351b]
+	chromedriver!(No symbol) [0x2a5b82]
+	chromedriver!(No symbol) [0x2858c4]
+	chromedriver!(No symbol) [0x2a34d9]
+	chromedriver!(No symbol) [0x285616]
+	chromedriver!(No symbol) [0x2587e9]
+	chromedriver!(No symbol) [0x2595b4]
+	chromedriver!GetHandleVerifier [0x6bf51a+2abf5a]
+	chromedriver!GetHandleVerifier [0x6baa21+2a7461]
+	chromedriver!GetHandleVerifier [0x44f374+3bdb4]
+	chromedriver!GetHandleVerifier [0x43e036+2aa76]
+	chromedriver!GetHandleVerifier [0x444efd+3193d]
+	chromedriver!GetHandleVerifier [0x42c8a8+192e8]
+	chromedriver!GetHandleVerifier [0x42ca55+19495]
+	chromedriver!GetHandleVerifier [0x4153ff+1e3f]
+	KERNEL32!BaseThreadInitThunk [0x761d5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x7769e12b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x7769e0b1+231]
+	(No symbol) [(nil)]
+
+2026-08-28 20:46:41 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/apartment-wohnung-in-la-matanza-de-acentejo-mit-terrasse-gemeinsamem-pool-und-ga.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x423353+fd93]
+	chromedriver!GetHandleVerifier [0x423394+fdd4]
+	chromedriver!(No symbol) [0x219220]
+	chromedriver!(No symbol) [0x2632fb]
+	chromedriver!(No symbol) [0x26351b]
+	chromedriver!(No symbol) [0x2a5b82]
+	chromedriver!(No symbol) [0x2858c4]
+	chromedriver!(No symbol) [0x2a34d9]
+	chromedriver!(No symbol) [0x285616]
+	chromedriver!(No symbol) [0x2587e9]
+	chromedriver!(No symbol) [0x2595b4]
+	chromedriver!GetHandleVerifier [0x6bf51a+2abf5a]
+	chromedriver!GetHandleVerifier [0x6baa21+2a7461]
+	chromedriver!GetHandleVerifier [0x44f374+3bdb4]
+	chromedriver!GetHandleVerifier [0x43e036+2aa76]
+	chromedriver!GetHandleVerifier [0x444efd+3193d]
+	chromedriver!GetHandleVerifier [0x42c8a8+192e8]
+	chromedriver!GetHandleVerifier [0x42ca55+19495]
+	chromedriver!GetHandleVerifier [0x4153ff+1e3f]
+	KERNEL32!BaseThreadInitThunk [0x761d5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x7769e12b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x7769e0b1+231]
+	(No symbol) [(nil)]
+
+2026-08-28 20:46:41 - INFO - __main__ - [2/50] Procesando https://www.booking.com/hotel/es/casa-la-molineta-la-hidalga-arafo.es.html
+2026-08-28 20:46:41 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-la-molineta-la-hidalga-arafo.es.html
+2026-08-28 20:46:46 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:46:48 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38550 Chiquenge, España'
+2026-08-28 20:46:48 - WARNING - __main__ - No se pudo geocodificar 'Calle Cuatro esquinas 13, 38550 Chiquenge, España' (ni con variantes simplificadas)
+2026-08-28 20:46:54 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:47:25 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/casa-la-molineta-la-hidalga-arafo.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x423353+fd93]
+	chromedriver!GetHandleVerifier [0x423394+fdd4]
+	chromedriver!(No symbol) [0x219220]
+	chromedriver!(No symbol) [0x2632fb]
+	chromedriver!(No symbol) [0x26351b]
+	chromedriver!(No symbol) [0x2a5b82]
+	chromedriver!(No symbol) [0x2858c4]
+	chromedriver!(No symbol) [0x2a34d9]
+	chromedriver!(No symbol) [0x285616]
+	chromedriver!(No symbol) [0x2587e9]
+	chromedriver!(No symbol) [0x2595b4]
+	chromedriver!GetHandleVerifier [0x6bf51a+2abf5a]
+	chromedriver!GetHandleVerifier [0x6baa21+2a7461]
+	chromedriver!GetHandleVerifier [0x44f374+3bdb4]
+	chromedriver!GetHandleVerifier [0x43e036+2aa76]
+	chromedriver!GetHandleVerifier [0x444efd+3193d]
+	chromedriver!GetHandleVerifier [0x42c8a8+192e8]
+	chromedriver!GetHandleVerifier [0x42ca55+19495]
+	chromedriver!GetHandleVerifier [0x4153ff+1e3f]
+	KERNEL32!BaseThreadInitThunk [0x761d5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x7769e12b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x7769e0b1+231]
+	(No symbol) [(nil)]
+
+2026-08-28 20:47:37 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/casa-la-molineta-la-hidalga-arafo.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x423353+fd93]
+	chromedriver!GetHandleVerifier [0x423394+fdd4]
+	chromedriver!(No symbol) [0x219220]
+	chromedriver!(No symbol) [0x2632fb]
+	chromedriver!(No symbol) [0x26351b]
+	chromedriver!(No symbol) [0x2a5b82]
+	chromedriver!(No symbol) [0x2858c4]
+	chromedriver!(No symbol) [0x2a34d9]
+	chromedriver!(No symbol) [0x285616]
+	chromedriver!(No symbol) [0x2587e9]
+	chromedriver!(No symbol) [0x2595b4]
+	chromedriver!GetHandleVerifier [0x6bf51a+2abf5a]
+	chromedriver!GetHandleVerifier [0x6baa21+2a7461]
+	chromedriver!GetHandleVerifier [0x44f374+3bdb4]
+	chromedriver!GetHandleVerifier [0x43e036+2aa76]
+	chromedriver!GetHandleVerifier [0x444efd+3193d]
+	chromedriver!GetHandleVerifier [0x42c8a8+192e8]
+	chromedriver!GetHandleVerifier [0x42ca55+19495]
+	chromedriver!GetHandleVerifier [0x4153ff+1e3f]
+	KERNEL32!BaseThreadInitThunk [0x761d5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x7769e12b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x7769e0b1+231]
+	(No symbol) [(nil)]
+
+2026-08-28 20:47:37 - INFO - __main__ - [3/50] Procesando https://www.booking.com/hotel/es/casa-mercedes-la-guancha.es.html
+2026-08-28 20:47:37 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-mercedes-la-guancha.es.html
+2026-08-28 20:47:44 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:47:49 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:47:55 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 20:48:05 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 20:48:11 - INFO - __main__ -   Página 3: 6 reseñas (26 acumuladas)
+2026-08-28 20:48:14 - INFO - __main__ - Guardado completo: 1 establecimientos, 26 reseñas.
+2026-08-28 20:48:22 - INFO - __main__ - [4/50] Procesando https://www.booking.com/hotel/es/casa-mo-el-tanque.es.html
+2026-08-28 20:48:22 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-mo-el-tanque.es.html
+2026-08-28 20:48:30 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:48:32 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38435 Garachico, España'
+2026-08-28 20:48:37 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:48:44 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 20:48:52 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 20:49:12 - INFO - __main__ -   Página 3: 10 reseñas (30 acumuladas)
+2026-08-28 20:49:20 - INFO - __main__ -   Página 4: 10 reseñas (40 acumuladas)
+2026-08-28 20:49:30 - INFO - __main__ -   Página 5: 10 reseñas (50 acumuladas)
+2026-08-28 20:49:39 - INFO - __main__ -   Página 6: 10 reseñas (60 acumuladas)
+2026-08-28 20:49:45 - INFO - __main__ -   Página 7: 10 reseñas (70 acumuladas)
+2026-08-28 20:49:51 - INFO - __main__ -   Página 8: 10 reseñas (80 acumuladas)
+2026-08-28 20:49:57 - INFO - __main__ -   Página 9: 10 reseñas (90 acumuladas)
+2026-08-28 20:50:03 - INFO - __main__ -   Página 10: 10 reseñas (100 acumuladas)
+2026-08-28 20:50:11 - INFO - __main__ -   Página 11: 10 reseñas (110 acumuladas)
+2026-08-28 20:50:16 - INFO - __main__ -   Página 12: 10 reseñas (120 acumuladas)
+2026-08-28 20:50:24 - INFO - __main__ -   Página 13: 4 reseñas (124 acumuladas)
+2026-08-28 20:50:28 - INFO - __main__ - Guardado completo: 1 establecimientos, 124 reseñas.
+2026-08-28 20:50:31 - INFO - __main__ - [5/50] Procesando https://www.booking.com/hotel/es/casa-otilia-arafo.es.html
+2026-08-28 20:50:31 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-otilia-arafo.es.html
+2026-08-28 20:50:42 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:50:45 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38550 Arafo, España'
+2026-08-28 20:50:51 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:50:57 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 20:51:06 - INFO - __main__ -   Página 2: 5 reseñas (15 acumuladas)
+2026-08-28 20:51:09 - INFO - __main__ - Guardado completo: 1 establecimientos, 15 reseñas.
+2026-08-28 20:51:17 - INFO - __main__ - [6/50] Procesando https://www.booking.com/hotel/es/casa-rural-con-piscina-arafo.es.html
+2026-08-28 20:51:17 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-rural-con-piscina-arafo.es.html
+2026-08-28 20:51:31 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:51:41 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38550 Arafo, España'
+2026-08-28 20:51:47 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:51:52 - INFO - __main__ -   Página 1: 1 reseñas (1 acumuladas)
+2026-08-28 20:51:52 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-28 20:51:55 - INFO - __main__ - Guardado completo: 1 establecimientos, 1 reseñas.
+2026-08-28 20:52:01 - INFO - __main__ - [7/50] Procesando https://www.booking.com/hotel/es/casa-rural-felipe-luis-san-juan-de-la-rambla.es.html
+2026-08-28 20:52:01 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-rural-felipe-luis-san-juan-de-la-rambla.es.html
+2026-08-28 20:52:42 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:52:52 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 20:53:01 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 20:53:07 - INFO - __main__ -   Página 3: 10 reseñas (30 acumuladas)
+2026-08-28 20:53:12 - INFO - __main__ -   Página 4: 4 reseñas (34 acumuladas)
+2026-08-28 20:53:15 - INFO - __main__ - Guardado completo: 1 establecimientos, 34 reseñas.
+2026-08-28 20:53:20 - INFO - __main__ - [8/50] Procesando https://www.booking.com/hotel/es/casa-rural-virgen-del-rosario-san-juan-de-la-rambla.es.html
+2026-08-28 20:53:20 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-rural-virgen-del-rosario-san-juan-de-la-rambla.es.html
+2026-08-28 20:53:48 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:53:57 - INFO - __main__ -   Página 1: 7 reseñas (7 acumuladas)
+2026-08-28 20:53:57 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-28 20:53:59 - INFO - __main__ - Guardado completo: 1 establecimientos, 7 reseñas.
+2026-08-28 20:54:03 - INFO - __main__ - [9/50] Procesando https://www.booking.com/hotel/es/casa-rustica-el-charco-la-guancha.es.html
+2026-08-28 20:54:03 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-rustica-el-charco-la-guancha.es.html
+2026-08-28 20:54:17 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:54:26 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38441 La Guancha, España'
+2026-08-28 20:54:34 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:54:43 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 20:54:48 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 20:54:56 - INFO - __main__ -   Página 3: 7 reseñas (27 acumuladas)
+2026-08-28 20:54:58 - INFO - __main__ - Guardado completo: 1 establecimientos, 27 reseñas.
+2026-08-28 20:55:05 - INFO - __main__ - [10/50] Procesando https://www.booking.com/hotel/es/casa-tenerife-san-juan-de-la-rambla.es.html
+2026-08-28 20:55:05 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casa-tenerife-san-juan-de-la-rambla.es.html
+2026-08-28 20:55:19 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38420 San Juan de la Rambla, España'
+2026-08-28 20:55:25 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:55:37 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 20:55:44 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 20:56:02 - INFO - __main__ -   Página 3: 10 reseñas (30 acumuladas)
+2026-08-28 20:56:09 - INFO - __main__ -   Página 4: 10 reseñas (40 acumuladas)
+2026-08-28 20:56:19 - INFO - __main__ -   Página 5: 10 reseñas (50 acumuladas)
+2026-08-28 20:56:26 - INFO - __main__ -   Página 6: 10 reseñas (60 acumuladas)
+2026-08-28 20:56:34 - INFO - __main__ -   Página 7: 10 reseñas (70 acumuladas)
+2026-08-28 20:56:43 - INFO - __main__ -   Página 8: 10 reseñas (80 acumuladas)
+2026-08-28 20:56:51 - INFO - __main__ -   Página 9: 10 reseñas (90 acumuladas)
+2026-08-28 20:57:02 - INFO - __main__ -   Página 10: 10 reseñas (100 acumuladas)
+2026-08-28 20:57:11 - INFO - __main__ -   Página 11: 10 reseñas (110 acumuladas)
+2026-08-28 20:57:23 - INFO - __main__ -   Página 12: 10 reseñas (120 acumuladas)
+2026-08-28 20:57:32 - INFO - __main__ -   Página 13: 10 reseñas (130 acumuladas)
+2026-08-28 20:57:42 - INFO - __main__ -   Página 14: 10 reseñas (140 acumuladas)
+2026-08-28 20:57:48 - INFO - __main__ -   Página 15: 10 reseñas (150 acumuladas)
+2026-08-28 20:58:03 - INFO - __main__ -   Página 16: 10 reseñas (160 acumuladas)
+2026-08-28 20:58:09 - INFO - __main__ -   Página 17: 1 reseñas (161 acumuladas)
+2026-08-28 20:58:12 - INFO - __main__ - Guardado completo: 1 establecimientos, 161 reseñas.
+2026-08-28 20:58:19 - INFO - __main__ - [11/50] Procesando https://www.booking.com/hotel/es/casita-estrella-con-entrada-independiente-y-patio.es.html
+2026-08-28 20:58:19 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casita-estrella-con-entrada-independiente-y-patio.es.html
+2026-08-28 20:58:50 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 20:59:01 - WARNING - __main__ -   Descartado (no es Tenerife): 'Casita Estrella con entrada independiente y patio' (https://www.booking.com/hotel/es/casita-estrella-con-entrada-independiente-y-patio.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-28 20:59:08 - INFO - __main__ - [12/50] Procesando https://www.booking.com/hotel/es/casita-estrella-del-norte.es.html
+2026-08-28 20:59:08 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casita-estrella-del-norte.es.html
+2026-08-28 20:59:29 - WARNING - __main__ -   Descartado (no es Tenerife): 'Casita Estrella del Norte' (https://www.booking.com/hotel/es/casita-estrella-del-norte.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-28 20:59:35 - INFO - __main__ - [13/50] Procesando https://www.booking.com/hotel/es/casita-estrella.es.html
+2026-08-28 20:59:35 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/casita-estrella.es.html
+2026-08-28 20:59:51 - WARNING - __main__ -   Descartado (no es Tenerife): 'Casita Estrella' (https://www.booking.com/hotel/es/casita-estrella.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-28 20:59:57 - INFO - __main__ - [14/50] Procesando https://www.booking.com/hotel/es/el-nogal-san-juan-de-la-rambla.es.html
+2026-08-28 20:59:57 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/el-nogal-san-juan-de-la-rambla.es.html
+2026-08-28 21:00:17 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:00:27 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:00:38 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 21:00:45 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 21:00:54 - INFO - __main__ -   Página 3: 8 reseñas (28 acumuladas)
+2026-08-28 21:00:57 - INFO - __main__ - Guardado completo: 1 establecimientos, 28 reseñas.
+2026-08-28 21:01:04 - INFO - __main__ - [15/50] Procesando https://www.booking.com/hotel/es/el-refugio-appartments-und-villa.es.html
+2026-08-28 21:01:04 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/el-refugio-appartments-und-villa.es.html
+2026-08-28 21:01:30 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:01:40 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 21:01:48 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 21:01:56 - INFO - __main__ -   Página 3: 10 reseñas (30 acumuladas)
+2026-08-28 21:02:02 - INFO - __main__ -   Página 4: 10 reseñas (40 acumuladas)
+2026-08-28 21:02:10 - INFO - __main__ -   Página 5: 10 reseñas (50 acumuladas)
+2026-08-28 21:02:18 - INFO - __main__ -   Página 6: 10 reseñas (60 acumuladas)
+2026-08-28 21:02:25 - INFO - __main__ -   Página 7: 10 reseñas (70 acumuladas)
+2026-08-28 21:02:33 - INFO - __main__ -   Página 8: 10 reseñas (80 acumuladas)
+2026-08-28 21:02:37 - INFO - __main__ -   Página 9: 10 reseñas (90 acumuladas)
+2026-08-28 21:02:45 - INFO - __main__ -   Página 10: 2 reseñas (92 acumuladas)
+2026-08-28 21:02:47 - INFO - __main__ - Guardado completo: 1 establecimientos, 92 reseñas.
+2026-08-28 21:02:50 - INFO - __main__ - [16/50] Procesando https://www.booking.com/hotel/es/el-rincon-del-mar-la-matanza-de-acentejo.es.html
+2026-08-28 21:02:50 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/el-rincon-del-mar-la-matanza-de-acentejo.es.html
+2026-08-28 21:03:05 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:03:43 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/el-rincon-del-mar-la-matanza-de-acentejo.es.html: Message: 
+
+2026-08-28 21:03:46 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/el-rincon-del-mar-la-matanza-de-acentejo.es.html: Message: 
+
+2026-08-28 21:03:46 - INFO - __main__ - [17/50] Procesando https://www.booking.com/hotel/es/fewo-arafo.es.html
+2026-08-28 21:03:46 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/fewo-arafo.es.html
+2026-08-28 21:03:55 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:03:58 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38500 Güímar, España'
+2026-08-28 21:04:05 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:04:18 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 21:04:23 - INFO - __main__ -   Página 2: 2 reseñas (12 acumuladas)
+2026-08-28 21:04:26 - INFO - __main__ - Guardado completo: 1 establecimientos, 12 reseñas.
+2026-08-28 21:04:30 - INFO - __main__ - [18/50] Procesando https://www.booking.com/hotel/es/finca-angelus-amazing-views-sea-teide.es.html
+2026-08-28 21:04:30 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/finca-angelus-amazing-views-sea-teide.es.html
+2026-08-28 21:04:39 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38370 La Matanza de Acentejo, España'
+2026-08-28 21:04:42 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:04:51 - INFO - __main__ -   Página 1: 3 reseñas (3 acumuladas)
+2026-08-28 21:04:51 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-28 21:04:54 - INFO - __main__ - Guardado completo: 1 establecimientos, 3 reseñas.
+2026-08-28 21:04:57 - INFO - __main__ - [19/50] Procesando https://www.booking.com/hotel/es/finca-angelus-apartment-syrah-with-amazing-views.es.html
+2026-08-28 21:04:57 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/finca-angelus-apartment-syrah-with-amazing-views.es.html
+2026-08-28 21:05:06 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:05:11 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38370 La Matanza de Acentejo, España'
+2026-08-28 21:05:23 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:05:58 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/finca-angelus-apartment-syrah-with-amazing-views.es.html: Message: 
+
+2026-08-28 21:06:01 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/finca-angelus-apartment-syrah-with-amazing-views.es.html: Message: 
+
+2026-08-28 21:06:01 - INFO - __main__ - [20/50] Procesando https://www.booking.com/hotel/es/finca-el-pilar-la-guancha.es.html
+2026-08-28 21:06:01 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/finca-el-pilar-la-guancha.es.html
+2026-08-28 21:06:10 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:06:18 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:06:25 - INFO - __main__ -   Página 1: 6 reseñas (6 acumuladas)
+2026-08-28 21:06:25 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-28 21:06:27 - INFO - __main__ - Guardado completo: 1 establecimientos, 6 reseñas.
+2026-08-28 21:06:30 - INFO - __main__ - [21/50] Procesando https://www.booking.com/hotel/es/finca-el-roque-la-guancha.es.html
+2026-08-28 21:06:30 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/finca-el-roque-la-guancha.es.html
+2026-08-28 21:06:46 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:06:59 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 21:07:06 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 21:07:13 - INFO - __main__ -   Página 3: 10 reseñas (30 acumuladas)
+2026-08-28 21:07:21 - INFO - __main__ -   Página 4: 10 reseñas (40 acumuladas)
+2026-08-28 21:07:28 - INFO - __main__ -   Página 5: 10 reseñas (50 acumuladas)
+2026-08-28 21:07:47 - INFO - __main__ -   Página 6: 10 reseñas (60 acumuladas)
+2026-08-28 21:07:52 - INFO - __main__ -   Página 7: 10 reseñas (70 acumuladas)
+2026-08-28 21:07:58 - INFO - __main__ -   Página 8: 10 reseñas (80 acumuladas)
+2026-08-28 21:08:05 - INFO - __main__ -   Página 9: 2 reseñas (82 acumuladas)
+2026-08-28 21:08:08 - INFO - __main__ - Guardado completo: 1 establecimientos, 82 reseñas.
+2026-08-28 21:08:12 - INFO - __main__ - [22/50] Procesando https://www.booking.com/hotel/es/finca-la-hoya-el-tanque-tfn01028-fyb.es.html
+2026-08-28 21:08:12 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/finca-la-hoya-el-tanque-tfn01028-fyb.es.html
+2026-08-28 21:08:24 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:08:56 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/finca-la-hoya-el-tanque-tfn01028-fyb.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x423353+fd93]
+	chromedriver!GetHandleVerifier [0x423394+fdd4]
+	chromedriver!(No symbol) [0x219220]
+	chromedriver!(No symbol) [0x2632fb]
+	chromedriver!(No symbol) [0x26351b]
+	chromedriver!(No symbol) [0x2a5b82]
+	chromedriver!(No symbol) [0x2858c4]
+	chromedriver!(No symbol) [0x2a34d9]
+	chromedriver!(No symbol) [0x285616]
+	chromedriver!(No symbol) [0x2587e9]
+	chromedriver!(No symbol) [0x2595b4]
+	chromedriver!GetHandleVerifier [0x6bf51a+2abf5a]
+	chromedriver!GetHandleVerifier [0x6baa21+2a7461]
+	chromedriver!GetHandleVerifier [0x44f374+3bdb4]
+	chromedriver!GetHandleVerifier [0x43e036+2aa76]
+	chromedriver!GetHandleVerifier [0x444efd+3193d]
+	chromedriver!GetHandleVerifier [0x42c8a8+192e8]
+	chromedriver!GetHandleVerifier [0x42ca55+19495]
+	chromedriver!GetHandleVerifier [0x4153ff+1e3f]
+	KERNEL32!BaseThreadInitThunk [0x761d5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x7769e12b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x7769e0b1+231]
+	(No symbol) [(nil)]
+
+2026-08-28 21:08:58 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/finca-la-hoya-el-tanque-tfn01028-fyb.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x423353+fd93]
+	chromedriver!GetHandleVerifier [0x423394+fdd4]
+	chromedriver!(No symbol) [0x219220]
+	chromedriver!(No symbol) [0x2632fb]
+	chromedriver!(No symbol) [0x26351b]
+	chromedriver!(No symbol) [0x2a5b82]
+	chromedriver!(No symbol) [0x2858c4]
+	chromedriver!(No symbol) [0x2a34d9]
+	chromedriver!(No symbol) [0x285616]
+	chromedriver!(No symbol) [0x2587e9]
+	chromedriver!(No symbol) [0x2595b4]
+	chromedriver!GetHandleVerifier [0x6bf51a+2abf5a]
+	chromedriver!GetHandleVerifier [0x6baa21+2a7461]
+	chromedriver!GetHandleVerifier [0x44f374+3bdb4]
+	chromedriver!GetHandleVerifier [0x43e036+2aa76]
+	chromedriver!GetHandleVerifier [0x444efd+3193d]
+	chromedriver!GetHandleVerifier [0x42c8a8+192e8]
+	chromedriver!GetHandleVerifier [0x42ca55+19495]
+	chromedriver!GetHandleVerifier [0x4153ff+1e3f]
+	KERNEL32!BaseThreadInitThunk [0x761d5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x7769e12b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x7769e0b1+231]
+	(No symbol) [(nil)]
+
+2026-08-28 21:08:58 - INFO - __main__ - [23/50] Procesando https://www.booking.com/hotel/es/finca-la-hoya-el-tanque-tfn01028-fyc.es.html
+2026-08-28 21:08:58 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/finca-la-hoya-el-tanque-tfn01028-fyc.es.html
+2026-08-28 21:09:09 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:09:40 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/finca-la-hoya-el-tanque-tfn01028-fyc.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x423353+fd93]
+	chromedriver!GetHandleVerifier [0x423394+fdd4]
+	chromedriver!(No symbol) [0x219220]
+	chromedriver!(No symbol) [0x2632fb]
+	chromedriver!(No symbol) [0x26351b]
+	chromedriver!(No symbol) [0x2a5b82]
+	chromedriver!(No symbol) [0x2858c4]
+	chromedriver!(No symbol) [0x2a34d9]
+	chromedriver!(No symbol) [0x285616]
+	chromedriver!(No symbol) [0x2587e9]
+	chromedriver!(No symbol) [0x2595b4]
+	chromedriver!GetHandleVerifier [0x6bf51a+2abf5a]
+	chromedriver!GetHandleVerifier [0x6baa21+2a7461]
+	chromedriver!GetHandleVerifier [0x44f374+3bdb4]
+	chromedriver!GetHandleVerifier [0x43e036+2aa76]
+	chromedriver!GetHandleVerifier [0x444efd+3193d]
+	chromedriver!GetHandleVerifier [0x42c8a8+192e8]
+	chromedriver!GetHandleVerifier [0x42ca55+19495]
+	chromedriver!GetHandleVerifier [0x4153ff+1e3f]
+	KERNEL32!BaseThreadInitThunk [0x761d5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x7769e12b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x7769e0b1+231]
+	(No symbol) [(nil)]
+
+2026-08-28 21:09:43 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/finca-la-hoya-el-tanque-tfn01028-fyc.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x423353+fd93]
+	chromedriver!GetHandleVerifier [0x423394+fdd4]
+	chromedriver!(No symbol) [0x219220]
+	chromedriver!(No symbol) [0x2632fb]
+	chromedriver!(No symbol) [0x26351b]
+	chromedriver!(No symbol) [0x2a5b82]
+	chromedriver!(No symbol) [0x2858c4]
+	chromedriver!(No symbol) [0x2a34d9]
+	chromedriver!(No symbol) [0x285616]
+	chromedriver!(No symbol) [0x2587e9]
+	chromedriver!(No symbol) [0x2595b4]
+	chromedriver!GetHandleVerifier [0x6bf51a+2abf5a]
+	chromedriver!GetHandleVerifier [0x6baa21+2a7461]
+	chromedriver!GetHandleVerifier [0x44f374+3bdb4]
+	chromedriver!GetHandleVerifier [0x43e036+2aa76]
+	chromedriver!GetHandleVerifier [0x444efd+3193d]
+	chromedriver!GetHandleVerifier [0x42c8a8+192e8]
+	chromedriver!GetHandleVerifier [0x42ca55+19495]
+	chromedriver!GetHandleVerifier [0x4153ff+1e3f]
+	KERNEL32!BaseThreadInitThunk [0x761d5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x7769e12b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x7769e0b1+231]
+	(No symbol) [(nil)]
+
+2026-08-28 21:09:43 - INFO - __main__ - [24/50] Procesando https://www.booking.com/hotel/es/finca-la-sorriba-la-guancha1.es.html
+2026-08-28 21:09:43 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/finca-la-sorriba-la-guancha1.es.html
+2026-08-28 21:09:48 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:09:50 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38440 La Guancha, España'
+2026-08-28 21:09:55 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:10:05 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 21:10:11 - INFO - __main__ -   Página 2: 2 reseñas (12 acumuladas)
+2026-08-28 21:10:14 - INFO - __main__ - Guardado completo: 1 establecimientos, 12 reseñas.
+2026-08-28 21:10:18 - INFO - __main__ - [25/50] Procesando https://www.booking.com/hotel/es/finca-la-tajea-la-guancha-tenerife-norte.es.html
+2026-08-28 21:10:18 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/finca-la-tajea-la-guancha-tenerife-norte.es.html
+2026-08-28 21:10:24 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:10:31 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:10:38 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 21:10:47 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 21:10:55 - INFO - __main__ -   Página 3: 10 reseñas (30 acumuladas)
+2026-08-28 21:11:04 - INFO - __main__ -   Página 4: 10 reseñas (40 acumuladas)
+2026-08-28 21:11:11 - INFO - __main__ -   Página 5: 10 reseñas (50 acumuladas)
+2026-08-28 21:11:15 - INFO - __main__ -   Página 6: 3 reseñas (53 acumuladas)
+2026-08-28 21:11:17 - INFO - __main__ - Guardado completo: 1 establecimientos, 53 reseñas.
+2026-08-28 21:11:25 - INFO - __main__ - [26/50] Procesando https://www.booking.com/hotel/es/finca-las-canitas-ferienhaus-teneriffa-el-tanque.es.html
+2026-08-28 21:11:25 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/finca-las-canitas-ferienhaus-teneriffa-el-tanque.es.html
+2026-08-28 21:11:31 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:11:38 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:11:56 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 21:12:01 - INFO - __main__ -   Página 2: 4 reseñas (14 acumuladas)
+2026-08-28 21:12:04 - INFO - __main__ - Guardado completo: 1 establecimientos, 14 reseñas.
+2026-08-28 21:12:11 - INFO - __main__ - [27/50] Procesando https://www.booking.com/hotel/es/finca-los-angeles-san-juan-de-la-rambla.es.html
+2026-08-28 21:12:11 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/finca-los-angeles-san-juan-de-la-rambla.es.html
+2026-08-28 21:12:21 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:12:28 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 21:12:36 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 21:12:41 - INFO - __main__ -   Página 3: 6 reseñas (26 acumuladas)
+2026-08-28 21:12:43 - INFO - __main__ - Guardado completo: 1 establecimientos, 26 reseñas.
+2026-08-28 21:12:51 - INFO - __main__ - [28/50] Procesando https://www.booking.com/hotel/es/finca-mit-meerblick-und-jacuzzi-el-tanque.es.html
+2026-08-28 21:12:51 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/finca-mit-meerblick-und-jacuzzi-el-tanque.es.html
+2026-08-28 21:12:56 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:12:58 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38435 Las Cruces, España'
+2026-08-28 21:13:03 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:13:12 - INFO - __main__ -   Página 1: 1 reseñas (1 acumuladas)
+2026-08-28 21:13:12 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-28 21:13:14 - INFO - __main__ - Guardado completo: 1 establecimientos, 1 reseñas.
+2026-08-28 21:13:22 - INFO - __main__ - [29/50] Procesando https://www.booking.com/hotel/es/finca-san-diego-la-matanza-de-acentejo.es.html
+2026-08-28 21:13:22 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/finca-san-diego-la-matanza-de-acentejo.es.html
+2026-08-28 21:13:27 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:13:33 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:13:46 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 21:13:52 - INFO - __main__ -   Página 2: 6 reseñas (16 acumuladas)
+2026-08-28 21:13:54 - INFO - __main__ - Guardado completo: 1 establecimientos, 16 reseñas.
+2026-08-28 21:13:58 - INFO - __main__ - [30/50] Procesando https://www.booking.com/hotel/es/green-sky-san-juan-de-la-rambla.es.html
+2026-08-28 21:13:58 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/green-sky-san-juan-de-la-rambla.es.html
+2026-08-28 21:14:05 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:14:06 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38420 San Juan de la Rambla, España'
+2026-08-28 21:14:10 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:14:17 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 21:14:26 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 21:14:31 - INFO - __main__ -   Página 3: 10 reseñas (30 acumuladas)
+2026-08-28 21:14:39 - INFO - __main__ -   Página 4: 10 reseñas (40 acumuladas)
+2026-08-28 21:14:45 - INFO - __main__ -   Página 5: 10 reseñas (50 acumuladas)
+2026-08-28 21:15:00 - INFO - __main__ -   Página 6: 7 reseñas (57 acumuladas)
+2026-08-28 21:15:05 - INFO - __main__ - Guardado completo: 1 establecimientos, 57 reseñas.
+2026-08-28 21:15:12 - INFO - __main__ - [31/50] Procesando https://www.booking.com/hotel/es/holiday-home-in-la-matanza-de-acentejo-mit-grossem-garten-und-panoramablick-by-i.es.html
+2026-08-28 21:15:12 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/holiday-home-in-la-matanza-de-acentejo-mit-grossem-garten-und-panoramablick-by-i.es.html
+2026-08-28 21:15:24 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:15:55 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/holiday-home-in-la-matanza-de-acentejo-mit-grossem-garten-und-panoramablick-by-i.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x423353+fd93]
+	chromedriver!GetHandleVerifier [0x423394+fdd4]
+	chromedriver!(No symbol) [0x219220]
+	chromedriver!(No symbol) [0x2632fb]
+	chromedriver!(No symbol) [0x26351b]
+	chromedriver!(No symbol) [0x2a5b82]
+	chromedriver!(No symbol) [0x2858c4]
+	chromedriver!(No symbol) [0x2a34d9]
+	chromedriver!(No symbol) [0x285616]
+	chromedriver!(No symbol) [0x2587e9]
+	chromedriver!(No symbol) [0x2595b4]
+	chromedriver!GetHandleVerifier [0x6bf51a+2abf5a]
+	chromedriver!GetHandleVerifier [0x6baa21+2a7461]
+	chromedriver!GetHandleVerifier [0x44f374+3bdb4]
+	chromedriver!GetHandleVerifier [0x43e036+2aa76]
+	chromedriver!GetHandleVerifier [0x444efd+3193d]
+	chromedriver!GetHandleVerifier [0x42c8a8+192e8]
+	chromedriver!GetHandleVerifier [0x42ca55+19495]
+	chromedriver!GetHandleVerifier [0x4153ff+1e3f]
+	KERNEL32!BaseThreadInitThunk [0x761d5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x7769e12b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x7769e0b1+231]
+	(No symbol) [(nil)]
+
+2026-08-28 21:15:58 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/holiday-home-in-la-matanza-de-acentejo-mit-grossem-garten-und-panoramablick-by-i.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x423353+fd93]
+	chromedriver!GetHandleVerifier [0x423394+fdd4]
+	chromedriver!(No symbol) [0x219220]
+	chromedriver!(No symbol) [0x2632fb]
+	chromedriver!(No symbol) [0x26351b]
+	chromedriver!(No symbol) [0x2a5b82]
+	chromedriver!(No symbol) [0x2858c4]
+	chromedriver!(No symbol) [0x2a34d9]
+	chromedriver!(No symbol) [0x285616]
+	chromedriver!(No symbol) [0x2587e9]
+	chromedriver!(No symbol) [0x2595b4]
+	chromedriver!GetHandleVerifier [0x6bf51a+2abf5a]
+	chromedriver!GetHandleVerifier [0x6baa21+2a7461]
+	chromedriver!GetHandleVerifier [0x44f374+3bdb4]
+	chromedriver!GetHandleVerifier [0x43e036+2aa76]
+	chromedriver!GetHandleVerifier [0x444efd+3193d]
+	chromedriver!GetHandleVerifier [0x42c8a8+192e8]
+	chromedriver!GetHandleVerifier [0x42ca55+19495]
+	chromedriver!GetHandleVerifier [0x4153ff+1e3f]
+	KERNEL32!BaseThreadInitThunk [0x761d5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x7769e12b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x7769e0b1+231]
+	(No symbol) [(nil)]
+
+2026-08-28 21:15:58 - INFO - __main__ - [32/50] Procesando https://www.booking.com/hotel/es/holiday-home-kleines-ferienhaus-in-la-matanza-de-acentejo-by-interhome.es.html
+2026-08-28 21:15:58 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/holiday-home-kleines-ferienhaus-in-la-matanza-de-acentejo-by-interhome.es.html
+2026-08-28 21:16:15 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:16:47 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/holiday-home-kleines-ferienhaus-in-la-matanza-de-acentejo-by-interhome.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x423353+fd93]
+	chromedriver!GetHandleVerifier [0x423394+fdd4]
+	chromedriver!(No symbol) [0x219220]
+	chromedriver!(No symbol) [0x2632fb]
+	chromedriver!(No symbol) [0x26351b]
+	chromedriver!(No symbol) [0x2a5b82]
+	chromedriver!(No symbol) [0x2858c4]
+	chromedriver!(No symbol) [0x2a34d9]
+	chromedriver!(No symbol) [0x285616]
+	chromedriver!(No symbol) [0x2587e9]
+	chromedriver!(No symbol) [0x2595b4]
+	chromedriver!GetHandleVerifier [0x6bf51a+2abf5a]
+	chromedriver!GetHandleVerifier [0x6baa21+2a7461]
+	chromedriver!GetHandleVerifier [0x44f374+3bdb4]
+	chromedriver!GetHandleVerifier [0x43e036+2aa76]
+	chromedriver!GetHandleVerifier [0x444efd+3193d]
+	chromedriver!GetHandleVerifier [0x42c8a8+192e8]
+	chromedriver!GetHandleVerifier [0x42ca55+19495]
+	chromedriver!GetHandleVerifier [0x4153ff+1e3f]
+	KERNEL32!BaseThreadInitThunk [0x761d5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x7769e12b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x7769e0b1+231]
+	(No symbol) [(nil)]
+
+2026-08-28 21:16:50 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/holiday-home-kleines-ferienhaus-in-la-matanza-de-acentejo-by-interhome.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x423353+fd93]
+	chromedriver!GetHandleVerifier [0x423394+fdd4]
+	chromedriver!(No symbol) [0x219220]
+	chromedriver!(No symbol) [0x2632fb]
+	chromedriver!(No symbol) [0x26351b]
+	chromedriver!(No symbol) [0x2a5b82]
+	chromedriver!(No symbol) [0x2858c4]
+	chromedriver!(No symbol) [0x2a34d9]
+	chromedriver!(No symbol) [0x285616]
+	chromedriver!(No symbol) [0x2587e9]
+	chromedriver!(No symbol) [0x2595b4]
+	chromedriver!GetHandleVerifier [0x6bf51a+2abf5a]
+	chromedriver!GetHandleVerifier [0x6baa21+2a7461]
+	chromedriver!GetHandleVerifier [0x44f374+3bdb4]
+	chromedriver!GetHandleVerifier [0x43e036+2aa76]
+	chromedriver!GetHandleVerifier [0x444efd+3193d]
+	chromedriver!GetHandleVerifier [0x42c8a8+192e8]
+	chromedriver!GetHandleVerifier [0x42ca55+19495]
+	chromedriver!GetHandleVerifier [0x4153ff+1e3f]
+	KERNEL32!BaseThreadInitThunk [0x761d5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x7769e12b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x7769e0b1+231]
+	(No symbol) [(nil)]
+
+2026-08-28 21:16:50 - INFO - __main__ - [33/50] Procesando https://www.booking.com/hotel/es/home2book-stunning-design-house-arafo.es.html
+2026-08-28 21:16:50 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/home2book-stunning-design-house-arafo.es.html
+2026-08-28 21:16:56 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:17:04 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:17:12 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 21:17:19 - INFO - __main__ -   Página 2: 3 reseñas (13 acumuladas)
+2026-08-28 21:17:21 - INFO - __main__ - Guardado completo: 1 establecimientos, 13 reseñas.
+2026-08-28 21:17:28 - INFO - __main__ - [34/50] Procesando https://www.booking.com/hotel/es/house-to-relax-el-tanque.es.html
+2026-08-28 21:17:28 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/house-to-relax-el-tanque.es.html
+2026-08-28 21:17:34 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38435 Tanque, España'
+2026-08-28 21:17:41 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:17:51 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 21:17:56 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 21:18:05 - INFO - __main__ -   Página 3: 10 reseñas (30 acumuladas)
+2026-08-28 21:18:10 - INFO - __main__ -   Página 4: 6 reseñas (36 acumuladas)
+2026-08-28 21:18:14 - INFO - __main__ - Guardado completo: 1 establecimientos, 36 reseñas.
+2026-08-28 21:18:17 - INFO - __main__ - [35/50] Procesando https://www.booking.com/hotel/es/jardin-de-la-paz-la-matanza-de-acentejo.es.html
+2026-08-28 21:18:17 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/jardin-de-la-paz-la-matanza-de-acentejo.es.html
+2026-08-28 21:18:23 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:18:31 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:18:38 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 21:18:43 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 21:18:51 - INFO - __main__ -   Página 3: 10 reseñas (30 acumuladas)
+2026-08-28 21:18:56 - INFO - __main__ -   Página 4: 10 reseñas (40 acumuladas)
+2026-08-28 21:19:15 - INFO - __main__ -   Página 5: 10 reseñas (50 acumuladas)
+2026-08-28 21:19:23 - INFO - __main__ -   Página 6: 10 reseñas (60 acumuladas)
+2026-08-28 21:19:31 - INFO - __main__ -   Página 7: 8 reseñas (68 acumuladas)
+2026-08-28 21:19:33 - INFO - __main__ - Guardado completo: 1 establecimientos, 68 reseñas.
+2026-08-28 21:19:38 - INFO - __main__ - [36/50] Procesando https://www.booking.com/hotel/es/karin-house-santo-domingo-la-guancha-tenerife.es.html
+2026-08-28 21:19:38 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/karin-house-santo-domingo-la-guancha-tenerife.es.html
+2026-08-28 21:19:44 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:19:46 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38440 La Guancha, España'
+2026-08-28 21:19:54 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:20:03 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 21:20:11 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 21:20:18 - INFO - __main__ -   Página 3: 10 reseñas (30 acumuladas)
+2026-08-28 21:20:25 - INFO - __main__ -   Página 4: 10 reseñas (40 acumuladas)
+2026-08-28 21:20:34 - INFO - __main__ -   Página 5: 10 reseñas (50 acumuladas)
+2026-08-28 21:20:42 - INFO - __main__ -   Página 6: 7 reseñas (57 acumuladas)
+2026-08-28 21:20:45 - INFO - __main__ - Guardado completo: 1 establecimientos, 57 reseñas.
+2026-08-28 21:20:50 - INFO - __main__ - [37/50] Procesando https://www.booking.com/hotel/es/la-campestre-la-guancha.es.html
+2026-08-28 21:20:50 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/la-campestre-la-guancha.es.html
+2026-08-28 21:20:55 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38449 La Guancha, España'
+2026-08-28 21:20:59 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:21:31 - ERROR - __main__ - Timeout esperando elementos en https://www.booking.com/hotel/es/la-campestre-la-guancha.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x423353+fd93]
+	chromedriver!GetHandleVerifier [0x423394+fdd4]
+	chromedriver!(No symbol) [0x219220]
+	chromedriver!(No symbol) [0x2632fb]
+	chromedriver!(No symbol) [0x26351b]
+	chromedriver!(No symbol) [0x2a5b82]
+	chromedriver!(No symbol) [0x2858c4]
+	chromedriver!(No symbol) [0x2a34d9]
+	chromedriver!(No symbol) [0x285616]
+	chromedriver!(No symbol) [0x2587e9]
+	chromedriver!(No symbol) [0x2595b4]
+	chromedriver!GetHandleVerifier [0x6bf51a+2abf5a]
+	chromedriver!GetHandleVerifier [0x6baa21+2a7461]
+	chromedriver!GetHandleVerifier [0x44f374+3bdb4]
+	chromedriver!GetHandleVerifier [0x43e036+2aa76]
+	chromedriver!GetHandleVerifier [0x444efd+3193d]
+	chromedriver!GetHandleVerifier [0x42c8a8+192e8]
+	chromedriver!GetHandleVerifier [0x42ca55+19495]
+	chromedriver!GetHandleVerifier [0x4153ff+1e3f]
+	KERNEL32!BaseThreadInitThunk [0x761d5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x7769e12b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x7769e0b1+231]
+	(No symbol) [(nil)]
+
+2026-08-28 21:21:33 - ERROR - __main__ - Error procesando https://www.booking.com/hotel/es/la-campestre-la-guancha.es.html: Message: 
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x423353+fd93]
+	chromedriver!GetHandleVerifier [0x423394+fdd4]
+	chromedriver!(No symbol) [0x219220]
+	chromedriver!(No symbol) [0x2632fb]
+	chromedriver!(No symbol) [0x26351b]
+	chromedriver!(No symbol) [0x2a5b82]
+	chromedriver!(No symbol) [0x2858c4]
+	chromedriver!(No symbol) [0x2a34d9]
+	chromedriver!(No symbol) [0x285616]
+	chromedriver!(No symbol) [0x2587e9]
+	chromedriver!(No symbol) [0x2595b4]
+	chromedriver!GetHandleVerifier [0x6bf51a+2abf5a]
+	chromedriver!GetHandleVerifier [0x6baa21+2a7461]
+	chromedriver!GetHandleVerifier [0x44f374+3bdb4]
+	chromedriver!GetHandleVerifier [0x43e036+2aa76]
+	chromedriver!GetHandleVerifier [0x444efd+3193d]
+	chromedriver!GetHandleVerifier [0x42c8a8+192e8]
+	chromedriver!GetHandleVerifier [0x42ca55+19495]
+	chromedriver!GetHandleVerifier [0x4153ff+1e3f]
+	KERNEL32!BaseThreadInitThunk [0x761d5d49+19]
+	ntdll!RtlInitializeExceptionChain [0x7769e12b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x7769e0b1+231]
+	(No symbol) [(nil)]
+
+2026-08-28 21:21:33 - INFO - __main__ - [38/50] Procesando https://www.booking.com/hotel/es/la-casa-vieja-arafo123.es.html
+2026-08-28 21:21:33 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/la-casa-vieja-arafo123.es.html
+2026-08-28 21:21:45 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:21:54 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 21:22:02 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 21:22:09 - INFO - __main__ -   Página 3: 2 reseñas (22 acumuladas)
+2026-08-28 21:22:11 - INFO - __main__ - Guardado completo: 1 establecimientos, 22 reseñas.
+2026-08-28 21:22:15 - INFO - __main__ - [39/50] Procesando https://www.booking.com/hotel/es/la-casita-arafo.es.html
+2026-08-28 21:22:15 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/la-casita-arafo.es.html
+2026-08-28 21:22:21 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:22:22 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38550 Arafo, España'
+2026-08-28 21:22:29 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:22:51 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 21:22:58 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 21:23:06 - INFO - __main__ -   Página 3: 10 reseñas (30 acumuladas)
+2026-08-28 21:23:13 - INFO - __main__ -   Página 4: 8 reseñas (38 acumuladas)
+2026-08-28 21:23:15 - INFO - __main__ - Guardado completo: 1 establecimientos, 38 reseñas.
+2026-08-28 21:23:22 - INFO - __main__ - [40/50] Procesando https://www.booking.com/hotel/es/la-casita-calle-el-tanque.es.html
+2026-08-28 21:23:22 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/la-casita-calle-el-tanque.es.html
+2026-08-28 21:23:29 - WARNING - __main__ -   Descartado (no es Tenerife): 'LA CASITA CALLE EL TANQUE' (https://www.booking.com/hotel/es/la-casita-calle-el-tanque.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-28 21:23:36 - INFO - __main__ - [41/50] Procesando https://www.booking.com/hotel/es/la-casita-la-guancha.es.html
+2026-08-28 21:23:36 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/la-casita-la-guancha.es.html
+2026-08-28 21:23:41 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:23:43 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38441 La Guancha, España'
+2026-08-28 21:23:54 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:24:02 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 21:24:09 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 21:24:15 - INFO - __main__ -   Página 3: 6 reseñas (26 acumuladas)
+2026-08-28 21:24:19 - INFO - __main__ - Guardado completo: 1 establecimientos, 26 reseñas.
+2026-08-28 21:24:26 - INFO - __main__ - [42/50] Procesando https://www.booking.com/hotel/es/la-kasita-arafo.es.html
+2026-08-28 21:24:26 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/la-kasita-arafo.es.html
+2026-08-28 21:24:39 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:24:46 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 21:24:54 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 21:25:02 - INFO - __main__ -   Página 3: 10 reseñas (30 acumuladas)
+2026-08-28 21:25:09 - INFO - __main__ -   Página 4: 10 reseñas (40 acumuladas)
+2026-08-28 21:25:15 - INFO - __main__ -   Página 5: 9 reseñas (49 acumuladas)
+2026-08-28 21:25:25 - INFO - __main__ - Guardado completo: 1 establecimientos, 49 reseñas.
+2026-08-28 21:25:32 - INFO - __main__ - [43/50] Procesando https://www.booking.com/hotel/es/la-palmita-la-victoria-de-acentejo.es.html
+2026-08-28 21:25:32 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/la-palmita-la-victoria-de-acentejo.es.html
+2026-08-28 21:25:37 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:25:45 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:25:54 - INFO - __main__ -   Página 1: 4 reseñas (4 acumuladas)
+2026-08-28 21:25:54 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-28 21:25:56 - INFO - __main__ - Guardado completo: 1 establecimientos, 4 reseñas.
+2026-08-28 21:26:03 - INFO - __main__ - [44/50] Procesando https://www.booking.com/hotel/es/la-palmita-la-victoria-de-acentejo1.es.html
+2026-08-28 21:26:03 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/la-palmita-la-victoria-de-acentejo1.es.html
+2026-08-28 21:26:09 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:26:16 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:26:30 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 21:26:35 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 21:26:39 - INFO - __main__ -   Página 3: 10 reseñas (30 acumuladas)
+2026-08-28 21:26:44 - INFO - __main__ -   Página 4: 10 reseñas (40 acumuladas)
+2026-08-28 21:26:50 - INFO - __main__ -   Página 5: 10 reseñas (50 acumuladas)
+2026-08-28 21:26:59 - INFO - __main__ -   Página 6: 10 reseñas (60 acumuladas)
+2026-08-28 21:27:05 - INFO - __main__ -   Página 7: 10 reseñas (70 acumuladas)
+2026-08-28 21:27:11 - INFO - __main__ -   Página 8: 10 reseñas (80 acumuladas)
+2026-08-28 21:27:17 - INFO - __main__ -   Página 9: 2 reseñas (82 acumuladas)
+2026-08-28 21:27:20 - INFO - __main__ - Guardado completo: 1 establecimientos, 82 reseñas.
+2026-08-28 21:27:28 - INFO - __main__ - [45/50] Procesando https://www.booking.com/hotel/es/la-trinidad-la-guancha.es.html
+2026-08-28 21:27:28 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/la-trinidad-la-guancha.es.html
+2026-08-28 21:27:33 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:27:35 - INFO - __main__ -   Reintentando solo con código postal + ciudad: '38440 La Guancha, España'
+2026-08-28 21:27:41 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:27:50 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 21:27:55 - INFO - __main__ -   Página 2: 10 reseñas (20 acumuladas)
+2026-08-28 21:28:04 - INFO - __main__ -   Página 3: 10 reseñas (30 acumuladas)
+2026-08-28 21:28:12 - INFO - __main__ -   Página 4: 10 reseñas (40 acumuladas)
+2026-08-28 21:28:16 - INFO - __main__ -   Página 5: 10 reseñas (50 acumuladas)
+2026-08-28 21:28:22 - INFO - __main__ -   Página 6: 10 reseñas (60 acumuladas)
+2026-08-28 21:28:28 - INFO - __main__ -   Página 7: 10 reseñas (70 acumuladas)
+2026-08-28 21:28:33 - INFO - __main__ -   Página 8: 10 reseñas (80 acumuladas)
+2026-08-28 21:28:42 - INFO - __main__ -   Página 9: 10 reseñas (90 acumuladas)
+2026-08-28 21:28:50 - INFO - __main__ -   Página 10: 10 reseñas (100 acumuladas)
+2026-08-28 21:28:54 - INFO - __main__ -   Página 11: 6 reseñas (106 acumuladas)
+2026-08-28 21:28:57 - INFO - __main__ - Guardado completo: 1 establecimientos, 106 reseñas.
+2026-08-28 21:29:03 - INFO - __main__ - [46/50] Procesando https://www.booking.com/hotel/es/oasis-la-guancha.es.html
+2026-08-28 21:29:03 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/oasis-la-guancha.es.html
+2026-08-28 21:29:12 - WARNING - __main__ -   Descartado (no es Tenerife): 'GRAN CANARIA Oasis La Guancha' (https://www.booking.com/hotel/es/oasis-la-guancha.es.html) no está en Tenerife según el breadcrumb — descartado.
+2026-08-28 21:29:18 - INFO - __main__ - [47/50] Procesando https://www.booking.com/hotel/es/rural-house-agua-blanca-la-matanza-de-acentejo.es.html
+2026-08-28 21:29:18 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/rural-house-agua-blanca-la-matanza-de-acentejo.es.html
+2026-08-28 21:29:23 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:29:30 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:29:41 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 21:29:50 - INFO - __main__ -   Página 2: 9 reseñas (19 acumuladas)
+2026-08-28 21:29:52 - INFO - __main__ - Guardado completo: 1 establecimientos, 19 reseñas.
+2026-08-28 21:29:56 - INFO - __main__ - [48/50] Procesando https://www.booking.com/hotel/es/the-blue-lighthouse-la-matanza-de-acentejo.es.html
+2026-08-28 21:29:56 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/the-blue-lighthouse-la-matanza-de-acentejo.es.html
+2026-08-28 21:30:02 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:30:08 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:30:16 - INFO - __main__ -   Página 1: 8 reseñas (8 acumuladas)
+2026-08-28 21:30:16 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-28 21:30:18 - INFO - __main__ - Guardado completo: 1 establecimientos, 8 reseñas.
+2026-08-28 21:30:25 - INFO - __main__ - [49/50] Procesando https://www.booking.com/hotel/es/villa-canales-la-matanza-de-acentejo.es.html
+2026-08-28 21:30:25 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/villa-canales-la-matanza-de-acentejo.es.html
+2026-08-28 21:30:31 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:30:38 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:30:53 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 21:30:53 - INFO - __main__ -   No hay más páginas de reseñas.
+2026-08-28 21:30:56 - INFO - __main__ - Guardado completo: 1 establecimientos, 10 reseñas.
+2026-08-28 21:31:01 - INFO - __main__ - [50/50] Procesando https://www.booking.com/hotel/es/villa-candelaria-la-matanza-de-acentejo.es.html
+2026-08-28 21:31:01 - INFO - __main__ - Scrapeando establecimiento: https://www.booking.com/hotel/es/villa-candelaria-la-matanza-de-acentejo.es.html
+2026-08-28 21:31:06 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:31:16 - INFO - __main__ -   Banner de cookies cerrado.
+2026-08-28 21:31:24 - INFO - __main__ -   Página 1: 10 reseñas (10 acumuladas)
+2026-08-28 21:31:31 - INFO - __main__ -   Página 2: 5 reseñas (15 acumuladas)
+2026-08-28 21:31:34 - INFO - __main__ - Guardado completo: 1 establecimientos, 15 reseñas.
+2026-08-28 21:31:41 - INFO - __main__ - === Corrida finalizada: 36 establecimientos, 1350 reseñas en total (5 descartados por no ser de Tenerife) ===
