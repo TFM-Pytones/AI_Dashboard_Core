@@ -139,7 +139,23 @@ Respetar 1 request/segundo a Nominatim (política de uso), con `User-Agent` iden
 2. Para filtrar por país real: comprobar el path de la URL (`/hotel/es/...`), no el nombre del shard.
 3. **Los shards NO están mezclados al azar** — Booking parece agruparlos por bloques geográficos contiguos. En la práctica, los candidatos de España aparecieron concentrados en un rango acotado de shards (ej. 55-60 de 78), con 0 coincidencias antes y después. Vale la pena loguear el conteo por shard para detectar este patrón y no recorrer los 78 innecesariamente.
 4. Filtrar por texto de municipio en el slug tiene recall limitado (muchos slugs no mencionan el municipio). Complementar con nombres reales de alojamientos vía Overpass API (OpenStreetMap) — pero usar BIGRAMAS (pares de palabras consecutivas), nunca palabras sueltas: una palabra como "playa" o "santa-cruz" es tan genérica que genera falsos positivos masivos (ej. "Santa Cruz" existe en Tenerife Y en Sevilla).
+5. **Bug de especificidad en `slugify()` (agosto 2026)**: la heurística original asumía que un
+   bigrama, o una palabra suelta de ≥6 caracteres, era suficiente garantía de especificidad. Falso:
+   nombres de alojamiento reales como "San Juan" o "Casablanca" son comunísimos en toda España
+   (cientos de propiedades con ese nombre fuera de Tenerife) y pasaban el filtro igual. Un bigrama
+   tampoco garantiza especificidad si ambas palabras son vocabulario de categoría turística en vez
+   de nombre propio (ej. "vivienda-vacacional" — pasa la regla de "2+ palabras consecutivas" pero
+   es una categoría genérica, no un nombre distintivo).
 
+   **Arreglo**: filtro de especificidad por frecuencia empírica, no por longitud/forma de la
+   keyword. Antes de aceptar una keyword generada por `slugify()`, contar cuántas URLs del universo
+   ya conocido (`sitemap_discovery_cache.json`) la contienen como substring — si supera un umbral
+   (`max_matches=20`, ajustable), descartarla y loguearla. Aplica tanto al archivo genérico de toda
+   la isla (`tenerife_osm_keywords.json`) como al de prioridad por municipio (ver sección de
+   priorización más abajo). Este defecto llevaba tiempo contaminando también el descubrimiento
+   general (no solo el de prioridad) — no corrompía los datos guardados porque
+   `_verify_is_tenerife()` los descartaba igual en el momento de scrapear, pero sí desperdiciaba
+   tiempo real de scraping en establecimientos que nunca eran de Tenerife.
 ### Verificación final anti-falsos-positivos (crítica, barata)
 
 Aunque el filtro de descubrimiento sea bueno, sigue produciendo falsos positivos (nombres de lugar ambiguos en España). Solución robusta y gratuita: el breadcrumb de cada ficha (`[data-testid="breadcrumb-nav"]`) menciona literalmente el nombre de la región/isla. Verificar esto ANTES de gastar tiempo en geocodificar/paginar reseñas — usar el mismo dato que ya se carga para sacar `establishment_type`.
@@ -155,6 +171,42 @@ Si no coincide: NO guardar datos, pero SÍ marcar como completado en el progress
 Cada corrida genera archivos Parquet con timestamp único — nunca sobreescribe. Llevar un JSON local (`scraping_progress.json`, en `.gitignore`, NUNCA subir a Git) con `establishment_id` ya procesados (completados o descartados por no-Tenerife), para poder cortar/retomar sin duplicar trabajo.
 
 **IDs determinísticos, no aleatorios**: usar `hashlib.md5(texto.encode()).hexdigest()` para generar IDs de fallback (ej. cuando falta `data-review-id` en el HTML) — NUNCA `hash()` built-in de Python, que está aleatorizado por proceso y genera un ID distinto en cada corrida para el mismo contenido real, rompiendo la deduplicación río abajo.
+
+## Priorización de descubrimiento por municipio con pocos establecimientos
+
+Motivación: un cruce SQL geoespacial (ver `docs/consultas_cruce_municipios_booking.md`) reveló que
+varios municipios de Tenerife tenían menos de 10 establecimientos scrapeados. Al auditar
+`config.TENERIFE_MUNICIPALITIES` contra el listado completo de los 31 municipios reales, se
+confirmó que **9 municipios faltaban del filtro por completo** — nunca pudieron matchear ni por
+nombre, más allá de cualquier keyword de OSM:
+
+- **Grupo A (objetivo de priorización)**: La Matanza de Acentejo, La Victoria de Acentejo, San Juan
+  de la Rambla, Arafo, La Guancha, El Tanque — todos con <10 establecimientos hoy.
+- **Grupo B (colateral, sin tratamiento especial)**: Santiago del Teide, Guía de Isora, Los Silos —
+  con volumen razonable, se agregaron a `TENERIFE_MUNICIPALITIES` solo para mejorar recall general.
+
+Mecanismo para el Grupo A:
+
+1. `build_priority_keywords.py` (nuevo, no reemplaza a `build_tenerife_keywords.py`): consulta el
+   bbox real de cada municipio del Grupo A vía `ST_Envelope`/`ST_Transform` a 4326 contra
+   `silver.limites_municipales`, corre Overpass acotado a cada bbox, reusa `slugify()` +
+   el filtro de especificidad (ver bug arriba), y guarda `tenerife_osm_keywords_priority.json`
+   como `{municipio: [keywords]}` (estructura por municipio, a diferencia del genérico que es
+   lista plana).
+2. Tagging: cada URL del caché combinado se testea contra las keywords de cada municipio del Grupo
+   A; los matches quedan en `priority_urls.json` como `{url, municipio, establishment_id}`. Una URL
+   puede matchear más de un municipio (se prioriza para todos, no bloquea).
+3. `main()` separa `pending_urls_all` en prioridad + resto, filtra cada uno independientemente por
+   `filter_pending`, concatena prioridad primero, y **recién ahí** aplica el corte de
+   `MAX_ESTABLISHMENTS_PER_RUN` — mismo orden filtrar-antes-de-recortar del bug #5 original, no se
+   reintrodujo el problema.
+4. Re-descubrimiento forzado (`--recrawl-priority`, flag opt-in, no toca el comportamiento default):
+   re-recorre el sitemap completo con el matcher actualizado y **une** el resultado con el caché
+   existente sin destruirlo — nunca reemplaza `sitemap_discovery_cache.json`, solo lo hace crecer.
+
+Validado en corridas reales con `MAX_ESTABLISHMENTS_PER_RUN` de 5, 20 y 50 — el log confirma el
+desglose de prioridad por municipio y que los establecimientos procesados primero son
+efectivamente del Grupo A (slugs con el nombre del municipio literal).
 
 ## Deduplicación en Bronce → Silver
 
