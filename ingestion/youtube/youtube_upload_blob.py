@@ -1,23 +1,29 @@
 """Issue #13 — Integración API de YouTube.
 
 Busca vídeos relacionados con turismo en Tenerife y descarga sus comentarios,
-cargándolos en bronze.youtube_videos / bronze.youtube_comments (Azure).
+cargándolos en bronze-raw/youtube (Azure Blob Storage) como Parquet.
 
-Requiere YOUTUBE_API_KEY en el .env (ver README de esta carpeta / .env.example).
+Requiere YOUTUBE_API_KEY y AZURE_STORAGE_CONNECTION_STRING en el .env (ver README de esta carpeta / .env.example).
 """
 
 import os
 import sys
+import io
+import argparse
+import pandas as pd
 from pathlib import Path
 
-import psycopg2
 import requests
 from dotenv import load_dotenv
+from azure.storage.blob import BlobServiceClient
+from azure.core.exceptions import ResourceNotFoundError
 
 load_dotenv(override=True)
 
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
+AZURE_CONNECTION_STRING = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
 API_BASE = "https://www.googleapis.com/youtube/v3"
+CONTAINER_NAME = "bronce-raw"
 
 SEARCH_TERMS = [
     "Tenerife turismo",
@@ -30,22 +36,11 @@ MAX_VIDEOS_PER_TERM = 15
 MAX_COMMENT_PAGES_PER_VIDEO = 3  # ~300 comentarios por vídeo como mucho
 
 
-def get_db_connection():
-    return psycopg2.connect(
-        user=os.getenv("AZURE_DB_USER"),
-        password=os.getenv("AZURE_DB_PASSWORD"),
-        host=os.getenv("AZURE_DB_HOST"),
-        database=os.getenv("AZURE_DB_NAME"),
-        port="5432",
-        sslmode="require",
-    )
-
-
-def ensure_schema(conn):
-    schema_path = Path(__file__).resolve().parents[2] / "sql" / "bronze_youtube_schema.sql"
-    with conn.cursor() as cur:
-        cur.execute(schema_path.read_text())
-    conn.commit()
+def get_blob_client():
+    if not AZURE_CONNECTION_STRING:
+        print("Falta AZURE_STORAGE_CONNECTION_STRING en el .env.")
+        sys.exit(1)
+    return BlobServiceClient.from_connection_string(AZURE_CONNECTION_STRING)
 
 
 def search_videos(term: str) -> list[dict]:
@@ -129,67 +124,79 @@ def fetch_comments(video_id: str) -> list[dict]:
     return comments
 
 
-def save_videos(conn, videos: list[dict]):
-    if not videos:
+def upload_to_azure(blob_service_client, df_new: pd.DataFrame, blob_name: str, unique_key: str):
+    if df_new.empty:
         return
-    with conn.cursor() as cur:
-        for v in videos:
-            cur.execute(
-                """
-                INSERT INTO bronze.youtube_videos
-                    (video_id, search_term, title, channel_title, published_at, view_count)
-                VALUES (%(video_id)s, %(search_term)s, %(title)s, %(channel_title)s, %(published_at)s, %(view_count)s)
-                ON CONFLICT (video_id) DO UPDATE SET
-                    view_count = EXCLUDED.view_count,
-                    fetched_at = now()
-                """,
-                v,
-            )
-    conn.commit()
-
-
-def save_comments(conn, comments: list[dict]):
-    if not comments:
-        return
-    with conn.cursor() as cur:
-        for c in comments:
-            cur.execute(
-                """
-                INSERT INTO bronze.youtube_comments
-                    (comment_id, video_id, author, text, like_count, published_at)
-                VALUES (%(comment_id)s, %(video_id)s, %(author)s, %(text)s, %(like_count)s, %(published_at)s)
-                ON CONFLICT (comment_id) DO NOTHING
-                """,
-                c,
-            )
-    conn.commit()
+        
+    blob_client = blob_service_client.get_blob_client(container=CONTAINER_NAME, blob=blob_name)
+    
+    # Intentar descargar el dataset existente para combinar y deduplicar
+    df_combined = df_new
+    try:
+        downloader = blob_client.download_blob()
+        existing_buffer = io.BytesIO(downloader.readall())
+        df_existing = pd.read_parquet(existing_buffer)
+        df_combined = pd.concat([df_existing, df_new], ignore_index=True)
+    except ResourceNotFoundError:
+        pass  # El blob no existe aún, se creará uno nuevo
+    
+    # Deduplicar quedándonos con la versión más reciente
+    df_combined.drop_duplicates(subset=[unique_key], keep='last', inplace=True)
+    
+    # Subir a Azure
+    parquet_buffer = io.BytesIO()
+    df_combined.to_parquet(parquet_buffer, index=False)
+    parquet_buffer.seek(0)
+    blob_client.upload_blob(parquet_buffer.read(), overwrite=True)
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Descarga comentarios de YouTube sobre turismo en Tenerife.")
+    parser.add_argument("--dry-run", action="store_true", help="Si se especifica, no sube nada a Azure Blob Storage.")
+    args = parser.parse_args()
+
     if not YOUTUBE_API_KEY:
         print("Falta YOUTUBE_API_KEY en el .env. Revisa .env.example.")
         sys.exit(1)
 
-    conn = get_db_connection()
-    ensure_schema(conn)
+    blob_service_client = get_blob_client()
 
-    total_videos, total_comments = 0, 0
+    all_videos = []
+    all_comments = []
+
     for term in SEARCH_TERMS:
         print(f"Buscando: {term!r}...")
         videos = search_videos(term)
         view_counts = fetch_view_counts([v["video_id"] for v in videos])
+        
         for v in videos:
             v["view_count"] = view_counts.get(v["video_id"], 0)
-        save_videos(conn, videos)
-        total_videos += len(videos)
-
-        for v in videos:
+            all_videos.append(v)
+            
             comments = fetch_comments(v["video_id"])
-            save_comments(conn, comments)
-            total_comments += len(comments)
+            all_comments.extend(comments)
 
-    print(f"Hecho: {total_videos} vídeos, {total_comments} comentarios guardados.")
-    conn.close()
+    print(f"Descargados {len(all_videos)} vídeos y {len(all_comments)} comentarios.")
+    
+    df_videos = pd.DataFrame(all_videos)
+    df_comments = pd.DataFrame(all_comments)
+    
+    # Convertir fechas a string o datetime para Parquet
+    if not df_videos.empty:
+        df_videos['published_at'] = pd.to_datetime(df_videos['published_at'])
+    if not df_comments.empty:
+        df_comments['published_at'] = pd.to_datetime(df_comments['published_at'])
+
+    if args.dry_run:
+        print("\n--- MODO DRY RUN ACTIVO ---")
+        print("No se subirá nada a Azure.")
+        print(f"Muestra de vídeos:\n{df_videos.head(3)}")
+        print(f"Muestra de comentarios:\n{df_comments.head(3)}")
+    else:
+        print("Subiendo a Azure...")
+        upload_to_azure(blob_service_client, df_videos, "youtube/youtube_videos.parquet", unique_key="video_id")
+        upload_to_azure(blob_service_client, df_comments, "youtube/youtube_comments.parquet", unique_key="comment_id")
+        print("¡Subida a Azure Blob Storage completada con éxito!")
 
 
 if __name__ == "__main__":

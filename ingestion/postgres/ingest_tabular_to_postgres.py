@@ -8,6 +8,23 @@ from azure.storage.blob import BlobServiceClient
 # Cargar variables de entorno locales
 load_dotenv()
 
+# Variables globales para Booking
+NUMERIC_COLUMNS_BY_TABLE = {
+    "booking_establishments": ["longitude", "latitude", "review_score", "review_count", "price_amount"],
+    "booking_reviews": ["rating"],
+}
+
+def _normalize_numeric_columns(df: pd.DataFrame, table_name: str) -> pd.DataFrame:
+    """Fuerza a numérico (float) las columnas que deben serlo."""
+    columns = NUMERIC_COLUMNS_BY_TABLE.get(table_name, [])
+    for col in columns:
+        if col in df.columns:
+            before_dtype = df[col].dtype
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+            if before_dtype != df[col].dtype:
+                print(f"  [AVISO] Columna '{col}' normalizada: {before_dtype} -> {df[col].dtype}")
+    return df
+
 # --- Configuración Azure Blob Storage (Capa Bronce / Raw) ---
 AZURE_CONNECTION_STRING = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
 BLOB_CONTAINER_NAME = "bronce-raw"
@@ -122,6 +139,9 @@ def main():
         # YouTube
         "youtube/youtube_comments.parquet": "youtube_comments",
         "youtube/youtube_videos.parquet": "youtube_videos",
+        # TripAdvisor
+        "tripadvisor/tripadvisor_ubicaciones.parquet": "tripadvisor_ubicaciones",
+        "tripadvisor/tripadvisor_resenas.parquet": "tripadvisor_resenas",
         # Metadatos Estaciones
         "clima/estaciones/estaciones_agrocabildo.parquet": "estaciones_agrocabildo",
         "clima/sensores/sensores_meteorologicos.parquet": "sensores_meteorologicos"        
@@ -175,6 +195,34 @@ def main():
                 print(f"  [ERROR] Error al procesar lecturas de {blob_name}: {e}")
     else:
         print("  [Info] No se encontraron archivos particionados para ingestar.")
+
+    # 3. LECTURAS MÚLTIPLES DE BOOKING
+    # -------------------------------------------------------------
+    print("\n--- 3. Carga de Parquets de Booking (Capa Bronce) ---")
+    booking_tables = {
+        "booking_establishments": [b for b in blobs if b.startswith("booking/booking_establishments") and b.endswith(".parquet")],
+        "booking_reviews": [b for b in blobs if b.startswith("booking/booking_reviews") and b.endswith(".parquet")]
+    }
+
+    for table_name, b_blobs in booking_tables.items():
+        if b_blobs:
+            print(f"Encontrados {len(b_blobs)} archivos para {table_name}.")
+            dataframes = []
+            for blob_name in b_blobs:
+                try:
+                    df = download_blob_to_dataframe(blob_service_client, blob_name)
+                    dataframes.append(df)
+                except Exception as e:
+                    print(f"  [AVISO] No se pudo descargar {blob_name}: {e}")
+            
+            if dataframes:
+                full_df = pd.concat(dataframes, ignore_index=True)
+                full_df = _normalize_numeric_columns(full_df, table_name)
+                # En Booking siempre hacemos append, la deduplicación va en dbt
+                ingest_to_postgres(full_df, table_name, engine, if_exists="append")
+                print(f"  [OK] Combinadas y subidas {len(full_df)} filas a {table_name}")
+        else:
+            print(f"  [Info] No se encontraron archivos para {table_name}.")
 
     print("\n======================================================================")
     print("PROCESO DE INGESTA COMPLETO HACIA AZURE POSTGRESQL (SCHEMA: BRONZE)")
