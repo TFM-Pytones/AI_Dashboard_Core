@@ -196,6 +196,74 @@ def _load_osm_keywords() -> list[str]:
 
 _OSM_KEYWORDS = _load_osm_keywords()
 
+# --- Priorización por municipio (Issue #12) ---
+# Municipios del Grupo A: sin cobertura alguna hasta esta tarea en
+# config.TENERIFE_MUNICIPALITIES, objetivo real de priorización. slug -> nombre
+# de despliegue para logs (ver build_priority_keywords.py, que genera el bbox
+# real de cada uno vía limites_municipales).
+GROUP_A_MUNICIPALITIES = {
+    "la-matanza-de-acentejo": "La Matanza de Acentejo",
+    "la-victoria-de-acentejo": "La Victoria de Acentejo",
+    "san-juan-de-la-rambla": "San Juan de la Rambla",
+    "arafo": "Arafo",
+    "la-guancha": "La Guancha",
+    "el-tanque": "El Tanque",
+}
+
+PRIORITY_KEYWORDS_FILE = Path(__file__).resolve().parent / "tenerife_osm_keywords_priority.json"
+PRIORITY_URLS_FILE = Path(__file__).resolve().parent / "priority_urls.json"
+
+
+def _load_priority_keywords() -> dict[str, list[str]]:
+    """Carga las keywords por municipio del Grupo A generadas por
+    build_priority_keywords.py. Si el archivo no existe todavía, no bloquea
+    — simplemente no hay keywords de prioridad disponibles todavía.
+
+    Mismo chequeo de seguridad que _load_osm_keywords: descarta palabras
+    sueltas demasiado cortas/genéricas.
+    """
+    if not PRIORITY_KEYWORDS_FILE.exists():
+        return {}
+    with open(PRIORITY_KEYWORDS_FILE, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    return {
+        muni: [kw for kw in kws if "-" in kw or len(kw) >= 6]
+        for muni, kws in data.items()
+    }
+
+
+_PRIORITY_KEYWORDS_BY_MUNI = _load_priority_keywords()
+_PRIORITY_KEYWORDS_FLAT = sorted({kw for kws in _PRIORITY_KEYWORDS_BY_MUNI.values() for kw in kws})
+
+
+def _matches_tenerife_with_priority(url: str) -> bool:
+    """Igual que _matches_tenerife, pero además considera las keywords de
+    prioridad del Grupo A (tenerife_osm_keywords_priority.json). Usado SOLO
+    en el modo de re-crawl forzado (ver _recrawl_sitemap_with_priority) —
+    _matches_tenerife() en sí no cambia, para no alterar el comportamiento
+    de una corrida normal.
+    """
+    if _matches_tenerife(url):
+        return True
+    url_lower = url.lower()
+    return any(keyword in url_lower for keyword in _PRIORITY_KEYWORDS_FLAT)
+
+
+def _matches_group_a(url: str) -> list[str]:
+    """Devuelve los slugs de municipios del Grupo A que matchean esta URL
+    (nombre de municipio o alguna keyword de prioridad específica de ese
+    municipio). Puede devolver más de uno si las keywords se solapan entre
+    municipios (caso raro) — quien llama decide cómo loguearlo/tratarlo.
+    """
+    url_lower = url.lower()
+    matched = []
+    for muni in GROUP_A_MUNICIPALITIES:
+        if muni in url_lower or any(
+            keyword in url_lower for keyword in _PRIORITY_KEYWORDS_BY_MUNI.get(muni, [])
+        ):
+            matched.append(muni)
+    return matched
+
 
 def _matches_tenerife(url: str) -> bool:
     """Filtra por municipios de Tenerife Y/O nombres reales de alojamientos
@@ -269,6 +337,130 @@ def _discover_from_sitemap(limit: int) -> list[str]:
     logger.info(f"Descubrimiento guardado en caché: {DISCOVERY_CACHE_FILE}")
 
     return tenerife_urls[:limit]
+
+
+def _recrawl_sitemap_with_priority() -> list[str]:
+    """Re-recorre TODOS los shards del sitemap en español con el matcher
+    actualizado (municipios + keywords OSM genéricas + keywords de
+    prioridad del Grupo A, ver _matches_tenerife_with_priority) y UNE el
+    resultado con el caché existente — nunca lo reemplaza.
+
+    Por qué esto es necesario (Issue #12): el caché actual solo contiene
+    URLs que YA matchearon con el filtro viejo. Para los municipios del
+    Grupo A, que nunca estuvieron en config.TENERIFE_MUNICIPALITIES, no hay
+    nada que "re-filtrar" dentro del caché existente — sus establecimientos
+    probablemente nunca entraron. La única forma real de encontrarlos es
+    volver a recorrer el sitemap completo con el matcher ya actualizado.
+
+    Guardado incremental por shard (no solo al final): si el proceso se
+    corta a mitad de camino, tanto el caché viejo como lo nuevo encontrado
+    hasta ese punto quedan a salvo. Modo opt-in, solo se llama desde
+    run_priority_recrawl() (--recrawl-priority) — discover_establishment_urls()
+    y _discover_from_sitemap() no cambian su comportamiento por defecto.
+    """
+    combined_urls: set[str] = set()
+    if DISCOVERY_CACHE_FILE.exists():
+        with open(DISCOVERY_CACHE_FILE, "r", encoding="utf-8") as f:
+            combined_urls = set(json.load(f)["urls"])
+        logger.info(f"Caché existente cargado: {len(combined_urls)} URLs (se unirán, no se reemplazan).")
+
+    logger.info("Descargando índice de sitemaps de Booking...")
+    shards = _get_spanish_shards()
+    logger.info(f"{len(shards)} shards del idioma español encontrados. Recorriendo (modo re-crawl forzado)...")
+
+    def _save_cache() -> None:
+        with open(DISCOVERY_CACHE_FILE, "w", encoding="utf-8") as f:
+            json.dump(
+                {"urls": sorted(combined_urls), "generated_at": pd.Timestamp.now().isoformat()},
+                f, indent=2,
+            )
+
+    for i, shard_url in enumerate(shards, start=1):
+        try:
+            root = _fetch_xml(shard_url)
+        except Exception as e:
+            logger.warning(f"  No se pudo descargar shard {shard_url}: {e}")
+            continue
+
+        locs = [el.text for el in root.findall(".//ns:loc", SITEMAP_NAMESPACE)]
+        matches = [
+            loc for loc in locs
+            if _extract_country_from_url(loc) == "es" and _matches_tenerife_with_priority(loc)
+        ]
+        new_matches = [m for m in matches if m not in combined_urls]
+        combined_urls.update(matches)
+
+        logger.info(
+            f"  Shard {i}/{len(shards)}: {len(locs)} URLs, {len(matches)} coinciden con Tenerife "
+            f"({len(new_matches)} nuevas, {len(combined_urls)} acumuladas en total)"
+        )
+
+        # Loguear si este shard concreto arroja matches del Grupo A — permite
+        # detectar si también se concentran en un rango contiguo de shards
+        # (como ya documentó el bug #3 para España en general) y ahorrar
+        # tiempo en corridas futuras.
+        group_a_counts: dict[str, int] = {}
+        for loc in matches:
+            for muni in _matches_group_a(loc):
+                group_a_counts[muni] = group_a_counts.get(muni, 0) + 1
+        if group_a_counts:
+            logger.info(f"  Shard {i}: matches del Grupo A -> {group_a_counts}")
+
+        _save_cache()  # guardado incremental por shard, no solo al final
+
+        time.sleep(1)  # misma cortesía con el CDN de sitemaps que el recorrido normal
+
+    logger.info(f"Re-crawl completo. Caché de descubrimiento: {len(combined_urls)} URLs en total (unión con lo existente).")
+    return sorted(combined_urls)
+
+
+def _tag_priority_urls(urls: list[str]) -> list[dict]:
+    """Etiqueta, dentro de `urls`, cuáles corresponden a alguno de los 6
+    municipios del Grupo A (nombre de municipio o keyword de prioridad
+    específica de ese municipio) y guarda el resultado en priority_urls.json
+    como {url, municipio, establishment_id} por entrada.
+
+    Una URL puede matchear a más de un municipio si las keywords se
+    solapan — si pasa, se loguea como advertencia pero no bloquea: se
+    prioriza igual (se agrega una entrada por cada municipio matcheado).
+    """
+    entries: list[dict] = []
+    for url in urls:
+        matched_municipios = _matches_group_a(url)
+        if not matched_municipios:
+            continue
+        if len(matched_municipios) > 1:
+            logger.warning(
+                f"  URL matchea más de un municipio del Grupo A {matched_municipios}, "
+                f"se prioriza para todos sin bloquear: {url}"
+            )
+        establishment_id = _extract_establishment_id(url)
+        for municipio in matched_municipios:
+            entries.append({"url": url, "municipio": municipio, "establishment_id": establishment_id})
+
+    with open(PRIORITY_URLS_FILE, "w", encoding="utf-8") as f:
+        json.dump(entries, f, indent=2, ensure_ascii=False)
+    logger.info(f"Prioridad guardada en: {PRIORITY_URLS_FILE} ({len(entries)} entradas)")
+
+    return entries
+
+
+def run_priority_recrawl() -> None:
+    """Orquesta el re-descubrimiento forzado + tagging de prioridad
+    (Issue #12). Modo opt-in, nunca se ejecuta en una corrida normal de
+    scraping — ver la flag --recrawl-priority en el bloque __main__.
+    """
+    logger.info("=== Re-descubrimiento forzado de sitemap (priorización Grupo A) ===")
+    combined_urls = _recrawl_sitemap_with_priority()
+
+    entries = _tag_priority_urls(combined_urls)
+    per_muni_counts: dict[str, int] = {}
+    for e in entries:
+        per_muni_counts[e["municipio"]] = per_muni_counts.get(e["municipio"], 0) + 1
+    detail = ", ".join(
+        f"{GROUP_A_MUNICIPALITIES[m]}: {c}" for m, c in sorted(per_muni_counts.items())
+    ) or "ninguna coincidencia en ningún municipio del Grupo A"
+    logger.info(f"=== Re-crawl y tagging finalizados. Prioridad por municipio -> {detail} ===")
 
 
 def discover_establishment_urls(limit: int = config.MAX_ESTABLISHMENTS_PER_RUN) -> list[str]:
@@ -758,6 +950,17 @@ def save_and_upload(establishments: list[Establishment], reviews: list[Review]) 
 # 4. Orquestación principal
 # ---------------------------------------------------------------------------
 
+def _load_priority_entries() -> list[dict]:
+    """Carga priority_urls.json (generado por run_priority_recrawl), si
+    existe. Si todavía no se corrió --recrawl-priority, no bloquea — la
+    corrida normal simplemente no tiene ningún establecimiento priorizado.
+    """
+    if not PRIORITY_URLS_FILE.exists():
+        return []
+    with open(PRIORITY_URLS_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
 def main():
     logger.info("=== Iniciando scraper de Booking.com ===")
 
@@ -767,9 +970,26 @@ def main():
         logger.error(f"Descubrimiento no implementado todavía: {e}")
         sys.exit(1)
 
+    # Prioridad por municipio (Issue #12): separar los candidatos marcados
+    # en priority_urls.json (6 municipios del Grupo A) del resto, ANTES de
+    # filtrar los ya completados — cada subconjunto se filtra por separado
+    # y recién después se concatena (prioridad primero), respetando el
+    # orden filtrar-antes-de-recortar de más abajo.
+    priority_entries = _load_priority_entries()
+    priority_url_set = {e["url"] for e in priority_entries}
+    url_to_municipios: dict[str, list[str]] = {}
+    for e in priority_entries:
+        url_to_municipios.setdefault(e["url"], []).append(e["municipio"])
+
+    priority_urls = [u for u in urls if u in priority_url_set]
+    rest_urls = [u for u in urls if u not in priority_url_set]
+
     # Filtra los establecimientos que ya se scrapearon en una corrida anterior,
     # para poder cortar y retomar sin duplicar trabajo (ver utils/progress_tracker.py)
-    pending_urls_all = filter_pending(urls, _extract_establishment_id)
+    pending_priority = filter_pending(priority_urls, _extract_establishment_id)
+    pending_rest = filter_pending(rest_urls, _extract_establishment_id)
+    pending_urls_all = pending_priority + pending_rest  # prioridad primero, siempre
+
     skipped = len(urls) - len(pending_urls_all)
     if skipped:
         logger.info(f"{skipped} establecimiento(s) ya completados en corridas anteriores, se omiten.")
@@ -779,6 +999,22 @@ def main():
     # para el bug que esto corrige: recortar antes del filtro podía dejar la
     # corrida "atascada" para siempre en los mismos primeros N candidatos).
     pending_urls = pending_urls_all[:config.MAX_ESTABLISHMENTS_PER_RUN]
+
+    priority_in_batch = [u for u in pending_urls if u in priority_url_set]
+    if priority_in_batch:
+        counts: dict[str, int] = {}
+        for u in priority_in_batch:
+            for municipio in url_to_municipios.get(u, []):
+                counts[municipio] = counts.get(municipio, 0) + 1
+        detail = ", ".join(
+            f"{c} de {GROUP_A_MUNICIPALITIES.get(m, m)}" for m, c in sorted(counts.items())
+        )
+        logger.info(
+            f"{len(priority_in_batch)} de {len(pending_urls)} establecimientos de este lote "
+            f"son prioritarios (Grupo A): {detail}"
+        )
+    else:
+        logger.info("Ningún establecimiento prioritario (Grupo A) en este lote.")
     logger.info(
         f"{len(pending_urls_all)} pendientes en total; procesando este lote: {len(pending_urls)} "
         f"(límite MAX_ESTABLISHMENTS_PER_RUN={config.MAX_ESTABLISHMENTS_PER_RUN})"
@@ -824,4 +1060,21 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--recrawl-priority",
+        action="store_true",
+        help=(
+            "Re-recorre TODO el sitemap con el matcher actualizado (municipios + "
+            "keywords de prioridad del Grupo A, Issue #12) y genera priority_urls.json. "
+            "Modo opt-in: no hace scraping en esta corrida, y no se activa nunca solo."
+        ),
+    )
+    args = parser.parse_args()
+
+    if args.recrawl_priority:
+        run_priority_recrawl()
+    else:
+        main()
