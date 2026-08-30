@@ -41,7 +41,7 @@ tenerife_osm_keywords.json
 sitemap_discovery_cache.json
 scraping_progress.json
 scraping_progress_deep.json
-ingestion/scraping/scraping_progress_deep.json
+ingestion/booking/scraping_progress_deep.json
 tenerife_osm_keywords_priority.json
 priority_urls.json
 # 7. pyabsa (descarga checkpoints ~1GB y vuelca resultados en la raiz por defecto)
@@ -55,8 +55,8 @@ analytics/topics/archive/
 analytics/topics/export/
 # 8. Archivos de skills de claude
 .claude
-!ingestion/scraping/.claude/
-!ingestion/scraping/.claude/**
+!ingestion/booking/.claude/
+!ingestion/booking/.claude/**
 # Next.js / frontend
 node_modules/
 .next/
