@@ -22,6 +22,7 @@ requests==2.34.2
 beautifulsoup4==4.14.2   # Parsear HTML y extraer datos (nombres, texto de reseñas, etc.)
 selenium==4.30.0         # Controla un navegador real, para contenido que carga vía JavaScript
 webdriver-manager==4.0.2 # Descarga y gestiona automáticamente el driver de Chrome para Selenium
+geopy>=2.4.0
 
 # Transformacion de datos (dbt)
 dbt-core==1.11.12
