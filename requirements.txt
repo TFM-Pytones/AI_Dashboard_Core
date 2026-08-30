@@ -41,6 +41,13 @@ sentencepiece==0.2.1
 pyabsa==2.4.2
 update-checker==0.18.0  # pin necesario: la 1.0.0 rompe metric_visualizer (dependencia de pyabsa)
 
+# NLP / Modelado de topicos (analytics/topics) - Issue #19
+bertopic>=0.16.0
+sentence-transformers>=3.0.0
+
+# LLM / Informe narrativo (analytics/llm) - Setup LLM + Subtarea 3.2
+groq>=0.9.0
+
 # Validación Meteorológica (Open-Meteo vs Agrocabildo)
 openmeteo-requests>=0.3.0      # Cliente oficial Open-Meteo con caché integrada
 requests-cache>=1.2.0          # Caché HTTP para evitar re-descargas

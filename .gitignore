@@ -33,6 +33,7 @@ dbt_packages/
 
 # 6. Notas locales de trabajo (no compartir con el equipo)
 NOTAS_LOCALES.md
+analytics/contexto.md
 
 
 # 7. Archivos de caché de scraping
@@ -44,6 +45,10 @@ checkpoints/
 checkpoints.json
 *.result.json
 source_datasets.hash.json
+# 7b. BERTopic (modelo entrenado guardado en disco para no reentrenar)
+analytics/topics/bertopic_model/
+analytics/topics/archive/
+analytics/topics/export/
 # 8. Archivos de skills de claude
 .claude
 !ingestion/scraping/.claude/
