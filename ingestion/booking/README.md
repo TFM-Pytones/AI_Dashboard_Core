@@ -34,9 +34,9 @@ Ver documentación completa en:
 - `docs/resumen_terminos_servicio.md`
 
 Resumen de reglas seguidas sin excepción:
-1. ❌ No se usa el buscador interno de Booking — descubrimiento vía sitemaps oficiales
-2. ❌ No se recolecta ningún dato personal del autor de reseñas (solo país, extraído de la bandera del avatar)
-3. ❌ No se republica el contenido extraído tal cual (solo uso interno/analítico para el TFM)
+1. No se usa el buscador interno de Booking — descubrimiento vía sitemaps oficiales
+2. No se recolecta ningún dato personal del autor de reseñas (solo país, extraído de la bandera del avatar)
+3. No se republica el contenido extraído tal cual (solo uso interno/analítico para el TFM)
 4. ✅ Rate limiting con pausas aleatorias entre requests
 5. ✅ User-Agent identificable y rotado, sin spoofear bots conocidos
 6. ✅ Guardado incremental (cada establecimiento se sube apenas termina)

@@ -11,7 +11,7 @@
 */
 
 WITH source AS (
-    SELECT * FROM {{ source('bronze', 'era5land_consolidado') }}
+    SELECT * FROM {{ source('bronze', 'open_meteo_era5land') }}
 )
 
 SELECT
