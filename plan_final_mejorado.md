@@ -521,7 +521,7 @@ import pandas as pd
 from sqlalchemy import create_engine
 
 client = openrouteservice.Client(key='TU_ORS_API_KEY')
-engine = create_engine("postgresql://patron_tfm:Pytones33$@db-tfm-tenerife.postgres.database.azure.com/postgres")
+engine = create_engine("AZURE_DB_URL")
 
 df = pd.read_sql("SELECT h3_index, centroide_lon, centroide_lat FROM silver.h3_grid", engine)
 origenes = df[['centroide_lon', 'centroide_lat']].values.tolist()
@@ -594,7 +594,7 @@ from shapely.geometry import shape
 from sqlalchemy import create_engine
 
 client = openrouteservice.Client(key='TU_ORS_API_KEY')
-engine = create_engine("postgresql://patron_tfm:Pytones33$@db-tfm-tenerife.postgres.database.azure.com/postgres")
+engine = create_engine("AZURE_DB_URL")
 
 destinos = {
     'tfs': [-16.5726, 28.0445], 'tfn': [-16.3413, 28.4827],
@@ -944,7 +944,7 @@ from langchain_community.agent_toolkits import create_sql_agent
 from langchain_groq import ChatGroq # si usamos groq finalmente en vez de openai de azure
 
 db = SQLDatabase.from_uri(
-    "postgresql://patron_tfm:Pytones33$@db-tfm-tenerife.postgres.database.azure.com/postgres",
+    "AZURE_DB_URL",
     schema="gold", include_tables=["h3_master", "h3_ptna", "h3_clusters"]
 )
 llm = ChatGroq(model="llama-3.1-70b-versatile", temperature=0)
@@ -996,7 +996,7 @@ pip install streamlit pydeck sqlalchemy geopandas pandas plotly wordcloud
 
   @st.cache_resource
   def get_engine():
-      return create_engine("postgresql://...")
+      return create_engine("AZURE_DB_URL")
 
   @st.cache_data
   def load_h3_master():
