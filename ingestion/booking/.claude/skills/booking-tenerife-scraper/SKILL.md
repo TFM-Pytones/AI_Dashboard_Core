@@ -36,7 +36,7 @@ Las clases CSS de Booking son hashes generados (tipo `f6e3a11b0d`) que cambian c
 | Dato | Selector | Notas |
 |---|---|---|
 | Nombre del hotel | `h2` (genérico, primer h2 de la página) | — |
-| Botón abrir reseñas | `[data-testid="fr-read-all-reviews"]` | Clic vía JS (ver sección de errores) |
+| Botón abrir reseñas | `[data-testid="Property-Header-Nav-Tab-Trigger-reviews"]` | Clic vía JS (ver sección de errores). Selector viejo `fr-read-all-reviews` sigue en el DOM pero ya no es fiable (ver nota de regresión abajo) |
 | Contenedor de cada reseña | `[data-testid="review-card"]` | Se listan tras abrir el panel |
 | Puntuación | `[data-testid="review-score"]` | Texto tipo `"Puntuación: 9,0 9,0"` — ver regex de limpieza abajo |
 | Título de reseña | `[data-testid="review-title"]` | — |
@@ -86,6 +86,28 @@ address_text = driver.execute_script("""
 """, inner_div)
 ```
 Limitación conocida, no resuelta del todo: a veces igual falta un espacio entre palabras (ej. "Puertode", "10,38260") — cosmético, no rompe la geocodificación.
+
+### Regresión: cambio de flujo para abrir el panel de reseñas (septiembre 2026)
+
+Entre el 30-ago y el 6-sep de 2026, el selector `[data-testid="fr-read-all-reviews"]` empezó a
+fallar de forma creciente (de ~30% a 100% de las corridas), con `StaleElementReferenceException`
+al intentar clickearlo. Diagnóstico con HTML real (JS ya ejecutado) contra 3 establecimientos con
+reseñas confirmó: **no fue un bloqueo de IP/WAF ni un selector eliminado** — el botón viejo sigue
+presente en el DOM, pero forma parte de un componente que React re-renderiza con mucha frecuencia,
+quedando obsoleto entre el `find` y el `click` casi siempre.
+
+Booking migró el flujo a un nuevo tab de navegación del header:
+`[data-testid="Property-Header-Nav-Tab-Trigger-reviews"]` (`data-component="core/sliding-panel-trigger"`,
+abre un panel deslizante `hp-reviews-sliding`). Clickeando este tab (mismo patrón: `_retry_on_stale`
++ `EC.element_to_be_clickable` + clic vía JS) el panel se abrió de forma consistente en 3/3 pruebas
+reales. Importante: **todos los selectores internos de cada reseña no cambiaron** — `review-card`,
+`review-score`, `review-title`, `review-positive-text`, `review-negative-text`, `review-date`,
+`review-avatar` y la paginación (`button[aria-label="Página siguiente"]`) siguen intactos. Fue
+puramente un cambio en el disparador que abre el panel, no en la estructura de datos.
+
+Pista útil para diagnósticos futuros: una página con `[data-testid="no-reviews-banner"]` (0 reseñas)
+no sirve para validar este flujo — ahí nunca aparece ningún botón de abrir reseñas porque no hay
+nada que mostrar. Probar siempre contra establecimientos con reseñas confirmadas.
 
 ## Patrones de manejo de errores de Selenium
 

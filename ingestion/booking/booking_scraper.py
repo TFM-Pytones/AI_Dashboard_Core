@@ -844,7 +844,7 @@ def scrape_establishment(url: str, max_reviews: int | None = None) -> tuple[Esta
 
             button = wait_obj.until(
                 EC.element_to_be_clickable(
-                    (By.CSS_SELECTOR, '[data-testid="fr-read-all-reviews"]')
+                    (By.CSS_SELECTOR, '[data-testid="Property-Header-Nav-Tab-Trigger-reviews"]')
                 )
             )
             # Clic vía JavaScript en vez de un clic simulado de mouse: no
