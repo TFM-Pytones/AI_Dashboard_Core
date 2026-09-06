@@ -96,6 +96,23 @@ paradas_bus AS (
     GROUP BY h.h3_index
 ),
 
+-- Issue #22/#23: NDVI/NDBI medios por hexagono (excluyendo trimestres COVID)
+satelite_ndvi_ndbi AS (
+    SELECT h3_index, AVG(ndvi_mean) AS ndvi_medio, AVG(ndbi_mean) AS ndbi_medio
+    FROM {{ source('bronze', 'satelite_stats') }}
+    WHERE year NOT BETWEEN 2020 AND 2021
+    GROUP BY h3_index
+),
+
+-- Issue #24: VIIRS medio por hexagono. incluir_en_modelo ya viene en FALSE
+-- para 2020-2021 desde la ingesta (caida artificial de radianza por COVID).
+satelite_viirs AS (
+    SELECT h3_index, AVG(radianza_media) AS viirs_medio
+    FROM {{ source('bronze', 'viirs_stats') }}
+    WHERE incluir_en_modelo = TRUE
+    GROUP BY h3_index
+),
+
 satelite_mdt AS (
     SELECT
         h.h3_index,
@@ -105,17 +122,13 @@ satelite_mdt AS (
         m.aspect_mean, m.aspect_min, m.aspect_max,
         m.hillshade_mean, m.hillshade_min, m.hillshade_max,
         -- Indices de Satelite
-        s.ndvi_medio,
-        s.ndbi_medio,
-        s.viirs_medio
+        sn.ndvi_medio,
+        sn.ndbi_medio,
+        sv.viirs_medio
     FROM h3 h
     LEFT JOIN {{ source('bronze', 'mdt_stats') }} m ON h.h3_index = m.h3_index
-    LEFT JOIN (
-        SELECT h3_index, AVG(ndvi_medio) AS ndvi_medio, AVG(ndbi_medio) AS ndbi_medio, AVG(viirs_anual) AS viirs_medio
-        FROM {{ source('bronze', 'satelite_stats') }}
-        WHERE anio NOT BETWEEN 2020 AND 2021
-        GROUP BY h3_index
-    ) s ON h.h3_index = s.h3_index
+    LEFT JOIN satelite_ndvi_ndbi sn ON h.h3_index = sn.h3_index
+    LEFT JOIN satelite_viirs sv ON h.h3_index = sv.h3_index
 ),
 
 -- Subtarea 1.7: Variables Climáticas Avanzadas (IDW + Gradiente)

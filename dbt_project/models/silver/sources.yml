@@ -18,6 +18,7 @@ sources:
       - name: espacios_naturales
       - name: mdt_stats
       - name: satelite_stats
+      - name: viirs_stats
       - name: limites_municipales
       - name: zonas_turisticas
       - name: osm_pois
