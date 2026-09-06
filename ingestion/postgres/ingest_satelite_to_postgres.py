@@ -1,5 +1,6 @@
 import os
 import re
+import argparse
 import numpy as np
 import pandas as pd
 import geopandas as gpd
@@ -10,6 +11,17 @@ from sqlalchemy import create_engine
 import logging
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+
+# Contenedor y prefijo donde viirs_upload_blob.py deja los composites mensuales
+# (ver ingestion/satelite/viirs_upload_blob.py -- CONTAINER_NAME / AZURE_BLOB_PREFIX)
+VIIRS_CONTAINER_NAME = "bronce-raw"
+VIIRS_BLOB_PREFIX = "satelite/viirs"
+
+# Issue #24: 2020-2021 muestran una caida artificial de radianza (~60-70%) por
+# el COVID (cierre de hoteles, toque de queda). Se etiquetan pero se excluyen
+# del modelo de regresion MGWR (#31) para no sesgar el VIIRS como indicador
+# negativo de turismo.
+VIIRS_ANOS_EXCLUIR_MODELO = {2020, 2021}
 
 def get_pg_engine():
     load_dotenv()
@@ -25,7 +37,7 @@ def get_pg_engine():
     connection_string = f"postgresql://{PG_USER}:{PG_PASS}@{PG_HOST}:{PG_PORT}/{PG_DB}"
     return create_engine(connection_string, connect_args={'sslmode': 'require'})
 
-def process_and_ingest():
+def process_and_ingest_sentinel2():
     engine = get_pg_engine()
     schema = "bronze"
     table_name = "satelite_stats"
@@ -96,5 +108,111 @@ def process_and_ingest():
             
     logging.info("¡Proceso completado para todos los trimestres de Sentinel-2!")
 
+
+def process_and_ingest_viirs():
+    """
+    Issue #24 -- Procesamiento de Noches VIIRS (Luces Nocturnas).
+
+    Descarga cada composite mensual VIIRS (GeoTIFF de banda unica 'avg_rad',
+    ya recortado a Tenerife por ingestion/satelite/viirs_upload_blob.py) desde
+    Azure Blob Storage (bronce-raw/satelite/viirs/), calcula la radianza media
+    por hexagono H3 con rasterstats y lo sube a bronze.viirs_stats.
+
+    La malla H3 se lee de silver.silver_h3_grid en PostgreSQL en vez de un
+    GeoJSON local (a diferencia de process_and_ingest_sentinel2) porque los
+    GeoTIFF de VIIRS solo existen en Azure Blob en este entorno, no en disco.
+    """
+    load_dotenv()
+    conn_str = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
+    if not conn_str:
+        logging.error("Falta AZURE_STORAGE_CONNECTION_STRING en el .env")
+        return
+
+    from azure.storage.blob import BlobServiceClient
+
+    engine = get_pg_engine()
+    schema = "bronze"
+    table_name = "bronze_viirs_stats"
+
+    logging.info("Cargando malla H3 desde silver.silver_h3_grid (PostgreSQL)...")
+    gdf_h3 = gpd.read_postgis(
+        "SELECT h3_index, geometry FROM silver.silver_h3_grid",
+        con=engine,
+        geom_col="geometry",
+    )
+
+    blob_service = BlobServiceClient.from_connection_string(conn_str)
+    container = blob_service.get_container_client(VIIRS_CONTAINER_NAME)
+
+    tif_blobs = sorted(
+        (b for b in container.list_blobs(name_starts_with=f"{VIIRS_BLOB_PREFIX}/") if b.name.endswith(".tif")),
+        key=lambda b: b.name,
+    )
+    if not tif_blobs:
+        logging.error(f"No se encontraron composites VIIRS en {VIIRS_CONTAINER_NAME}/{VIIRS_BLOB_PREFIX}/")
+        return
+
+    first_file = True
+    gdf_h3_proj = None
+
+    for blob in tif_blobs:
+        match = re.search(r"(\d{4})_(\d{2})\.tif$", blob.name)
+        if not match:
+            continue
+        year, month = int(match.group(1)), int(match.group(2))
+
+        logging.info(f"=== Procesando VIIRS {year}-{month:02d} ({blob.name}) ===")
+        raw_bytes = container.get_blob_client(blob.name).download_blob().readall()
+
+        with rasterio.MemoryFile(raw_bytes) as memfile:
+            with memfile.open() as src:
+                if gdf_h3_proj is None or gdf_h3_proj.crs != src.crs:
+                    gdf_h3_proj = gdf_h3.to_crs(src.crs)
+
+                radiance_array = src.read(1)
+                transform = src.transform
+
+                # Limpieza: la banda avg_rad no deberia tener radiancia negativa
+                # (ruido de sensor) ni valores absurdamente altos (glare/nodata).
+                radiance_array = np.where(
+                    (radiance_array >= 0) & (radiance_array < 1e5), radiance_array, np.nan
+                )
+
+                logging.info("  Calculando Zonal Stats VIIRS (radianza)...")
+                viirs_stats = zonal_stats(
+                    gdf_h3_proj, radiance_array, affine=transform, stats="mean", nodata=np.nan
+                )
+
+                df = pd.DataFrame(
+                    {
+                        "h3_index": gdf_h3_proj["h3_index"],
+                        "anio": year,
+                        "mes": month,
+                        "radianza_media": [s["mean"] for s in viirs_stats],
+                    }
+                )
+                # Issue #24: excluir 2020-2021 del modelo de regresion (caida COVID)
+                df["incluir_en_modelo"] = ~df["anio"].isin(VIIRS_ANOS_EXCLUIR_MODELO)
+
+                mode = "replace" if first_file else "append"
+                logging.info(f"  Subiendo a PostgreSQL {schema}.{table_name} ({mode})...")
+                df.to_sql(table_name, con=engine, schema=schema, if_exists=mode, index=False)
+                first_file = False
+
+    logging.info("¡Proceso VIIRS completado para todos los meses disponibles!")
+
+
 if __name__ == "__main__":
-    process_and_ingest()
+    parser = argparse.ArgumentParser(description="Ingesta de estadisticas zonales H3 desde rasters de satelite")
+    parser.add_argument(
+        "--source",
+        choices=["sentinel2", "viirs", "all"],
+        default="all",
+        help="Que pipeline ejecutar (por defecto: all)",
+    )
+    args = parser.parse_args()
+
+    if args.source in ("sentinel2", "all"):
+        process_and_ingest_sentinel2()
+    if args.source in ("viirs", "all"):
+        process_and_ingest_viirs()

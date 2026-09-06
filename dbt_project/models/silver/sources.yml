@@ -14,10 +14,21 @@ sources:
       - name: open_meteo_leadtime
       
       # Espacial
+      # NOTA: h3_grid/espacios_naturales/mdt_stats/satelite_stats/viirs_stats
+      # llevan `identifier: bronze_*` porque las tablas fisicas se renombraron
+      # con ese prefijo (ver PR #105 "arreglos-.dbt", que hizo lo mismo para
+      # las tablas de booking). El resto de fuentes de este bloque no se ha
+      # tocado porque no las usa ningun modelo de este cambio.
       - name: h3_grid
+        identifier: bronze_h3_grid
       - name: espacios_naturales
+        identifier: bronze_espacios_naturales
       - name: mdt_stats
+        identifier: bronze_mdt_stats
       - name: satelite_stats
+        identifier: bronze_satelite_stats
+      - name: viirs_stats
+        identifier: bronze_viirs_stats
       - name: limites_municipales
       - name: zonas_turisticas
       - name: osm_pois

@@ -1,0 +1,16 @@
+version: 2
+sources:
+  - name: gold_nlp
+    schema: gold
+    description: >
+      Tablas de la capa Gold escritas directamente por los notebooks de NLP
+      (Tarea 2.1 sentimiento, Tarea 2.2 aspectos) via pandas.to_sql, fuera del
+      control de dbt. Se declaran como source para poder referenciarlas desde
+      modelos dbt sin hardcodear nombres de esquema/tabla.
+    tables:
+      - name: nlp_sentimiento_resenas
+        description: "Score de sentimiento (1-5) por reseña, con h3_index ya resuelto (analytics/tarea2/nlp_sentimiento_2_1.ipynb)."
+      - name: nlp_aspectos_resenas
+        description: "Aspectos extraidos por reseña via PyABSA, en el idioma original (analytics/tarea2/nlp_aspectos_tarea_2_2.ipynb)."
+      - name: aspecto_traducciones
+        description: "Mapeo aspecto_original -> aspecto_traducido/normalizado (analytics/tarea2/traducir_aspectos.ipynb)."
