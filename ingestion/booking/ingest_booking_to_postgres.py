@@ -56,8 +56,10 @@ def get_pg_engine():
 # creando la columna como TEXT en vez de NUMERIC/FLOAT, rompiendo comparaciones
 # numéricas más adelante (ej. en los modelos/tests de dbt).
 NUMERIC_COLUMNS_BY_TABLE = {
-    "booking_establishments": ["latitude", "longitude"],
-    "booking_reviews": ["rating"],
+    "bronze_booking_establishments": ["latitude", "longitude"],
+#    "booking_establishments": ["latitude", "longitude"], -- no se usa, se sube a bronze_booking_establishments
+#    "booking_reviews": ["rating"],-- no se usa, se sube a bronze_booking_reviews
+    "bronze_booking_reviews": ["rating"],
 }
 
 
@@ -140,10 +142,12 @@ def main():
     ensure_schema_exists(engine)
 
     total_establishments = ingest_prefix(
-        "booking/booking_establishments", "booking_establishments", engine
+#        "booking/booking_establishments", "booking_establishments", engine -- no se usa, se sube a bronze_booking_establishments
+        "booking/booking_establishments", "bronze_booking_establishments", engine
     )
     total_reviews = ingest_prefix(
-        "booking/booking_reviews", "booking_reviews", engine
+#        "booking/booking_reviews", "booking_reviews", engine -- no se usa, se sube a bronze_booking_reviews
+        "booking/booking_reviews", "bronze_booking_reviews", engine
     )
 
     print(f"\n=== Ingesta completa: {total_establishments} filas de establecimientos, "

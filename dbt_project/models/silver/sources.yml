@@ -30,9 +30,16 @@ sources:
       
       # Plataformas y Alojamiento (Nuevas incorporaciones)
       - name: aena_pasajeros
+
       - name: booking_establishments
+        identifier: bronze_booking_establishments
+
       - name: booking_reviews
+        identifier: bronze_booking_reviews
+
       - name: booking_geocoding_lookup
+        identifier: bronze_booking_geocoding_lookup
+        
       - name: registro_extrahoteleros
       - name: registro_hoteles
       - name: registro_viviendas_vacacionales

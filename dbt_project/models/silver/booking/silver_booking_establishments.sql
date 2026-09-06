@@ -37,12 +37,12 @@ enriched AS (
         -- 2. Si no hay (NULL), intentar castear la original de Booking reemplazando coma por punto
         COALESCE(
             CAST(l.latitud_geocoded AS FLOAT),
-            CAST(REPLACE(r.latitude, ',', '.') AS FLOAT)
+            CAST(REPLACE(CAST(r.latitude AS TEXT), ',', '.') AS FLOAT)
         ) AS latitud,
         
         COALESCE(
             CAST(l.longitud_geocoded AS FLOAT),
-            CAST(REPLACE(r.longitude, ',', '.') AS FLOAT)
+            CAST(REPLACE(CAST(r.longitude AS TEXT), ',', '.') AS FLOAT)
         ) AS longitud
         
     FROM raw_booking r
