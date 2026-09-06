@@ -835,73 +835,80 @@ def scrape_establishment(url: str, max_reviews: int | None = None) -> tuple[Esta
             establishment_type=establishment_type,
         )
 
-        # --- Abrir el panel de reseñas ---
-        def _click_read_all():
-            # Reintenta cerrar el banner de cookies justo antes del clic —
-            # a veces reaparece o tarda en cerrarse después del primer intento
-            # al inicio de la función, y termina tapando este botón.
-            _dismiss_cookie_banner(driver)
+        # --- Sin reseñas todavía: Booking no renderiza ningún tab/panel de
+        # reseñas en ese caso — intentar abrirlo igual cuelga hasta agotar
+        # PAGE_LOAD_TIMEOUT_SECONDS. Detectarlo antes evita ese timeout.
+        try:
+            driver.find_element(By.CSS_SELECTOR, '[data-testid="no-reviews-banner"]')
+            logger.info(f"  Sin reseñas todavía para {establishment_id} (no-reviews-banner).")
+        except NoSuchElementException:
+            # --- Abrir el panel de reseñas ---
+            def _click_read_all():
+                # Reintenta cerrar el banner de cookies justo antes del clic —
+                # a veces reaparece o tarda en cerrarse después del primer intento
+                # al inicio de la función, y termina tapando este botón.
+                _dismiss_cookie_banner(driver)
 
-            button = wait_obj.until(
-                EC.element_to_be_clickable(
-                    (By.CSS_SELECTOR, '[data-testid="fr-read-all-reviews"]')
-                )
-            )
-            # Clic vía JavaScript en vez de un clic simulado de mouse: no
-            # depende de que el botón esté visualmente libre de superposición
-            # (evita el error "element click intercepted" cuando el banner
-            # de cookies u otro elemento se solapa momentáneamente).
-            driver.execute_script("arguments[0].click();", button)
-
-        _retry_on_stale(_click_read_all)
-        wait(config.MIN_DELAY_SECONDS, config.MAX_DELAY_SECONDS)
-
-        # --- Paginar reseñas ---
-        page = 1
-        while len(reviews) < max_reviews:
-            def _get_cards():
-                wait_obj.until(
-                    EC.presence_of_all_elements_located(
-                        (By.CSS_SELECTOR, '[data-testid="review-card"]')
+                button = wait_obj.until(
+                    EC.element_to_be_clickable(
+                        (By.CSS_SELECTOR, '[data-testid="Property-Header-Nav-Tab-Trigger-reviews"]')
                     )
                 )
-                return driver.find_elements(By.CSS_SELECTOR, '[data-testid="review-card"]')
+                # Clic vía JavaScript en vez de un clic simulado de mouse: no
+                # depende de que el botón esté visualmente libre de superposición
+                # (evita el error "element click intercepted" cuando el banner
+                # de cookies u otro elemento se solapa momentáneamente).
+                driver.execute_script("arguments[0].click();", button)
 
-            cards = _retry_on_stale(_get_cards)
+            _retry_on_stale(_click_read_all)
+            wait(config.MIN_DELAY_SECONDS, config.MAX_DELAY_SECONDS)
 
-            for card in cards:
-                try:
-                    review = _parse_review_card(card)
-                except StaleElementReferenceException:
-                    continue  # esta tarjeta puntual quedó obsoleta, se omite y se sigue
-                if review:
-                    review.establishment_id = establishment_id
-                    reviews.append(review)
+            # --- Paginar reseñas ---
+            page = 1
+            while len(reviews) < max_reviews:
+                def _get_cards():
+                    wait_obj.until(
+                        EC.presence_of_all_elements_located(
+                            (By.CSS_SELECTOR, '[data-testid="review-card"]')
+                        )
+                    )
+                    return driver.find_elements(By.CSS_SELECTOR, '[data-testid="review-card"]')
 
-            logger.info(f"  Página {page}: {len(cards)} reseñas ({len(reviews)} acumuladas)")
+                cards = _retry_on_stale(_get_cards)
 
-            if len(reviews) >= max_reviews:
-                break
+                for card in cards:
+                    try:
+                        review = _parse_review_card(card)
+                    except StaleElementReferenceException:
+                        continue  # esta tarjeta puntual quedó obsoleta, se omite y se sigue
+                    if review:
+                        review.establishment_id = establishment_id
+                        reviews.append(review)
 
-            try:
-                next_button = driver.find_element(
-                    By.CSS_SELECTOR, 'button[aria-label="Página siguiente"]'
-                )
-                if not next_button.is_enabled():
+                logger.info(f"  Página {page}: {len(cards)} reseñas ({len(reviews)} acumuladas)")
+
+                if len(reviews) >= max_reviews:
                     break
 
-                def _click_next():
-                    btn = driver.find_element(
+                try:
+                    next_button = driver.find_element(
                         By.CSS_SELECTOR, 'button[aria-label="Página siguiente"]'
                     )
-                    driver.execute_script("arguments[0].click();", btn)
+                    if not next_button.is_enabled():
+                        break
 
-                _retry_on_stale(_click_next)
-                page += 1
-                wait(config.MIN_DELAY_SECONDS, config.MAX_DELAY_SECONDS)
-            except NoSuchElementException:
-                logger.info("  No hay más páginas de reseñas.")
-                break
+                    def _click_next():
+                        btn = driver.find_element(
+                            By.CSS_SELECTOR, 'button[aria-label="Página siguiente"]'
+                        )
+                        driver.execute_script("arguments[0].click();", btn)
+
+                    _retry_on_stale(_click_next)
+                    page += 1
+                    wait(config.MIN_DELAY_SECONDS, config.MAX_DELAY_SECONDS)
+                except NoSuchElementException:
+                    logger.info("  No hay más páginas de reseñas.")
+                    break
 
     except TimeoutException as e:
         logger.error(f"Timeout esperando elementos en {url}: {e}")
