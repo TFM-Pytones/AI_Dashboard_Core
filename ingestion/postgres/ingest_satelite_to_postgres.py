@@ -132,7 +132,7 @@ def process_and_ingest_viirs():
 
     engine = get_pg_engine()
     schema = "bronze"
-    table_name = "viirs_stats"
+    table_name = "bronze_viirs_stats"
 
     logging.info("Cargando malla H3 desde silver.silver_h3_grid (PostgreSQL)...")
     gdf_h3 = gpd.read_postgis(

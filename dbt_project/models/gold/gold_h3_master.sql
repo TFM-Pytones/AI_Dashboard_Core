@@ -33,7 +33,7 @@ municipios AS (
     LEFT JOIN {{ ref('silver_limites_municipales') }} m
         ON ST_Intersects(h.geometry, m.geometry)
         AND ST_Area(ST_Intersection(h.geometry, m.geometry)) = 
-            (SELECT MAX(ST_Area(ST_Intersection(h2.geometry, m2.geometry)))
+            (SELECT MAX(ST_Area(ST_Intersection(h.geometry, m2.geometry)))
              FROM {{ ref('silver_limites_municipales') }} m2
              WHERE ST_Intersects(h.geometry, m2.geometry))
 ),
@@ -54,12 +54,12 @@ alojamiento AS (
 booking AS (
     SELECT
         h.h3_index,
-        COUNT(DISTINCT e.id) AS n_establecimientos_booking,
+        COUNT(DISTINCT e.establishment_id) AS n_establecimientos_booking,
         ROUND(AVG(r.rating)::numeric, 2) AS rating_booking_medio,
         COUNT(r.review_id) FILTER (WHERE NOT r.periodo_covid) AS n_reviews_validas_booking
     FROM h3 h
     LEFT JOIN {{ ref('silver_booking_establishments') }} e ON ST_Contains(h.geometry, e.geometry)
-    LEFT JOIN {{ ref('silver_booking_reviews') }} r ON r.establishment_id = e.id
+    LEFT JOIN {{ ref('silver_booking_reviews') }} r ON r.establishment_id = e.establishment_id
     GROUP BY h.h3_index
 ),
 

@@ -7,10 +7,16 @@
 ) }}
 
 WITH grid AS (
-    SELECT 
+    SELECT
         h3_index,
         resolution,
-        geometry
+        geometry,
+        -- Area real en km2 (::geography para que ST_Area no de grados^2,
+        -- ya que bronze.h3_grid esta en SRID 4326)
+        ROUND((ST_Area(geometry::geography) / 1000000)::numeric, 6) AS area_km2,
+        -- Centroide en lon/lat (geometry ya esta en 4326, no hace falta transformar)
+        ST_X(ST_Centroid(geometry)) AS centroide_lon,
+        ST_Y(ST_Centroid(geometry)) AS centroide_lat
     FROM {{ source('bronze', 'h3_grid') }}
 ),
 
@@ -46,6 +52,9 @@ SELECT
     g.h3_index,
     g.resolution,
     g.geometry,
+    g.area_km2,
+    g.centroide_lon,
+    g.centroide_lat,
     -- Elevación (rellenar con 0 si el hexágono cae en el mar)
     COALESCE(m.elevation_mean, 0.0) AS elevation_mean,
     COALESCE(m.elevation_min,  0.0) AS elevation_min,
