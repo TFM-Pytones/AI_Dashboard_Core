@@ -3,8 +3,12 @@ import pydeck as pdk
 
 from app.color_scales import (
     DIVERGING_SENTIMENT_DOMAIN,
+    RESTRICTION_ENP,
+    RESTRICTION_SIN_RESTRICCION,
+    RESTRICTION_ZONA_TURISTICA,
     SEQUENTIAL_DENSITY,
     SEQUENTIAL_NDVI,
+    categorical_color,
     diverging_color,
     sequential_color,
 )
@@ -27,6 +31,32 @@ METRICS = {
         "scale": "sequential",
         "ramp": SEQUENTIAL_NDVI,
     },
+    # Site-selection layers (alojamiento turístico): cada una es una columna
+    # real de gold_h3_master, sin combinarlas en un índice/score inventado.
+    "Distancia a la costa": {
+        "column": "distancia_costa_metros",
+        "scale": "sequential",
+        "ramp": SEQUENTIAL_DENSITY,
+    },
+    "Puntos de interés turísticos": {
+        "column": "n_pois_total",
+        "scale": "sequential",
+        "ramp": SEQUENTIAL_DENSITY,
+    },
+    "Pendiente del terreno": {
+        "column": "slope_mean",
+        "scale": "sequential",
+        "ramp": SEQUENTIAL_DENSITY,
+    },
+    "Restricciones legales": {
+        "column": "restriction_category",
+        "scale": "categorical",
+        "categories": {
+            "ENP": RESTRICTION_ENP,
+            "Zona turística oficial": RESTRICTION_ZONA_TURISTICA,
+            "Sin restricción": RESTRICTION_SIN_RESTRICCION,
+        },
+    },
 }
 
 
@@ -39,6 +69,8 @@ def build_fill_color_column(gdf: pd.DataFrame, metric_key: str) -> pd.Series:
         vmin = float(non_null.min()) if not non_null.empty else 0.0
         vmax = float(non_null.max()) if not non_null.empty else 1.0
         return values.apply(lambda v: sequential_color(v, vmin, vmax, light_hex, dark_hex))
+    if config["scale"] == "categorical":
+        return values.apply(lambda v: categorical_color(v, config["categories"]))
     vmin, vmid, vmax = config["domain"]
     return values.apply(lambda v: diverging_color(v, vmin, vmid, vmax))
 

@@ -11,6 +11,10 @@ def _gdf():
             "densidad_metric": [0, 10, 20],
             "sentimiento_medio": [1.0, 3.0, 5.0],
             "ndvi_medio": [None, 0.5, 1.0],
+            "distancia_costa_metros": [0, 1000, 2000],
+            "n_pois_total": [0, 5, 10],
+            "slope_mean": [0, 15, 30],
+            "restriction_category": ["ENP", "Zona turística oficial", "Sin restricción"],
         }
     )
 
@@ -28,6 +32,33 @@ def test_build_fill_color_column_diverging_uses_fixed_domain():
 
 def test_build_fill_color_column_handles_null_values():
     colors = build_fill_color_column(_gdf(), "Naturaleza (NDVI)")
+    assert colors.iloc[0] == [137, 135, 129]  # NO_DATA_COLOR
+
+
+def test_build_fill_color_column_new_sequential_layers_scale_min_to_max():
+    for metric_key, column in [
+        ("Distancia a la costa", "distancia_costa_metros"),
+        ("Puntos de interés turísticos", "n_pois_total"),
+        ("Pendiente del terreno", "slope_mean"),
+    ]:
+        colors = build_fill_color_column(_gdf(), metric_key)
+        assert colors.iloc[0] == [205, 226, 251], metric_key  # light end (row with min value)
+        assert colors.iloc[2] == [13, 54, 107], metric_key  # dark end (row with max value)
+
+
+def test_build_fill_color_column_categorical_maps_known_categories():
+    colors = build_fill_color_column(_gdf(), "Restricciones legales")
+    assert colors.tolist() == [
+        [208, 59, 59],  # ENP
+        [42, 120, 214],  # Zona turística oficial
+        [12, 163, 12],  # Sin restricción
+    ]
+
+
+def test_build_fill_color_column_categorical_handles_unknown_as_no_data():
+    gdf = _gdf()
+    gdf.loc[0, "restriction_category"] = "Categoría desconocida"
+    colors = build_fill_color_column(gdf, "Restricciones legales")
     assert colors.iloc[0] == [137, 135, 129]  # NO_DATA_COLOR
 
 
