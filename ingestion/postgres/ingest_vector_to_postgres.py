@@ -56,7 +56,16 @@ def ingest_vector(gdf, table_name, engine, schema="bronze"):
     elif gdf.crs.to_epsg() != 4326:
         logging.info(f"Reproyectando de {gdf.crs} a EPSG:4326...")
         gdf = gdf.to_crs(epsg=4326)
-        
+    # Corrección de encoding para zonas_turisticas (el Parquet fuente tiene UTF-8 leído como Latin-1)
+    if table_name == "bronze_zonas_turisticas" and 'ETIQUETA' in gdf.columns:
+        def fix_latin1_utf8(s):
+            try:
+                return s.encode('latin-1').decode('utf-8')
+            except Exception:
+                return s
+        gdf = gdf.copy()
+        gdf['ETIQUETA'] = gdf['ETIQUETA'].astype(str).map(fix_latin1_utf8)
+
     logging.info(f"Insertando {len(gdf)} registros en la tabla {schema}.{table_name}...")
     
     gdf.to_postgis(
@@ -78,13 +87,15 @@ def main():
     blob_service_client = BlobServiceClient.from_connection_string(AZURE_CONNECTION_STRING)
     
     spatial_datasets = {
-        "espacial/h3/h3_grid_tenerife_res8.parquet": "h3_grid",
-        "espacial/enp/tenerife_espacios_naturales_protegidos.parquet": "espacios_naturales",
-        "espacial/zonas_turisticas/tenerife_zonas_turisticas.parquet": "zonas_turisticas",
-        "espacial/limites_municipales/limites_municipales_tenerife.parquet": "limites_municipales",
-        "espacial/bienes_interes_cultural/bienes_interes_cultural_tenerife.parquet": "bienes_interes_cultural",
-        "espacial/oficina_turismo/oficinas_turismo_tenerife.parquet": "oficinas_turismo",
-        "espacial/osm/osm_pois_tenerife.parquet": "osm_pois"
+        "espacial/h3/h3_grid_tenerife_res8.parquet": "bronze_h3_grid",
+        "espacial/enp/tenerife_espacios_naturales_protegidos.parquet": "bronze_espacios_naturales",
+        "espacial/zonas_turisticas/tenerife_zonas_turisticas.parquet": "bronze_zonas_turisticas",
+        "espacial/limites_municipales/limites_municipales_tenerife.parquet": "bronze_limites_municipales",
+        "espacial/bienes_interes_cultural/bienes_interes_cultural_tenerife.parquet": "bronze_bienes_interes_cultural",
+        "espacial/oficina_turismo/oficinas_turismo_tenerife.parquet": "bronze_oficinas_turismo",
+        "espacial/osm/osm_pois_tenerife.parquet": "bronze_osm_pois",
+        "gtfs/gtfs_paradas.parquet": "bronze_gtfs_paradas",
+        "gtfs/gtfs_rutas.parquet": "bronze_gtfs_rutas"
     }
     
     for blob_path, table_name in spatial_datasets.items():

@@ -12,7 +12,7 @@ WITH empleo_hosteleria AS (
         "TIME_CODE"::text AS periodo_codigo,
         "TIME" AS periodo_texto,
         CAST(NULLIF(REPLACE(TRIM("OBS_VALUE"::text), ',', '.'), '.') AS NUMERIC) AS empleo_hosteleria
-    FROM {{ source('bronze', 'istac_mun_empleo_hosteleria') }}
+    FROM {{ source('bronze', 'bronze_istac_mun_empleo_hosteleria') }}
     WHERE "MEASURE_CODE" = 'ABSOLUTE' 
       AND "TIME_CODE"::text LIKE '____-Q_'
       AND CAST(SUBSTRING(TRIM("TIME_CODE"::text) FROM 1 FOR 4) AS INTEGER) >= 2022

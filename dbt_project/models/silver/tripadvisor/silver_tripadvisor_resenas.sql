@@ -19,7 +19,7 @@ WITH source_data AS (
     SELECT
         resena_raw::jsonb AS resena_raw,
         location_id
-    FROM {{ source('bronze', 'tripadvisor_resenas') }}
+    FROM {{ source('bronze', 'bronze_tripadvisor_resenas') }}
 ),
 raw_data AS (
     SELECT
@@ -37,7 +37,10 @@ raw_data AS (
             resena_raw->'text'->0->>'value'
         ) AS texto,
         (resena_raw->>'publish_ts')::date AS fecha_publicacion,
-        (resena_raw->>'travel_date')::date AS fecha_viaje,
+        CASE 
+            WHEN length(resena_raw->>'travel_date') = 7 THEN (resena_raw->>'travel_date' || '-01')::date
+            ELSE (resena_raw->>'travel_date')::date 
+        END AS fecha_viaje,
         resena_raw->>'trip_type' AS tipo_viaje,
         resena_raw->'user'->>'username' AS usuario
     FROM source_data
@@ -61,3 +64,4 @@ SELECT
 FROM raw_data
 WHERE review_id IS NOT NULL  AND texto IS NOT NULL
   AND LENGTH(TRIM(texto)) > 15
+  AND EXTRACT(YEAR FROM fecha_publicacion) >= 2022

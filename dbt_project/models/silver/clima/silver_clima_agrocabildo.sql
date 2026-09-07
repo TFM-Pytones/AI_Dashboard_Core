@@ -19,13 +19,15 @@ WITH lecturas_en_punto AS (
         valor_validado,
         COALESCE(valor_validado, valor_observado) AS valor_raw,
         es_validado
-    FROM {{ source('bronze', 'clima_horario_agrocabildo') }}
+    FROM {{ source('bronze', 'bronze_clima_horario_agrocabildo') }}
     WHERE 
         -- 1. Filtrar solo horas en punto (00 min 00 seg)
         date_trunc('hour', "timestamp") = "timestamp"
         -- 2. Eliminar nulos y codigos de error tipicos de sensores
         AND COALESCE(valor_validado, valor_observado) IS NOT NULL
         AND COALESCE(valor_validado, valor_observado) NOT IN (-999, -9999, -99, 999, 9999)
+        -- 3. Filtrar datos desde 2022 hasta la actualidad
+        AND "timestamp" >= '2022-01-01'
 ),
 
 lecturas_con_umbrales AS (
@@ -50,18 +52,36 @@ lecturas_con_umbrales AS (
             ELSE FALSE 
         END AS es_extremo
     FROM lecturas_en_punto
+),
+
+sensor_base AS (
+    -- Calculamos el sensor mínimo de cada estación, que es el sensor base (Temperatura)
+    -- El resto de variables se derivan por offset relativo:
+    -- +0=Temperatura, +1=Humedad, +2=Precipitación, +3=Vel.Viento, +5=Dir.Viento, +8=Radiación
+    SELECT id_estacion, MIN(id_sensor) AS base_sensor
+    FROM {{ source('bronze', 'bronze_clima_horario_agrocabildo') }}
+    GROUP BY id_estacion
 )
 
 SELECT 
     l.id_estacion,
     l.id_sensor,
-    s.sensor_nombre AS variable_nombre,
-    s.sensor_unidad AS variable_unidad,
+    s.name AS variable_nombre,
+    s.unit AS variable_unidad,
     l."timestamp",
     l.valor_limpio,
     l.es_validado,
     l.es_extremo
 FROM lecturas_con_umbrales l
-LEFT JOIN {{ source('bronze', 'sensores_meteorologicos') }} s 
-    ON l.id_sensor = s.sensor_id
+JOIN sensor_base sb ON l.id_estacion = sb.id_estacion
+LEFT JOIN {{ source('bronze', 'bronze_sensores_meteorologicos') }} s
+    ON CASE (l.id_sensor - sb.base_sensor)
+        WHEN 0 THEN 10
+        WHEN 1 THEN 11
+        WHEN 2 THEN 12
+        WHEN 3 THEN 13
+        WHEN 5 THEN 14
+        WHEN 8 THEN 15
+        ELSE NULL
+    END = s.id_weatherdatatype
 WHERE l.valor_limpio IS NOT NULL

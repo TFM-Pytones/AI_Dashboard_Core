@@ -73,7 +73,7 @@ def derive_slope_aspect_hillshade(elevation, pixel_size_m=25.0):
 def process_and_ingest():
     engine = get_pg_engine()
     schema = "bronze"
-    table_name = "mdt_stats"
+    table_name = "bronze_mdt_stats"
     
     # --- 1. Cargar Malla H3 ---
     h3_path = os.path.join("data", "bronce", "spatial", "h3", "h3_grid_tenerife_res8.geojson")

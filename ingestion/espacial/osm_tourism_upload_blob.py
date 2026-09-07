@@ -33,28 +33,26 @@ QUERY = """
 [out:json][timeout:300];
 area["name"="Tenerife"]->.isla;
 (
-  /* Alojamiento */
-  nwr["tourism"~"hotel|hostel|guest_house|apartment|chalet|camp_site|motel|resort"](area.isla);
-  
   /* Atracciones y Turismo */
-  node["tourism"~"attraction|viewpoint|museum|information|theme_park|zoo"](area.isla);
-  node["historic"](area.isla);
+  nwr["tourism"~"attraction|viewpoint|museum|information|theme_park|zoo"](area.isla);
+  nwr["historic"](area.isla);
   
   /* Ocio y Naturaleza */
-  node["leisure"~"nature_reserve|park|marina|golf_course"](area.isla);
-  node["natural"~"beach|peak|volcano"](area.isla);
+  nwr["leisure"~"nature_reserve|park|marina|golf_course"](area.isla);
+  nwr["natural"~"beach|peak|volcano"](area.isla);
   
   /* Restauracion y Ocio Nocturno */
-  node["amenity"~"restaurant|bar|cafe|fast_food|pub|nightclub|casino"](area.isla);
+  nwr["amenity"~"restaurant|bar|cafe|fast_food|pub|nightclub|casino|ice_cream|food_court"](area.isla);
   
   /* Transporte y Accesibilidad */
-  node["highway"="bus_stop"](area.isla);
-  node["amenity"~"taxi|car_rental|parking|ferry_terminal|bicycle_rental"](area.isla);
-  node["railway"="tram_stop"](area.isla);
+  nwr["highway"="bus_stop"](area.isla);
+  nwr["amenity"~"taxi|car_rental|parking|ferry_terminal|bicycle_rental"](area.isla);
+  nwr["railway"="tram_stop"](area.isla);
   
   /* Servicios Basicos (Capacidad de Carga) */
-  node["shop"~"supermarket|convenience|mall"](area.isla);
-  node["amenity"~"hospital|clinic|pharmacy|atm|bank"](area.isla);
+  nwr["shop"~"supermarket|convenience|mall|bakery|department_store|greengrocer|butcher|"](area.isla);
+  nwr["amenity"~"hospital|clinic|pharmacy|atm|bank|doctors|chemist|dentist"](area.isla);
+  nwr["healthcare"](area.isla);
 );
 out center;
 """
@@ -95,13 +93,10 @@ def process_and_upload():
                 
                 if "tourism" in tags:
                     poi_type = tags["tourism"]
-                    if poi_type in ["hotel", "hostel", "guest_house", "apartment", "chalet", "camp_site", "motel", "resort"]:
-                        poi_group = "Alojamiento"
-                    else:
-                        poi_group = "Atracciones_Turisticas"
+                    poi_group = "Atracciones_Turisticas"
                 elif "amenity" in tags:
                     poi_type = tags["amenity"]
-                    if poi_type in ["restaurant", "bar", "cafe", "fast_food", "pub", "nightclub", "casino"]:
+                    if poi_type in ["restaurant", "bar", "cafe", "fast_food", "pub", "nightclub", "casino", "ice_cream", "food_court", "biergarten"]:
                         poi_group = "Restauracion_Ocio"
                     elif poi_type in ["taxi", "car_rental", "parking", "ferry_terminal", "bicycle_rental"]:
                         poi_group = "Transporte"
@@ -121,6 +116,9 @@ def process_and_upload():
                     poi_group = "Transporte"
                 elif "shop" in tags:
                     poi_type = tags["shop"]
+                    poi_group = "Servicios_Basicos"
+                elif "healthcare" in tags:
+                    poi_type = tags["healthcare"]
                     poi_group = "Servicios_Basicos"
                 elif "historic" in tags:
                     poi_type = "historic_site"

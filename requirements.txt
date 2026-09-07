@@ -53,3 +53,8 @@ matplotlib>=3.8.0              # Gráficos base
 # Ingesta Satelital — Issue #10 (Sentinel-2 + VIIRS)
 earthengine-api>=0.1.390       # Google Earth Engine Python API (compositing Sentinel-2 + VIIRS)
 h5py>=3.10.0                   # Lectura de HDF5 (NASA LAADS DAAC VNP46A2 — VIIRS alternativo)
+
+# Bloque 4 — Accesibilidad y Routing
+openrouteservice>=2.3.3        # Cliente oficial para la API de OpenRouteService (isócronas y routing)
+
+partridge

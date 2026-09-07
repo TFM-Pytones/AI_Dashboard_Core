@@ -3,15 +3,14 @@
 /*
   Modelo Silver: silver_enp (Espacios Naturales Protegidos)
   Polígonos de ENP de Tenerife con categoría y área.
+  Columnas reales en bronze: categoria, nombre, codigo, geometry
 */
 
 SELECT
-    id AS id_enp,
+    codigo AS id_enp,
     nombre AS nombre_enp,
-    categoria,   -- Parque Nacional, Parque Rural, Reserva, Monumento Natural, etc.
-    NULL AS municipio,
-    NULL AS cod_municipio,
+    categoria,
     ROUND(CAST(ST_Area(geometry::geography) / 1000000.0 AS NUMERIC), 2) AS area_km2,
     ST_Transform(ST_SetSRID(geometry, COALESCE(NULLIF(ST_SRID(geometry), 0), 4326)), 4326) AS geometry
-FROM {{ source('bronze', 'espacios_naturales') }}
+FROM {{ source('bronze', 'bronze_espacios_naturales') }}
 WHERE geometry IS NOT NULL

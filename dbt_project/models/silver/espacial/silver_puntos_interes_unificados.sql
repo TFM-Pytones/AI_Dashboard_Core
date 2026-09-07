@@ -10,16 +10,12 @@
 
 WITH osm AS (
     SELECT 
-        CAST(osm_id AS VARCHAR) AS id,
-        poi_name AS nombre,
-        poi_type AS tipo,
-        poi_group AS categoria,
-        NULL AS municipio,
-        'OSM' AS fuente,
-        NULL AS horario,
-        NULL AS descripcion,
-        NULL AS telefono,
-        NULL AS estado,
+        CAST(osm_id AS VARCHAR)  AS id,
+        CAST(poi_name AS TEXT)   AS nombre,
+        CAST(poi_type AS TEXT)   AS tipo,
+        CAST(poi_group AS TEXT)  AS categoria,
+        NULL::text               AS municipio,
+        'OSM'                    AS fuente,
         geometry
     FROM {{ ref('silver_osm_pois') }}
     WHERE geometry IS NOT NULL
@@ -27,33 +23,25 @@ WITH osm AS (
 
 cultura AS (
     SELECT 
-        CAST(id AS VARCHAR) AS id,
-        nombre,
-        tipo,
-        'Cultura' AS categoria,
-        municipio,
-        'IDE_Canarias' AS fuente,
-        NULL AS horario,
-        NULL AS descripcion,
-        NULL AS telefono,
-        NULL AS estado,
+        CAST(id AS VARCHAR)      AS id,
+        CAST(nombre AS TEXT)     AS nombre,
+        CAST(tipo AS TEXT)       AS tipo,
+        'Cultura'::text          AS categoria,
+        CAST(municipio AS TEXT)  AS municipio,
+        'IDE_Canarias'           AS fuente,
         geometry
-    FROM {{ ref('silver_bienes_culturales') }}
+    FROM {{ ref('silver_bienes_interes_culturales') }}
     WHERE geometry IS NOT NULL
 ),
 
 turismo AS (
     SELECT 
-        CAST(id AS VARCHAR) AS id,
-        nombre,
-        tipo,
-        'Turismo' AS categoria,
-        municipio,
-        'IDE_Canarias' AS fuente,
-        horario,
-        descripcion,
-        telefono,
-        estado,
+        NULL::varchar            AS id,
+        CAST(nombre AS TEXT)     AS nombre,
+        CAST(tipo AS TEXT)       AS tipo,
+        'Turismo'::text          AS categoria,
+        CAST(municipio AS TEXT)  AS municipio,
+        'IDE_Canarias'           AS fuente,
         geometry
     FROM {{ ref('silver_oficinas_turismo') }}
     WHERE geometry IS NOT NULL

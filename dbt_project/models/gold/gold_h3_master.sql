@@ -17,9 +17,9 @@
 WITH h3 AS (
     SELECT 
         h3_index,
-        area_km2,
-        centroide_lon,
-        centroide_lat,
+        ST_Area(geometry::geography) / 1000000.0 AS area_km2,
+        ST_X(ST_Centroid(geometry)) AS centroide_lon,
+        ST_Y(ST_Centroid(geometry)) AS centroide_lat,
         geometry
     FROM {{ ref('silver_h3_grid') }}
 ),
@@ -33,7 +33,7 @@ municipios AS (
     LEFT JOIN {{ ref('silver_limites_municipales') }} m
         ON ST_Intersects(h.geometry, m.geometry)
         AND ST_Area(ST_Intersection(h.geometry, m.geometry)) = 
-            (SELECT MAX(ST_Area(ST_Intersection(h2.geometry, m2.geometry)))
+            (SELECT MAX(ST_Area(ST_Intersection(h.geometry, m2.geometry)))
              FROM {{ ref('silver_limites_municipales') }} m2
              WHERE ST_Intersects(h.geometry, m2.geometry))
 ),
@@ -54,12 +54,12 @@ alojamiento AS (
 booking AS (
     SELECT
         h.h3_index,
-        COUNT(DISTINCT e.id) AS n_establecimientos_booking,
+        COUNT(DISTINCT e.establishment_id) AS n_establecimientos_booking,
         ROUND(AVG(r.rating)::numeric, 2) AS rating_booking_medio,
         COUNT(r.review_id) FILTER (WHERE NOT r.periodo_covid) AS n_reviews_validas_booking
     FROM h3 h
     LEFT JOIN {{ ref('silver_booking_establishments') }} e ON ST_Contains(h.geometry, e.geometry)
-    LEFT JOIN {{ ref('silver_booking_reviews') }} r ON r.establishment_id = e.id
+    LEFT JOIN {{ ref('silver_booking_reviews') }} r ON r.establishment_id = e.establishment_id
     GROUP BY h.h3_index
 ),
 
@@ -109,11 +109,11 @@ satelite_mdt AS (
         s.ndbi_medio,
         s.viirs_medio
     FROM h3 h
-    LEFT JOIN {{ source('bronze', 'mdt_stats') }} m ON h.h3_index = m.h3_index
+    LEFT JOIN {{ source('bronze', 'bronze_mdt_stats') }} m ON h.h3_index = m.h3_index
     LEFT JOIN (
-        SELECT h3_index, AVG(ndvi_medio) AS ndvi_medio, AVG(ndbi_medio) AS ndbi_medio, AVG(viirs_anual) AS viirs_medio
-        FROM {{ source('bronze', 'satelite_stats') }}
-        WHERE anio NOT BETWEEN 2020 AND 2021
+        SELECT h3_index, AVG(ndvi_mean) AS ndvi_medio, AVG(ndbi_mean) AS ndbi_medio, AVG(viirs_mean) AS viirs_medio
+        FROM {{ source('bronze', 'bronze_satelite_stats') }}
+        WHERE "year" NOT BETWEEN 2020 AND 2021
         GROUP BY h3_index
     ) s ON h.h3_index = s.h3_index
 ),
@@ -136,7 +136,7 @@ clima_diario AS (
         AVG(valor_limpio) FILTER (WHERE variable_nombre ILIKE '%Radiaci%') AS insolacion_media,
         -- Panza de burro (Mediodía: 12-16h)
         AVG(valor_limpio) FILTER (WHERE variable_nombre ILIKE '%Radiaci%' AND EXTRACT(HOUR FROM "timestamp") BETWEEN 12 AND 16) AS radiacion_mediodia
-    FROM {{ ref('silver_clima_horario_agrocabildo') }}
+    FROM {{ ref('silver_clima_agrocabildo') }}
     GROUP BY id_estacion, date_trunc('day', "timestamp"), EXTRACT(QUARTER FROM "timestamp")
 ),
 estaciones_clima AS (
@@ -194,7 +194,7 @@ estaciones_con_altitud AS (
 h3_con_altitud AS (
     SELECT h.h3_index, h.geometry, m.elevation_mean AS h3_altitud
     FROM h3 h
-    LEFT JOIN {{ source('bronze', 'mdt_stats') }} m ON h.h3_index = m.h3_index
+    LEFT JOIN {{ source('bronze', 'bronze_mdt_stats') }} m ON h.h3_index = m.h3_index
 ),
 h3_vecinos_clima AS (
     -- Para cada H3, buscamos las 3 estaciones más cercanas y calculamos distancia y peso (IDW)
