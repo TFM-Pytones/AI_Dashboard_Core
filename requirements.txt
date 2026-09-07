@@ -61,3 +61,9 @@ matplotlib>=3.8.0              # Gráficos base
 # Ingesta Satelital — Issue #10 (Sentinel-2 + VIIRS)
 earthengine-api>=0.1.390       # Google Earth Engine Python API (compositing Sentinel-2 + VIIRS)
 h5py>=3.10.0                   # Lectura de HDF5 (NASA LAADS DAAC VNP46A2 — VIIRS alternativo)
+
+# Dashboard (app/) — Bloque 8 v1: mapa H3 + KPIs
+streamlit>=1.42  # st.pydeck_chart(on_select=..., selection_mode=...) requires >=1.42
+pydeck==0.9.1
+plotly==5.24.1
+pytest==8.3.4  # ya estaba instalado en el venv; se declara para reproducibilidad
