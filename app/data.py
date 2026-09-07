@@ -11,6 +11,13 @@ load_dotenv()
 
 H3_MASTER_QUERY = "SELECT * FROM gold.gold_h3_master"
 SENTIMIENTO_QUERY = "SELECT * FROM gold.gold_sentimiento_h3"
+ACCESIBILIDAD_QUERY = "SELECT * FROM gold.gold_h3_accesibilidad"
+ISOCRONAS_QUERY = "SELECT * FROM gold.isocronas_visuales"
+
+# gold_h3_accesibilidad usa 999 como centinela de "destino inalcanzable" en
+# vez de NULL en las columnas tiempo_*_min (confirmado por auditoría directa
+# de la tabla) -- sin esto, un hexágono remoto parecería estar a 999 min.
+TIEMPO_SENTINEL = 999.0
 
 
 @st.cache_resource
@@ -26,6 +33,16 @@ def load_h3_master(_engine: Engine) -> gpd.GeoDataFrame:
 @st.cache_data
 def load_sentimiento(_engine: Engine) -> pd.DataFrame:
     return pd.read_sql(SENTIMIENTO_QUERY, _engine)
+
+
+@st.cache_data
+def load_accesibilidad(_engine: Engine) -> pd.DataFrame:
+    return pd.read_sql(ACCESIBILIDAD_QUERY, _engine)
+
+
+@st.cache_data
+def load_isocronas(_engine: Engine) -> gpd.GeoDataFrame:
+    return gpd.read_postgis(ISOCRONAS_QUERY, _engine, geom_col="geometry")
 
 
 def compute_density_metric(gdf: pd.DataFrame) -> pd.DataFrame:
@@ -50,6 +67,19 @@ def merge_h3_data(h3_gdf: gpd.GeoDataFrame, sentimiento_df: pd.DataFrame) -> gpd
     merged = h3_gdf.merge(sentimiento_df, on="h3_index", how="left")
     merged = compute_density_metric(merged)
     return compute_restriction_category(merged)
+
+
+def clean_accesibilidad_sentinel(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    tiempo_cols = [c for c in df.columns if c.startswith("tiempo_")]
+    for c in tiempo_cols:
+        df.loc[df[c] >= TIEMPO_SENTINEL, c] = None
+    return df
+
+
+def merge_accesibilidad(gdf: pd.DataFrame, accesibilidad_df: pd.DataFrame) -> pd.DataFrame:
+    cleaned = clean_accesibilidad_sentinel(accesibilidad_df)
+    return gdf.merge(cleaned, on="h3_index", how="left")
 
 
 def list_municipios(gdf: pd.DataFrame) -> list[str]:
