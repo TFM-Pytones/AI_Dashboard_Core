@@ -302,14 +302,6 @@ GROUP BY h3_index
 
 ---
 
-### Subtarea 1.11 — Distancia Euclidiana a la Costa
-- **Fuente Silver:** `silver.limites_municipales`
-- **Técnica Espacial:** Extraer la línea de costa combinando los municipios con `ST_Boundary(ST_Union(geometry))` y medir la distancia en línea recta desde el hexágono con `ST_Distance()`.
-- **Output:** `distancia_costa_metros` (NUMERIC).
-- **Interpretabilidad:** Variable de altísimo valor para bienes raíces (Real Estate) hoteleros. Captura la prima de valor ("premium") por estar cerca del mar sin importar las carreteras. Diferente a la accesibilidad vial (Bloque 4).
-
----
-
 ### Subtarea 1.9 — Métricas de Dinamismo y Mercado (Crecimiento, Estacionalidad y Origen)
 - **Fuente Silver:** 
   - ISTAC: `silver.istac_trimestral` (ocupación por trimestres).
@@ -328,6 +320,14 @@ GROUP BY h3_index
 - **Técnica:** `ST_Intersects` — cualquier solapamiento del hexágono con un polígono de zona turística.
 - **Output:** `es_zona_turistica_oficial` (BOOLEAN).
 - **Interpretabilidad:** Fundamental para clasificar las inversiones. Un PTNA alto donde `es_zona_turistica_oficial = TRUE` es un proyecto de **renovación/reposicionamiento** (brownfield). Si es `FALSE`, es un proyecto de **desarrollo nuevo** (greenfield) sujeto a mayores trabas burocráticas pero con potencial de ser pionero.
+
+---
+
+### Subtarea 1.11 — Distancia Euclidiana a la Costa
+- **Fuente Silver:** `silver.limites_municipales`
+- **Técnica Espacial:** Extraer la línea de costa combinando los municipios con `ST_Boundary(ST_Union(geometry))` y medir la distancia en línea recta desde el hexágono con `ST_Distance()`.
+- **Output:** `distancia_costa_metros` (NUMERIC).
+- **Interpretabilidad:** Variable de altísimo valor para bienes raíces (Real Estate) hoteleros. Captura la prima de valor ("premium") por estar cerca del mar sin importar las carreteras. Diferente a la accesibilidad vial (Bloque 4).
 
 ---
 
@@ -495,11 +495,12 @@ pip install openrouteservice geopandas pandas psycopg2-binary sqlalchemy shapely
 
 ---
 
-### Subtarea 4.1 — Routing Matrix ORS: Tiempos Exactos de Conducción para TODA la Isla (2.396 hexágonos × 6 destinos)
-- **¿Qué es?**: La **API de Matrices de ORS** calcula el tiempo de conducción desde CADA UNO de los 2.396 hexágonos hacia N destinos estratégicos. A diferencia de las isócronas (polígonos visuales), esto produce un **número exacto al minuto** (ej: 42.3 min) para cada hexágono, sin dejar ninguna zona aislada ni "ciega".
+### Subtarea 4.1 — Routing Matrix ORS: Tiempos Exactos de Conducción para toda la Isla (2.746 hexágonos × 18 destinos)
+- **Mejora de Precisión Espacial (Centroide Ponderado por POIs)**: Para evitar el problema de MAUP (que el centro matemático de un hexágono caiga en el mar o en un acantilado inaccesible), la capa Silver (`silver_h3_grid`) calcula las coordenadas de origen basándose en el centro de masa de la actividad humana (POIs de OSM) dentro del hexágono, desplazando el punto de ruteo hacia las zonas habitadas/accesibles.
+- **¿Qué es?**: La **API de Matrices de ORS** calcula el tiempo de conducción desde CADA UNO de los 2.746 hexágonos hacia N destinos estratégicos. A diferencia de las isócronas (polígonos visuales), esto produce un **número exacto al minuto** (ej: 42.3 min) para cada hexágono, sin dejar ninguna zona aislada ni "ciega".
 - **¿Por qué Matrix y no isócronas para el modelo estadístico?**: Las isócronas clasifican los hexágonos como "dentro o fuera de un anillo de 30 min" (dato binario, pierde resolución). La Matrix da `42.3 min` vs `43.1 min` — información continua mucho más útil para la regresión MGWR.
-- **Coste de API**: Plan gratuito ORS: 500 peticiones/día, máx 3.500 pares origen-destino por petición. 2.396 hexágonos < 3.500 → **1 petición por destino**. 6 destinos × 1 petición = **6 peticiones totales** (~1.2% del límite diario).
-- **Los 6 Destinos Estratégicos**
+- **Coste de API**: Plan gratuito ORS: 500 peticiones/día, máx 3.500 pares origen-destino por petición. 2.746 hexágonos < 3.500 → **1 petición por destino**. 18 destinos × 1 petición = **18 peticiones totales** (~3.6% del límite diario).
+- **Los 18 Destinos Estratégicos Finales**
 | ID | Lugar | Coordenadas [lon, lat] | Justificación |
 |---|---|---|---|
 | `tfs` | Aeropuerto Sur (TFS) | `[-16.5726, 28.0445]` | Puerta de entrada del 70% del turismo internacional |
@@ -507,7 +508,19 @@ pip install openrouteservice geopandas pandas psycopg2-binary sqlalchemy shapely
 | `capital` | Santa Cruz (Puerto) | `[-16.2519, 28.4700]` | Capital, ferry, conexión industrial y residencial |
 | `polo_sur` | Costa Adeje (centro) | `[-16.7356, 28.0805]` | Epicentro de la hostelería premium del sur |
 | `polo_norte` | Puerto de la Cruz (centro) | `[-16.5488, 28.4148]` | Epicentro del turismo del norte |
-| `teide` | Parque Nac. del Teide (Teleférico) | `[-16.6433, 28.2728]` | Principal atractivo natural, referencia orográfica central |
+| `teide` | Teleférico del Teide (Base) | `[-16.6214, 28.2547]` | Principal punto de interés geográfico central |
+| `la_laguna` | La Laguna (Histórico) | `[-16.3155, 28.4871]` | Patrimonio UNESCO y turismo cultural |
+| `candelaria` | Basílica Candelaria | `[-16.3683, 28.3516]` | Turismo religioso y ruta costera sureste |
+| `los_gigantes` | Acantilados Oeste | `[-16.8415, 28.2435]` | Polo turístico occidental y paisaje |
+| `el_medano` | El Médano (Surf) | `[-16.5366, 28.0461]` | Polo turístico y deportivo del sur |
+| `garachico` | Garachico (Pueblo) | `[-16.7645, 28.3734]` | Turismo natural/histórico del noroeste |
+| `anaga` | Parque Rural de Anaga | `[-16.1573, 28.5660]` | Extremo noreste. Aislamiento geográfico y ecoturismo |
+| `masca` | Masca (Teno) | `[-16.8344, 28.3197]` | Interior noroeste (Teno). Alta montaña y aislamiento |
+| `vilaflor` | Vilaflor | `[-16.6377, 28.1582]` | Interior centro-sur. Pueblo a mayor altitud |
+| `la_orotava` | La Orotava | `[-16.5227, 28.3903]` | Eje del Valle norte y paso obligado al Teide |
+| `guimar` | Pirámides de Güímar | `[-16.4088, 28.3078]` | Interior del sureste. Ancla del valle de Güímar |
+| `buenavista` | Buenavista del Norte | `[-16.8897, 28.3722]` | Extremo noroeste. Resorts de golf y ferry |
+| `arico` | Poris de Abona / Arico | `[-16.4648, 28.1655]` | Costa sureste. Ancla para detectar alto PTNA costero |
 - **Para que funcione bien**
   - Los centroides deben estar en formato `[lon, lat]` (ORS usa longitud primero, al contrario que PostGIS).
   - Hacer una llamada de prueba con solo 5 hexágonos para validar el formato antes de lanzar los 2.396.
@@ -633,44 +646,26 @@ Tabla `gold.isocronas_visuales` (24 filas — 6 destinos × 4 rangos):
 
 ---
 
-### Subtarea 4.3 — Accesibilidad a Paradas de Bus a Pie (GTFS + ST_DWithin)
-- **¿Qué es?**: Contar cuántas paradas de autobús TITSA hay a 500m (≈7 minutos a pie) del centroide de cada hexágono, y cuántas líneas distintas pasan. Mide la accesibilidad sin coche privado — crítica para el perfil de turista joven europeo o el residente sin vehículo.
-- **Fuente Silver**: `silver.gtfs_paradas` (columna `geometry` tipo POINT, SRID 4326) + `silver.gtfs_rutas`.
+### Subtarea 4.3 — Accesibilidad a Paradas de Bus a Pie (GTFS con 3 Umbrales)
+- **¿Qué es?**: Contar cuántas paradas de autobús TITSA hay a distintas distancias del hexágono (200m, 500m, 1000m) y la distancia real a la más cercana. Mide la accesibilidad sin coche privado — crítica para el perfil de turista joven europeo o el residente sin vehículo.
+- **Fuente Silver**: `silver.silver_gtfs_paradas` (columna `geometry` tipo POINT, SRID 4326).
 - **Para que funcione bien**
-  - Usar `::geography` en el `ST_DWithin` para que el radio sea en metros reales, no en grados decimales.
-  - Usar `LEFT JOIN` (no `INNER JOIN`) para que hexágonos sin paradas cercanas devuelvan 0 en lugar de desaparecer.
-
-- **SQL exacto**
-```sql
-SELECT
-    h.h3_index,
-    COUNT(DISTINCT p.stop_id)                                          AS n_paradas_bus_500m,
-    COUNT(DISTINCT r.route_id)                                         AS n_rutas_distintas,
-    ROUND(MIN(ST_Distance(
-        ST_SetSRID(ST_MakePoint(h.centroide_lon, h.centroide_lat), 4326)::geography,
-        p.geometry::geography
-    ))::numeric, 0)                                                     AS dist_parada_cercana_m
-FROM silver.h3_grid h
-LEFT JOIN silver.gtfs_paradas p
-    ON ST_DWithin(
-        ST_SetSRID(ST_MakePoint(h.centroide_lon, h.centroide_lat), 4326)::geography,
-        p.geometry::geography,
-        500  -- metros (≈7 min a pie)
-    )
-LEFT JOIN silver.gtfs_rutas r ON p.stop_id = ANY(r.stop_ids)
-GROUP BY h.h3_index
-```
+  - El radio de 1000m supera intencionalmente el tamaño del hexágono (efecto vecindad), permitiendo medir accesibilidad peatonal a paradas que matemáticamente caen en hexágonos vecinos.
+  - Usar `LEFT JOIN` (no `INNER JOIN`) para que zonas sin paradas registren conteos en 0.
+  - La `dist_parada_cercana_m` devuelve `NULL` para hexágonos verdaderamente remotos donde no se detecte ninguna parada en el municipio o isla.
 
 - **Output**
 | Columna | Tipo | Descripción |
 |---|---|---|
-| `n_paradas_bus_500m` | INT | Paradas TITSA a ≤500m del centroide |
-| `n_rutas_distintas` | INT | Líneas de bus diferentes accesibles a pie |
-| `dist_parada_cercana_m` | NUMERIC | Metros a la parada más cercana |
+| `n_paradas_bus_200m` | INT | Paradas TITSA a ≤200m del centroide (ultra-urbano) |
+| `n_paradas_bus_500m` | INT | Paradas TITSA a ≤500m del centroide (~7 min a pie) |
+| `n_paradas_bus_1000m` | INT | Paradas TITSA a ≤1000m del centroide (~12 min a pie) |
+| `dist_parada_cercana_m` | NUMERIC | Metros reales a la parada más cercana (NULL si no existe) |
 
-- **Interpretabilidad para TUI y el modelo MGWR**
-  - `n_paradas_bus_500m = 0` en zona rural con PTNA alto → potencial confirmado, pero requiere coche de alquiler → comunicarlo en el informe narrativo del Bloque 9.
-  - `n_rutas_distintas > 3` en zona rural → nudo de comunicaciones; posible hub de turismo sostenible para TUI.
+- **Interpretabilidad y Uso Estratégico**
+  - **Para el Modelo MGWR (Regresión)**: Usar **solo** `dist_parada_cercana_m` (variable continua). Evita la altísima multicolinealidad entre los 3 conteos (VIF altísimo) que desestabilizaría los coeficientes.
+  - **Para el Modelo DBSCAN (Clustering)**: Usar `dist_parada_cercana_m` normalizada (StandardScaler) o aplicar un PCA a los 3 conteos para colapsarlos a 1 componente principal y no sesgar los clústers espaciales.
+  - **Para el Dashboard (TUI)**: Usar las tres columnas binarias (`> 0`) como **filtros booleanos en el mapa**. Permite a un planificador turístico filtrar rápidamente zonas con "Bus en la puerta" vs "Bus accesible caminando".
 
 ---
 

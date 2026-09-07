@@ -4,81 +4,59 @@ sources:
     schema: bronze
     tables:
       # Clima
-      - name: estaciones_agrocabildo
-      - name: clima_horario_agrocabildo
-      - name: sensores_meteorologicos
-
-      # Modelos Atmosfericos / Satelite
-      - name: open_meteo_era5land
-      - name: open_meteo_forecast
-      - name: open_meteo_leadtime
+      - name: bronze_estaciones_agrocabildo
+      - name: bronze_clima_horario_agrocabildo
+      - name: bronze_sensores_meteorologicos
       
       # Espacial
-      # NOTA: h3_grid/espacios_naturales/mdt_stats/satelite_stats/viirs_stats
-      # llevan `identifier: bronze_*` porque las tablas fisicas se renombraron
-      # con ese prefijo (ver PR #105 "arreglos-.dbt", que hizo lo mismo para
-      # las tablas de booking). El resto de fuentes de este bloque no se ha
-      # tocado porque no las usa ningun modelo de este cambio.
-      - name: h3_grid
-        identifier: bronze_h3_grid
-      - name: espacios_naturales
-        identifier: bronze_espacios_naturales
-      - name: mdt_stats
-        identifier: bronze_mdt_stats
-      - name: satelite_stats
-        identifier: bronze_satelite_stats
-      - name: viirs_stats
-        identifier: bronze_viirs_stats
-      - name: limites_municipales
-      - name: zonas_turisticas
-      - name: osm_pois
-      - name: bienes_interes_cultural
-      - name: oficinas_turismo
+      - name: bronze_h3_grid
+      - name: bronze_espacios_naturales
+      - name: bronze_mdt_stats
+      - name: bronze_satelite_stats
+      - name: bronze_limites_municipales
+      - name: bronze_zonas_turisticas
+      - name: bronze_osm_pois
+      - name: bronze_bienes_interes_cultural
+      - name: bronze_oficinas_turismo
       
       # Movilidad
-      - name: gtfs_paradas
-      - name: gtfs_rutas
+      - name: bronze_gtfs_paradas
+      - name: bronze_gtfs_rutas
+      - name: bronze_gtfs_rutas_atributos
+      - name: bronze_gtfs_viajes
+      - name: bronze_gtfs_calendario
+      - name: bronze_gtfs_calendario_excepciones
+      - name: bronze_gtfs_horarios
       
       # Plataformas y Alojamiento (Nuevas incorporaciones)
-      - name: aena_pasajeros
-
-      - name: booking_establishments
-        identifier: bronze_booking_establishments
-
-      - name: booking_reviews
-        identifier: bronze_booking_reviews
-
-      - name: booking_geocoding_lookup
-        identifier: bronze_booking_geocoding_lookup
-        
-      - name: registro_extrahoteleros
-      - name: registro_hoteles
-      - name: registro_viviendas_vacacionales
-      - name: registro_geocoding_lookup
+      - name: bronze_aena_pasajeros
+      - name: bronze_booking_establishments
+      - name: bronze_booking_reviews
+      - name: bronze_booking_geocoding_lookup
+      - name: bronze_registro_extrahoteleros
+      - name: bronze_registro_hoteles
+      - name: bronze_registro_viviendas_vacacionales
+      - name: bronze_registro_geocoding_lookup
       
       # NLP / Redes Sociales
-      - name: youtube_videos
-      - name: youtube_comments
-      - name: losviajeros_temas
-      - name: losviajeros_mensajes
-      - name: tripadvisor_resenas
-      - name: tripadvisor_ubicaciones
+      - name: bronze_youtube_videos
+      - name: bronze_youtube_comments
+      - name: bronze_losviajeros_temas
+      - name: bronze_losviajeros_mensajes
+      - name: bronze_tripadvisor_resenas
+      - name: bronze_tripadvisor_ubicaciones
+      - name: bronze_ml_sentiment_results
+      - name: bronze_ml_aspect_results
 
       # ISTAC
-      - name: istac_mun_alojamientos_abiertos
-      - name: istac_mun_alojamientos_abiertos_vv
-      - name: istac_mun_edad_media
-      - name: istac_mun_empleo_hosteleria
-      - name: istac_mun_estancia_media_vv
-      - name: istac_mun_ingresos_vv
-      - name: istac_mun_paro_registrado
-      - name: istac_mun_pernoctaciones
-      - name: istac_mun_plazas_ofertadas
-      - name: istac_mun_plazas_vv
-      - name: istac_mun_pob_turistica_equiv
-      - name: istac_mun_poblacion_15_64
-      - name: istac_mun_poblacion_65_mas
-      - name: istac_mun_poblacion_total
-      - name: istac_mun_tasa_ocupacion_plazas
-      - name: istac_mun_tasa_ocupacion_vv
-      - name: istac_mun_viajeros_entrados
+      - name: bronze_istac_mun_edad_media
+      - name: bronze_istac_mun_empleo_hosteleria
+      - name: bronze_istac_mun_paro_registrado
+      - name: bronze_istac_mun_poblacion_15_64
+      - name: bronze_istac_mun_poblacion_65_mas
+      - name: bronze_istac_mun_poblacion_total
+      - name: bronze_istac_mun_alojamientos_abiertos_vv
+      - name: bronze_istac_mun_estancia_media_vv
+      - name: bronze_istac_mun_ingresos_vv
+      - name: bronze_istac_mun_plazas_vv
+      - name: bronze_istac_mun_tasa_ocupacion_vv

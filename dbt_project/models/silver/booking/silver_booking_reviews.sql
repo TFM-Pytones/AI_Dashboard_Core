@@ -17,7 +17,7 @@
 
 WITH source_data AS (
     SELECT *
-    FROM {{ source('bronze', 'booking_reviews') }}
+    FROM {{ source('bronze', 'bronze_booking_reviews') }}
 ),
 
 deduplicated AS (
@@ -91,3 +91,4 @@ SELECT
     END AS periodo_covid
 FROM date_parsed
 WHERE LENGTH(TRIM(COALESCE(review_text, ''))) > 15  -- Descartar reseñas vacías o solo emojis
+  AND year_str::INTEGER >= 2022

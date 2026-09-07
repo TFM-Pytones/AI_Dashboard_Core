@@ -17,9 +17,9 @@
 WITH h3 AS (
     SELECT 
         h3_index,
-        area_km2,
-        centroide_lon,
-        centroide_lat,
+        ST_Area(geometry::geography) / 1000000.0 AS area_km2,
+        ST_X(ST_Centroid(geometry)) AS centroide_lon,
+        ST_Y(ST_Centroid(geometry)) AS centroide_lat,
         geometry
     FROM {{ ref('silver_h3_grid') }}
 ),
@@ -126,9 +126,13 @@ satelite_mdt AS (
         sn.ndbi_medio,
         sv.viirs_medio
     FROM h3 h
-    LEFT JOIN {{ source('bronze', 'mdt_stats') }} m ON h.h3_index = m.h3_index
-    LEFT JOIN satelite_ndvi_ndbi sn ON h.h3_index = sn.h3_index
-    LEFT JOIN satelite_viirs sv ON h.h3_index = sv.h3_index
+    LEFT JOIN {{ source('bronze', 'bronze_mdt_stats') }} m ON h.h3_index = m.h3_index
+    LEFT JOIN (
+        SELECT h3_index, AVG(ndvi_mean) AS ndvi_medio, AVG(ndbi_mean) AS ndbi_medio, AVG(viirs_mean) AS viirs_medio
+        FROM {{ source('bronze', 'bronze_satelite_stats') }}
+        WHERE "year" NOT BETWEEN 2020 AND 2021
+        GROUP BY h3_index
+    ) s ON h.h3_index = s.h3_index
 ),
 
 -- Subtarea 1.7: Variables Climáticas Avanzadas (IDW + Gradiente)
@@ -149,7 +153,7 @@ clima_diario AS (
         AVG(valor_limpio) FILTER (WHERE variable_nombre ILIKE '%Radiaci%') AS insolacion_media,
         -- Panza de burro (Mediodía: 12-16h)
         AVG(valor_limpio) FILTER (WHERE variable_nombre ILIKE '%Radiaci%' AND EXTRACT(HOUR FROM "timestamp") BETWEEN 12 AND 16) AS radiacion_mediodia
-    FROM {{ ref('silver_clima_horario_agrocabildo') }}
+    FROM {{ ref('silver_clima_agrocabildo') }}
     GROUP BY id_estacion, date_trunc('day', "timestamp"), EXTRACT(QUARTER FROM "timestamp")
 ),
 estaciones_clima AS (
@@ -207,7 +211,7 @@ estaciones_con_altitud AS (
 h3_con_altitud AS (
     SELECT h.h3_index, h.geometry, m.elevation_mean AS h3_altitud
     FROM h3 h
-    LEFT JOIN {{ source('bronze', 'mdt_stats') }} m ON h.h3_index = m.h3_index
+    LEFT JOIN {{ source('bronze', 'bronze_mdt_stats') }} m ON h.h3_index = m.h3_index
 ),
 h3_vecinos_clima AS (
     -- Para cada H3, buscamos las 3 estaciones más cercanas y calculamos distancia y peso (IDW)

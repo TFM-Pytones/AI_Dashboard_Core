@@ -10,3 +10,7 @@ models:
     gold:
       +materialized: table
       +schema: gold
+      silver_sentiment_results:
+        +enabled: true
+      silver_aspect_results:
+        +enabled: true

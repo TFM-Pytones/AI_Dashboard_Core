@@ -188,44 +188,14 @@ class AgrocabildoIngestionPipeline:
             self.write_parquet_to_blob(combined_stations, "clima/estaciones/estaciones_agrocabildo.parquet")
 
     def load_target_stations(self) -> pd.DataFrame:
-        """Carga y valida el archivo CSV de estaciones asignadas para el TFM."""
-        candidate_paths = [
-            os.path.abspath(os.path.join(current_dir, "..", "..", "data", "estaciones-meteorologicas.csv")),
-            self.csv_estaciones_path,
-            os.path.abspath(os.path.join(current_dir, "..", "..", "..", "estaciones-meteorologicas.csv")),
-            os.path.abspath(os.path.join(current_dir, "..", "..", "estaciones_agrocabildo_coordenadas.csv")),
-            os.path.join(os.getcwd(), "estaciones-meteorologicas.csv")
-        ]
-
-        found_path = None
-        for path in candidate_paths:
-            if os.path.exists(path):
-                found_path = path
-                break
-
-        if not found_path:
-            raise FileNotFoundError(f"No se encontró el archivo CSV de estaciones en ninguna de las rutas: {candidate_paths}")
+        """Descarga la lista maestra de estaciones desde Azure Blob Storage (Capa Bronce)."""
+        logger.info("Descargando metadatos de estaciones desde Azure Blob Storage...")
+        df = self.read_parquet_from_blob("clima/estaciones/estaciones_agrocabildo.parquet")
         
-        df = pd.read_csv(found_path, encoding="utf-8-sig")
-        df.columns = [c.strip().lstrip('\ufeff') for c in df.columns]
-        logger.info(f"Cargadas {len(df)} estaciones objetivo desde {found_path}")
-
-        # Normalizar nombres de columnas
-        col_map = {
-            "id_weatherstation": "estacion_id",
-            "name": "estacion_nombre",
-            "weatherstation_name": "estacion_nombre",
-            "municipality_name": "municipio_nombre",
-            "latitude": "latitud",
-            "longitude": "longitud",
-            "altitude": "altitud",
-            "date_install": "fecha_instalacion"
-        }
-        df.rename(columns=col_map, inplace=True)
-
-        if "fecha_instalacion" not in df.columns:
-            df["fecha_instalacion"] = None
-
+        if df.empty:
+            raise FileNotFoundError("No se encontró el archivo de estaciones en Azure (clima/estaciones/estaciones_agrocabildo.parquet). Ejecuta clima_metadatos_upload_blob.py primero.")
+            
+        logger.info(f"Cargadas {len(df)} estaciones objetivo desde la nube.")
         return df
 
     def run_realtime_ingestion(self, days_back: int = 1, max_stations: Optional[int] = None, auto_mode: bool = False) -> pd.DataFrame:
@@ -247,10 +217,10 @@ class AgrocabildoIngestionPipeline:
                 # Sumamos 1 día extra de seguridad para asegurar solape
                 delta = today - last_date
                 days_back = max(1, delta.days + 1)
-                logger.info(f"🤖 Modo AUTO activado: Último dato en Azure es de {last_date.strftime('%Y-%m-%d %H:%M')}.")
-                logger.info(f"   -> Se extraerán los últimos {days_back} días para rellenar el hueco.")
+                logger.info(f"Modo automático activado: Último dato en Azure es de {last_date.strftime('%Y-%m-%d %H:%M')}.")
+                logger.info(f"Se extraerán los últimos {days_back} días para rellenar el hueco.")
             else:
-                logger.info("🤖 Modo AUTO activado, pero no se encontró histórico en Azure. Usando days_back por defecto.")
+                logger.info("Modo automático activado, pero no se encontró histórico en Azure. Usando days_back por defecto.")
 
         date_to = today.strftime("%Y-%m-%d")
         date_from = (today - timedelta(days=days_back)).strftime("%Y-%m-%d")
