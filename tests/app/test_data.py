@@ -4,6 +4,7 @@ from shapely.geometry import Point
 
 from app.data import (
     compute_density_metric,
+    compute_restriction_category,
     filter_by_municipio,
     list_municipios,
     merge_h3_data,
@@ -17,6 +18,8 @@ def _h3_gdf():
             "municipio": ["Adeje", "Arona", None],
             "n_plazas_registro": [100, 0, 0],
             "n_establecimientos_registro": [5, 3, 0],
+            "es_enp": [False, True, False],
+            "es_zona_turistica_oficial": [True, True, False],
         },
         geometry=[Point(0, 0), Point(1, 1), Point(2, 2)],
     )
@@ -38,6 +41,27 @@ def test_merge_h3_data_joins_on_h3_index_and_keeps_unmatched_rows():
     assert merged.loc[merged["h3_index"] == "a", "sentimiento_medio"].iloc[0] == 4.2
     assert pd.isna(merged.loc[merged["h3_index"] == "b", "sentimiento_medio"].iloc[0])
     assert "densidad_metric" in merged.columns
+
+
+def test_merge_h3_data_includes_restriction_category():
+    sentimiento_df = pd.DataFrame({"h3_index": ["a"], "sentimiento_medio": [4.2]})
+    merged = merge_h3_data(_h3_gdf(), sentimiento_df)
+    assert merged.loc[merged["h3_index"] == "b", "restriction_category"].iloc[0] == "ENP"
+
+
+def test_compute_restriction_category_defaults_to_sin_restriccion():
+    result = compute_restriction_category(_h3_gdf())
+    assert result.loc[result["h3_index"] == "c", "restriction_category"].iloc[0] == "Sin restricción"
+
+
+def test_compute_restriction_category_marks_zona_turistica():
+    result = compute_restriction_category(_h3_gdf())
+    assert result.loc[result["h3_index"] == "a", "restriction_category"].iloc[0] == "Zona turística oficial"
+
+
+def test_compute_restriction_category_enp_takes_priority_over_zona_turistica():
+    result = compute_restriction_category(_h3_gdf())
+    assert result.loc[result["h3_index"] == "b", "restriction_category"].iloc[0] == "ENP"
 
 
 def test_list_municipios_returns_sorted_unique_dropping_nan():

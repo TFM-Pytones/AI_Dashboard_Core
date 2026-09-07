@@ -36,9 +36,20 @@ def compute_density_metric(gdf: pd.DataFrame) -> pd.DataFrame:
     return gdf
 
 
+def compute_restriction_category(gdf: pd.DataFrame) -> pd.DataFrame:
+    gdf = gdf.copy()
+    gdf["restriction_category"] = "Sin restricción"
+    gdf.loc[gdf["es_zona_turistica_oficial"] == True, "restriction_category"] = (  # noqa: E712
+        "Zona turística oficial"
+    )
+    gdf.loc[gdf["es_enp"] == True, "restriction_category"] = "ENP"  # noqa: E712
+    return gdf
+
+
 def merge_h3_data(h3_gdf: gpd.GeoDataFrame, sentimiento_df: pd.DataFrame) -> gpd.GeoDataFrame:
     merged = h3_gdf.merge(sentimiento_df, on="h3_index", how="left")
-    return compute_density_metric(merged)
+    merged = compute_density_metric(merged)
+    return compute_restriction_category(merged)
 
 
 def list_municipios(gdf: pd.DataFrame) -> list[str]:
