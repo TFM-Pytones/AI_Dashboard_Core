@@ -77,4 +77,4 @@ def render_detail_panel(gdf: pd.DataFrame, selected_h3_index: str | None) -> Non
         color_discrete_map={True: "#2a78d6", False: "#c3c2b7"},
         title=f"Aspectos más mencionados en {row['municipio']}",
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
