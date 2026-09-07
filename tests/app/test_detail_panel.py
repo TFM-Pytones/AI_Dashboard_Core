@@ -1,6 +1,6 @@
 import pandas as pd
 
-from app.detail_panel import format_kpi_value, municipio_aspect_comparison
+from app.detail_panel import format_kpi_value, municipio_aspect_comparison, restriction_badges
 
 
 def test_format_kpi_value_none_returns_dash():
@@ -51,3 +51,28 @@ def test_municipio_aspect_comparison_drops_null_quejas():
     result = municipio_aspect_comparison(gdf, "a")
     assert result["aspecto"].tolist() == ["ruido", "precio"]
     assert result.loc[result["aspecto"] == "ruido", "n_hexagonos"].iloc[0] == 1
+
+
+def test_restriction_badges_shows_enp_badge():
+    row = pd.Series({"es_enp": True, "es_zona_turistica_oficial": False})
+    assert restriction_badges(row) == ["⚠️ Espacio Natural Protegido"]
+
+
+def test_restriction_badges_shows_zona_turistica_badge():
+    row = pd.Series({"es_enp": False, "es_zona_turistica_oficial": True})
+    assert restriction_badges(row) == ["🏖️ Zona turística oficial"]
+
+
+def test_restriction_badges_shows_both_when_both_true():
+    row = pd.Series({"es_enp": True, "es_zona_turistica_oficial": True})
+    assert restriction_badges(row) == ["⚠️ Espacio Natural Protegido", "🏖️ Zona turística oficial"]
+
+
+def test_restriction_badges_empty_when_neither_flag_set():
+    row = pd.Series({"es_enp": False, "es_zona_turistica_oficial": False})
+    assert restriction_badges(row) == []
+
+
+def test_restriction_badges_treats_missing_flags_as_false():
+    row = pd.Series({"es_enp": float("nan"), "es_zona_turistica_oficial": None})
+    assert restriction_badges(row) == []

@@ -22,6 +22,23 @@ def format_kpi_value(value, decimals: int = 1) -> str:
     return str(value)
 
 
+def _is_true(value) -> bool:
+    if value is None:
+        return False
+    if isinstance(value, float) and math.isnan(value):
+        return False
+    return bool(value)
+
+
+def restriction_badges(row) -> list[str]:
+    badges = []
+    if _is_true(row.get("es_enp")):
+        badges.append("⚠️ Espacio Natural Protegido")
+    if _is_true(row.get("es_zona_turistica_oficial")):
+        badges.append("🏖️ Zona turística oficial")
+    return badges
+
+
 def municipio_aspect_comparison(gdf: pd.DataFrame, h3_index: str) -> pd.DataFrame | None:
     if h3_index not in gdf["h3_index"].values:
         return None
@@ -43,6 +60,8 @@ def render_detail_panel(gdf: pd.DataFrame, selected_h3_index: str | None) -> Non
         return
     row = matches.iloc[0]
     st.subheader(f"Hexágono {selected_h3_index}")
+    for badge in restriction_badges(row):
+        st.caption(badge)
     cols = st.columns(3)
     for i, (column, label) in enumerate(KPI_COLUMNS):
         cols[i % 3].metric(label, format_kpi_value(row.get(column)))
