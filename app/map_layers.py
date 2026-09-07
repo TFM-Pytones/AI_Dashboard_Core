@@ -1,3 +1,5 @@
+import json
+
 import pandas as pd
 import pydeck as pdk
 
@@ -57,6 +59,23 @@ METRICS = {
             "Sin restricción": RESTRICTION_SIN_RESTRICCION,
         },
     },
+    # Accesibilidad real (gold_h3_accesibilidad) -- el centinela 999 ya se
+    # limpia a NaN en app.data.clean_accesibilidad_sentinel antes de llegar aquí.
+    "Tiempo al aeropuerto": {
+        "column": "tiempo_aeropuerto_min",
+        "scale": "sequential",
+        "ramp": SEQUENTIAL_DENSITY,
+    },
+    "Distancia a hospital": {
+        "column": "dist_hospital_km",
+        "scale": "sequential",
+        "ramp": SEQUENTIAL_DENSITY,
+    },
+    "Paradas de bus cercanas": {
+        "column": "n_paradas_bus_500m",
+        "scale": "sequential",
+        "ramp": SEQUENTIAL_DENSITY,
+    },
 }
 
 
@@ -99,4 +118,40 @@ def build_deck(gdf: pd.DataFrame, metric_key: str) -> pdk.Deck:
         initial_view_state=TENERIFE_VIEW_STATE,
         map_style=None,
         tooltip={"text": "Hexágono: {h3_index}"},
+    )
+
+
+# Isócronas (gold.isocronas_visuales): un polígono por (destino, rango_min).
+# Los rangos son fijos (15/30/45/60 min) -- se colorea con la misma rampa
+# secuencial invirtiendo el dominio, para que el anillo más cercano (15 min)
+# sea el más oscuro.
+ISOCRONA_DOMAIN_MIN = 15.0
+ISOCRONA_DOMAIN_MAX = 60.0
+
+
+def list_destinos(isocronas_gdf: pd.DataFrame) -> list[str]:
+    return sorted(isocronas_gdf["destino"].dropna().unique().tolist())
+
+
+def build_isocronas_fill_color(rangos: pd.Series) -> pd.Series:
+    light_hex, dark_hex = SEQUENTIAL_DENSITY
+    return rangos.apply(
+        lambda v: sequential_color(-v, -ISOCRONA_DOMAIN_MAX, -ISOCRONA_DOMAIN_MIN, light_hex, dark_hex)
+    )
+
+
+def build_isocronas_layer(isocronas_gdf, destino: str) -> pdk.Layer:
+    subset = isocronas_gdf[isocronas_gdf["destino"] == destino].copy()
+    subset["fill_color"] = build_isocronas_fill_color(subset["rango_min"])
+    geojson = json.loads(subset.to_json())
+    return pdk.Layer(
+        "GeoJsonLayer",
+        data=geojson,
+        pickable=True,
+        stroked=True,
+        filled=True,
+        get_fill_color="properties.fill_color",
+        get_line_color=[255, 255, 255],
+        line_width_min_pixels=1,
+        opacity=0.45,
     )

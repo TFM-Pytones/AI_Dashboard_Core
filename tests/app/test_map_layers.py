@@ -1,7 +1,16 @@
+import geopandas as gpd
 import pandas as pd
 import pydeck as pdk
+from shapely.geometry import box
 
-from app.map_layers import build_deck, build_fill_color_column, build_layer
+from app.map_layers import (
+    build_deck,
+    build_fill_color_column,
+    build_isocronas_fill_color,
+    build_isocronas_layer,
+    build_layer,
+    list_destinos,
+)
 
 
 def _gdf():
@@ -60,6 +69,45 @@ def test_build_fill_color_column_categorical_handles_unknown_as_no_data():
     gdf.loc[0, "restriction_category"] = "Categoría desconocida"
     colors = build_fill_color_column(gdf, "Restricciones legales")
     assert colors.iloc[0] == [137, 135, 129]  # NO_DATA_COLOR
+
+
+def test_build_fill_color_column_accesibilidad_layers_scale_min_to_max():
+    gdf = _gdf()
+    gdf["tiempo_aeropuerto_min"] = [10.0, 30.0, 50.0]
+    gdf["dist_hospital_km"] = [1.0, 5.0, 9.0]
+    gdf["n_paradas_bus_500m"] = [0, 2, 4]
+    for metric_key in ["Tiempo al aeropuerto", "Distancia a hospital", "Paradas de bus cercanas"]:
+        colors = build_fill_color_column(gdf, metric_key)
+        assert colors.iloc[0] == [205, 226, 251], metric_key
+        assert colors.iloc[2] == [13, 54, 107], metric_key
+
+
+def _isocronas_gdf():
+    return gpd.GeoDataFrame(
+        {
+            "destino": ["tfs", "tfs", "teide"],
+            "destino_label": ["Aeropuerto Sur", "Aeropuerto Sur", "Teide"],
+            "rango_min": [15.0, 60.0, 30.0],
+        },
+        geometry=[box(0, 0, 1, 1), box(0, 0, 2, 2), box(5, 5, 6, 6)],
+    )
+
+
+def test_list_destinos_returns_sorted_unique_labels():
+    assert list_destinos(_isocronas_gdf()) == ["teide", "tfs"]
+
+
+def test_build_isocronas_fill_color_darkest_at_shortest_range():
+    colors = build_isocronas_fill_color(pd.Series([15.0, 60.0]))
+    assert colors.iloc[0] == [13, 54, 107]  # closest (15 min) -> dark end
+    assert colors.iloc[1] == [205, 226, 251]  # farthest (60 min) -> light end
+
+
+def test_build_isocronas_layer_filters_by_destino_and_returns_geojson_layer():
+    layer = build_isocronas_layer(_isocronas_gdf(), "tfs")
+    assert isinstance(layer, pdk.Layer)
+    assert len(layer.data["features"]) == 2
+    assert layer.get_fill_color == "@@=properties.fill_color"
 
 
 def test_build_layer_returns_pickable_h3_layer():
