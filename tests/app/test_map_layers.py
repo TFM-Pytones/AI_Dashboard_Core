@@ -119,9 +119,31 @@ def test_build_layer_returns_pickable_h3_layer():
     assert layer.get_fill_color == "@@=fill_color"
 
 
+def test_build_layer_is_semi_transparent_by_default_so_the_basemap_shows_through():
+    layer = build_layer(_gdf(), "Densidad hotelera")
+    assert 0 < layer.opacity < 1
+
+
+def test_build_layer_accepts_custom_opacity():
+    layer = build_layer(_gdf(), "Densidad hotelera", opacity=0.2)
+    assert layer.opacity == 0.2
+
+
 def test_build_deck_has_one_layer_centered_on_tenerife():
     deck = build_deck(_gdf(), "Sentimiento")
     assert isinstance(deck, pdk.Deck)
     assert len(deck.layers) == 1
     assert round(deck.initial_view_state.latitude, 2) == 28.29
     assert round(deck.initial_view_state.longitude, 2) == -16.62
+
+
+def test_build_deck_uses_a_real_road_basemap():
+    deck = build_deck(_gdf(), "Sentimiento")
+    assert deck.map_provider == "carto"
+    # pydeck resolves the "road" style name to CARTO's actual Voyager tile URL
+    assert deck.map_style == "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json"
+
+
+def test_build_deck_can_hide_the_hexagon_layer():
+    deck = build_deck(_gdf(), "Sentimiento", show_hexagons=False)
+    assert deck.layers == []

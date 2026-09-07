@@ -94,7 +94,10 @@ def build_fill_color_column(gdf: pd.DataFrame, metric_key: str) -> pd.Series:
     return values.apply(lambda v: diverging_color(v, vmin, vmid, vmax))
 
 
-def build_layer(gdf: pd.DataFrame, metric_key: str) -> pdk.Layer:
+DEFAULT_HEXAGON_OPACITY = 0.55
+
+
+def build_layer(gdf: pd.DataFrame, metric_key: str, opacity: float = DEFAULT_HEXAGON_OPACITY) -> pdk.Layer:
     gdf = gdf.copy()
     gdf["fill_color"] = build_fill_color_column(gdf, metric_key)
     return pdk.Layer(
@@ -105,6 +108,7 @@ def build_layer(gdf: pd.DataFrame, metric_key: str) -> pdk.Layer:
         stroked=True,
         filled=True,
         extruded=False,
+        opacity=opacity,
         get_hexagon="h3_index",
         get_fill_color="fill_color",
         get_line_color=[255, 255, 255],
@@ -112,11 +116,13 @@ def build_layer(gdf: pd.DataFrame, metric_key: str) -> pdk.Layer:
     )
 
 
-def build_deck(gdf: pd.DataFrame, metric_key: str) -> pdk.Deck:
+def build_deck(gdf: pd.DataFrame, metric_key: str, show_hexagons: bool = True) -> pdk.Deck:
+    layers = [build_layer(gdf, metric_key)] if show_hexagons else []
     return pdk.Deck(
-        layers=[build_layer(gdf, metric_key)],
+        layers=layers,
         initial_view_state=TENERIFE_VIEW_STATE,
-        map_style=None,
+        map_provider="carto",
+        map_style="road",
         tooltip={"text": "Hexágono: {h3_index}"},
     )
 
