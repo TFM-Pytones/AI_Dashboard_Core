@@ -13,6 +13,13 @@ DIVERGING_SENTIMENT_MID = "#f0efec"
 DIVERGING_SENTIMENT_HIGH = "#2a78d6"
 DIVERGING_SENTIMENT_DOMAIN = (1.0, 3.0, 5.0)
 
+# Restriction categories (site-selection view): a legal blocker (ENP) vs. a
+# clear hexagon uses the reserved status pair (critical/good); the official
+# touristic zone is pure identity, so it gets a categorical slot (blue).
+RESTRICTION_ENP = [208, 59, 59]  # #d03b3b -- status critical
+RESTRICTION_ZONA_TURISTICA = [42, 120, 214]  # #2a78d6 -- categorical slot 1 (blue)
+RESTRICTION_SIN_RESTRICCION = [12, 163, 12]  # #0ca30c -- status good
+
 
 def _hex_to_rgb(hex_color: str) -> list[int]:
     hex_color = hex_color.lstrip("#")
@@ -51,3 +58,9 @@ def diverging_color(value, vmin: float, vmid: float, vmax: float) -> list[int]:
     span = vmax - vmid
     t = 0.0 if span == 0 else (value - vmid) / span
     return interpolate_hex(t, DIVERGING_SENTIMENT_MID, DIVERGING_SENTIMENT_HIGH)
+
+
+def categorical_color(category, color_map: dict) -> list[int]:
+    if _is_missing(category):
+        return NO_DATA_COLOR
+    return color_map.get(category, NO_DATA_COLOR)

@@ -1,5 +1,6 @@
 from app.color_scales import (
     NO_DATA_COLOR,
+    categorical_color,
     diverging_color,
     interpolate_hex,
     sequential_color,
@@ -56,3 +57,22 @@ def test_diverging_color_none_returns_no_data():
 
 def test_diverging_color_nan_returns_no_data():
     assert diverging_color(float("nan"), 1.0, 3.0, 5.0) == NO_DATA_COLOR
+
+
+_RESTRICTION_COLORS = {"ENP": [208, 59, 59], "Sin restricción": [12, 163, 12]}
+
+
+def test_categorical_color_returns_mapped_color_for_known_category():
+    assert categorical_color("ENP", _RESTRICTION_COLORS) == [208, 59, 59]
+
+
+def test_categorical_color_returns_no_data_for_unknown_category():
+    assert categorical_color("Otra cosa", _RESTRICTION_COLORS) == NO_DATA_COLOR
+
+
+def test_categorical_color_returns_no_data_for_none():
+    assert categorical_color(None, _RESTRICTION_COLORS) == NO_DATA_COLOR
+
+
+def test_categorical_color_returns_no_data_for_nan():
+    assert categorical_color(float("nan"), _RESTRICTION_COLORS) == NO_DATA_COLOR
