@@ -13,6 +13,7 @@ geopandas==1.1.4
 shapely==2.1.2
 rasterio>=1.5.0         # MDT: lectura/escritura GeoTIFF, slope, aspect, hillshade
                          # En Windows instalar primero: pip install GDAL
+rasterstats>=0.19.0      # Zonal stats NDVI/NDBI/VIIRS por hexagono H3 (ingestion/postgres/ingest_satelite_to_postgres.py)
 
 # Formato Parquet
 pyarrow
@@ -22,6 +23,7 @@ requests==2.34.2
 beautifulsoup4==4.14.2   # Parsear HTML y extraer datos (nombres, texto de reseñas, etc.)
 selenium==4.30.0         # Controla un navegador real, para contenido que carga vía JavaScript
 webdriver-manager==4.0.2 # Descarga y gestiona automáticamente el driver de Chrome para Selenium
+geopy>=2.4.0
 
 # Transformacion de datos (dbt)
 dbt-core==1.11.12
@@ -40,6 +42,13 @@ sentencepiece==0.2.1
 pyabsa==2.4.2
 update-checker==0.18.0  # pin necesario: la 1.0.0 rompe metric_visualizer (dependencia de pyabsa)
 
+# NLP / Modelado de topicos (analytics/topics) - Issue #19
+bertopic>=0.16.0
+sentence-transformers>=3.0.0
+
+# LLM / Informe narrativo (analytics/llm) - Setup LLM + Subtarea 3.2
+groq>=0.9.0
+
 # Validación Meteorológica (Open-Meteo vs Agrocabildo)
 openmeteo-requests>=0.3.0      # Cliente oficial Open-Meteo con caché integrada
 requests-cache>=1.2.0          # Caché HTTP para evitar re-descargas
@@ -52,3 +61,8 @@ matplotlib>=3.8.0              # Gráficos base
 # Ingesta Satelital — Issue #10 (Sentinel-2 + VIIRS)
 earthengine-api>=0.1.390       # Google Earth Engine Python API (compositing Sentinel-2 + VIIRS)
 h5py>=3.10.0                   # Lectura de HDF5 (NASA LAADS DAAC VNP46A2 — VIIRS alternativo)
+
+# Bloque 4 — Accesibilidad y Routing
+openrouteservice>=2.3.3        # Cliente oficial para la API de OpenRouteService (isócronas y routing)
+
+partridge

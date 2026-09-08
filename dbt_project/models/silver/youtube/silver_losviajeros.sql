@@ -1,52 +1,43 @@
-{{ config(materialized='table', tags=['silver', 'nlp', 'foro']) }}
+{{ config(materialized='table', enabled=false, tags=['silver', 'nlp', 'foro']) }}
 
 /*
   Modelo Silver: silver_losviajeros
   Limpieza del foro LosViajeros.com.
-  Agrega temas con sus mensajes filtrando textos vacíos.
-  Calcula métricas de actividad del tema.
+  Columnas reales en bronze_losviajeros_temas: tema_id, titulo, url
+  Columnas reales en bronze_losviajeros_mensajes: tema_id, tema_titulo, mensaje_id, url, contexto_pagina_raw, fetched_at
 */
 
 WITH temas AS (
     SELECT
-        id_tema,
-        titulo_tema,
-        subforo,
-        fecha_inicio::date  AS fecha_inicio,
-        num_respuestas,
-        num_visitas,
-        autor_tema
-    FROM {{ source('bronze', 'losviajeros_temas') }}
-    WHERE id_tema IS NOT NULL
+        tema_id,
+        titulo AS titulo_tema,
+        url
+    FROM {{ source('bronze', 'bronze_losviajeros_temas') }}
+    WHERE tema_id IS NOT NULL
 ),
 
 mensajes AS (
     SELECT
-        id_mensaje,
         id_tema,
-        fecha_mensaje::date  AS fecha_mensaje,
-        autor,
-        texto,
-        LENGTH(texto)        AS longitud_texto
-    FROM {{ source('bronze', 'losviajeros_mensajes') }}
-    WHERE id_mensaje IS NOT NULL
-      AND texto IS NOT NULL
-      AND TRIM(texto) != ''
+        url_tema,
+        titulo_tema,
+        contexto_pagina_raw AS texto,
+        fetched_at::date    AS fecha_mensaje,
+        LENGTH(contexto_pagina_raw) AS longitud_texto
+    FROM {{ source('bronze', 'bronze_losviajeros_mensajes') }}
+    WHERE mensaje_id IS NOT NULL
+      AND contexto_pagina_raw IS NOT NULL
+      AND TRIM(contexto_pagina_raw) != ''
 )
 
 SELECT
-    t.id_tema,
+    t.tema_id,
     t.titulo_tema,
-    t.subforo,
-    t.fecha_inicio,
-    t.num_respuestas,
-    t.num_visitas,
-    COUNT(m.id_mensaje)                          AS mensajes_validos,
+    t.url,
+    COUNT(m.mensaje_id)                          AS mensajes_validos,
     ROUND(AVG(m.longitud_texto)::numeric, 1)     AS longitud_media_mensaje,
     MIN(m.fecha_mensaje)                          AS primera_respuesta,
     MAX(m.fecha_mensaje)                          AS ultima_respuesta
 FROM temas t
-LEFT JOIN mensajes m ON t.id_tema = m.id_tema
-GROUP BY
-    t.id_tema, t.titulo_tema, t.subforo, t.fecha_inicio,
-    t.num_respuestas, t.num_visitas
+LEFT JOIN mensajes m ON t.tema_id = m.tema_id
+GROUP BY t.tema_id, t.titulo_tema, t.url
