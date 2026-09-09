@@ -522,6 +522,25 @@ Committed as `7425427`.
 
 ### Task 4: `gold_municipio_master` dbt model
 
+**[x] REDESIGNED DURING EXECUTION** — before writing any code, the user
+asked "shouldn't there be a year filter?" for population/paro/ocupación.
+Correct catch: the draft below (Steps 1-4) baked "the latest year" into
+the dbt model itself (`poblacion_anio`/`ocupacion_periodo` columns), which
+would have made older years permanently invisible and required a `dbt
+run` every time a new ISTAC period lands. Built instead: `gold_municipio_master`
+only does the timeless h3-grain rollup (same 12 non-temporal columns as
+`gold_h3_master` itself: n_hexagonos, n_establecimientos_registro,
+n_plazas_registro, n_hoteles, n_vv, n_extrahoteleros,
+n_establecimientos_booking, rating_booking_medio,
+n_establecimientos_tripadvisor, rating_tripadvisor_medio, ndvi_medio, plus
+municipio_cod/municipio) — no ISTAC join, no year columns. Population/paro/
+ocupación are queried in full (`SELECT *` on `silver_istac_anual` /
+`silver_istac_mensual`, all years) from `app/data.py` and the year picker
+lives in `app/municipios.py`'s `render_municipios_tab`. Actual file: see
+`dbt_project/models/gold/gold_municipio_master.sql` (committed as `71c318b`)
+— it does not match the Step 1 draft below, which is kept only as a record
+of the abandoned first design.
+
 **Files:**
 - Create: `dbt_project/models/gold/gold_municipio_master.sql`
 
@@ -794,16 +813,22 @@ Expected: PASS (2 tests).
        render_municipios_tab(municipio_master)
    ```
 
-- [ ] **Step 7: Manual visual verification**
+- [x] **Steps 1-6 (superseded)** — see the redesign note at the top of Task 4. What actually got built: `app/data.py` gained `load_municipio_master`, `load_istac_anual`, `load_istac_mensual` (full series, no "latest" collapsing); `app/municipios.py` (new, tested — 7/7 pytest) has `get_municipio_row`, `list_available_years`, `get_istac_anual_row`, `get_istac_mensual_row_for_year`, `render_municipios_tab` with a `Municipio` + `Año` selectbox pair.
 
-Run the app, open "Municipios", switch between a few municipios, and confirm population/paro/ocupación numbers look plausible (e.g. Santa Cruz de Tenerife and San Cristóbal de La Laguna should have the largest populations on the island).
+- [x] **Step 7: Manual visual verification**
 
-- [ ] **Step 8: Commit**
+Screenshotted via Playwright, twice — confirmed the year selector actually changes the numbers, not just the caption: Adeje/2025 → Población 50612, Paro 1900; Adeje/2022 → Población 49297, Paro 2372 (both cross-checked against a direct SQL query beforehand).
 
-```bash
-git add app/data.py app/municipios.py app/main.py tests/app/test_municipios.py
-git commit -m "feat: add Municipios tab (poblacion/paro/ocupacion from gold_municipio_master)"
-```
+Two unrelated bugs surfaced and got fixed here too, both audited directly against the live DB before touching code (details in the Task 4 redesign note and the commit `ec38962` message):
+1. **`AZURE_DB_URL` in `.env` pointed at the OLD Azure account** (`db-tfm-tenerife`, no "2") while `AZURE_DB_URL_R` pointed at the new one — backwards from `AZURE_DB_HOST`/`USER`/`PASSWORD`/`NAME`, which were correct. Since `app/data.py`'s `get_engine()` uses `AZURE_DB_URL`, **every screenshot in Tasks 1-3 was reading from the old account** (2746 hexágonos, not 2583). Fixed by swapping the two URL values in `.env` (not committed — `.env` is gitignored) so the non-`_R` one matches the new host, consistent with the other vars.
+2. `gold.isocronas_visuales` had been renamed to `gold.gold_isocronas_visuales` on the new account sometime during today's session (confirmed by re-querying `information_schema.tables`) — updated `ISOCRONAS_QUERY`.
+3. `gold.gold_sentimiento_h3` doesn't exist on the new account yet (depends on unmigrated `gold_nlp.*` tables) — `load_sentimiento` now checks `inspect(engine).has_table(...)` first and returns an empty frame instead of crashing the app. Explicitly deferred by the user: "dejamos esta implementación para el final, cuando terminemos volvemos" — not to be revisited until the rest of this plan is done.
+4. `silver_istac_anual`: `poblacion_15_64`, `poblacion_65_mas`, `edad_media` all carry the exact same value as `poblacion_total` for every row (audited directly, e.g. Adeje 2025: all four = 50612) — an `ingestion/istac/` bug, out of scope here. Only `poblacion_total` is shown.
+5. `silver_istac_mensual`'s live schema no longer matches `dbt_project/models/silver/istac/silver_istac_mensual.sql` — real columns are VV-specific (`paro_registrado`, `estancia_media_vv`, `ingresos_vv`, `plazas_vv`, `tasa_ocupacion_vv`, `alojamientos_abiertos_vv`), not the `pernoctaciones`/`plazas_ofertadas`/`tasa_ocupacion_plazas` the file describes. Updated `ISTAC_MENSUAL_KPI_COLUMNS` to match reality.
+
+- [x] **Step 8: Commit**
+
+Committed as `71c318b` (dbt model) and `ec38962` (Municipios tab + the fixes above).
 
 ---
 
