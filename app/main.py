@@ -55,10 +55,10 @@ st.markdown(
         margin: -1rem -1rem 1.5rem -1rem;
         width: calc(100% + 2rem);
         background-image:
-            linear-gradient(100deg, rgba(13,54,107,0.80) 0%, rgba(13,54,107,0.30) 55%, rgba(13,54,107,0.05) 100%),
+            linear-gradient(100deg, rgba(10,10,8,0.55) 0%, rgba(10,10,8,0.20) 50%, rgba(10,10,8,0.0) 80%),
             url(data:image/jpeg;base64,{HERO_IMAGE_B64});
         background-size: cover;
-        background-position: center 38%;
+        background-position: center 58%;
         display: flex;
         flex-direction: column;
         justify-content: center;
