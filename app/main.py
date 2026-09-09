@@ -1,5 +1,6 @@
 import streamlit as st
 
+from app.alojamiento import render_alojamiento_tab
 from app.clima import render_clima_tab
 from app.data import (
     filter_by_municipio,
@@ -73,8 +74,8 @@ with st.sidebar:
     if show_isocronas:
         isocrona_destino = st.selectbox("Destino de referencia", list_destinos(isocronas))
 
-tab_resumen, tab_mapa, tab_tabla, tab_rankings, tab_clima, tab_municipios = st.tabs(
-    ["Resumen", "Mapa", "Tabla", "Rankings", "Clima", "Municipios"]
+tab_resumen, tab_mapa, tab_tabla, tab_rankings, tab_clima, tab_municipios, tab_alojamiento = st.tabs(
+    ["Resumen", "Mapa", "Tabla", "Rankings", "Clima", "Municipios", "Alojamiento"]
 )
 
 with tab_resumen:
@@ -147,3 +148,9 @@ with tab_clima:
 
 with tab_municipios:
     render_municipios_tab(municipio_master, istac_anual, istac_mensual)
+
+with tab_alojamiento:
+    alojamiento_municipio = st.selectbox(
+        "Municipio", ["Todos"] + list_municipios(full_gdf), key="alojamiento_municipio"
+    )
+    render_alojamiento_tab(filter_by_municipio(full_gdf, alojamiento_municipio))
