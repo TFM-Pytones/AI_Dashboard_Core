@@ -12,6 +12,7 @@ from app.data import (
     merge_h3_data,
 )
 from app.detail_panel import render_detail_panel
+from app.clima import render_clima_tab
 from app.map_layers import DEFAULT_HEXAGON_OPACITY, METRICS, build_deck, build_isocronas_layer, list_destinos
 from app.rankings import render_rankings_tab
 from app.summary import compute_summary_stats
@@ -65,8 +66,8 @@ with st.sidebar:
     if show_isocronas:
         isocrona_destino = st.selectbox("Destino de referencia", list_destinos(isocronas))
 
-tab_resumen, tab_mapa, tab_tabla, tab_rankings = st.tabs(
-    ["Resumen", "Mapa", "Tabla", "Rankings"]
+tab_resumen, tab_mapa, tab_tabla, tab_rankings, tab_clima = st.tabs(
+    ["Resumen", "Mapa", "Tabla", "Rankings", "Clima"]
 )
 
 with tab_resumen:
@@ -130,3 +131,9 @@ with tab_tabla:
 
 with tab_rankings:
     render_rankings_tab(full_gdf)
+
+with tab_clima:
+    clima_municipio = st.selectbox(
+        "Municipio", ["Todos"] + list_municipios(full_gdf), key="clima_municipio"
+    )
+    render_clima_tab(filter_by_municipio(full_gdf, clima_municipio))
