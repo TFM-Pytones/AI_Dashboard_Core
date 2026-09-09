@@ -4,7 +4,7 @@ import geopandas as gpd
 import pandas as pd
 import streamlit as st
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect
 from sqlalchemy.engine import Engine
 
 # override=True is required: Streamlit's own bootstrap pre-seeds
@@ -17,12 +17,33 @@ load_dotenv(override=True)
 H3_MASTER_QUERY = "SELECT * FROM gold.gold_h3_master"
 SENTIMIENTO_QUERY = "SELECT * FROM gold.gold_sentimiento_h3"
 ACCESIBILIDAD_QUERY = "SELECT * FROM gold.gold_h3_accesibilidad"
-ISOCRONAS_QUERY = "SELECT * FROM gold.isocronas_visuales"
+ISOCRONAS_QUERY = "SELECT * FROM gold.gold_isocronas_visuales"
+MUNICIPIO_MASTER_QUERY = "SELECT * FROM gold.gold_municipio_master"
+ISTAC_ANUAL_QUERY = "SELECT * FROM silver.silver_istac_anual"
+ISTAC_MENSUAL_QUERY = "SELECT * FROM silver.silver_istac_mensual"
 
 # gold_h3_accesibilidad usa 999 como centinela de "destino inalcanzable" en
 # vez de NULL en las columnas tiempo_*_min (confirmado por auditoría directa
 # de la tabla) -- sin esto, un hexágono remoto parecería estar a 999 min.
 TIEMPO_SENTINEL = 999.0
+
+# gold.gold_sentimiento_h3 depende de tablas gold_nlp.* (nlp_sentimiento_resenas,
+# nlp_aspectos_resenas, aspecto_traducciones) escritas a mano por notebooks
+# (analytics/tarea2/*.ipynb) que todavia no se han corrido/migrado a la
+# cuenta nueva de Azure -- confirmado por auditoria directa del esquema
+# `gold` (solo tiene gold_h3_master, gold_h3_accesibilidad, isocronas_visuales).
+# Mientras tanto, load_sentimiento() devuelve un DataFrame vacio con las
+# columnas esperadas en vez de reventar la app entera: las capas/paneles que
+# lo consumen ya tratan NULL/ausente como "sin datos", asi que esto solo
+# apaga esa una capa, no el resto del dashboard.
+SENTIMIENTO_COLUMNS = [
+    "h3_index",
+    "sentimiento_medio",
+    "n_resenas",
+    "n_resenas_booking",
+    "n_resenas_tripadvisor",
+    "queja_principal",
+]
 
 
 @st.cache_resource
@@ -37,6 +58,8 @@ def load_h3_master(_engine: Engine) -> gpd.GeoDataFrame:
 
 @st.cache_data
 def load_sentimiento(_engine: Engine) -> pd.DataFrame:
+    if not inspect(_engine).has_table("gold_sentimiento_h3", schema="gold"):
+        return pd.DataFrame(columns=SENTIMIENTO_COLUMNS)
     return pd.read_sql(SENTIMIENTO_QUERY, _engine)
 
 
@@ -48,6 +71,21 @@ def load_accesibilidad(_engine: Engine) -> pd.DataFrame:
 @st.cache_data
 def load_isocronas(_engine: Engine) -> gpd.GeoDataFrame:
     return gpd.read_postgis(ISOCRONAS_QUERY, _engine, geom_col="geometry")
+
+
+@st.cache_data
+def load_municipio_master(_engine: Engine) -> pd.DataFrame:
+    return pd.read_sql(MUNICIPIO_MASTER_QUERY, _engine)
+
+
+@st.cache_data
+def load_istac_anual(_engine: Engine) -> pd.DataFrame:
+    return pd.read_sql(ISTAC_ANUAL_QUERY, _engine)
+
+
+@st.cache_data
+def load_istac_mensual(_engine: Engine) -> pd.DataFrame:
+    return pd.read_sql(ISTAC_MENSUAL_QUERY, _engine)
 
 
 def compute_density_metric(gdf: pd.DataFrame) -> pd.DataFrame:

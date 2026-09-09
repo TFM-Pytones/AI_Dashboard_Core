@@ -1,5 +1,6 @@
 import streamlit as st
 
+from app.clima import render_clima_tab
 from app.data import (
     filter_by_municipio,
     get_engine,
@@ -7,13 +8,16 @@ from app.data import (
     load_accesibilidad,
     load_h3_master,
     load_isocronas,
+    load_istac_anual,
+    load_istac_mensual,
+    load_municipio_master,
     load_sentimiento,
     merge_accesibilidad,
     merge_h3_data,
 )
 from app.detail_panel import render_detail_panel
-from app.clima import render_clima_tab
 from app.map_layers import DEFAULT_HEXAGON_OPACITY, METRICS, build_deck, build_isocronas_layer, list_destinos
+from app.municipios import render_municipios_tab
 from app.rankings import render_rankings_tab
 from app.summary import compute_summary_stats
 from app.table_view import filter_table, prepare_table_view
@@ -43,6 +47,9 @@ h3_master = load_h3_master(engine)
 sentimiento = load_sentimiento(engine)
 accesibilidad = load_accesibilidad(engine)
 isocronas = load_isocronas(engine)
+municipio_master = load_municipio_master(engine)
+istac_anual = load_istac_anual(engine)
+istac_mensual = load_istac_mensual(engine)
 
 full_gdf = merge_h3_data(h3_master, sentimiento)
 full_gdf = merge_accesibilidad(full_gdf, accesibilidad)
@@ -66,8 +73,8 @@ with st.sidebar:
     if show_isocronas:
         isocrona_destino = st.selectbox("Destino de referencia", list_destinos(isocronas))
 
-tab_resumen, tab_mapa, tab_tabla, tab_rankings, tab_clima = st.tabs(
-    ["Resumen", "Mapa", "Tabla", "Rankings", "Clima"]
+tab_resumen, tab_mapa, tab_tabla, tab_rankings, tab_clima, tab_municipios = st.tabs(
+    ["Resumen", "Mapa", "Tabla", "Rankings", "Clima", "Municipios"]
 )
 
 with tab_resumen:
@@ -137,3 +144,6 @@ with tab_clima:
         "Municipio", ["Todos"] + list_municipios(full_gdf), key="clima_municipio"
     )
     render_clima_tab(filter_by_municipio(full_gdf, clima_municipio))
+
+with tab_municipios:
+    render_municipios_tab(municipio_master, istac_anual, istac_mensual)
