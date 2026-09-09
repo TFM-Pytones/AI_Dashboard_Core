@@ -86,7 +86,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 st.markdown(
-    '<p class="hero-credit">Foto: Teide, Jimmy Flink — Wikimedia Commons, CC BY-SA 2.0</p>',
+    '<p class="hero-credit">Foto: Mount Teide, Atlantic Ambience — Pexels License (sin atribución requerida)</p>',
     unsafe_allow_html=True,
 )
 
