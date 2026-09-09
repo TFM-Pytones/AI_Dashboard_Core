@@ -956,21 +956,19 @@ Expected: PASS (2 tests).
        render_alojamiento_tab(filtered_for_alojamiento)
    ```
 
-- [ ] **Step 6: Manual visual verification**
+- [x] **Steps 1-5**: built exactly as drafted — verified column names (`n_hoteles`, `n_vv`, `n_extrahoteleros`, `rating_booking_medio`, `rating_tripadvisor_medio`, `n_reviews_booking`) against the live (correct-account) `gold_h3_master` first, since today's session found several cases where the repo's assumed schema didn't match reality.
 
-Run the app, open "Alojamiento", confirm the pie chart and KPI cards render and update when the municipio filter changes.
+- [x] **Step 6: Manual visual verification**
 
-- [ ] **Step 7: Run the full test suite one last time**
+Screenshotted via Playwright: Rating Booking 8.75, TripAdvisor 3.72, 73,888 reseñas, pie chart 97.7% viviendas vacacionales / 1.3% extrahoteleros / 1% hoteles — consistent with the VV-dominant pattern already seen elsewhere in this session. No console errors.
 
-Run: `.venv/bin/python -m pytest tests/ -v`
-Expected: all tests from this plan plus the pre-existing v1 tests PASS.
+- [x] **Step 7: Run the full test suite one last time**
 
-- [ ] **Step 8: Commit**
+Ran → PASS, 92/92 (full app suite, all 6 tabs).
 
-```bash
-git add app/alojamiento.py app/main.py tests/app/test_alojamiento.py
-git commit -m "feat: add Alojamiento tab (tipo de alojamiento + reputacion Booking/TripAdvisor)"
-```
+- [x] **Step 8: Commit**
+
+Committed as `3b8bbb8`.
 
 ---
 
