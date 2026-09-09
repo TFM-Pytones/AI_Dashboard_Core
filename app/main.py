@@ -13,6 +13,7 @@ from app.data import (
 )
 from app.detail_panel import render_detail_panel
 from app.map_layers import DEFAULT_HEXAGON_OPACITY, METRICS, build_deck, build_isocronas_layer, list_destinos
+from app.rankings import render_rankings_tab
 from app.summary import compute_summary_stats
 from app.table_view import filter_table, prepare_table_view
 
@@ -64,7 +65,9 @@ with st.sidebar:
     if show_isocronas:
         isocrona_destino = st.selectbox("Destino de referencia", list_destinos(isocronas))
 
-tab_resumen, tab_mapa, tab_tabla = st.tabs(["Resumen", "Mapa", "Tabla"])
+tab_resumen, tab_mapa, tab_tabla, tab_rankings = st.tabs(
+    ["Resumen", "Mapa", "Tabla", "Rankings"]
+)
 
 with tab_resumen:
     stats = compute_summary_stats(full_gdf)
@@ -124,3 +127,6 @@ with tab_tabla:
         file_name="hexagonos_tenerife.csv",
         mime="text/csv",
     )
+
+with tab_rankings:
+    render_rankings_tab(full_gdf)
