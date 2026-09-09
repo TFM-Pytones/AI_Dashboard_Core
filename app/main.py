@@ -17,6 +17,23 @@ from app.summary import compute_summary_stats
 from app.table_view import filter_table, prepare_table_view
 
 st.set_page_config(page_title="AI-Dashboard Tenerife", layout="wide")
+st.markdown(
+    """
+    <style>
+    .stTabs [data-baseweb="tab-list"] { gap: 4px; }
+    .stTabs [data-baseweb="tab"] {
+        background-color: #f0efe8;
+        border-radius: 8px 8px 0 0;
+        padding: 8px 16px;
+    }
+    .stTabs [aria-selected="true"] {
+        background-color: #2a78d6;
+        color: white;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 st.title("AI-Dashboard — Oferta turística de Tenerife")
 
 engine = get_engine()

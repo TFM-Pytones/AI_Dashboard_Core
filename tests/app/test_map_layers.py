@@ -129,7 +129,8 @@ def test_build_layer_accepts_custom_opacity():
     assert layer.opacity == 0.2
 
 
-def test_build_deck_has_one_layer_centered_on_tenerife():
+def test_build_deck_has_one_layer_centered_on_tenerife(monkeypatch):
+    monkeypatch.setenv("MAPBOX_API_KEY", "pk.test_token")
     deck = build_deck(_gdf(), "Sentimiento")
     assert isinstance(deck, pdk.Deck)
     assert len(deck.layers) == 1
@@ -137,13 +138,17 @@ def test_build_deck_has_one_layer_centered_on_tenerife():
     assert round(deck.initial_view_state.longitude, 2) == -16.62
 
 
-def test_build_deck_uses_a_real_road_basemap():
+def test_build_deck_uses_mapbox_satellite_provider(monkeypatch):
+    monkeypatch.setenv("MAPBOX_API_KEY", "pk.test_token")
     deck = build_deck(_gdf(), "Sentimiento")
-    assert deck.map_provider == "carto"
-    # pydeck resolves the "road" style name to CARTO's actual Voyager tile URL
-    assert deck.map_style == "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json"
+    assert deck.map_provider == "mapbox"
+    assert deck.map_style == "mapbox://styles/mapbox/satellite-streets-v9"
+    # pydeck 0.9.1 stores the mapbox api_keys entry as this attribute, not
+    # as an inspectable `api_keys` dict on the Deck instance.
+    assert deck.mapbox_key == "pk.test_token"
 
 
-def test_build_deck_can_hide_the_hexagon_layer():
+def test_build_deck_can_hide_the_hexagon_layer(monkeypatch):
+    monkeypatch.setenv("MAPBOX_API_KEY", "pk.test_token")
     deck = build_deck(_gdf(), "Sentimiento", show_hexagons=False)
     assert deck.layers == []

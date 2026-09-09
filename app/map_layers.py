@@ -1,4 +1,5 @@
 import json
+import os
 
 import pandas as pd
 import pydeck as pdk
@@ -121,8 +122,9 @@ def build_deck(gdf: pd.DataFrame, metric_key: str, show_hexagons: bool = True) -
     return pdk.Deck(
         layers=layers,
         initial_view_state=TENERIFE_VIEW_STATE,
-        map_provider="carto",
-        map_style="road",
+        map_provider="mapbox",
+        map_style="mapbox://styles/mapbox/satellite-streets-v9",
+        api_keys={"mapbox": os.environ["MAPBOX_API_KEY"]},
         tooltip={"text": "Hexágono: {h3_index}"},
     )
 

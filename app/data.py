@@ -7,7 +7,12 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 
-load_dotenv()
+# override=True is required: Streamlit's own bootstrap pre-seeds
+# os.environ["MAPBOX_API_KEY"] = "" (from its unset `mapbox.token` config
+# option, to silence an internal pydeck warning) *before* this module runs.
+# python-dotenv's default override=False then refuses to replace that
+# already-present empty value with the real one from .env.
+load_dotenv(override=True)
 
 H3_MASTER_QUERY = "SELECT * FROM gold.gold_h3_master"
 SENTIMIENTO_QUERY = "SELECT * FROM gold.gold_sentimiento_h3"
