@@ -1,3 +1,6 @@
+import base64
+from pathlib import Path
+
 import streamlit as st
 
 from app.alojamiento import render_alojamiento_tab
@@ -23,25 +26,69 @@ from app.rankings import render_rankings_tab
 from app.summary import compute_summary_stats
 from app.table_view import filter_table, prepare_table_view
 
-st.set_page_config(page_title="AI-Dashboard Tenerife", layout="wide")
+st.set_page_config(page_title="AI-Dashboard Tenerife", page_icon="🌋", layout="wide")
+
+HERO_IMAGE_B64 = base64.b64encode(
+    (Path(__file__).parent / "assets" / "hero_teide.jpg").read_bytes()
+).decode("utf-8")
+
 st.markdown(
-    """
+    f"""
     <style>
-    .stTabs [data-baseweb="tab-list"] { gap: 4px; }
-    .stTabs [data-baseweb="tab"] {
+    .stTabs [data-baseweb="tab-list"] {{ gap: 4px; }}
+    .stTabs [data-baseweb="tab"] {{
         background-color: #f0efe8;
         border-radius: 8px 8px 0 0;
         padding: 8px 16px;
-    }
-    .stTabs [aria-selected="true"] {
+    }}
+    .stTabs [aria-selected="true"] {{
         background-color: #2a78d6;
         color: white;
-    }
+    }}
+    .hero-banner {{
+        position: relative;
+        height: 220px;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        background-image:
+            linear-gradient(100deg, rgba(13,54,107,0.88) 0%, rgba(13,54,107,0.35) 55%, rgba(13,54,107,0.05) 100%),
+            url(data:image/jpeg;base64,{HERO_IMAGE_B64});
+        background-size: cover;
+        background-position: center 60%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 0 2rem;
+        border-left: 6px solid #2a78d6;
+    }}
+    .hero-banner h1 {{
+        color: white;
+        font-size: 2.1rem;
+        margin: 0 0 0.35rem 0;
+    }}
+    .hero-banner p {{
+        color: #e8eefc;
+        font-size: 1.05rem;
+        margin: 0;
+    }}
+    .hero-credit {{
+        font-size: 0.7rem;
+        color: #a8a498;
+        margin-top: -1.1rem;
+        margin-bottom: 1rem;
+    }}
     </style>
+    <div class="hero-banner">
+        <h1>AI-Dashboard — Oferta turística de Tenerife</h1>
+        <p>Analítica geoespacial por hexágono H3: alojamiento, clima, satélite y economía municipal</p>
+    </div>
     """,
     unsafe_allow_html=True,
 )
-st.title("AI-Dashboard — Oferta turística de Tenerife")
+st.markdown(
+    '<p class="hero-credit">Foto: Teide, Jimmy Flink — Wikimedia Commons, CC BY-SA 2.0</p>',
+    unsafe_allow_html=True,
+)
 
 engine = get_engine()
 h3_master = load_h3_master(engine)
@@ -75,7 +122,15 @@ with st.sidebar:
         isocrona_destino = st.selectbox("Destino de referencia", list_destinos(isocronas))
 
 tab_resumen, tab_mapa, tab_tabla, tab_rankings, tab_clima, tab_municipios, tab_alojamiento = st.tabs(
-    ["Resumen", "Mapa", "Tabla", "Rankings", "Clima", "Municipios", "Alojamiento"]
+    [
+        "📊 Resumen",
+        "🗺️ Mapa",
+        "📋 Tabla",
+        "🏆 Rankings",
+        "🌡️ Clima",
+        "🏛️ Municipios",
+        "🏨 Alojamiento",
+    ]
 )
 
 with tab_resumen:
