@@ -29,12 +29,16 @@ from app.table_view import filter_table, prepare_table_view
 st.set_page_config(page_title="AI-Dashboard Tenerife", page_icon="🌋", layout="wide")
 
 HERO_IMAGE_B64 = base64.b64encode(
-    (Path(__file__).parent / "assets" / "hero_teide.jpg").read_bytes()
+    (Path(__file__).parent / "assets" / "hero_puerto_cruz.jpg").read_bytes()
 ).decode("utf-8")
 
 st.markdown(
     f"""
     <style>
+    .block-container {{
+        padding-top: 1rem;
+        max-width: 100%;
+    }}
     .stTabs [data-baseweb="tab-list"] {{ gap: 4px; }}
     .stTabs [data-baseweb="tab"] {{
         background-color: #f0efe8;
@@ -47,46 +51,50 @@ st.markdown(
     }}
     .hero-banner {{
         position: relative;
-        height: 220px;
-        border-radius: 12px;
-        margin-bottom: 1.5rem;
+        height: 420px;
+        margin: -1rem -1rem 1.5rem -1rem;
+        width: calc(100% + 2rem);
         background-image:
-            linear-gradient(100deg, rgba(13,54,107,0.88) 0%, rgba(13,54,107,0.35) 55%, rgba(13,54,107,0.05) 100%),
+            linear-gradient(100deg, rgba(13,54,107,0.80) 0%, rgba(13,54,107,0.30) 55%, rgba(13,54,107,0.05) 100%),
             url(data:image/jpeg;base64,{HERO_IMAGE_B64});
         background-size: cover;
-        background-position: center 60%;
+        background-position: center 38%;
         display: flex;
         flex-direction: column;
         justify-content: center;
-        padding: 0 2rem;
-        border-left: 6px solid #2a78d6;
+        padding: 0 clamp(1.5rem, 5vw, 4rem);
+        border-bottom: 5px solid #2a78d6;
     }}
     .hero-banner h1 {{
         color: white;
-        font-size: 2.1rem;
-        margin: 0 0 0.35rem 0;
+        font-size: clamp(1.8rem, 3.2vw, 2.9rem);
+        margin: 0 0 0.5rem 0;
+        text-shadow: 0 2px 12px rgba(0,0,0,0.35);
     }}
     .hero-banner p {{
         color: #e8eefc;
-        font-size: 1.05rem;
+        font-size: clamp(1rem, 1.4vw, 1.3rem);
         margin: 0;
+        max-width: 46ch;
+        text-shadow: 0 1px 8px rgba(0,0,0,0.35);
     }}
     .hero-credit {{
+        position: absolute;
+        bottom: 0.6rem;
+        right: 1rem;
         font-size: 0.7rem;
-        color: #a8a498;
-        margin-top: -1.1rem;
-        margin-bottom: 1rem;
+        color: rgba(255,255,255,0.75);
+        background: rgba(13,54,107,0.4);
+        padding: 0.2rem 0.6rem;
+        border-radius: 999px;
     }}
     </style>
     <div class="hero-banner">
         <h1>AI-Dashboard — Oferta turística de Tenerife</h1>
         <p>Analítica geoespacial por hexágono H3: alojamiento, clima, satélite y economía municipal</p>
+        <span class="hero-credit">Foto: Puerto de la Cruz, Atlantic Ambience — Pexels License</span>
     </div>
     """,
-    unsafe_allow_html=True,
-)
-st.markdown(
-    '<p class="hero-credit">Foto: Mount Teide, Atlantic Ambience — Pexels License (sin atribución requerida)</p>',
     unsafe_allow_html=True,
 )
 
