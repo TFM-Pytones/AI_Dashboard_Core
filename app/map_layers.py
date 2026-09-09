@@ -95,7 +95,7 @@ def build_fill_color_column(gdf: pd.DataFrame, metric_key: str) -> pd.Series:
     return values.apply(lambda v: diverging_color(v, vmin, vmid, vmax))
 
 
-DEFAULT_HEXAGON_OPACITY = 0.55
+DEFAULT_HEXAGON_OPACITY = 0.4
 
 
 def build_layer(gdf: pd.DataFrame, metric_key: str, opacity: float = DEFAULT_HEXAGON_OPACITY) -> pdk.Layer:
@@ -117,8 +117,13 @@ def build_layer(gdf: pd.DataFrame, metric_key: str, opacity: float = DEFAULT_HEX
     )
 
 
-def build_deck(gdf: pd.DataFrame, metric_key: str, show_hexagons: bool = True) -> pdk.Deck:
-    layers = [build_layer(gdf, metric_key)] if show_hexagons else []
+def build_deck(
+    gdf: pd.DataFrame,
+    metric_key: str,
+    show_hexagons: bool = True,
+    opacity: float = DEFAULT_HEXAGON_OPACITY,
+) -> pdk.Deck:
+    layers = [build_layer(gdf, metric_key, opacity=opacity)] if show_hexagons else []
     return pdk.Deck(
         layers=layers,
         initial_view_state=TENERIFE_VIEW_STATE,

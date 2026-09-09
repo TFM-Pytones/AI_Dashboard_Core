@@ -12,7 +12,7 @@ from app.data import (
     merge_h3_data,
 )
 from app.detail_panel import render_detail_panel
-from app.map_layers import METRICS, build_deck, build_isocronas_layer, list_destinos
+from app.map_layers import DEFAULT_HEXAGON_OPACITY, METRICS, build_deck, build_isocronas_layer, list_destinos
 from app.summary import compute_summary_stats
 from app.table_view import filter_table, prepare_table_view
 
@@ -49,6 +49,15 @@ with st.sidebar:
     st.subheader("Filtros del mapa")
     show_hexagons = st.checkbox("Mostrar capa de hexágonos", value=True)
     metric_key = st.selectbox("Capa del mapa", list(METRICS.keys()), disabled=not show_hexagons)
+    hex_opacity = st.slider(
+        "Opacidad de hexágonos",
+        min_value=0.05,
+        max_value=1.0,
+        value=DEFAULT_HEXAGON_OPACITY,
+        step=0.05,
+        disabled=not show_hexagons,
+        help="Más bajo = se ve más el satélite de fondo. Más alto = se ve más el color de los hexágonos.",
+    )
     map_municipio = st.selectbox("Municipio", ["Todos"] + list_municipios(full_gdf), key="map_municipio")
     show_isocronas = st.checkbox("Mostrar isócronas")
     isocrona_destino = None
@@ -79,7 +88,7 @@ with tab_mapa:
     map_col, detail_col = st.columns([3, 2])
 
     with map_col:
-        deck = build_deck(filtered_gdf, metric_key, show_hexagons=show_hexagons)
+        deck = build_deck(filtered_gdf, metric_key, show_hexagons=show_hexagons, opacity=hex_opacity)
         if show_isocronas and isocrona_destino:
             deck.layers.append(build_isocronas_layer(isocronas, isocrona_destino))
         st.pydeck_chart(deck, on_select="rerun", selection_mode="single-object", key="h3_map")

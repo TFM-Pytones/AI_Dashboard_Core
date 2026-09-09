@@ -152,3 +152,15 @@ def test_build_deck_can_hide_the_hexagon_layer(monkeypatch):
     monkeypatch.setenv("MAPBOX_API_KEY", "pk.test_token")
     deck = build_deck(_gdf(), "Sentimiento", show_hexagons=False)
     assert deck.layers == []
+
+
+def test_build_deck_accepts_custom_hexagon_opacity(monkeypatch):
+    monkeypatch.setenv("MAPBOX_API_KEY", "pk.test_token")
+    deck = build_deck(_gdf(), "Sentimiento", opacity=0.2)
+    assert deck.layers[0].opacity == 0.2
+
+
+def test_build_deck_defaults_to_a_translucent_opacity_so_satellite_shows_through(monkeypatch):
+    monkeypatch.setenv("MAPBOX_API_KEY", "pk.test_token")
+    deck = build_deck(_gdf(), "Sentimiento")
+    assert deck.layers[0].opacity <= 0.45
