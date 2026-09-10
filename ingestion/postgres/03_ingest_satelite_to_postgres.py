@@ -170,9 +170,9 @@ def process_and_ingest_viirs():
     schema = "bronze"
     table_name = "bronze_viirs_stats"
 
-    logging.info("Cargando malla H3 desde silver.silver_h3_grid (PostgreSQL)...")
+    logging.info("Cargando malla H3 desde bronze.bronze_h3_grid (PostgreSQL)...")
     gdf_h3 = gpd.read_postgis(
-        "SELECT h3_index, geometry FROM silver.silver_h3_grid",
+        "SELECT h3_index, geometry FROM bronze.bronze_h3_grid",
         con=engine,
         geom_col="geometry",
     )

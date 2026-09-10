@@ -76,15 +76,16 @@ def process_and_ingest():
     table_name = "bronze_mdt_stats"
     
     # --- 1. Cargar Malla H3 ---
-    h3_path = os.path.join("data", "bronce", "spatial", "h3", "h3_grid_tenerife_res8.geojson")
-    if not os.path.exists(h3_path):
-        logging.error("No se encontró el archivo H3.")
-        return
-    gdf_h3 = gpd.read_file(h3_path)
+    logging.info("Cargando malla H3 desde bronze.bronze_h3_grid (PostgreSQL)...")
+    gdf_h3 = gpd.read_postgis(
+        "SELECT h3_index, geometry FROM bronze.bronze_h3_grid",
+        con=engine,
+        geom_col="geometry",
+    )
     logging.info(f"Malla H3 cargada: {len(gdf_h3)} hexágonos")
     
     # --- 2. Buscar el TIF en data/bronce/mdt/ (archivo único de GRAFCAN para toda la isla)
-    tif_dir = os.path.join("data", "bronce", "mdt")
+    tif_dir = os.path.join("data", "mdt")
     tif_files = glob.glob(os.path.join(tif_dir, "*.tif"))
     
     if not tif_files:
@@ -108,10 +109,13 @@ def process_and_ingest():
         logging.info(f"CRS: {tif_crs}  |  NoData: {nodata_val}  |  Resolución: {pixel_size:.1f}m")
         logging.info(f"Tamaño: {src.width}x{src.height} píxeles  |  Bounds: {src.bounds}")
     
-    # Enmascarar NoData → NaN
+    # Enmascarar NoData y el mar (cota 0 o negativa) → NaN
     if nodata_val is not None:
         elevation = np.where(elevation == nodata_val, np.nan, elevation)
-    elevation = np.where(elevation < -500, np.nan, elevation)
+    
+    # El mar en Tenerife suele venir como 0 exacto o ligeros negativos.
+    # Convertimos todo <= 0 a NaN para que el mar no diluya las medias de la costa.
+    elevation = np.where(elevation <= 0.0, np.nan, elevation)
     elevation = np.where(elevation > 4000, np.nan, elevation)
     
     valid_pct = np.sum(~np.isnan(elevation)) / elevation.size * 100

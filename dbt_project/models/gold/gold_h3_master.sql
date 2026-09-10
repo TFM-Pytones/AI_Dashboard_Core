@@ -25,17 +25,14 @@ WITH h3 AS (
 ),
 
 municipios AS (
-    SELECT
+    SELECT DISTINCT ON (h.h3_index)
         h.h3_index,
         m.cod_municipio,
         m.nombre_municipio AS municipio
     FROM h3 h
-    LEFT JOIN {{ ref('silver_limites_municipales') }} m
+    JOIN {{ ref('silver_limites_municipales') }} m
         ON ST_Intersects(h.geometry, m.geometry)
-        AND ST_Area(ST_Intersection(h.geometry, m.geometry)) = 
-            (SELECT MAX(ST_Area(ST_Intersection(h.geometry, m2.geometry)))
-             FROM {{ ref('silver_limites_municipales') }} m2
-             WHERE ST_Intersects(h.geometry, m2.geometry))
+    ORDER BY h.h3_index, ST_Area(ST_Intersection(h.geometry, m.geometry)) DESC
 ),
 
 alojamiento AS (
@@ -96,46 +93,61 @@ paradas_bus AS (
     GROUP BY h.h3_index
 ),
 
--- Issue #22/#23: NDVI/NDBI medios por hexagono (excluyendo trimestres COVID)
-satelite_ndvi_ndbi AS (
-    SELECT h3_index, AVG(ndvi_mean) AS ndvi_medio, AVG(ndbi_mean) AS ndbi_medio
-    FROM {{ source('bronze', 'satelite_stats') }}
-    WHERE year NOT BETWEEN 2020 AND 2021
-    GROUP BY h3_index
-),
-
--- Issue #24: VIIRS medio por hexagono. incluir_en_modelo ya viene en FALSE
--- para 2020-2021 desde la ingesta (caida artificial de radianza por COVID).
-satelite_viirs AS (
-    SELECT h3_index, AVG(radianza_media) AS viirs_medio
-    FROM {{ source('bronze', 'viirs_stats') }}
-    WHERE incluir_en_modelo = TRUE
-    GROUP BY h3_index
-),
-
 satelite_mdt AS (
     SELECT
         h.h3_index,
-        -- MDT Completo (Altitud, Pendiente, Orientacion, Relieve)
+        -- MDT Completo
         m.elevation_mean, m.elevation_min, m.elevation_max,
-        m.slope_mean, m.slope_min, m.slope_max,
-        m.aspect_mean, m.aspect_min, m.aspect_max,
-        m.hillshade_mean, m.hillshade_min, m.hillshade_max,
+        m.slope_mean,
+        m.aspect_mean,
+        m.hillshade_mean,
         -- Indices de Satelite
-        sn.ndvi_medio,
-        sn.ndbi_medio,
-        sv.viirs_medio
+        s.ndvi_medio, s.ndvi_2022, s.ndvi_2023, s.ndvi_2024, s.ndvi_2025, s.ndvi_2026, s.ndvi_q1, s.ndvi_q2, s.ndvi_q3, s.ndvi_q4,
+        s.viirs_medio, s.viirs_2022, s.viirs_2023, s.viirs_2024, s.viirs_2025, s.viirs_2026, s.viirs_q1, s.viirs_q2, s.viirs_q3, s.viirs_q4,
+        s.ndbi_medio, s.ndbi_2022, s.ndbi_2023, s.ndbi_2024, s.ndbi_2025, s.ndbi_2026
     FROM h3 h
     LEFT JOIN {{ source('bronze', 'bronze_mdt_stats') }} m ON h.h3_index = m.h3_index
     LEFT JOIN (
-        SELECT h3_index, AVG(ndvi_mean) AS ndvi_medio, AVG(ndbi_mean) AS ndbi_medio, AVG(viirs_mean) AS viirs_medio
-        FROM {{ source('bronze', 'bronze_satelite_stats') }}
-        WHERE "year" NOT BETWEEN 2020 AND 2021
+        SELECT 
+            h3_index, 
+            
+            -- NDVI
+            AVG(ndvi_mean) AS ndvi_medio, 
+            AVG(ndvi_mean) FILTER (WHERE year = 2022) AS ndvi_2022,
+            AVG(ndvi_mean) FILTER (WHERE year = 2023) AS ndvi_2023,
+            AVG(ndvi_mean) FILTER (WHERE year = 2024) AS ndvi_2024,
+            AVG(ndvi_mean) FILTER (WHERE year = 2025) AS ndvi_2025,
+            AVG(ndvi_mean) FILTER (WHERE year = 2026) AS ndvi_2026,
+            AVG(ndvi_mean) FILTER (WHERE quarter = 'Q1') AS ndvi_q1,
+            AVG(ndvi_mean) FILTER (WHERE quarter = 'Q2') AS ndvi_q2,
+            AVG(ndvi_mean) FILTER (WHERE quarter = 'Q3') AS ndvi_q3,
+            AVG(ndvi_mean) FILTER (WHERE quarter = 'Q4') AS ndvi_q4,
+            
+            -- VIIRS
+            AVG(viirs_mean) AS viirs_medio, 
+            AVG(viirs_mean) FILTER (WHERE year = 2022) AS viirs_2022,
+            AVG(viirs_mean) FILTER (WHERE year = 2023) AS viirs_2023,
+            AVG(viirs_mean) FILTER (WHERE year = 2024) AS viirs_2024,
+            AVG(viirs_mean) FILTER (WHERE year = 2025) AS viirs_2025,
+            AVG(viirs_mean) FILTER (WHERE year = 2026) AS viirs_2026,
+            AVG(viirs_mean) FILTER (WHERE quarter = 'Q1') AS viirs_q1,
+            AVG(viirs_mean) FILTER (WHERE quarter = 'Q2') AS viirs_q2,
+            AVG(viirs_mean) FILTER (WHERE quarter = 'Q3') AS viirs_q3,
+            AVG(viirs_mean) FILTER (WHERE quarter = 'Q4') AS viirs_q4,
+            
+            -- NDBI
+            AVG(ndbi_mean) AS ndbi_medio, 
+            AVG(ndbi_mean) FILTER (WHERE year = 2022) AS ndbi_2022,
+            AVG(ndbi_mean) FILTER (WHERE year = 2023) AS ndbi_2023,
+            AVG(ndbi_mean) FILTER (WHERE year = 2024) AS ndbi_2024,
+            AVG(ndbi_mean) FILTER (WHERE year = 2025) AS ndbi_2025,
+            AVG(ndbi_mean) FILTER (WHERE year = 2026) AS ndbi_2026
+            
+        FROM {{ ref('silver_satelite_stats') }}
         GROUP BY h3_index
     ) s ON h.h3_index = s.h3_index
 ),
 
--- Subtarea 1.7: Variables Climáticas Avanzadas (IDW + Gradiente)
 clima_diario AS (
     SELECT 
         id_estacion,
@@ -151,11 +163,11 @@ clima_diario AS (
         AVG(valor_limpio) FILTER (WHERE variable_nombre ILIKE '%Humedad%') AS humedad_media,
         MIN(valor_limpio) FILTER (WHERE variable_nombre ILIKE '%Humedad%') AS humedad_min,
         AVG(valor_limpio) FILTER (WHERE variable_nombre ILIKE '%Radiaci%') AS insolacion_media,
-        -- Panza de burro (Mediodía: 12-16h)
         AVG(valor_limpio) FILTER (WHERE variable_nombre ILIKE '%Radiaci%' AND EXTRACT(HOUR FROM "timestamp") BETWEEN 12 AND 16) AS radiacion_mediodia
     FROM {{ ref('silver_clima_agrocabildo') }}
     GROUP BY id_estacion, date_trunc('day', "timestamp"), EXTRACT(QUARTER FROM "timestamp")
 ),
+
 estaciones_clima AS (
     SELECT 
         id_estacion,
@@ -200,37 +212,98 @@ estaciones_clima AS (
     FROM clima_diario
     GROUP BY id_estacion
 ),
-estaciones_con_altitud AS (
-    SELECT
+
+estaciones_con_topografia AS MATERIALIZED (
+    SELECT DISTINCT ON (c.id_estacion)
         c.*,
         e.altitud_m AS station_altitud,
-        e.geometry
+        e.geometry,
+        COALESCE(acc.dist_costa_km, 0) AS station_dist_costa_km,
+        COALESCE(m.aspect_mean, 180) AS station_aspect
     FROM estaciones_clima c
     JOIN {{ ref('silver_estaciones_agrocabildo') }} e ON c.id_estacion = e.id_estacion
+    LEFT JOIN {{ ref('silver_h3_grid') }} h ON ST_Intersects(e.geometry, h.geometry)
+    LEFT JOIN {{ source('bronze', 'bronze_mdt_stats') }} m ON h.h3_index = m.h3_index
+    LEFT JOIN gold.gold_h3_accesibilidad acc ON h.h3_index = acc.h3_index
+    ORDER BY c.id_estacion
 ),
-h3_con_altitud AS (
-    SELECT h.h3_index, h.geometry, m.elevation_mean AS h3_altitud
+
+h3_con_topografia AS MATERIALIZED (
+    SELECT 
+        h.h3_index, 
+        h.geometry, 
+        m.elevation_mean AS h3_altitud,
+        COALESCE(m.aspect_mean, 180) AS h3_aspect,
+        COALESCE(acc.dist_costa_km, 0) AS h3_dist_costa_km
     FROM h3 h
     LEFT JOIN {{ source('bronze', 'bronze_mdt_stats') }} m ON h.h3_index = m.h3_index
+    LEFT JOIN gold.gold_h3_accesibilidad acc ON h.h3_index = acc.h3_index
 ),
+
 h3_vecinos_clima AS (
-    -- Para cada H3, buscamos las 3 estaciones más cercanas y calculamos distancia y peso (IDW)
     SELECT
         h.h3_index,
         h.h3_altitud,
+        h.h3_aspect,
+        h.h3_dist_costa_km,
         est.*,
-        -- Peso: 1 / distancia^2 (si distancia es 0 o muy pequeña, se capea a 1)
-        1.0 / POWER(GREATEST(ST_Distance(h.geometry::geography, est.geometry::geography), 1), 2) AS peso
-    FROM h3_con_altitud h
+        1.0 / POWER(GREATEST(ST_Distance(ST_Transform(h.geometry, 32628), ST_Transform(est.geometry, 32628)), 1), 2) AS peso
+    FROM h3_con_topografia h
     CROSS JOIN LATERAL (
         SELECT *
-        FROM estaciones_con_altitud e
+        FROM estaciones_con_topografia e
         ORDER BY h.geometry <-> e.geometry
         LIMIT 3
     ) est
 ),
+
+h3_vecinos_clima_factores AS (
+    SELECT
+        *,
+        -- Factor Humedad H3
+        (CASE WHEN h3_aspect >= 300 OR h3_aspect <= 90 THEN 
+            CASE WHEN h3_altitud BETWEEN 800 AND 1500 THEN 1.25 
+                 WHEN h3_altitud > 1500 THEN 0.70 
+                 ELSE 1.05 END
+         WHEN h3_aspect > 90 AND h3_aspect < 300 THEN 0.85
+         ELSE 1.0 END) + (CASE WHEN h3_dist_costa_km < 1.5 THEN 0.15 ELSE 0 END) AS factor_hum_h3,
+         
+        -- Factor Humedad Estacion
+        (CASE WHEN station_aspect >= 300 OR station_aspect <= 90 THEN 
+            CASE WHEN station_altitud BETWEEN 800 AND 1500 THEN 1.25 
+                 WHEN station_altitud > 1500 THEN 0.70 
+                 ELSE 1.05 END
+         WHEN station_aspect > 90 AND station_aspect < 300 THEN 0.85
+         ELSE 1.0 END) + (CASE WHEN station_dist_costa_km < 1.5 THEN 0.15 ELSE 0 END) AS factor_hum_est,
+
+        -- Factor Lluvia H3
+        (CASE WHEN (h3_aspect >= 300 OR h3_aspect <= 90) AND h3_altitud < 1500 THEN 1.30
+              WHEN h3_aspect > 90 AND h3_aspect < 300 THEN 0.40
+              ELSE 1.0 END) AS factor_lluvia_h3,
+              
+        -- Factor Lluvia Estacion
+        (CASE WHEN (station_aspect >= 300 OR station_aspect <= 90) AND station_altitud < 1500 THEN 1.30
+              WHEN station_aspect > 90 AND station_aspect < 300 THEN 0.40
+              ELSE 1.0 END) AS factor_lluvia_est,
+
+        -- Factor Viento H3
+        (CASE WHEN h3_aspect >= 0 AND h3_aspect <= 90 THEN 1.20
+              WHEN h3_aspect >= 180 AND h3_aspect <= 270 THEN 0.60
+              WHEN h3_altitud > 2000 THEN 1.40
+              ELSE 1.0 END) AS factor_viento_h3,
+              
+        -- Factor Viento Estacion
+        (CASE WHEN station_aspect >= 0 AND station_aspect <= 90 THEN 1.20
+              WHEN station_aspect >= 180 AND station_aspect <= 270 THEN 0.60
+              WHEN station_altitud > 2000 THEN 1.40
+              ELSE 1.0 END) AS factor_viento_est,
+              
+        -- Delta Costa para Temperaturas
+        (h3_dist_costa_km - station_dist_costa_km) AS delta_dist_costa
+    FROM h3_vecinos_clima
+),
+
 h3_clima AS (
-    -- Hacemos la agregación final (media ponderada IDW + Ajuste Gradiente Térmico para temperaturas)
     SELECT
         h3_index,
         
@@ -239,40 +312,42 @@ h3_clima AS (
         SUM(radiacion_mediodia_q3 * peso) / NULLIF(SUM(peso), 0) AS radiacion_mediodia_q3,
         SUM(radiacion_mediodia_q1 * peso) / NULLIF(SUM(peso), 0) AS radiacion_mediodia_q1,
 
-        -- TEMPERATURA Y AMPLITUD (IDW + Gradiente Térmico de -0.0065 ºC por metro)
-        -- Formula: Temp_H3 = Temp_Estacion + ((Altitud_Estacion - Altitud_H3) * 0.0065)
-        SUM((temp_media_anual + ((COALESCE(station_altitud, 0) - COALESCE(h3_altitud, 0)) * 0.0065)) * peso) / NULLIF(SUM(peso), 0) AS temp_media_anual,
-        SUM((temp_media_q1 + ((COALESCE(station_altitud, 0) - COALESCE(h3_altitud, 0)) * 0.0065)) * peso) / NULLIF(SUM(peso), 0) AS temp_media_q1,
-        SUM((temp_media_q2 + ((COALESCE(station_altitud, 0) - COALESCE(h3_altitud, 0)) * 0.0065)) * peso) / NULLIF(SUM(peso), 0) AS temp_media_q2,
-        SUM((temp_media_q3 + ((COALESCE(station_altitud, 0) - COALESCE(h3_altitud, 0)) * 0.0065)) * peso) / NULLIF(SUM(peso), 0) AS temp_media_q3,
-        SUM((temp_media_q4 + ((COALESCE(station_altitud, 0) - COALESCE(h3_altitud, 0)) * 0.0065)) * peso) / NULLIF(SUM(peso), 0) AS temp_media_q4,
-        SUM(amplitud_termica_media * peso) / NULLIF(SUM(peso), 0) AS amplitud_termica_media,
+        -- TEMPERATURA Y AMPLITUD (IDW + Gradiente Térmico + Termorregulación)
+        SUM((temp_media_anual + COALESCE((station_altitud - h3_altitud) * 0.0065, 0)) * peso) / NULLIF(SUM(peso), 0) AS temp_media_anual,
+        SUM((temp_media_q1 + COALESCE((station_altitud - h3_altitud) * 0.0065, 0) - (delta_dist_costa * 0.15)) * peso) / NULLIF(SUM(peso), 0) AS temp_media_q1,
+        SUM((temp_media_q2 + COALESCE((station_altitud - h3_altitud) * 0.0065, 0) + (delta_dist_costa * 0.05)) * peso) / NULLIF(SUM(peso), 0) AS temp_media_q2,
+        SUM((temp_media_q3 + COALESCE((station_altitud - h3_altitud) * 0.0065, 0) + (delta_dist_costa * 0.15)) * peso) / NULLIF(SUM(peso), 0) AS temp_media_q3,
+        SUM((temp_media_q4 + COALESCE((station_altitud - h3_altitud) * 0.0065, 0) - (delta_dist_costa * 0.05)) * peso) / NULLIF(SUM(peso), 0) AS temp_media_q4,
+        SUM((amplitud_termica_media + GREATEST(delta_dist_costa * 0.30, 0)) * peso) / NULLIF(SUM(peso), 0) AS amplitud_termica_media,
 
-        -- RESTO DE VARIABLES CLIMATICAS (IDW Puro)
-        SUM(lluvia_mm_anual * peso) / NULLIF(SUM(peso), 0) AS lluvia_mm_anual,
-        SUM(lluvia_mm_q1 * peso) / NULLIF(SUM(peso), 0) AS lluvia_mm_q1,
-        SUM(lluvia_mm_q2 * peso) / NULLIF(SUM(peso), 0) AS lluvia_mm_q2,
-        SUM(lluvia_mm_q3 * peso) / NULLIF(SUM(peso), 0) AS lluvia_mm_q3,
-        SUM(lluvia_mm_q4 * peso) / NULLIF(SUM(peso), 0) AS lluvia_mm_q4,
+        -- PRECIPITACIÓN (IDW + Sombra Lluvia)
+        SUM((lluvia_mm_anual * (factor_lluvia_h3 / NULLIF(factor_lluvia_est, 0.001))) * peso) / NULLIF(SUM(peso), 0) AS lluvia_mm_anual,
+        SUM((lluvia_mm_q1 * (factor_lluvia_h3 / NULLIF(factor_lluvia_est, 0.001))) * peso) / NULLIF(SUM(peso), 0) AS lluvia_mm_q1,
+        SUM((lluvia_mm_q2 * (factor_lluvia_h3 / NULLIF(factor_lluvia_est, 0.001))) * peso) / NULLIF(SUM(peso), 0) AS lluvia_mm_q2,
+        SUM((lluvia_mm_q3 * (factor_lluvia_h3 / NULLIF(factor_lluvia_est, 0.001))) * peso) / NULLIF(SUM(peso), 0) AS lluvia_mm_q3,
+        SUM((lluvia_mm_q4 * (factor_lluvia_h3 / NULLIF(factor_lluvia_est, 0.001))) * peso) / NULLIF(SUM(peso), 0) AS lluvia_mm_q4,
 
-        SUM(vel_viento_media_anual * peso) / NULLIF(SUM(peso), 0) AS vel_viento_media_anual,
-        SUM(vel_viento_media_q1 * peso) / NULLIF(SUM(peso), 0) AS vel_viento_media_q1,
-        SUM(vel_viento_media_q2 * peso) / NULLIF(SUM(peso), 0) AS vel_viento_media_q2,
-        SUM(vel_viento_media_q3 * peso) / NULLIF(SUM(peso), 0) AS vel_viento_media_q3,
-        SUM(vel_viento_media_q4 * peso) / NULLIF(SUM(peso), 0) AS vel_viento_media_q4,
+        -- VELOCIDAD VIENTO (IDW + Efecto Escudo)
+        SUM((vel_viento_media_anual * (factor_viento_h3 / NULLIF(factor_viento_est, 0.001))) * peso) / NULLIF(SUM(peso), 0) AS vel_viento_media_anual,
+        SUM((vel_viento_media_q1 * (factor_viento_h3 / NULLIF(factor_viento_est, 0.001))) * peso) / NULLIF(SUM(peso), 0) AS vel_viento_media_q1,
+        SUM((vel_viento_media_q2 * (factor_viento_h3 / NULLIF(factor_viento_est, 0.001))) * peso) / NULLIF(SUM(peso), 0) AS vel_viento_media_q2,
+        SUM((vel_viento_media_q3 * (factor_viento_h3 / NULLIF(factor_viento_est, 0.001))) * peso) / NULLIF(SUM(peso), 0) AS vel_viento_media_q3,
+        SUM((vel_viento_media_q4 * (factor_viento_h3 / NULLIF(factor_viento_est, 0.001))) * peso) / NULLIF(SUM(peso), 0) AS vel_viento_media_q4,
 
-        SUM(humedad_media_anual * peso) / NULLIF(SUM(peso), 0) AS humedad_media_anual,
-        SUM(humedad_media_q1 * peso) / NULLIF(SUM(peso), 0) AS humedad_media_q1,
-        SUM(humedad_media_q2 * peso) / NULLIF(SUM(peso), 0) AS humedad_media_q2,
-        SUM(humedad_media_q3 * peso) / NULLIF(SUM(peso), 0) AS humedad_media_q3,
-        SUM(humedad_media_q4 * peso) / NULLIF(SUM(peso), 0) AS humedad_media_q4,
+        -- HUMEDAD (IDW + Mar Nubes + Costera)
+        SUM((humedad_media_anual * (factor_hum_h3 / NULLIF(factor_hum_est, 0.001))) * peso) / NULLIF(SUM(peso), 0) AS humedad_media_anual,
+        SUM((humedad_media_q1 * (factor_hum_h3 / NULLIF(factor_hum_est, 0.001))) * peso) / NULLIF(SUM(peso), 0) AS humedad_media_q1,
+        SUM((humedad_media_q2 * (factor_hum_h3 / NULLIF(factor_hum_est, 0.001))) * peso) / NULLIF(SUM(peso), 0) AS humedad_media_q2,
+        SUM((humedad_media_q3 * (factor_hum_h3 / NULLIF(factor_hum_est, 0.001))) * peso) / NULLIF(SUM(peso), 0) AS humedad_media_q3,
+        SUM((humedad_media_q4 * (factor_hum_h3 / NULLIF(factor_hum_est, 0.001))) * peso) / NULLIF(SUM(peso), 0) AS humedad_media_q4,
 
+        -- INSOLACIÓN (IDW Puro)
         SUM(insolacion_media_anual * peso) / NULLIF(SUM(peso), 0) AS insolacion_media_anual,
         SUM(insolacion_media_q1 * peso) / NULLIF(SUM(peso), 0) AS insolacion_media_q1,
         SUM(insolacion_media_q2 * peso) / NULLIF(SUM(peso), 0) AS insolacion_media_q2,
         SUM(insolacion_media_q3 * peso) / NULLIF(SUM(peso), 0) AS insolacion_media_q3,
         SUM(insolacion_media_q4 * peso) / NULLIF(SUM(peso), 0) AS insolacion_media_q4
-    FROM h3_vecinos_clima
+    FROM h3_vecinos_clima_factores
     GROUP BY h3_index
 ),
 
@@ -280,18 +355,10 @@ enp AS (
     SELECT
         h.h3_index,
         BOOL_OR(e.geometry IS NOT NULL) AS es_enp,
-        ROUND((SUM(ST_Area(ST_Intersection(h.geometry, e.geometry))) / h.area_km2 / 1000000)::numeric, 4) AS pct_area_enp
+        ROUND((SUM(ST_Area(ST_Intersection(ST_Transform(h.geometry, 32628), ST_Transform(e.geometry, 32628)))) / ST_Area(ST_Transform(h.geometry, 32628)))::numeric, 4) AS pct_area_enp
     FROM h3 h
     LEFT JOIN {{ ref('silver_enp') }} e ON ST_Intersects(h.geometry, e.geometry)
-    GROUP BY h.h3_index, h.area_km2
-),
-
-dinamismo AS (
-    SELECT
-        h.h3_index,
-        'ES' AS mercado_principal_idioma,
-        0.0 AS crecimiento_oferta_pct
-    FROM h3 h
+    GROUP BY h.h3_index, h.geometry
 ),
 
 zonas_turisticas AS (
@@ -301,12 +368,6 @@ zonas_turisticas AS (
     FROM h3 h
     LEFT JOIN {{ ref('silver_zonas_turisticas') }} z ON ST_Intersects(h.geometry, z.geometry)
     GROUP BY h.h3_index
-),
-
-costa AS (
-    -- Extraemos el borde de la isla (línea de costa) uniendo todos los municipios
-    SELECT ST_Boundary(ST_Union(geometry)) AS geometry
-    FROM {{ ref('silver_limites_municipales') }}
 )
 
 SELECT
@@ -324,10 +385,12 @@ SELECT
     COALESCE(aloj.n_vv, 0) AS n_vv,
     COALESCE(aloj.n_extrahoteleros, 0) AS n_extrahoteleros,
     
-    -- Plataformas
+    -- Plataformas (Booking)
     COALESCE(b.n_establecimientos_booking, 0) AS n_establecimientos_booking,
     b.rating_booking_medio,
     COALESCE(b.n_reviews_validas_booking, 0) AS n_reviews_booking,
+    
+    -- Plataformas (Tripadvisor)
     COALESCE(t.n_establecimientos_tripadvisor, 0) AS n_establecimientos_tripadvisor,
     t.rating_tripadvisor_medio,
     
@@ -342,15 +405,42 @@ SELECT
     COALESCE(pb.n_paradas_bus, 0) AS n_paradas_bus,
     
     -- MDT y Topografía Avanzada
-    sm.elevation_mean, sm.elevation_min, sm.elevation_max,
-    sm.slope_mean, sm.slope_min, sm.slope_max,
-    sm.aspect_mean, sm.aspect_min, sm.aspect_max,
-    sm.hillshade_mean, sm.hillshade_min, sm.hillshade_max,
+    sm.elevation_mean AS altitud_media_m,
+    sm.elevation_min,
+    sm.elevation_max,
+    sm.slope_mean,
+    sm.aspect_mean,
+    sm.hillshade_mean,
     
     -- Satélite (Copernicus)
     sm.ndvi_medio,
-    sm.ndbi_medio,
+    sm.ndvi_2022,
+    sm.ndvi_2023,
+    sm.ndvi_2024,
+    sm.ndvi_2025,
+    sm.ndvi_2026,
+    sm.ndvi_q1,
+    sm.ndvi_q2,
+    sm.ndvi_q3,
+    sm.ndvi_q4,
+    
     sm.viirs_medio,
+    sm.viirs_2022,
+    sm.viirs_2023,
+    sm.viirs_2024,
+    sm.viirs_2025,
+    sm.viirs_2026,
+    sm.viirs_q1,
+    sm.viirs_q2,
+    sm.viirs_q3,
+    sm.viirs_q4,
+    
+    sm.ndbi_medio,
+    sm.ndbi_2022,
+    sm.ndbi_2023,
+    sm.ndbi_2024,
+    sm.ndbi_2025,
+    sm.ndbi_2026,
     
     -- Clima (Agrocabildo) - ESG y Riesgos
     hc.dias_ola_calor_anual,
@@ -366,11 +456,7 @@ SELECT
     hc.insolacion_media_anual, hc.insolacion_media_q1, hc.insolacion_media_q2, hc.insolacion_media_q3, hc.insolacion_media_q4,
     
     -- Distancia Euclidiana a la Costa
-    ROUND(ST_Distance(h.geometry::geography, costa.geometry::geography)::numeric, 2) AS distancia_costa_metros,
-    
-    -- Dinamismo y Mercado
-    din.mercado_principal_idioma,
-    din.crecimiento_oferta_pct,
+    h_topo.h3_dist_costa_km * 1000 AS distancia_costa_metros,
     
     -- Restricciones y Clasificación
     COALESCE(enp.es_enp, FALSE) AS es_enp,
@@ -387,8 +473,7 @@ LEFT JOIN tripadvisor t ON h.h3_index = t.h3_index
 LEFT JOIN pois p ON h.h3_index = p.h3_index
 LEFT JOIN paradas_bus pb ON h.h3_index = pb.h3_index
 LEFT JOIN satelite_mdt sm ON h.h3_index = sm.h3_index
+LEFT JOIN h3_con_topografia h_topo ON h.h3_index = h_topo.h3_index
 LEFT JOIN h3_clima hc ON h.h3_index = hc.h3_index
 LEFT JOIN enp ON h.h3_index = enp.h3_index
-LEFT JOIN dinamismo din ON h.h3_index = din.h3_index
 LEFT JOIN zonas_turisticas zt ON h.h3_index = zt.h3_index
-CROSS JOIN costa

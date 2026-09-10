@@ -10,11 +10,11 @@ AI-Dashboard para la Gestión oferta turista georreferenciada & integración con
 - 1.5. Justificación del Aporte Diferencial
 
 ## 2. Configuración de Infraestructura y Adquisición de Datos
-- 2.1. Aprovisionamiento de servidores en DigitalOcean y base de datos serverless en Neon.tech
+- 2.1. Aprovisionamiento de infraestructura cloud en Microsoft Azure (VM Ubuntu + PostgreSQL Flexible + Blob Storage)
 - 2.2. Extracción de microdatos tabulares y espaciales (Cabildo de Tenerife, IDECanarias e ISTAC)
 - 2.3. Integración de la topología de transporte público (Ficheros GTFS de TITSA y Metropolitano de Tenerife)
-- 2.4. Automatización de ingesta de datos meteorológicos (AEMET API Opendata), cualitativos y de datos satelitales (Copernicus Sentinel)
-- 2.5. Web scrapping para Redes Sociales y Reseñas (TripAdvisor, Booking, Google Reviews, Reddit, YouTube API)
+- 2.4. Automatización de ingesta de datos meteorológicos (Agrocabildo SOAP + Open-Meteo API + ERA5-Land) y satelitales (Copernicus Sentinel / VIIRS)
+- 2.5. Extracción de datos cualitativos y reseñas (YouTube API, scraping LosViajeros, Booking, TripAdvisor)
 
 ## 3. Estructuración, Data Warehouse y Topología Geoespacial
 - 3.1. Diseño del almacén de datos (Data Warehouse) espacial en PostgreSQL/PostGIS
@@ -31,17 +31,9 @@ AI-Dashboard para la Gestión oferta turista georreferenciada & integración con
 
 ## 5. Integración de Inteligencia Artificial Generativa (LLM)
 
-**Opción 1**
 - 5.1. Configuración de rutinas analíticas de extracción (Python Scripts)
-- 5.2. Conexión automatizada con modelos comerciales fundacionales (API de Azure OpenAI o uso de IA local Groq/Ollama)
-- 5.3. Generación de informes ejecutivos narrativos e insights automáticos basados en datos (Generative AI Summarization)
-
-**Opción 2**
-- 5.1. Configuración del entorno de orquestación en DigitalOcean (Instalación del framework LangChain)
-- 5.2. Conexión y autenticación con modelos comerciales (API de Azure OpenAI o uso de IA local Groq/Ollama)
-- 5.3. Creación de un agente inteligente conversacional (Implementación de un Text-to-SQL Agent para transformar preguntas en consultas SQL contra PostgreSQL)
-
-> Pendiente: decidir con el equipo qué opción se implementa antes de crear las issues de esta sección.
+- 5.2. Conexión y autenticación con modelo fundacional vía Groq API (`openai/gpt-oss-120b`)
+- 5.3. Generación de informes ejecutivos narrativos e insights automáticos (Generative AI Summarization)
 
 ## 6. Productivización: Tablero Visual y Simulador de Decisiones
 - 6.1. Traducción del Modelado Matemático a KPIs Estratégicos de Negocio

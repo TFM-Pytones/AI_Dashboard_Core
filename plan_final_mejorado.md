@@ -263,19 +263,14 @@ GROUP BY h.h3_index
 ### Subtarea 1.6 — Estadísticas de altitud, pendiente y satélite (JOIN directo por h3_index)
 - **Fuente:** `silver.mdt_stats` + `silver.satelite_stats`
 - **MDT Completo:** 
-  - `elevation_mean`, `elevation_min`, `elevation_max`
-  - `slope_mean`, `slope_min`, `slope_max`
-  - `aspect_mean`, `aspect_min`, `aspect_max` (Orientación: 0=Norte, 180=Sur)
-  - `hillshade_mean`, `hillshade_min`, `hillshade_max`
-- **Para VIIRS excluir COVID (calcular media sin 2020-2021):**
-```sql
-SELECT h3_index, AVG(viirs_anual) AS viirs_medio
-FROM bronze.satelite_stats
-WHERE anio NOT BETWEEN 2020 AND 2021
-GROUP BY h3_index
-```
-- **Output:** Las 12 métricas del MDT, `ndvi_medio` (0=árido, 1=muy verde), `ndbi_medio`, `viirs_medio` (luminosidad nocturna).
-- **Interpretabilidad:** El `aspect` es clave para que el modelo identifique laderas de Barlovento (húmedas) vs Sotavento (secas). NDVI alto + viirs bajo = zona rural verde sin urbanizar. Son variables críticas para el modelo MGWR.
+  - `altitud_media_m`, `elevation_min`, `elevation_max`
+  - `slope_mean`
+  - `aspect_mean` (Orientación: 0=Norte, 180=Sur)
+  - `hillshade_mean`
+- **Para Satélite (NDVI, VIIRS, NDBI):**
+  - Desagregación profunda: Media total, media por año (2022-2026), y media por trimestre (Q1-Q4 para NDVI y VIIRS).
+- **Output:** Las métricas del MDT, y todo el abanico de métricas satelitales (`ndvi_medio`, `ndvi_2022`, `ndvi_q1`, `viirs_medio`, `viirs_2022`, `viirs_q1`, `ndbi_medio`, `ndbi_2022`, etc).
+- **Interpretabilidad:** El `aspect` es clave para que el modelo identifique laderas de Barlovento (húmedas) vs Sotavento (secas). NDVI alto + viirs bajo = zona rural verde sin urbanizar. Desglose trimestral permite captar la estacionalidad del turismo de invierno (Q1/Q4).
 
 ---
 
@@ -288,7 +283,7 @@ GROUP BY h3_index
   - `dias_ola_calor_anual`: Días con temp_max >= 35, humedad_min <= 30 y dir_viento Este/Sur. (Riesgo).
   - `amplitud_termica_media`: (Temp_max - Temp_min). Confort para seniors.
   - `radiacion_mediodia_q3` vs `q1`: Para detectar efecto de "Panza de Burro" en el norte en verano.
-- **Output (Estacional Clásico):** `temp_media_anual`, `temp_media_q1`, `temp_media_q2`, `temp_media_q3`, `temp_media_q4`, `lluvia_mm_q1`, `lluvia_mm_q2`, `lluvia_mm_q3`, `lluvia_mm_q4`, `vel_viento_media_anual`, `vel_viento_media_q1`, `vel_viento_media_q2`, `vel_viento_media_q3`, `vel_viento_media_q4`, `humedad_media_anual`, `humedad_media_q1`, `humedad_media_q2`, `humedad_media_q3`, `humedad_media_q4`, `insolacion_media_anual`, `insolacion_media_q1`, `insolacion_media_q2`, `insolacion_media_q3`, `insolacion_media_q4`
+- **Output (Estacional Clásico):** `temp_media_anual`, `temp_media_q1`, `temp_media_q2`, `temp_media_q3`, `temp_media_q4`, `lluvia_mm_total`,`lluvia_mm_q1`, `lluvia_mm_q2`, `lluvia_mm_q3`, `lluvia_mm_q4`, `vel_viento_media_anual`, `vel_viento_media_q1`, `vel_viento_media_q2`, `vel_viento_media_q3`, `vel_viento_media_q4`, `humedad_media_anual`, `humedad_media_q1`, `humedad_media_q2`, `humedad_media_q3`, `humedad_media_q4`, `insolacion_media_anual`, `insolacion_media_q1`, `insolacion_media_q2`, `insolacion_media_q3`, `insolacion_media_q4`
 - **Interpretabilidad:** El IDW+Altitud asegura que el Teide no tenga temperatura de playa aunque la estación más cercana esté en la costa. Los indicadores de olas de calor son críticos para las inversiones a futuro de TUI ante el cambio climático.
 
 
@@ -300,22 +295,9 @@ GROUP BY h3_index
 - **Output:** `es_enp` (BOOLEAN), `pct_area_enp` (NUMERIC, % del hexágono bajo protección).
 - **Interpretabilidad:** Restricción legal de desarrollo hotelero convencional. Un hexágono con `es_enp = TRUE` y PTNA alto = **oportunidad de ecoturismo**.
 
----
 
-### Subtarea 1.9 — Métricas de Dinamismo y Mercado (Crecimiento, Estacionalidad y Origen)
-- **Fuente Silver:** 
-  - ISTAC: `silver.istac_trimestral` (ocupación por trimestres).
-  - Alojamiento: `silver.registro_viviendas_vacacionales` (fechas de alta).
-  - NLP: `silver.tripadvisor_resenas` y `silver.booking_reviews` (idioma de la reseña).
-- **Técnica:**
-  - *Crecimiento Oferta:* Contar cuántas VVs se dieron de alta en los últimos 2 años vs el total (slope de crecimiento).
-  - *Mercado Emisor:* `MODE()` (la moda estadística) del idioma de las reseñas en ese hexágono (EN=Británico, DE=Alemán, ES=Nacional).
-- **Output:** `crecimiento_oferta_pct`, `ocupacion_q1_vs_q3` (ratio de estacionalidad), `mercado_principal_idioma`.
-- **Interpretabilidad:** Un `crecimiento_oferta_pct > 20%` indica una zona en rápida gentrificación turística. El `mercado_principal_idioma` permite a TUI segmentar si es una zona de clientes alemanes vs nórdicos.
 
----
-
-### Subtarea 1.10 — Flag de Zona Turística Oficial
+### Subtarea 1.9 — Flag de Zona Turística Oficial
 - **Fuente Silver:** `silver.zonas_turisticas` (polígonos oficiales de zonas turísticas de Tenerife).
 - **Técnica:** `ST_Intersects` — cualquier solapamiento del hexágono con un polígono de zona turística.
 - **Output:** `es_zona_turistica_oficial` (BOOLEAN).
@@ -323,7 +305,7 @@ GROUP BY h3_index
 
 ---
 
-### Subtarea 1.11 — Distancia Euclidiana a la Costa
+### Subtarea 1.10 — Distancia Euclidiana a la Costa
 - **Fuente Silver:** `silver.limites_municipales`
 - **Técnica Espacial:** Extraer la línea de costa combinando los municipios con `ST_Boundary(ST_Union(geometry))` y medir la distancia en línea recta desde el hexágono con `ST_Distance()`.
 - **Output:** `distancia_costa_metros` (NUMERIC).
@@ -342,14 +324,14 @@ GROUP BY h3_index
 | `n_establecimientos_registro`, `n_plazas_registro`, `n_hoteles`, `n_vv`, `n_extrahoteleros` | INT | Subtarea 1.2 |
 | `n_establecimientos_booking`, `rating_booking_medio`, `n_reviews_booking` | INT/NUMERIC | Subtarea 1.3 |
 | `n_establecimientos_tripadvisor`, `rating_tripadvisor_medio` | INT/NUMERIC | Subtarea 1.3 |
-| `n_pois_total`, `n_restaurantes`, `n_cultura`, `n_naturaleza` | INT | Subtarea 1.4 |
+| `n_pois_total`, `n_restaurantes`, `n_cultura`, `n_naturaleza`, `n_pois_institucionales` | INT | Subtarea 1.4 |
 | `n_paradas_bus` | INT | Subtarea 1.5 |
-| `altitud_media`, `pendiente_media`, `ndvi_medio`, `ndbi_medio`, `viirs_medio` | NUMERIC | Subtarea 1.6 |
-| `temp_media_anual`, `temp_media_q1`, `temp_media_q3` | NUMERIC | Subtarea 1.7 |
+| `altitud_media_m`, `elevation_min`, `elevation_max`, `slope_mean`, `aspect_mean`, `hillshade_mean` | NUMERIC | Subtarea 1.6 |
+| `ndvi_medio`, `ndvi_2022`, `ndvi_q1`, `viirs_medio`, `viirs_2022`, `viirs_q1`, `ndbi_medio`, `ndbi_2022`... | NUMERIC | Subtarea 1.6 |
+| `temp_media_anual`, `temp_media_q1`...`q4`, `lluvia_mm_anual`, `vel_viento_media_anual`... | NUMERIC | Subtarea 1.7 |
 | `es_enp`, `pct_area_enp` | BOOL/NUMERIC | Subtarea 1.8 |
-| `crecimiento_oferta_pct`, `ocupacion_q1_vs_q3` | NUMERIC | Subtarea 1.9 |
 | `es_zona_turistica_oficial` | BOOLEAN | Subtarea 1.10 |
-| `mercado_principal_idioma` | VARCHAR | Subtarea 1.9 |
+| `distancia_costa_metros` | NUMERIC | Subtarea 1.11 |
 | `geometry` | GEOMETRY | `silver.h3_grid` |
 
 ---
@@ -820,18 +802,24 @@ pip install mgwr libpysal scikit-learn numpy pandas matplotlib
 - **Input:** `gold.h3_master` (ya completado por Bloques 1, 2, 3 y 4).
 - **Filtro obligatorio:** Excluir hexágonos con >50% de NaN y años anteriores a 2022 al calcular medias temporales.
 - **Variable Y (a explicar):** `n_plazas_registro / area_h3_km2` → densidad de plazas hoteleras por km².
-- **Variables X: (explicativos)**  
-  | Variable X | Fuente |
+- **Variables X para MGWR (Solo incluir variables sin multicolinealidad, VIF < 10):**
+  | Variable X | Decisión / Razón |
   |---|---|
-  | `ndvi_medio` | Satélite Sentinel (Bloque 1) |
-  | `ndbi_medio` | Satélite Landsat/Sentinel (Bloque 1) - Densidad de edificación |
-  | `viirs_medio` | Satélite VIIRS (Bloque 1) |
-  | `altitud_media` | MDT (Bloque 1) |
-  | `pendiente_media` | MDT (Bloque 1) |
-  | `sentimiento_medio` | NLP Booking y TripAdvisor (Bloque 2) |
-  | `tiempo_a_tfs_min` | pgRouting/ORS (Bloque 4) |
-  | `n_paradas_15min` | GTFS + pgRouting (Bloque 4) |
-  | `n_pois` | OSM (Bloque 1) |
+  | `elevacion_media` y `pendiente_media` | ✅ **Incluir** (Barrera orográfica al desarrollo) |
+  | `ndvi_medio_anual` | ✅ **Incluir** (Atractivo natural) |
+  | `temp_media_anual` y `lluvia_total_anual` | ✅ **Incluir** (Diferencial clima norte/sur) |
+  | `tiempo_aeropuerto_min` (MIN tfs, tfn) | ✅ **Incluir** (X principal accesibilidad) |
+  | `tiempo_polo_sur_min` y `tiempo_polo_norte_min` | ✅ **Incluir** (Atracción polos turísticos) |
+  | `tiempo_teide_min` | ✅ **Incluir** (Barrera centro-isla) |
+  | `dist_parada_cercana_m` | ✅ **Incluir** (Conectividad peatonal. Las bins `>0` excluidas por multicolinealidad) |
+  | `dist_hospital_km` y `dist_costa_km` | ✅ **Incluir** (Seguridad y modelo sol/playa) |
+  | `pct_area_enp` y `pct_area_zona_turistica` | ✅ **Incluir** (Territorio regulado) |
+  | `n_pois_naturaleza`, `_playa`, `_cultura`, `_bic` | ✅ **Incluir** (Suelen pasar el test VIF) |
+  | `sentimiento_medio` (Booking + TripAdvisor) | ✅ **Incluir** (Atractivo percibido unificado) |
+  | `ndbi_medio_anual` | ⚠️ **Testear** (Incluir solo si VIF < 10 respecto a Y) |
+  | `viirs_medio` (todos) | ❌ **EXCLUIR** (Proxy directo de Y, infla el R2 artificialmente) |
+  | Columnas trimestrales (clima/NDVI/VIIRS) | ❌ **EXCLUIR** (Colineales con la media anual) |
+  | AENA (entradas/salidas) y Mínimas/Máximas | ❌ **EXCLUIR** (No aportan varianza espacial o redundan) |
 
 ---
 
@@ -903,7 +891,13 @@ pip install hdbscan scikit-learn numpy pandas
 ---
 
 ### Subtarea 6.1 — Clustering HDBSCAN
-- **Variables:** `densidad_plazas_km2`, `viirs_medio`, `sentimiento_medio`, `ndvi_medio`, `ndbi_medio`, `ptna_score`.
+- **Variables (Permite mayor dimensionalidad, pero requiere PCA para evitar sesgos dimensionales):**
+  - **Identidad Base**: `densidad_plazas_km2`, `n_plazas_hoteles`, `n_plazas_viviendas_vacacionales`
+  - **Satelital y Terreno**: `elevacion_media`, `ndvi_medio_anual`, `ndbi_medio_anual`, `viirs_medio_anual` (Aquí SÍ entra VIIRS)
+  - **Accesibilidad**: `dist_parada_cercana_m`, PCA de los 4 `tiempos_min` de ORS principales.
+  - **Territorio**: `dist_costa_km`, `pct_area_enp`, `pct_area_zona_turistica`
+  - **Reputación y POIs**: `sentimiento_medio`, `n_resenas_total`, suma de `n_pois_naturaleza/playa/cultura`.
+  - **Target**: `ptna_score`
 - **Clústeres esperados:**
   - `"Saturado/Overtourism"` → Alta densidad, alta luz nocturna, bajo sentimiento (Sur: Las Américas).
   - `"Urbano Sin Turismo"` → Alta densidad, alta luz nocturna, bajo NDVI, sin PTNA (Santa Cruz, La Laguna).

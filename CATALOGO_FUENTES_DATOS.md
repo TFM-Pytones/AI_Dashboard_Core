@@ -40,16 +40,18 @@ El objetivo es tener un mapa claro de **dónde sale cada archivo** que alimenta 
 
 ## ✈️ Movilidad e Infraestructuras
 *Tráfico de pasajeros y transporte público.*
-- **AENA (Aeropuertos):** Datos de tráfico de pasajeros (TFS y TFN). Extraídos vía API pública de AENA o portales estadísticos.
-- **TITSA (Guaguas):** 
-  - **Origen:** Datos Abiertos de Tenerife (GTFS o Google Transit).
-  - **Uso:** Paradas y rutas de transporte público para medir la accesibilidad.
+- **AENA (Aeropuertos):** Datos de tráfico de pasajeros de TFS (Sur) y TFN (Norte), extraídos desde los informes Excel públicos de AENA y cargados en el blob de Azure como dato complementario de contexto (`blob: aena/`). No integrado directamente en `gold_h3_master`.
+- **TITSA y Metropolitano (Guaguas):**
+  - **Origen:** Datos Abiertos de Tenerife, formato GTFS.
+  - **Resultado en blob:** 7 archivos Parquet por operador (paradas, rutas, viajes, horarios, calendario, excepciones, atributos).
+  - **Uso:** Base para el cálculo de isócronas de accesibilidad y la capa `silver_gtfs_paradas` (3.893 paradas geolocalizadas).
 
-## 💬 Reputación y NLP (Booking, TripAdvisor, Foros)
+## 💬 Reputación y NLP (Booking, TripAdvisor, YouTube, LosViajeros)
 *Opiniones, precios y sentimiento de los turistas.*
-- **Booking.com:** Extracción de hoteles, VVs y reseñas mediante scripts de scraping (Selenium/Playwright) o APIs no oficiales.
-- **TripAdvisor:** Ubicaciones y reseñas (Actualmente pendiente de integración en el código; se aportarán como cargas de archivos externos temporales).
-- **LosViajeros.com & YouTube:** Scraping de foros y extracción mediante YouTube Data API v3 para medir la "Marca Tenerife" a nivel global.
+- **Booking.com:** Extracción de hoteles, viviendas vacacionales y reseñas mediante scraping automatizado con Python (Selenium/Playwright). Datos almacenados en el blob y procesados en la tabla `silver_booking_establishments` y `silver_booking_reviews`.
+- **TripAdvisor:** Ubicaciones y reseñas convertidas desde JSON a Parquet y cargadas en el blob. Procesadas en `silver_tripadvisor_ubicaciones` y `silver_tripadvisor_resenas`. Ambas fuentes se integran en `gold_h3_master`.
+- **YouTube API v3:** 41 vídeos y ~3.100 comentarios extraídos con la API gratuita (sin tarjeta de crédito). Almacenados en `bronze.youtube_videos` y `bronze.youtube_comments`. Procesados por el modelo de sentimiento (Hugging Face) y BERTopic.
+- **LosViajeros.com:** ~248 hilos y 167.000 mensajes extraídos mediante scraping con BeautifulSoup. Almacenados en `bronze.losviajeros_temas` y `bronze.losviajeros_mensajes`. Usados en el modelo de tópicos BERTopic.
 
 ---
 *(Nota: Este documento es dinámico. Si añadimos una API nueva o subimos un CSV manual de otra consejería, debemos documentarlo aquí para no perder la trazabilidad).*
