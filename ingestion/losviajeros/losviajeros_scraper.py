@@ -49,14 +49,13 @@ BASE_URL = "https://www.losviajeros.com"
 FORUM_ID = 61          # Islas Canarias
 FORUM_TAG = "Tenerife"  # tag propio del sitio -> ya viene pre-filtrado
 
-REQUEST_DELAY = (1.5, 3.0)  # segundos, rango aleatorio entre requests (min, max)
+REQUEST_DELAY = (0.5, 1.2)  # segundos entre requests (respetuoso y ágil)
 MAX_RETRIES = 3
 
 HEADERS = {
-    # Identifícate de verdad. Cambia el email/contexto por el tuyo.
     "User-Agent": (
-        "Mozilla/5.0 (compatible; TFM-InteligenciaTuristicaTenerife/1.0; "
-        "investigacion academica, no comercial; contacto: tu_email@tu_universidad.es)"
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 (TFM Investigacion Academica)"
     )
 }
 
@@ -68,7 +67,7 @@ def fetch(url: str) -> str | None:
     """GET con reintentos y backoff. Devuelve None si falla tras MAX_RETRIES."""
     for intento in range(MAX_RETRIES):
         try:
-            resp = session.get(url, timeout=15)
+            resp = session.get(url, timeout=20)
             if resp.status_code == 200:
                 time.sleep(random.uniform(*REQUEST_DELAY))
                 return resp.text
@@ -87,8 +86,6 @@ def discover_threads(max_pages: int = 7) -> list[dict]:
     """
     Recorre el listado de temas ya filtrado por tag Tenerife y devuelve
     metadatos básicos de cada tema (id, título, categoría, respuestas, lecturas).
-    max_pages=7 cubre las 248 temas actuales (35-40 por página); sube el número
-    si el foro ha crecido cuando lo ejecutes.
     """
     temas = []
     for page in range(max_pages):
@@ -103,8 +100,6 @@ def discover_threads(max_pages: int = 7) -> list[dict]:
             continue
 
         soup = BeautifulSoup(html, "html.parser")
-        # Cada tema es un enlace a foros.php?t=NNNNN . Esto SÍ lo confirmé
-        # directamente en el HTML renderizado, es fiable.
         for link in soup.find_all("a", href=re.compile(r"foros\.php\?t=\d+$")):
             m = re.search(r"t=(\d+)", link["href"])
             if not m:
@@ -122,33 +117,13 @@ def discover_threads(max_pages: int = 7) -> list[dict]:
     return temas
 
 
-def parse_post_block(block_text: str) -> dict | None:
-    """
-    Extrae autor / fecha / texto de un bloque de post usando los marcadores
-    de texto que sí confirmé (Publicado:, Registrado:, Mensajes:).
-    # AJUSTAR: si tu prueba con BeautifulSoup encuentra selectores de clase
-    reales (algo como .postbody / .postauthor en foros phpBB clásicos),
-    usa esos en vez de esta aproximación por texto — será más robusto.
-    """
-    fecha_match = re.search(
-        r"Publicado:\*?\*?\s*([A-Za-zé]+,?\s*\d{2}-\d{2}-\d{4}\s*\d{1,2}:\d{2})",
-        block_text,
-    )
-    autor_match = re.search(r"\[([^\]]+)\]\(https://www\.losviajeros\.com/index\.php\?name=Your_Account&profile=\d+\)", block_text)
-    if not fecha_match or not autor_match:
-        return None
-    return {
-        "autor": autor_match.group(1),
-        "fecha_publicado_raw": fecha_match.group(1),
-    }
-
-
-def scrape_thread(tema_id: str, titulo: str, max_posts_pages: int = 50) -> list[dict]:
+def scrape_thread(tema_id: str, titulo: str, max_posts_pages: int = 100) -> list[dict]:
     mensajes = []
     start = 0
-    paginas_vacias = 0
+    post_ids_vistos = set()
+    page_num = 1
 
-    while start < max_posts_pages * 20 and paginas_vacias < 2:
+    while start < max_posts_pages * 20:
         url = (
             f"{BASE_URL}/index.php?name=Forums&file=viewtopic"
             f"&t={tema_id}&postdays=0&postorder=asc&start={start}"
@@ -158,85 +133,106 @@ def scrape_thread(tema_id: str, titulo: str, max_posts_pages: int = 50) -> list[
             break
 
         soup = BeautifulSoup(html, "html.parser")
-        post_links = soup.find_all("a", href=re.compile(r"foros\.php\?p=\d+#\d+$"))
-        post_ids_pagina = sorted(set(re.search(r"p=(\d+)", a["href"]).group(1) for a in post_links))
+        postbodies = soup.find_all(class_=re.compile(r"postbody", re.I))
+        if not postbodies:
+            break
 
-        if not post_ids_pagina:
-            paginas_vacias += 1
-            start += 20
-            continue
+        nuevos_en_pagina = 0
+        for pb in postbodies:
+            parent = pb.find_parent("tr") or pb.find_parent("table")
+            link = parent.find("a", href=re.compile(r"p=(\d+)#\1")) if parent else None
+            if not link:
+                table = pb.find_parent("table")
+                if table:
+                    link = table.find("a", href=re.compile(r"p=(\d+)#\1"))
 
-        for post_id in post_ids_pagina:
-            texto_limpio = ""
-            
-            # 1. Encontrar el inicio exacto del mensaje
-            ancla = soup.find(attrs={"name": post_id})
-            
-            if ancla:
-                # 2. Subir SOLO a la fila (<tr>) que contiene este post concreto (evita coger la tabla entera)
-                fila = ancla.find_parent("tr")
-                if fila:
-                    # 3. Extraer EXCLUSIVAMENTE el contenedor de texto
-                    cuerpo = fila.find(class_=re.compile(r"postbody", re.I))
-                    if cuerpo:
-                        texto_limpio = cuerpo.get_text(separator=" ", strip=True)
+            p_id = None
+            if link:
+                m = re.search(r"p=(\d+)", link["href"])
+                if m:
+                    p_id = m.group(1)
 
-            # FILTRO DE SEGURIDAD: Si está vacío, o vemos que se coló el menú por error, ignoramos la fila
+            if not p_id or p_id in post_ids_vistos:
+                continue
+
+            texto_limpio = pb.get_text(separator=" ", strip=True)
             if not texto_limpio or texto_limpio.startswith("Últimos Mensajes") or "Menú principal" in texto_limpio:
                 continue
+
+            table_post = pb.find_parent("table")
+            fecha_post = None
+            if table_post:
+                m_fecha = re.search(r"Publicado:\s*([A-Za-zÁÉÍÓÚáéíóú]+,?\s*\d{2}-\d{2}-\d{4}\s*\d{1,2}:\d{2})", table_post.get_text())
+                if m_fecha:
+                    fecha_post = m_fecha.group(1)
+
+            post_ids_vistos.add(p_id)
+            nuevos_en_pagina += 1
 
             mensajes.append({
                 "tema_id": tema_id,
                 "tema_titulo": titulo,
-                "mensaje_id": post_id,
-                "url": f"{BASE_URL}/foros.php?p={post_id}#{post_id}",
+                "mensaje_id": p_id,
+                "url": f"{BASE_URL}/foros.php?p={p_id}#{p_id}",
                 "contexto_pagina_raw": texto_limpio,
                 "fetched_at": datetime.now(timezone.utc).isoformat(),
             })
 
-        paginas_vacias = 0
+        # CONDICIÓN DE PARADA: Si en esta página no hay posts nuevos, hemos alcanzado el final
+        if nuevos_en_pagina == 0:
+            break
+
         start += 20
+        page_num += 1
 
     return mensajes
 
 
-def main(max_temas: int | None = 2): # <-- NOTA: Puesto a 2 para hacer una prueba rápida
+def main(max_temas: int | None = None):
+    print("=== INICIANDO SCRAPER DE LOSVIAJEROS (VERSIÓN LIMPIA) ===", flush=True)
     temas = discover_threads()
     if max_temas:
         temas = temas[:max_temas]
 
-    # Guardar temas directamente en Parquet
-    import pandas as pd
+    # Guardar temas
     df_temas = pd.DataFrame(temas)
-    df_temas.to_parquet("losviajeros_temas.parquet", index=False)
-    print(f"Guardado losviajeros_temas.parquet ({len(df_temas)} temas)")
+    for p in ["losviajeros_temas.parquet", "ingestion/losviajeros/losviajeros_temas.parquet"]:
+        try:
+            df_temas.to_parquet(p, index=False)
+        except Exception:
+            pass
+    for p in ["losviajeros_temas.csv", "ingestion/losviajeros/losviajeros_temas.csv"]:
+        try:
+            df_temas.to_csv(p, index=False)
+        except Exception:
+            pass
+    print(f"Guardado losviajeros_temas ({len(df_temas)} temas).", flush=True)
 
     todos_mensajes = []
+    total_temas = len(temas)
     for i, tema in enumerate(temas):
-        print(f"[{i+1}/{len(temas)}] Descargando mensajes de: {tema['titulo']}")
+        print(f"[{i+1}/{total_temas}] Tema {tema['tema_id']}: '{tema['titulo'][:45]}...'", end="", flush=True)
         mensajes = scrape_thread(tema["tema_id"], tema["titulo"])
+        print(f" -> {len(mensajes)} posts extraídos (Total acum: {len(todos_mensajes) + len(mensajes)})", flush=True)
         todos_mensajes.extend(mensajes)
 
     if todos_mensajes:
-        # Guardar mensajes directamente en Parquet
         df_mensajes = pd.DataFrame(todos_mensajes)
-        df_mensajes.to_parquet("losviajeros_mensajes.parquet", index=False)
-        print(f"Guardado losviajeros_mensajes.parquet ({len(df_mensajes)} mensajes aislados)")
+        print(f"\nTotal mensajes limpios extraídos: {len(df_mensajes)}", flush=True)
+        
+        # Guardar en raíz y en carpeta de ingestión
+        for p in ["losviajeros_mensajes.parquet", "ingestion/losviajeros/losviajeros_mensajes.parquet"]:
+            try:
+                df_mensajes.to_parquet(p, index=False)
+            except Exception:
+                pass
+        for p in ["losviajeros_mensajes.csv", "ingestion/losviajeros/losviajeros_mensajes.csv"]:
+            try:
+                df_mensajes.to_csv(p, index=False)
+            except Exception:
+                pass
+        print(f"¡Éxito! Archivos guardados: losviajeros_mensajes.parquet y .csv ({len(df_mensajes)} filas)", flush=True)
 
 
 if __name__ == "__main__":
-    # MODO DEBUG recomendado para tu primera ejecución:
-    # descubre temas, coge el primero, y te enseña el HTML crudo de la
-    # primera página de mensajes para que confirmes selectores reales.
-    DEBUG = False
-
-    if DEBUG:
-        temas = discover_threads(max_pages=1)
-        print(temas[:5])
-        if temas:
-            html = fetch(temas[0]["url"])
-            with open("debug_primer_hilo.html", "w", encoding="utf-8") as f:
-                f.write(html or "")
-            print("Guardado debug_primer_hilo.html -> inspecciona la estructura real antes de lanzar main()")
-    else:
-        main(max_temas=None)  # sube esto (o pon None) cuando ya lo hayas validado
+    main()

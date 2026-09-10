@@ -13,6 +13,8 @@ sources:
       - name: bronze_espacios_naturales
       - name: bronze_mdt_stats
       - name: bronze_satelite_stats
+      - name: viirs_stats
+      - name: satelite_stats
       - name: bronze_limites_municipales
       - name: bronze_zonas_turisticas
       - name: bronze_osm_pois

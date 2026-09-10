@@ -1,4 +1,4 @@
-{{ config(materialized='table', enabled=false, tags=['silver', 'nlp', 'foro']) }}
+{{ config(materialized='table', tags=['silver', 'nlp', 'foro']) }}
 
 /*
   Modelo Silver: silver_losviajeros_mensajes

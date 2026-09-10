@@ -1,8 +1,8 @@
-{{ config(materialized='table', enabled=false, tags=['silver', 'nlp', 'foro']) }}
+{{ config(materialized='table', tags=['silver', 'nlp', 'foro']) }}
 
 /*
   Modelo Silver: silver_losviajeros
-  Limpieza del foro LosViajeros.com.
+  Resumen por hilo del foro LosViajeros.com.
   Columnas reales en bronze_losviajeros_temas: tema_id, titulo, url
   Columnas reales en bronze_losviajeros_mensajes: tema_id, tema_titulo, mensaje_id, url, contexto_pagina_raw, fetched_at
 */
@@ -18,9 +18,8 @@ WITH temas AS (
 
 mensajes AS (
     SELECT
-        id_tema,
-        url_tema,
-        titulo_tema,
+        tema_id,
+        mensaje_id,
         contexto_pagina_raw AS texto,
         fetched_at::date    AS fecha_mensaje,
         LENGTH(contexto_pagina_raw) AS longitud_texto
