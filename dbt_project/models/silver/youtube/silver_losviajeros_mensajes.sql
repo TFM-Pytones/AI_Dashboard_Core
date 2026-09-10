@@ -11,8 +11,8 @@ WITH mensajes AS (
         mensaje_id,
         tema_id,
         tema_titulo,
-        fetched_at::date        AS fecha_mensaje,
-        contexto_pagina_raw     AS texto,
+        fetched_at::date            AS fecha_mensaje,
+        contexto_pagina_raw         AS texto,
         LENGTH(contexto_pagina_raw) AS longitud_texto,
         CASE
             WHEN fetched_at::date BETWEEN '2020-03-14' AND '2021-12-31' THEN TRUE
@@ -22,6 +22,7 @@ WITH mensajes AS (
     WHERE mensaje_id IS NOT NULL
       AND contexto_pagina_raw IS NOT NULL
       AND TRIM(contexto_pagina_raw) != ''
+      AND fetched_at::date >= '2022-01-01'
 )
 
 SELECT * FROM mensajes

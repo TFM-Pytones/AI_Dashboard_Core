@@ -27,6 +27,7 @@ mensajes AS (
     WHERE mensaje_id IS NOT NULL
       AND contexto_pagina_raw IS NOT NULL
       AND TRIM(contexto_pagina_raw) != ''
+      AND fetched_at::date >= '2022-01-01'
 )
 
 SELECT
