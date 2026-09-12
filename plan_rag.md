@@ -30,13 +30,16 @@ El RAG resuelve las tres cosas: indexa el **texto real** de las 81.559 opiniones
 
 La arquitectura objetivo es un **router** que clasifica la pregunta y delega en la herramienta adecuada. La fila "mixta" es la que da valor diferencial en la defensa del TFM.
 
-### Frontera con el Squad B (⚠️ acordar antes de empezar)
+### Frontera con los otros squads (⚠️ acordar antes de empezar)
 
-El Bloque 7 (Text-to-SQL) y el 8.3 (panel de chatbot en Streamlit) están asignados al **Squad B (personas 3 y 4)**. Propuesta de reparto para no construir dos chatbots:
+Esto toca a los tres squads, así que conviene repartirlo explícitamente para no construir dos chatbots:
 
-- **Bloque 3 (Mario):** el índice vectorial, el recuperador y la herramienta RAG.
-- **Squad B:** la herramienta Text-to-SQL y el panel de Streamlit.
-- **Conjunto:** el router y el contrato de interfaz entre ambas herramientas.
+| Quién | Bloque | Qué le corresponde |
+|---|---|---|
+| **Mario (Squad A)** | 3 | El índice vectorial, el recuperador y la herramienta RAG |
+| **Squad B** (personas 3 y 4) | 7 | La herramienta Text-to-SQL |
+| **Squad C** (personas 5 y 6) | 8.3 | El panel de chatbot en Streamlit donde se integra todo |
+| **A + B** | — | El router y el contrato de interfaz entre ambas herramientas |
 
 ---
 
@@ -232,7 +235,7 @@ Router que clasifica la pregunta en `sql` / `rag` / `ambas` y compone la respues
 | 3 | **RAG funcionando en CLI con citas** | Fase 2 | 0,5 d |
 | 4 | Híbrido + filtros por metadatos | Fase 3 | 1 d |
 | 5 | Evaluación con métricas | Fase 4 | 0,5 d |
-| 6 | Integrado en Streamlit | Squad B | 1 d |
+| 6 | Integrado en Streamlit | Squads B y C | 1 d |
 
 **Total ≈ 4,5 días.** Líneas de corte por si aprieta el calendario:
 - **Fases 1 y 1.b** = la capa de tópicos del dashboard funcionando, **aunque el RAG se quedara sin hacer**. Es la parte con mejor relación valor/riesgo: no depende de Azure ni del Squad B.
@@ -249,7 +252,7 @@ Router que clasifica la pregunta en `sql` / `rag` / `ambas` y compone la respues
 | Riesgo | Mitigación |
 |---|---|
 | Azure deniega `VECTOR` en la allowlist | Plan B con ChromaDB (sección 4) |
-| Solape con el chatbot del Squad B | Acordar frontera **antes** de la Fase 6 (sección 2) |
+| Solape con el chatbot (Bloques 7 y 8.3, de otros squads) | Acordar frontera **antes** de la Fase 6 (sección 2) |
 | Calendario: Bloques 5 y 6 sin empezar | Cortar en Fase 3 o 5 (sección 11) |
 | Reseñas de Booking sin municipio tras el join espacial | Cuantificar en Fase 1; rescate por `address` si el hueco es grande |
 | El LLM responde sin anclarse en los fragmentos | Prompt restrictivo + métrica de *groundedness* (Fases 3 y 5) |
