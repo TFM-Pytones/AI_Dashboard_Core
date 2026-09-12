@@ -1,7 +1,6 @@
 {{ config(
     materialized='incremental',
-    unique_key=['source', 'source_id'],
-    enabled=false
+    unique_key=['source', 'source_id']
 ) }}
 
 WITH raw_sentiment AS (
