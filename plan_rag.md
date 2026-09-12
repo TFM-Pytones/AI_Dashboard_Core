@@ -115,6 +115,42 @@ Debe imprimir la cobertura real de `municipio` por fuente, para detectar si el j
 
 ---
 
+### 5.b — `gold_topicos_h3` y `gold_topicos_municipio` (desbloquea el dashboard)
+
+El mismo trabajo de enganche geográfico sirve para algo que el proyecto necesita igualmente: **hoy `gold.nlp_topics` no se puede pintar en el mapa**. No tiene `h3_index` ni `municipio`, solo `source`, `source_id`, `text`, `topic_id`, `topic_label`, `topic_size`, `probability`, `model_name`. Es una fila por opinión, no una fila por hexágono.
+
+Hace falta una tabla de agregación equivalente a lo que `gold_sentimiento_h3` hace con el sentimiento. Como las fuentes tienen precisión espacial distinta, se materializan **dos niveles** — patrón que el proyecto ya usa con `gold_h3_master` / `gold_municipio_master`:
+
+| Tabla | Granularidad | Fuentes | Por qué |
+|---|---|---|---|
+| `gold_topicos_h3` | Hexágono | Booking + TripAdvisor | Son las únicas con coordenadas reales (`geometry`) |
+| `gold_topicos_municipio` | Municipio | Booking + TripAdvisor + LosViajeros | `geo_mentions` solo da nombre de lugar, no coordenadas |
+
+> **Decisión metodológica:** LosViajeros **no** se reparte entre los hexágonos de su municipio. Un mensaje que menciona "Adeje" no ocurre en los ~100 hexágonos de Adeje; repartirlo fabricaría una precisión espacial que el dato no tiene. Se queda en el nivel municipal, que es su granularidad real.
+
+```sql
+-- gold_topicos_h3 (una fila por hexagono)
+h3_index               TEXT PRIMARY KEY,
+n_opiniones            INTEGER,
+topico_principal       TEXT,      -- topic_label mas frecuente
+topic_id_principal     INTEGER,
+n_opiniones_principal  INTEGER,   -- para calcular la concentracion del tema
+topicos_top3           JSONB      -- [{topic_id, label, n}, ...] para el panel de detalle
+```
+
+`gold_topicos_municipio` con la misma forma, cambiando `h3_index` por `municipio`.
+
+**Implementación:** modelos dbt en `dbt_project/models/gold/`, igual que `gold_sentimiento_h3.sql`. Requiere declarar antes `nlp_topics` y `geo_mentions` en `dbt_project/models/gold/sources.yml` (el grupo `gold_nlp` ya existe, pero solo lista las tres tablas del Bloque 2).
+
+**Para qué sirve en el dashboard (Bloque 8):**
+- Capa de mapa coloreada por tema dominante, junto a las de sentimiento y PTNA.
+- Panel de detalle al hacer clic en un hexágono (Subtarea 8.4): los 3 temas más hablados de esa zona.
+- Contexto cualitativo para los informes LLM por zona (Subtarea 9.1).
+
+**Aviso de calidad, a documentar en limitaciones:** agregar tópicos por municipio mete ruido. Verificado con datos reales: entre los temas de Arona aparece `icod, icod vinos, garachico, teno`, que viene de un mensaje sobre un itinerario que menciona Arona de pasada. Conviene exigir un mínimo de opiniones por celda antes de mostrar un tema dominante.
+
+---
+
 ## 6. Fase 2 — Embeddings
 
 - **Modelo:** `paraphrase-multilingual-mpnet-base-v2` (768 dimensiones).
@@ -191,18 +227,20 @@ Router que clasifica la pregunta en `sql` / `rag` / `ambas` y compone la respues
 |---|---|---|---|
 | 0 | `VECTOR` en allowlist de Azure | Portal Azure | — (paralelo) |
 | 1 | `gold.nlp_chunks` poblada | **ninguna** | 0,5 d |
+| 1.b | `gold_topicos_h3` + `gold_topicos_municipio` ← *desbloquea el mapa* | Fase 1 | 0,5 d |
 | 2 | Embeddings cargados | Fase 0 ó plan B | 0,5 d |
 | 3 | **RAG funcionando en CLI con citas** | Fase 2 | 0,5 d |
 | 4 | Híbrido + filtros por metadatos | Fase 3 | 1 d |
 | 5 | Evaluación con métricas | Fase 4 | 0,5 d |
 | 6 | Integrado en Streamlit | Squad B | 1 d |
 
-**Total ≈ 4 días.** Líneas de corte por si aprieta el calendario:
-- **Fases 1-3** = RAG funcionando y demostrable.
+**Total ≈ 4,5 días.** Líneas de corte por si aprieta el calendario:
+- **Fases 1 y 1.b** = la capa de tópicos del dashboard funcionando, **aunque el RAG se quedara sin hacer**. Es la parte con mejor relación valor/riesgo: no depende de Azure ni del Squad B.
+- **+ Fases 2-3** = RAG funcionando y demostrable.
 - **+ Fases 4-5** = calidad y rigor de TFM.
 - **+ Fase 6** = producto integrado.
 
-**La Fase 1 no depende de nada**, así que se puede arrancar mientras se resuelven la allowlist de Azure y el reparto con el Squad B.
+**Las Fases 1 y 1.b no dependen de nada**, así que se puede arrancar mientras se resuelven la allowlist de Azure y el reparto con el Squad B.
 
 ---
 
