@@ -48,8 +48,8 @@ DESTINOS = {
     "tfs":           [-16.5726, 28.0445],  # Aeropuerto Sur
     "tfn":           [-16.3413, 28.4827],  # Aeropuerto Norte
     "capital":       [-16.2519, 28.4700],  # Santa Cruz
-    "polo_sur":      [-16.7356, 28.0805],  # Costa Adeje
-    "polo_norte":    [-16.5488, 28.4148],  # Puerto de la Cruz
+    "extremo_sur":   [-16.7356, 28.0805],  # Costa Adeje
+    "extremo_norte": [-16.5488, 28.4148],  # Puerto de la Cruz
     "teide":         [-16.6214, 28.2547],  # Teleférico base
     "la_laguna":     [-16.3155, 28.4871],  # La Laguna
     "candelaria":    [-16.3683, 28.3516],  # Candelaria

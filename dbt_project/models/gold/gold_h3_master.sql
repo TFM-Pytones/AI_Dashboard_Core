@@ -9,9 +9,17 @@
 ) }}
 
 /*
-  Modelo Gold: gold_h3_master (BLOQUE 1)
-  Tabla maestra que unifica todos los indicadores del proyecto a nivel hexagonal (H3 Res 8).
-  Incluye interpolación meteorológica avanzada IDW (K=3) + Corrección de Gradiente Térmico.
+  Modelo Gold: gold_h3_master (BLOQUE 1 - Fase 1 Base Territorial)
+  Tabla maestra unificada a nivel hexagonal (H3 Res 8).
+  Incluye:
+    - Base espacial y municipal.
+    - Oferta reglada y plataformas OTAs (Booking y TripAdvisor) con métricas unificadas.
+    - POIs y transporte público TITSA.
+    - Relieve MDT optimizado (altitud, desnivel interno, pendiente, orientación y sombreado).
+    - Índices biofísicos Copernicus (NDVI, VIIRS, NDBI) anuales (2022-2026), trimestrales (Q1-Q4) y dinamismo temporal.
+    - Clima Agrocabildo IDW (K=3) + Gradiente Térmico, con Horas de Sol Diarias Reales (Estándar OMM >= 120 W/m2) y extremos ESG.
+    - Figuras ambientales ENP y Zonas Turísticas Oficiales con cobertura (%) y denominación para RAG / Text-to-SQL.
+    - Distancia euclidiana a la costa en kilómetros (dist_costa_km).
 */
 
 WITH h3 AS (
@@ -53,7 +61,7 @@ booking AS (
         h.h3_index,
         COUNT(DISTINCT e.establishment_id) AS n_establecimientos_booking,
         ROUND(AVG(r.rating)::numeric, 2) AS rating_booking_medio,
-        COUNT(r.review_id) FILTER (WHERE NOT r.periodo_covid) AS n_reviews_validas_booking
+        COUNT(r.review_id) FILTER (WHERE NOT r.periodo_covid) AS n_reviews_booking
     FROM h3 h
     LEFT JOIN {{ ref('silver_booking_establishments') }} e ON ST_Contains(h.geometry, e.geometry)
     LEFT JOIN {{ ref('silver_booking_reviews') }} r ON r.establishment_id = e.establishment_id
@@ -64,7 +72,8 @@ tripadvisor AS (
     SELECT
         h.h3_index,
         COUNT(DISTINCT e.location_id) AS n_establecimientos_tripadvisor,
-        ROUND(AVG(r.rating)::numeric, 2) AS rating_tripadvisor_medio
+        ROUND(AVG(r.rating)::numeric, 2) AS rating_tripadvisor_medio,
+        COUNT(r.review_id) FILTER (WHERE NOT r.periodo_covid) AS n_reviews_tripadvisor
     FROM h3 h
     LEFT JOIN {{ ref('silver_tripadvisor_ubicaciones') }} e ON ST_Contains(h.geometry, e.geometry)
     LEFT JOIN {{ ref('silver_tripadvisor_resenas') }} r ON r.location_id = e.location_id
@@ -96,14 +105,16 @@ paradas_bus AS (
 satelite_mdt AS (
     SELECT
         h.h3_index,
-        -- MDT Completo
-        m.elevation_mean, m.elevation_min, m.elevation_max,
+        -- MDT Optimizado
+        m.elevation_mean AS altitud_media_m,
+        (m.elevation_max - m.elevation_min) AS desnivel_m,
         m.slope_mean,
         m.aspect_mean,
         m.hillshade_mean,
         -- Indices de Satelite
         s.ndvi_medio, s.ndvi_2022, s.ndvi_2023, s.ndvi_2024, s.ndvi_2025, s.ndvi_2026, s.ndvi_q1, s.ndvi_q2, s.ndvi_q3, s.ndvi_q4,
         s.viirs_medio, s.viirs_2022, s.viirs_2023, s.viirs_2024, s.viirs_2025, s.viirs_2026, s.viirs_q1, s.viirs_q2, s.viirs_q3, s.viirs_q4,
+        s.cambio_luz_nocturna_pct,
         s.ndbi_medio, s.ndbi_2022, s.ndbi_2023, s.ndbi_2024, s.ndbi_2025, s.ndbi_2026
     FROM h3 h
     LEFT JOIN {{ source('bronze', 'bronze_mdt_stats') }} m ON h.h3_index = m.h3_index
@@ -134,6 +145,7 @@ satelite_mdt AS (
             AVG(viirs_mean) FILTER (WHERE quarter = 'Q2') AS viirs_q2,
             AVG(viirs_mean) FILTER (WHERE quarter = 'Q3') AS viirs_q3,
             AVG(viirs_mean) FILTER (WHERE quarter = 'Q4') AS viirs_q4,
+            ROUND((((AVG(viirs_mean) FILTER (WHERE year = 2026) - AVG(viirs_mean) FILTER (WHERE year = 2022)) / NULLIF(AVG(viirs_mean) FILTER (WHERE year = 2022), 0)) * 100)::numeric, 2) AS cambio_luz_nocturna_pct,
             
             -- NDBI
             AVG(ndbi_mean) AS ndbi_medio, 
@@ -162,8 +174,8 @@ clima_diario AS (
         AVG(valor_limpio) FILTER (WHERE variable_nombre ILIKE '%Direcci%') AS dir_viento_media,
         AVG(valor_limpio) FILTER (WHERE variable_nombre ILIKE '%Humedad%') AS humedad_media,
         MIN(valor_limpio) FILTER (WHERE variable_nombre ILIKE '%Humedad%') AS humedad_min,
-        AVG(valor_limpio) FILTER (WHERE variable_nombre ILIKE '%Radiaci%') AS insolacion_media,
-        AVG(valor_limpio) FILTER (WHERE variable_nombre ILIKE '%Radiaci%' AND EXTRACT(HOUR FROM "timestamp") BETWEEN 12 AND 16) AS radiacion_mediodia
+        -- Horas de sol segun estandar OMM (radiacion >= 120 W/m2 en lecturas horarias)
+        COUNT(*) FILTER (WHERE variable_nombre ILIKE '%Radiaci%' AND valor_limpio >= 120) AS horas_sol_dia
     FROM {{ ref('silver_clima_agrocabildo') }}
     GROUP BY id_estacion, date_trunc('day', "timestamp"), EXTRACT(QUARTER FROM "timestamp")
 ),
@@ -175,8 +187,13 @@ estaciones_clima AS (
         -- INDICADORES ESG Y EXTREMOS
         COUNT(*) FILTER (WHERE temp_max >= 35 AND humedad_min <= 30 AND dir_viento_media BETWEEN 60 AND 200) AS dias_ola_calor_anual,
         AVG(temp_max - temp_min) AS amplitud_termica_media,
-        AVG(radiacion_mediodia) FILTER (WHERE trimestre = 3) AS radiacion_mediodia_q3,
-        AVG(radiacion_mediodia) FILTER (WHERE trimestre = 1) AS radiacion_mediodia_q1,
+
+        -- HORAS DE SOL REALES (ESTÁNDAR OMM)
+        AVG(horas_sol_dia) AS horas_sol_diarias_media,
+        AVG(horas_sol_dia) FILTER (WHERE trimestre = 1) AS horas_sol_q1,
+        AVG(horas_sol_dia) FILTER (WHERE trimestre = 2) AS horas_sol_q2,
+        AVG(horas_sol_dia) FILTER (WHERE trimestre = 3) AS horas_sol_q3,
+        AVG(horas_sol_dia) FILTER (WHERE trimestre = 4) AS horas_sol_q4,
 
         -- VARIABLES ESTADISTICAS ESTACIONALES
         AVG(temp_media) AS temp_media_anual,
@@ -201,13 +218,7 @@ estaciones_clima AS (
         AVG(humedad_media) FILTER (WHERE trimestre = 1) AS humedad_media_q1,
         AVG(humedad_media) FILTER (WHERE trimestre = 2) AS humedad_media_q2,
         AVG(humedad_media) FILTER (WHERE trimestre = 3) AS humedad_media_q3,
-        AVG(humedad_media) FILTER (WHERE trimestre = 4) AS humedad_media_q4,
-        
-        AVG(insolacion_media) AS insolacion_media_anual,
-        AVG(insolacion_media) FILTER (WHERE trimestre = 1) AS insolacion_media_q1,
-        AVG(insolacion_media) FILTER (WHERE trimestre = 2) AS insolacion_media_q2,
-        AVG(insolacion_media) FILTER (WHERE trimestre = 3) AS insolacion_media_q3,
-        AVG(insolacion_media) FILTER (WHERE trimestre = 4) AS insolacion_media_q4
+        AVG(humedad_media) FILTER (WHERE trimestre = 4) AS humedad_media_q4
         
     FROM clima_diario
     GROUP BY id_estacion
@@ -309,8 +320,11 @@ h3_clima AS (
         
         -- INDICADORES ESG Y EXTREMOS (IDW Puro)
         SUM(dias_ola_calor_anual * peso) / NULLIF(SUM(peso), 0) AS dias_ola_calor_anual,
-        SUM(radiacion_mediodia_q3 * peso) / NULLIF(SUM(peso), 0) AS radiacion_mediodia_q3,
-        SUM(radiacion_mediodia_q1 * peso) / NULLIF(SUM(peso), 0) AS radiacion_mediodia_q1,
+        SUM(horas_sol_diarias_media * peso) / NULLIF(SUM(peso), 0) AS horas_sol_diarias_media,
+        SUM(horas_sol_q1 * peso) / NULLIF(SUM(peso), 0) AS horas_sol_q1,
+        SUM(horas_sol_q2 * peso) / NULLIF(SUM(peso), 0) AS horas_sol_q2,
+        SUM(horas_sol_q3 * peso) / NULLIF(SUM(peso), 0) AS horas_sol_q3,
+        SUM(horas_sol_q4 * peso) / NULLIF(SUM(peso), 0) AS horas_sol_q4,
 
         -- TEMPERATURA Y AMPLITUD (IDW + Gradiente Térmico + Termorregulación)
         SUM((temp_media_anual + COALESCE((station_altitud - h3_altitud) * 0.0065, 0)) * peso) / NULLIF(SUM(peso), 0) AS temp_media_anual,
@@ -339,14 +353,7 @@ h3_clima AS (
         SUM((humedad_media_q1 * (factor_hum_h3 / NULLIF(factor_hum_est, 0.001))) * peso) / NULLIF(SUM(peso), 0) AS humedad_media_q1,
         SUM((humedad_media_q2 * (factor_hum_h3 / NULLIF(factor_hum_est, 0.001))) * peso) / NULLIF(SUM(peso), 0) AS humedad_media_q2,
         SUM((humedad_media_q3 * (factor_hum_h3 / NULLIF(factor_hum_est, 0.001))) * peso) / NULLIF(SUM(peso), 0) AS humedad_media_q3,
-        SUM((humedad_media_q4 * (factor_hum_h3 / NULLIF(factor_hum_est, 0.001))) * peso) / NULLIF(SUM(peso), 0) AS humedad_media_q4,
-
-        -- INSOLACIÓN (IDW Puro)
-        SUM(insolacion_media_anual * peso) / NULLIF(SUM(peso), 0) AS insolacion_media_anual,
-        SUM(insolacion_media_q1 * peso) / NULLIF(SUM(peso), 0) AS insolacion_media_q1,
-        SUM(insolacion_media_q2 * peso) / NULLIF(SUM(peso), 0) AS insolacion_media_q2,
-        SUM(insolacion_media_q3 * peso) / NULLIF(SUM(peso), 0) AS insolacion_media_q3,
-        SUM(insolacion_media_q4 * peso) / NULLIF(SUM(peso), 0) AS insolacion_media_q4
+        SUM((humedad_media_q4 * (factor_hum_h3 / NULLIF(factor_hum_est, 0.001))) * peso) / NULLIF(SUM(peso), 0) AS humedad_media_q4
     FROM h3_vecinos_clima_factores
     GROUP BY h3_index
 ),
@@ -354,8 +361,8 @@ h3_clima AS (
 enp AS (
     SELECT
         h.h3_index,
-        BOOL_OR(e.geometry IS NOT NULL) AS es_enp,
-        ROUND((SUM(ST_Area(ST_Intersection(ST_Transform(h.geometry, 32628), ST_Transform(e.geometry, 32628)))) / ST_Area(ST_Transform(h.geometry, 32628)))::numeric, 4) AS pct_area_enp
+        ROUND((SUM(ST_Area(ST_Intersection(ST_Transform(h.geometry, 32628), ST_Transform(e.geometry, 32628)))) / ST_Area(ST_Transform(h.geometry, 32628)))::numeric, 4) AS pct_area_enp,
+        STRING_AGG(DISTINCT e.nombre_enp, ', ') AS nombre_enp
     FROM h3 h
     LEFT JOIN {{ ref('silver_enp') }} e ON ST_Intersects(h.geometry, e.geometry)
     GROUP BY h.h3_index, h.geometry
@@ -364,10 +371,11 @@ enp AS (
 zonas_turisticas AS (
     SELECT
         h.h3_index,
-        BOOL_OR(z.geometry IS NOT NULL) AS es_zona_turistica_oficial
+        ROUND((SUM(ST_Area(ST_Intersection(ST_Transform(h.geometry, 32628), ST_Transform(z.geometry, 32628)))) / ST_Area(ST_Transform(h.geometry, 32628)))::numeric, 4) AS pct_area_zona_turistica,
+        STRING_AGG(DISTINCT z.nombre_zona, ', ') AS nombre_zona_turistica
     FROM h3 h
     LEFT JOIN {{ ref('silver_zonas_turisticas') }} z ON ST_Intersects(h.geometry, z.geometry)
-    GROUP BY h.h3_index
+    GROUP BY h.h3_index, h.geometry
 )
 
 SELECT
@@ -378,7 +386,7 @@ SELECT
     h.centroide_lon,
     h.centroide_lat,
     
-    -- Alojamiento
+    -- Alojamiento Oficial
     COALESCE(aloj.n_establecimientos_registro, 0) AS n_establecimientos_registro,
     COALESCE(aloj.n_plazas_registro, 0) AS n_plazas_registro,
     COALESCE(aloj.n_hoteles, 0) AS n_hoteles,
@@ -388,11 +396,24 @@ SELECT
     -- Plataformas (Booking)
     COALESCE(b.n_establecimientos_booking, 0) AS n_establecimientos_booking,
     b.rating_booking_medio,
-    COALESCE(b.n_reviews_validas_booking, 0) AS n_reviews_booking,
+    COALESCE(b.n_reviews_booking, 0) AS n_reviews_booking,
     
     -- Plataformas (Tripadvisor)
     COALESCE(t.n_establecimientos_tripadvisor, 0) AS n_establecimientos_tripadvisor,
     t.rating_tripadvisor_medio,
+    COALESCE(t.n_reviews_tripadvisor, 0) AS n_reviews_tripadvisor,
+
+    -- Reputación y Reseñas Unificadas
+    (COALESCE(b.n_reviews_booking, 0) + COALESCE(t.n_reviews_tripadvisor, 0)) AS n_reviews_total,
+    CASE 
+        WHEN (COALESCE(b.n_reviews_booking, 0) + COALESCE(t.n_reviews_tripadvisor, 0)) > 0 THEN
+            ROUND((
+                (COALESCE(b.rating_booking_medio, 0) * 10.0 * COALESCE(b.n_reviews_booking, 0) +
+                 COALESCE(t.rating_tripadvisor_medio, 0) * 20.0 * COALESCE(t.n_reviews_tripadvisor, 0))
+                / NULLIF(COALESCE(b.n_reviews_booking, 0) + COALESCE(t.n_reviews_tripadvisor, 0), 0)
+            )::numeric, 2)
+        ELSE NULL
+    END AS rating_global_100,
     
     -- POIs
     COALESCE(p.n_pois_total, 0) AS n_pois_total,
@@ -404,10 +425,9 @@ SELECT
     -- Transporte
     COALESCE(pb.n_paradas_bus, 0) AS n_paradas_bus,
     
-    -- MDT y Topografía Avanzada
-    sm.elevation_mean AS altitud_media_m,
-    sm.elevation_min,
-    sm.elevation_max,
+    -- MDT y Topografía Optimizada
+    sm.altitud_media_m,
+    sm.desnivel_m,
     sm.slope_mean,
     sm.aspect_mean,
     sm.hillshade_mean,
@@ -434,6 +454,7 @@ SELECT
     sm.viirs_q2,
     sm.viirs_q3,
     sm.viirs_q4,
+    sm.cambio_luz_nocturna_pct,
     
     sm.ndbi_medio,
     sm.ndbi_2022,
@@ -442,26 +463,31 @@ SELECT
     sm.ndbi_2025,
     sm.ndbi_2026,
     
-    -- Clima (Agrocabildo) - ESG y Riesgos
+    -- Clima (Agrocabildo) - ESG y Extremos
     hc.dias_ola_calor_anual,
     hc.amplitud_termica_media,
-    hc.radiacion_mediodia_q1,
-    hc.radiacion_mediodia_q3,
+    
+    -- Clima (Agrocabildo) - Horas de Sol Reales (Estándar OMM >= 120 W/m2)
+    hc.horas_sol_diarias_media,
+    hc.horas_sol_q1,
+    hc.horas_sol_q2,
+    hc.horas_sol_q3,
+    hc.horas_sol_q4,
     
     -- Clima (Agrocabildo) - Estacional
     hc.temp_media_anual, hc.temp_media_q1, hc.temp_media_q2, hc.temp_media_q3, hc.temp_media_q4,
     hc.lluvia_mm_anual, hc.lluvia_mm_q1, hc.lluvia_mm_q2, hc.lluvia_mm_q3, hc.lluvia_mm_q4,
     hc.vel_viento_media_anual, hc.vel_viento_media_q1, hc.vel_viento_media_q2, hc.vel_viento_media_q3, hc.vel_viento_media_q4,
     hc.humedad_media_anual, hc.humedad_media_q1, hc.humedad_media_q2, hc.humedad_media_q3, hc.humedad_media_q4,
-    hc.insolacion_media_anual, hc.insolacion_media_q1, hc.insolacion_media_q2, hc.insolacion_media_q3, hc.insolacion_media_q4,
     
-    -- Distancia Euclidiana a la Costa
-    h_topo.h3_dist_costa_km * 1000 AS distancia_costa_metros,
+    -- Litoralidad (Distancia Euclidiana a la Costa en km)
+    h_topo.h3_dist_costa_km AS dist_costa_km,
     
-    -- Restricciones y Clasificación
-    COALESCE(enp.es_enp, FALSE) AS es_enp,
+    -- Restricciones Normativas y Zonas Turísticas
     COALESCE(enp.pct_area_enp, 0) AS pct_area_enp,
-    COALESCE(zt.es_zona_turistica_oficial, FALSE) AS es_zona_turistica_oficial,
+    enp.nombre_enp,
+    COALESCE(zt.pct_area_zona_turistica, 0) AS pct_area_zona_turistica,
+    zt.nombre_zona_turistica,
     
     h.geometry
 
