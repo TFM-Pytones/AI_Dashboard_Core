@@ -1,10 +1,8 @@
 """
 osm_tourism_upload_blob.py
 -----------------------------
-Extrae alojamientos, restaurantes y atracciones de OpenStreetMap 
-para la isla de Tenerife usando la API de Overpass.
-Guarda los resultados como un archivo GeoJSON en la capa bronce-raw
-de Azure Blob Storage.
+Extrae alojamientos, restaurantes y atracciones de OpenStreetMap para la isla de Tenerife usando la API de Overpass.
+Guarda los resultados como un archivo GeoJSON en la capa bronce-raw de Azure Blob Storage.
 """
 
 import os

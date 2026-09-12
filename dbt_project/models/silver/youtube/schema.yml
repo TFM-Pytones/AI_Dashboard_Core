@@ -1,0 +1,54 @@
+version: 2
+
+models:
+  - name: silver_youtube
+    description: "Vídeos de YouTube relacionados con el turismo, viajes y experiencias en Tenerife (>= 2022), agregados con métricas de comentarios válidos."
+    columns:
+      - name: video_id
+        description: "Identificador alfanumérico único del vídeo en YouTube."
+        tests:
+          - unique
+          - not_null
+      - name: titulo
+        description: "Título del vídeo publicado."
+        tests:
+          - not_null
+      - name: canal
+        description: "Canal o creador de contenido de YouTube."
+        tests:
+          - not_null
+      - name: search_term
+        description: "Término o consulta de búsqueda que recuperó el vídeo."
+        tests:
+          - not_null
+      - name: fecha_publicacion
+        description: "Fecha de publicación del vídeo."
+        tests:
+          - not_null
+
+  - name: silver_youtube_comentarios
+    description: "Comentarios de usuarios extraídos de vídeos de YouTube sobre Tenerife, limpiados y preparados para el análisis de sentimiento NLP."
+    columns:
+      - name: comment_id
+        description: "Identificador único del comentario en YouTube."
+        tests:
+          - unique
+          - not_null
+      - name: video_id
+        description: "Identificador del vídeo al que pertenece el comentario. Puede referenciar vídeos excluidos por el filtro temporal 2022."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('silver_youtube')
+                field: video_id
+              config:
+                severity: warn
+      - name: texto
+        description: "Texto del comentario (no vacío y depurado)."
+        tests:
+          - not_null
+      - name: fecha_comentario
+        description: "Fecha de publicación del comentario."
+        tests:
+          - not_null

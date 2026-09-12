@@ -10,7 +10,7 @@
 
 /*
   Modelo Gold: gold_h3_master (BLOQUE 1 - Fase 1 Base Territorial)
-  Tabla maestra unificada a nivel hexagonal (H3 Res 8).
+  Tabla maestra unificada a nivel hexagonal (H3 Res 8, 2.579 celdas insulares consolidadas desde silver_h3_grid).
   Incluye:
     - Base espacial y municipal.
     - Oferta reglada y plataformas OTAs (Booking y TripAdvisor) con métricas unificadas.

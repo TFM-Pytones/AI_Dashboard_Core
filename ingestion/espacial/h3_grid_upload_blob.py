@@ -1,3 +1,19 @@
+"""
+h3_grid_upload_blob.py
+----------------------
+Genera la malla base hexagonal Uber H3 (Resolución 8, ~0,85 km² por celda) para la isla de Tenerife.
+
+Flujo y conteo de celdas:
+1. Descarga el polígono de Tenerife desde OpenStreetMap (OSM).
+2. Aplica un buffer perimetral de 0.01 grados (~1,1 km) para garantizar la cobertura total de la franja litoral
+   (playas, acantilados, puertos y hoteles en primera línea de costa).
+3. Rellena el polígono amortiguado generando exactamente 2.746 celdas en la capa Bronze (guardadas en Parquet
+   y subidas al contenedor 'bronce-raw/espacial/h3/h3_grid_tenerife_res8.parquet').
+4. En la capa Silver (silver_h3_grid), estas 2.746 celdas se filtran espacialmente contra los límites municipales
+   oficiales (ST_Intersects), descartando 163 celdas 100% marítimas de alta mar y consolidando exactamente
+   2.583 celdas terrestres y costeras para el proyecto.
+"""
+
 import os
 import h3
 import osmnx as ox
@@ -14,10 +30,8 @@ def generate_h3_grid(resolution=8):
     # Extraer el polígono principal
     geom = gdf_tenerife.geometry.iloc[0]
     
-    # [SOLUCIÓN COSTA]: Añadimos un buffer de 0.01 grados (~1.1 km) al polígono.
-    # Esto "engorda" la silueta de Tenerife (~4.6 radios del hexágono H3-8 de margen).
-    # Así nos aseguramos de que el centro de los hexágonos costeros caiga siempre
-    # dentro del polígono ampliado, cubriendo el 100% de la isla real sin huecos.
+    # Añadimos un buffer de 0.01 grados (~1.1 km) al polígono para cubrir toda la costa.
+    # Esto aumenta la silueta de Tenerife (~4.6 radios del hexágono H3-8 de margen).
     geom = geom.buffer(0.01)
     
     if geom.geom_type == 'Polygon':

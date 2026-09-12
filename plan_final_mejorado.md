@@ -48,7 +48,7 @@ Las siguientes tablas en PostgreSQL existen en el esquema `bronze`:
 | `open_meteo_forecast` | Predicciones GFS (⚠️ baja prioridad para el TFM) | `ingest_bronze_to_postgres.py` |
 | `istac_municipios` | Indicadores económicos municipales ISTAC | `ingest_bronze_to_postgres.py` |
 | `istac_mun_plazas_vv` + otras ISTAC | Estadísticas de VV por municipio | `ingest_bronze_to_postgres.py` |
-| `h3_grid` | Malla hexagonal H3 resolución 8 (2.396 celdas) | `ingest_vector_to_postgres.py` |
+| `h3_grid` | Malla hexagonal H3 resolución 8 (2.746 celdas Bronze / 2.579 Silver/Gold) | `01_ingest_vector_to_postgres.py` |
 | `espacios_naturales` | Polígonos ENP (Espacios Naturales Protegidos) | `ingest_vector_to_postgres.py` |
 | `limites_municipales` | Polígonos de los 31 municipios de Tenerife | `ingest_vector_to_postgres.py` |
 | `zonas_turisticas` | Polígonos de zonas turísticas | `ingest_vector_to_postgres.py` |
@@ -176,7 +176,7 @@ pip install streamlit pydeck plotly wordcloud          # Bloque 8 (Dashboard)
 **Squad:** B (Personas 3 y 4) | **Prioridad:** CRÍTICA — todo lo demás depende de esta | **Semana:** 1
 
 ### ¿Qué es y para qué sirve?
-Esta es la tarea más crítica del TFM. La tabla `gold_h3_master` es la columna vertebral del proyecto: **una fila por cada hexágono H3** (2.396 hexágonos insulares), con todos los indicadores integrados. El `h3_index` (ej: `8928308280fffff`) es la clave primaria que une el trabajo de los 6 miembros del equipo.
+Esta es la tarea más crítica del TFM. La tabla `gold_h3_master` es la columna vertebral del proyecto: **una fila por cada hexágono H3** (2.579 hexágonos insulares consolidados desde `silver_h3_grid`), con todos los indicadores integrados. El `h3_index` (ej: `8928308280fffff`) es la clave primaria que une el trabajo de los 6 miembros del equipo.
 
 > **ARQUITECTURA Y ORDEN DEL PIPELINE (Fase 1 vs Fase Final):**
 > 1. **Fase 1 (Base Territorial Bloque 1):** Se construye el cimiento geoespacial, administrativo, satelital (Copernicus), climático (Agrocabildo), topográfico (MDT) y de oferta oficial y OTAs.
@@ -374,7 +374,7 @@ GROUP BY h.h3_index
 ---
 
 ### Output de la Tabla: `gold.gold_h3_master` (Fase 1 Base)
-**Tabla:** `gold.gold_h3_master` | **Filas:** ~2.396 | **Índices:** GIST en `geometry`, B-Tree en `cod_municipio` y `h3_index`
+**Tabla:** `gold.gold_h3_master` | **Filas:** 2.579 | **Índices:** GIST en `geometry`, B-Tree en `cod_municipio` y `h3_index`
 
 | Bloque Temático | Columnas en la Tabla | Tipo | Utilidad Clave |
 |---|---|---|---|
@@ -609,7 +609,7 @@ El pipeline en `analytics/topics/` divide el corpus en dos modelos complementari
 **Squad:** C (Personas 5 y 6) | **Prioridad:** Alta | **Semana:** 1
 
 ### ¿Qué es y para qué sirve?
-Este bloque construye la tabla `gold.h3_accesibilidad`, con **una fila por cada hexágono H3** (2.396 en total) y múltiples indicadores de accesibilidad calculados de forma precisa para toda la isla sin dejar ningún hexágono "ciego". Alimenta directamente al modelo MGWR del Bloque 5 como variables X, y al Dashboard como capas visuales interactivas.
+Este bloque construye la tabla `gold.gold_h3_accesibilidad`, con **una fila por cada hexágono H3** (2.579 en total consolidados desde `silver_h3_grid`) y múltiples indicadores de accesibilidad calculados de forma precisa para toda la isla sin dejar ningún hexágono "ciego". Alimenta directamente al modelo MGWR del Bloque 5 como variables X, y al Dashboard como capas visuales interactivas.
 
 La accesibilidad es uno de los predictores con **mayor peso estadístico** en la literatura turística: un establecimiento difícil de llegar desde el aeropuerto tiene hasta un 40% menos de probabilidad de éxito independientemente de su calidad intrínseca.
 
@@ -620,11 +620,11 @@ pip install openrouteservice geopandas pandas psycopg2-binary sqlalchemy shapely
 
 ---
 
-### Subtarea 4.1 — Routing Matrix ORS: Tiempos Exactos de Conducción para toda la Isla (2.746 hexágonos × 18 destinos)
-- **Mejora de Precisión Espacial (Centroide Ponderado por POIs)**: Para evitar el problema de MAUP (que el centro matemático de un hexágono caiga en el mar o en un acantilado inaccesible), la capa Silver (`silver_h3_grid`) calcula las coordenadas de origen basándose en el centro de masa de la actividad humana (POIs de OSM) dentro del hexágono, desplazando el punto de ruteo hacia las zonas habitadas/accesibles.
-- **¿Qué es?**: La **API de Matrices de ORS** calcula el tiempo de conducción desde CADA UNO de los 2.746 hexágonos hacia N destinos estratégicos. A diferencia de las isócronas (polígonos visuales), esto produce un **número exacto al minuto** (ej: 42.3 min) para cada hexágono, sin dejar ninguna zona aislada ni "ciega".
+### Subtarea 4.1 — Routing Matrix ORS: Tiempos Exactos de Conducción para toda la Isla (2.579 hexágonos × 18 destinos)
+- **Precisión Espacial (Centroide Canónico H3)**: Se utilizan los centroides geométricos exactos de cada hexágono H3 en EPSG:4326.
+- **¿Qué es?**: La **API de Matrices de ORS** calcula el tiempo de conducción desde CADA UNO de los 2.579 hexágonos hacia N destinos estratégicos. A diferencia de las isócronas (polígonos visuales), esto produce un **número exacto al minuto** (ej: 42.3 min) para cada hexágono, sin dejar ninguna zona aislada ni "ciega".
 - **¿Por qué Matrix y no isócronas para el modelo estadístico?**: Las isócronas clasifican los hexágonos como "dentro o fuera de un anillo de 30 min" (dato binario, pierde resolución). La Matrix da `42.3 min` vs `43.1 min` — información continua mucho más útil para la regresión MGWR.
-- **Coste de API**: Plan gratuito ORS: 500 peticiones/día, máx 3.500 pares origen-destino por petición. 2.746 hexágonos < 3.500 → **1 petición por destino**. 18 destinos × 1 petición = **18 peticiones totales** (~3.6% del límite diario).
+- **Coste de API**: Plan gratuito ORS: 500 peticiones/día, máx 3.500 pares origen-destino por petición. 2.579 hexágonos < 3.500 → **1 petición por destino**. 18 destinos × 1 petición = **18 peticiones totales** (~3.6% del límite diario).
 - **Los 18 Destinos Estratégicos Finales**
 | ID | Lugar | Coordenadas [lon, lat] | Justificación |
 |---|---|---|---|
@@ -648,7 +648,7 @@ pip install openrouteservice geopandas pandas psycopg2-binary sqlalchemy shapely
 | `arico` | Poris de Abona / Arico | `[-16.4648, 28.1655]` | Costa sureste. Ancla para detectar alto PTNA costero |
 - **Para que funcione bien**
   - Los centroides deben estar en formato `[lon, lat]` (ORS usa longitud primero, al contrario que PostGIS).
-  - Hacer una llamada de prueba con solo 5 hexágonos para validar el formato antes de lanzar los 2.396.
+  - Hacer una llamada de prueba con solo 5 hexágonos para validar el formato antes de lanzar los 2.579.
   - La respuesta devuelve tiempos en **segundos** — dividir entre 60 para obtener minutos.
   - Si un hexágono queda en zona inaccesible por carretera (mar), ORS devuelve `null` → usar `COALESCE(valor, 999)`.
 
@@ -676,7 +676,7 @@ destinos = {
 resultados = {'h3_index': df['h3_index'].tolist()}
 
 for nombre, coords_destino in destinos.items():
-    # 1 petición: 2396 orígenes → 1 destino (2396 pares < límite 3500)
+    # 1 petición: 2579 orígenes → 1 destino (2579 pares < límite 3500)
     response = client.distance_matrix(
         locations=origenes + [coords_destino],
         sources=list(range(len(origenes))),
@@ -868,7 +868,7 @@ CROSS JOIN linea_costa lc
 
 
 ### Subtarea 4.6 [Avanzado] — Walkability Index y pgRouting Local (OSM)
-- **¿Qué es?**: En lugar de depender de APIs externas, se descarga la red real de calles, aceras y senderos de Tenerife desde OpenStreetMap (OSM) y se crea un **servidor de rutas propio dentro de PostgreSQL**. Esto permite calcular distancias reales a pie y la "caminabilidad" (Walkability Index) de cada hexágono, que es brutal para predecir el éxito de alojamientos orientados a turistas sin coche. Demuestra un dominio absoluto de bases de datos espaciales y topologías de red (Grafos). Rompe cualquier límite de peticiones (puedes calcular una matriz de 2396x2396 si quieres) y es 100% gratuito.
+- **¿Qué es?**: En lugar de depender de APIs externas, se descarga la red real de calles, aceras y senderos de Tenerife desde OpenStreetMap (OSM) y se crea un **servidor de rutas propio dentro de PostgreSQL**. Esto permite calcular distancias reales a pie y la "caminabilidad" (Walkability Index) de cada hexágono, que es brutal para predecir el éxito de alojamientos orientados a turistas sin coche. Demuestra un dominio absoluto de bases de datos espaciales y topologías de red (Grafos). Rompe cualquier límite de peticiones (puedes calcular una matriz de 2579x2579 si quieres) y es 100% gratuito.
 
 - **Librerías y Herramientas necesarias**
   - Herramienta de línea de comandos: `osm2pgrouting` (para convertir el `.osm.pbf` a tablas SQL de nodos y aristas).
@@ -1365,7 +1365,7 @@ Convertir los resultados numéricos del modelo en lenguaje ejecutivo comprensibl
 
 ### Día 19 — Test de Integración End-to-End
 - Verificar pipeline completo sin errores: `dbt run → NLP → MGWR → Dashboard`.
-- Confirmar 2.396 filas de `gold.h3_master` sin NULLs en columnas críticas.
+- Confirmar 2.579 filas de `gold.gold_h3_master` sin NULLs en columnas críticas.
 - **Test de carga:** 3 personas navegando simultáneamente.
 
 ### Día 20 — Simulacro con Preguntas TUI
