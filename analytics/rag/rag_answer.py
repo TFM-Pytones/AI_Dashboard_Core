@@ -20,6 +20,7 @@ Uso:
 
 import argparse
 import sys
+import textwrap
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "llm"))
@@ -44,6 +45,19 @@ PREGUNTA: {pregunta}
 FRAGMENTOS RECUPERADOS:
 {fragmentos}
 """
+
+
+# El LLM devuelve cada parrafo como una sola linea de varios cientos de
+# caracteres; sin envolver, la terminal la parte a lo bruto y no hay quien lo lea.
+ANCHO = 88
+
+
+def envolver(texto: str, sangria: str = "") -> str:
+    parrafos = [p.strip() for p in texto.split("\n") if p.strip()]
+    return "\n\n".join(
+        textwrap.fill(p, width=ANCHO, initial_indent=sangria, subsequent_indent=sangria)
+        for p in parrafos
+    )
 
 
 def formatear_fragmentos(chunks: list[Chunk]) -> str:
@@ -90,19 +104,25 @@ def main():
         if getattr(args, clave)
     }
 
+    print(f"\nPREGUNTA: {args.pregunta}")
     if filters:
-        print(f"Filtros: {filters}")
-    print(f"Pregunta: {args.pregunta}\n")
+        print(f"FILTROS:  {', '.join(f'{k}={v}' for k, v in filters.items())}")
 
     respuesta, chunks = responder(args.pregunta, k=args.k, filters=filters)
 
-    print("=" * 70)
-    print(respuesta)
-    print("=" * 70)
-    print("\nFUENTES:")
+    print("\n" + "=" * ANCHO)
+    print(envolver(respuesta))
+    print("=" * ANCHO)
+
+    print(f"\nFUENTES ({len(chunks)} fragmentos recuperados):\n")
     for i, c in enumerate(chunks, 1):
-        print(f"  [{i}] {c.source} / {c.lugar} / dist={c.distancia:.3f}")
-        print(f"      {c.text[:160]}{'...' if len(c.text) > 160 else ''}")
+        cabecera = f"[{i}] {c.source} · {c.lugar}"
+        if c.fecha:
+            cabecera += f" · {c.fecha}"
+        cabecera += f" · similitud {1 - c.distancia:.0%}"
+        print(cabecera)
+        print(envolver(c.text[:300] + ("..." if len(c.text) > 300 else ""), sangria="    "))
+        print()
 
 
 if __name__ == "__main__":
