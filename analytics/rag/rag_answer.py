@@ -25,6 +25,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "llm"))
 
+from filtros import extraer_filtros, resolver_municipio, resolver_zona  # noqa: E402
 from llm_client import LLMClient  # noqa: E402
 from retriever import Chunk, search  # noqa: E402
 
@@ -72,8 +73,9 @@ def formatear_fragmentos(chunks: list[Chunk]) -> str:
     return "\n\n".join(partes)
 
 
-def responder(pregunta: str, k: int = 8, filters: dict | None = None) -> tuple[str, list[Chunk]]:
-    chunks = search(pregunta, k=k, filters=filters)
+def responder(pregunta: str, k: int = 8, filters: dict | None = None,
+              hibrida: bool = True) -> tuple[str, list[Chunk]]:
+    chunks = search(pregunta, k=k, filters=filters, hibrida=hibrida)
     if not chunks:
         return "No se recupero ningun fragmento con esos filtros.", []
 
@@ -96,19 +98,38 @@ def main():
     parser.add_argument("--pais", dest="pais_resenante")
     parser.add_argument("--desde", dest="fecha_desde", help="YYYY-MM-DD")
     parser.add_argument("--hasta", dest="fecha_hasta", help="YYYY-MM-DD")
+    parser.add_argument("--sin-auto", action="store_true",
+                        help="no deducir filtros de la pregunta")
+    parser.add_argument("--solo-vectorial", action="store_true",
+                        help="desactiva la busqueda hibrida (util para comparar)")
     args = parser.parse_args()
 
-    filters = {
+    explicitos = {
         clave: getattr(args, clave)
         for clave in ("municipio", "zona", "source", "pais_resenante", "fecha_desde", "fecha_hasta")
         if getattr(args, clave)
     }
 
+    # Lo escrito a mano manda sobre lo deducido de la pregunta.
+    deducidos = {} if args.sin_auto else extraer_filtros(args.pregunta)
+    filters = {**deducidos, **explicitos}
+
+    # Un municipio puede estar escrito de varias formas en la BD: se traduce a
+    # todas sus variantes (ver filtros.py).
+    if "municipio" in explicitos:
+        filters["municipio"] = resolver_municipio(explicitos["municipio"])
+    if "zona" in explicitos:
+        filters["zona"] = resolver_zona(explicitos["zona"])
+
     print(f"\nPREGUNTA: {args.pregunta}")
     if filters:
-        print(f"FILTROS:  {', '.join(f'{k}={v}' for k, v in filters.items())}")
+        def mostrar(v):
+            return v[0] if isinstance(v, list) and len(v) == 1 else v
+        origen = " (deducidos de la pregunta)" if deducidos and not explicitos else ""
+        print(f"FILTROS:  {', '.join(f'{k}={mostrar(v)}' for k, v in filters.items())}{origen}")
 
-    respuesta, chunks = responder(args.pregunta, k=args.k, filters=filters)
+    respuesta, chunks = responder(args.pregunta, k=args.k, filters=filters,
+                                  hibrida=not args.solo_vectorial)
 
     print("\n" + "=" * ANCHO)
     print(envolver(respuesta))

@@ -88,22 +88,25 @@ def embed_query(texto: str) -> str:
     return "[" + ",".join(f"{v:.6f}" for v in vector) + "]"
 
 
-# Filtros admitidos -> fragmento de SQL. Se construyen con marcadores %s, nunca
+# Filtros admitidos -> (columna, operador). Siempre con marcadores %s, nunca
 # interpolando el valor en la cadena.
 FILTROS_SQL = {
-    "municipio": "municipio = %s",
-    "zona": "zona = %s",
-    "source": "source = %s",
-    "topic_id": "topic_id = %s",
-    "pais_resenante": "pais_resenante = %s",
-    "fecha_desde": "fecha >= %s",
-    "fecha_hasta": "fecha <= %s",
-    "rating_max": "rating <= %s",
-    "rating_min": "rating >= %s",
+    "municipio": ("municipio", "="),
+    "zona": ("zona", "="),
+    "source": ("source", "="),
+    "topic_id": ("topic_id", "="),
+    "pais_resenante": ("pais_resenante", "="),
+    "fecha_desde": ("fecha", ">="),
+    "fecha_hasta": ("fecha", "<="),
+    "rating_max": ("rating", "<="),
+    "rating_min": ("rating", ">="),
 }
 
 
 def build_where(filters: dict | None) -> tuple[str, list]:
+    """Acepta listas de valores ademas de valores sueltos: un mismo municipio
+    esta escrito de varias formas en la BD (ver analytics/rag/filtros.py), asi
+    que filtrar por uno significa filtrar por todas sus variantes."""
     condiciones = ["embedding IS NOT NULL"]
     valores: list = []
     for clave, valor in (filters or {}).items():
@@ -111,38 +114,125 @@ def build_where(filters: dict | None) -> tuple[str, list]:
             continue
         if clave not in FILTROS_SQL:
             raise ValueError(f"Filtro no admitido: {clave}. Validos: {sorted(FILTROS_SQL)}")
-        condiciones.append(FILTROS_SQL[clave])
-        valores.append(valor)
+        columna, operador = FILTROS_SQL[clave]
+        if isinstance(valor, (list, tuple, set)):
+            if operador != "=":
+                raise ValueError(f"El filtro {clave} no admite varios valores.")
+            condiciones.append(f"{columna} = ANY(%s)")
+            valores.append(list(valor))
+        else:
+            condiciones.append(f"{columna} {operador} %s")
+            valores.append(valor)
     return " AND ".join(condiciones), valores
 
 
-def search(query: str, k: int = 8, filters: dict | None = None) -> list[Chunk]:
+CAMPOS = "chunk_id, source, source_id, text, topic_label, municipio, zona, fecha, rating"
+
+
+def search_semantica(query: str, k: int = 8, filters: dict | None = None) -> list[Chunk]:
+    """Solo busqueda vectorial. Se mantiene aparte de la hibrida para poder
+    comparar ambas en la evaluacion de la Fase 5."""
     where, valores = build_where(filters)
     vector = embed_query(query)
 
     sql = f"""
-        SELECT chunk_id, source, source_id, text, topic_label,
-               municipio, zona, fecha, rating,
-               embedding <=> %s::vector AS distancia
+        SELECT {CAMPOS}, embedding <=> %s::vector AS distancia
         FROM gold.nlp_chunks
         WHERE {where}
-        ORDER BY embedding <=> %s::vector
+        ORDER BY distancia
         LIMIT %s
     """
-
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
             cur.execute(f"SET LOCAL hnsw.ef_search = {EF_SEARCH}")
-            cur.execute(sql, [vector, *valores, vector, k])
+            cur.execute(sql, [vector, *valores, k])
             return [Chunk(*fila) for fila in cur.fetchall()]
     finally:
         conn.close()
 
 
+def search_hibrida(query: str, k: int = 8, filters: dict | None = None,
+                   candidatos: int = 50) -> list[Chunk]:
+    """Fusiona el ranking vectorial con el de texto completo por Reciprocal
+    Rank Fusion: score = 1/(60+posicion) sumado de ambas listas.
+
+    RRF se lleva bien con escalas incomparables -- la distancia coseno y el
+    ts_rank no se pueden sumar directamente -- porque solo usa la POSICION en
+    cada ranking, no la puntuacion. La constante 60 es la del articulo original
+    y amortigua las diferencias entre los primeros puestos.
+
+    Las condiciones de filtro se repiten en cada subconsulta en vez de usar un
+    CTE comun: un CTE referenciado dos veces se materializa y Postgres dejaria
+    de usar el indice HNSW.
+    """
+    where, valores = build_where(filters)
+    vector = embed_query(query)
+
+    sql = f"""
+        WITH semantica AS (
+            SELECT chunk_id, ROW_NUMBER() OVER (ORDER BY dist) AS pos
+            FROM (
+                SELECT chunk_id, embedding <=> %s::vector AS dist
+                FROM gold.nlp_chunks
+                WHERE {where}
+                ORDER BY dist
+                LIMIT %s
+            ) s
+        ),
+        lexica AS (
+            SELECT chunk_id, ROW_NUMBER() OVER (ORDER BY score DESC) AS pos
+            FROM (
+                SELECT chunk_id, ts_rank(tsv, plainto_tsquery('simple', %s)) AS score
+                FROM gold.nlp_chunks
+                WHERE tsv @@ plainto_tsquery('simple', %s) AND {where}
+                ORDER BY score DESC
+                LIMIT %s
+            ) l
+        ),
+        fusion AS (
+            SELECT COALESCE(s.chunk_id, x.chunk_id) AS chunk_id,
+                   COALESCE(1.0 / (60 + s.pos), 0) + COALESCE(1.0 / (60 + x.pos), 0) AS rrf
+            FROM semantica s
+            FULL OUTER JOIN lexica x ON x.chunk_id = s.chunk_id
+        )
+        SELECT {', '.join('c.' + campo for campo in CAMPOS.split(', '))},
+               c.embedding <=> %s::vector AS distancia
+        FROM fusion f
+        JOIN gold.nlp_chunks c ON c.chunk_id = f.chunk_id
+        ORDER BY f.rrf DESC
+        LIMIT %s
+    """
+
+    params = [
+        vector, *valores, candidatos,      # rama semantica
+        query, query, *valores, candidatos,  # rama lexica
+        vector, k,                          # distancia final y limite
+    ]
+
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(f"SET LOCAL hnsw.ef_search = {EF_SEARCH}")
+            cur.execute(sql, params)
+            return [Chunk(*fila) for fila in cur.fetchall()]
+    finally:
+        conn.close()
+
+
+def search(query: str, k: int = 8, filters: dict | None = None,
+           hibrida: bool = True) -> list[Chunk]:
+    if hibrida:
+        return search_hibrida(query, k=k, filters=filters)
+    return search_semantica(query, k=k, filters=filters)
+
+
 if __name__ == "__main__":
     pregunta = sys.argv[1] if len(sys.argv) > 1 else "ruido por la noche en el hotel"
     print(f"Pregunta: {pregunta!r}\n")
-    for i, c in enumerate(search(pregunta), 1):
-        print(f"[{i}] ({c.source}, {c.lugar}, dist={c.distancia:.3f})")
-        print(f"    {c.text[:200]}\n")
+    for etiqueta, funcion in [("SEMANTICA", search_semantica), ("HIBRIDA", search_hibrida)]:
+        print(f"--- {etiqueta} ---")
+        for i, c in enumerate(funcion(pregunta, k=5), 1):
+            print(f"[{i}] ({c.source}, {c.lugar}, similitud {1 - c.distancia:.0%})")
+            print(f"    {c.text[:160]}")
+        print()
