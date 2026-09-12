@@ -77,7 +77,11 @@ def responder(pregunta: str, k: int = 8, filters: dict | None = None,
               hibrida: bool = True) -> tuple[str, list[Chunk]]:
     chunks = search(pregunta, k=k, filters=filters, hibrida=hibrida)
     if not chunks:
-        return "No se recupero ningun fragmento con esos filtros.", []
+        # Misma frase que usa el LLM al abstenerse: quedarse sin fragmentos es
+        # otra forma de no tener informacion, y asi el caso se mide igual en la
+        # evaluacion (analytics/rag/eval/run_eval.py).
+        return ("No hay informacion suficiente en las opiniones recuperadas para responder a esto "
+                "(ningun fragmento cumple los filtros aplicados).", [])
 
     prompt = PROMPT_TEMPLATE.format(
         pregunta=pregunta,

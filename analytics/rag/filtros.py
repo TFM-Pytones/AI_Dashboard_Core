@@ -133,6 +133,21 @@ def resolver_municipio(nombre: str) -> list[str]:
     raise ValueError(f"Municipio no encontrado: {nombre!r}. Disponibles: {', '.join(disponibles)}")
 
 
+@lru_cache(maxsize=1)
+def rango_fechas_corpus() -> tuple:
+    """Primera y ultima fecha con dato en el corpus. Solo Booking y TripAdvisor
+    tienen fecha; LosViajeros y YouTube no."""
+    from retriever import get_db_connection
+
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT MIN(fecha), MAX(fecha) FROM gold.nlp_chunks WHERE fecha IS NOT NULL")
+            return cur.fetchone()
+    finally:
+        conn.close()
+
+
 def resolver_zona(nombre: str) -> list[str]:
     _, zonas = catalogo_lugares()
     clave = normalizar(nombre)
@@ -185,9 +200,17 @@ def extraer_filtros(pregunta: str) -> dict:
             filtros["source"] = fuente
             break
 
+    # Un año suelto en la pregunta no siempre es un filtro de fecha ("el
+    # mundial de 2022"). Se aplica solo si el rango pedido se solapa con el
+    # periodo que cubre el corpus; si no, filtrar daria cero resultados y el
+    # usuario creeria que no hay opiniones, cuando lo que pasa es que el corpus
+    # no llega ahi.
     anyos = ANYO_RE.findall(pregunta)
     if anyos:
-        filtros["fecha_desde"] = f"{min(anyos)}-01-01"
-        filtros["fecha_hasta"] = f"{max(anyos)}-12-31"
+        desde, hasta = f"{min(anyos)}-01-01", f"{max(anyos)}-12-31"
+        primera, ultima = rango_fechas_corpus()
+        if primera and ultima and desde <= ultima.isoformat() and hasta >= primera.isoformat():
+            filtros["fecha_desde"] = desde
+            filtros["fecha_hasta"] = hasta
 
     return filtros
