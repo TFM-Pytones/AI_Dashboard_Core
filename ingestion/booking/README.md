@@ -1,116 +1,95 @@
-# ingestion/scraping/
+# Ingesta de Establecimientos y Reseñas: Booking.com (Capa Bronze)
 
-Extracción de reseñas y menciones sobre Tenerife en plataformas externas.
-
-**Issues relacionadas:**
-- **Issue #12** — Scraping de plataformas de reservas (Booking.com). ✅ *Funcional, corriendo en producción (laptop + VM)*
-- **Issue #13** — Integración API de YouTube (`youtube.py`). ✅ *completado*
-- **Issue #14** — Extracción de foros (Reddit vía PRAW).
+Módulo encargado del descubrimiento, extracción automatizada y almacenamiento de establecimientos hoteleros y reseñas de viajeros en la isla de Tenerife mediante scraping ético sobre **Booking.com**.
 
 ---
 
-## 🔍 Booking.com (Issue #12)
-
-### Objetivo
-
-Extraer establecimientos y reseñas de Booking.com en Tenerife, para alimentar el análisis de sentimiento y el dashboard geolocalizado del proyecto.
-
-### Estado actual
-
-- **Descubrimiento**: automático, vía sitemaps oficiales de Booking (`sitembk-hotel-es.*.xml.gz`), filtrado por país (`/hotel/es/`) + palabras clave de OpenStreetMap (Overpass API) para identificar Tenerife.
-- **Extracción**: Selenium headless, con manejo robusto de errores (reintentos ante elementos obsoletos, clics vía JavaScript, banner de cookies y de Google One Tap, establecimientos sin reseñas).
-- **Almacenamiento**: Parquet en Azure Blob Storage (`bronce-raw/booking/`), capa Bronce del Data Lakehouse.
-- **Ejecución**: en paralelo desde laptop y VM Azure (`mv-orquestador-tfm`), cada una con su propio `scraping_progress.json` para evitar reprocesar.
-- **Pipeline hacia Silver**: `ingest_booking_to_postgres.py` → Postgres esquema `bronze` → modelos dbt → esquema `silver`, con deduplicación y tests de calidad automatizados.
-
-### Volumen actual (referencia, ver `docs/hallazgo_establecimientos_sin_resenas.md` para detalle metodológico)
-Cientos de establecimientos y miles de reseñas acumuladas — número creciendo con cada corrida de `run_continuous.py`.
-
-### Consideraciones legales y éticas
-
-Ver documentación completa en:
-- `docs/resumen_robots_tripadvisor.md`
-- `docs/resumen_robots_booking.md`
-- `docs/resumen_terminos_servicio.md`
-
-Resumen de reglas seguidas sin excepción:
-1. No se usa el buscador interno de Booking — descubrimiento vía sitemaps oficiales
-2. No se recolecta ningún dato personal del autor de reseñas (solo país, extraído de la bandera del avatar)
-3. No se republica el contenido extraído tal cual (solo uso interno/analítico para el TFM)
-4. ✅ Rate limiting con pausas aleatorias entre requests
-5. ✅ User-Agent identificable y rotado, sin spoofear bots conocidos
-6. ✅ Guardado incremental (cada establecimiento se sube apenas termina)
-
-### Estructura de archivos
+## 1. Arquitectura y Flujo de Datos
 
 ```
-ingestion/scraping/
-├── README.md
-├── config.py                      # límites, pausas, credenciales de contacto
-├── booking_scraper.py             # scraper principal
-├── run_continuous.py              # wrapper para corridas largas por lotes
-├── ingest_booking_to_postgres.py  # puente Bronce -> Postgres (bronze)
-├── validate_booking_data.py       # validación de calidad post-scraping
-├── build_tenerife_keywords.py     # genera palabras clave desde OSM/Overpass
-├── docs/
-│   ├── resumen_robots_tripadvisor.md
-│   ├── resumen_robots_booking.md
-│   ├── resumen_terminos_servicio.md
-│   ├── hallazgo_establecimientos_sin_resenas.md
-│   └── booking_scraper.log        # log persistente, acumula todas las corridas
-├── .claude/skills/booking-tenerife-scraper/
-│   └── SKILL.md                   # conocimiento técnico acumulado (selectores,
-│                                    # bugs conocidos y sus arreglos, patrones)
-└── utils/
-    ├── azure_storage.py
-    ├── rate_limiter.py
-    ├── user_agents.py
-    ├── logger.py
-    └── progress_tracker.py
+Sitemaps XML de Booking.com (sitembk-hotel-es.*.xml.gz)
+       │
+       ▼  Cruce con topónimos de OpenStreetMap (Overpass API)
+build_tenerife_keywords.py / build_priority_keywords.py
+       │
+       ▼  Descubrimiento de URLs en Tenerife
+booking_scraper.py / run_continuous.py (Selenium Headless)
+       │
+       ├─► Extracción de establecimientos, puntuaciones, servicios y reseñas
+       │
+       ▼  Almacenamiento directo en Data Lake (Azure Blob Storage)
+Contenedor: bronce-raw/booking/*.parquet
+       │
+       ▼  Puente de carga (ingestion/postgres/04_ingest_booking_to_postgres.py)
+PostgreSQL: bronze.bronze_booking_establecimientos / bronze_booking_resenas
+       │
+       ▼  Geocodificación PostGIS (ingestion/postgres/06_geocode_booking_pg.py)
+PostgreSQL: Enriquecimiento espacial con Nominatim y tabla centralizada `bronze.bronze_booking_geocoding_lookup`
+       │
+       ▼  Transformación analítica y deduplicación con dbt
+PostgreSQL: silver.silver_booking_hoteles / silver_booking_resenas
 ```
 
-### Cómo ejecutar
+---
 
-**Corrida única (pruebas cortas):**
+## 2. Componentes del Módulo
+
+### Scripts Principales
+* [`booking_scraper.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/booking/booking_scraper.py): Scraper modular con Selenium en modo headless. Implementa control de banners de cookies, ventanas emergentes (Google One Tap), reintentos con esperas inteligentes y extracción robusta de metadatos.
+* [`booking_scraper_deep.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/booking/booking_scraper_deep.py): Extracción en profundidad de opiniones históricas y desglose de valoraciones por categoría (limpieza, confort, ubicación, relación calidad/precio).
+* [`run_continuous.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/booking/run_continuous.py): Orquestador por lotes con persistencia de estado (`scraping_progress.json`), diseñado para ejecuciones largas y estables tanto en local como en máquinas virtuales Azure (`mv-orquestador-tfm`).
+* [`validate_booking_data.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/booking/validate_booking_data.py): Script de auditoría y calidad post-extracción. Verifica la integridad de columnas obligatorias, nulos anormales y consistencia temporal.
+* [`build_tenerife_keywords.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/booking/build_tenerife_keywords.py) y [`build_priority_keywords.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/booking/build_priority_keywords.py): Generadores del diccionario de topónimos de Tenerife desde OpenStreetMap (municipios, núcleos costeros, barrios, playas) para filtrar el sitemap global.
+* [`config.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/booking/config.py): Archivo de configuración centralizado (límites de scraping, tiempos de espera, user-agents y credenciales).
+
+### Módulos de Soporte (`utils/`)
+* `azure_storage.py`: Conexión y subida de archivos Parquet directamente a Azure Blob Storage (`bronce-raw`).
+* `rate_limiter.py`: Pausas estocásticas entre peticiones para emular navegación humana y mitigar bloqueos.
+* `user_agents.py`: Rotación controlada de cabeceras User-Agent identificables.
+* `progress_tracker.py`: Manejo del progreso incremental para evitar duplicar peticiones.
+* `logger.py`: Registro detallado de trazas en `booking_scraper.log`.
+
+---
+
+## 3. Consideraciones Éticas y Cumplimiento Normativo
+
+El diseño del scraper sigue un estricto protocolo ético:
+1. **Sin buscador interno**: El descubrimiento de URLs se realiza exclusivamente a través de los sitemaps XML públicos de Booking (`sitembk-hotel-es.*.xml.gz`).
+2. **Protección de Privacidad (Zero PII)**: No se recolecta ningún dato personal de los autores de reseñas (nombres de usuario o avatares se descartan; únicamente se conserva el país de procedencia extraído de la bandera del avatar).
+3. **Uso exclusivamente analítico**: La información agregada alimenta modelos de analítica de texto (BERTopic, PyABSA) y visualización territorial para el TFM, sin fines comerciales ni de republicación íntegra.
+4. **Respeto a la infraestructura**: Rate limiting con pausas aleatorias entre visitas para no sobrecargar el servidor web.
+
+---
+
+## 4. Flujo hacia la Base de Datos y Capa Silver
+
+1. **Carga en PostgreSQL**:
+   Los Parquets generados en el Data Lake se vuelcan a la base de datos relacional mediante:
+   ```bash
+   python ingestion/postgres/04_ingest_booking_to_postgres.py
+   ```
+   *(Modo `append` en PostgreSQL para registrar todas las extracciones).*
+
+2. **Georreferenciación**:
+   ```bash
+   python ingestion/postgres/06_geocode_booking_pg.py
+   ```
+   *(Asigna coordenadas geográficas a partir de la dirección, usando Nominatim y la tabla centralizada en Azure PostgreSQL `bronze.bronze_booking_geocoding_lookup`).*
+
+3. **Deduplicación y Transformación en dbt**:
+   En la capa Silver (`silver_booking_hoteles` y `silver_booking_resenas`), dbt se encarga de deduplicar por identificador de hotel y reseña (`keep last`), aplicar tests de calidad y estandarizar tipos numéricos.
+
+---
+
+## 5. Instrucciones de Ejecución
+
 ```bash
-python booking_scraper.py
+# Corrida única de prueba
+python ingestion/booking/booking_scraper.py
+
+# Corrida continua por lotes (producción)
+python ingestion/booking/run_continuous.py
+
+# Validación de calidad post-scraping
+python ingestion/booking/validate_booking_data.py --all --gap-minutes 600
 ```
-
-**Corrida continua por lotes (producción, laptop o VM):**
-```bash
-python run_continuous.py
-```
-Configurar `MAX_ESTABLISHMENTS_PER_RUN` (config.py) y `PAUSE_BETWEEN_BATCHES_SECONDS` (run_continuous.py) según los recursos disponibles — ver nota de RAM abajo.
-
-**Validar calidad de los datos scrapeados:**
-```bash
-python validate_booking_data.py --all --gap-minutes 600
-```
-
-**Subir Bronce a Postgres:**
-```bash
-python ingest_booking_to_postgres.py
-```
-
-**Transformar a Silver (desde `dbt_project/`):**
-```bash
-dbt run --select tag:booking
-dbt test --select tag:booking
-```
-
-### Ejecución en la VM Azure (`mv-orquestador-tfm`)
-
-Ver manual completo en Obsidian / `docs/manual_vm_tmux.md` — resumen:
-- La VM tiene RAM muy limitada (~842 MiB) — usar lotes moderados (20-100 según lo observado en `free -h`)
-- Usar `tmux` para que el proceso sobreviva a desconexiones SSH
-- Copiar manualmente `.env`, `scraping_progress.json` y `sitemap_discovery_cache.json` entre laptop y VM (no viajan por Git)
-
-### Limitaciones conocidas (documentadas, no bloqueantes)
-
-- Recall del descubrimiento limitado (~29-71% según corrida) — algunos establecimientos con slugs que no mencionan municipio ni coinciden con nombres de OSM no se descubren
-- ~0.5-1% de reseñas sin rating extraído (badge no disponible en el DOM en el momento del scraping)
-- Reseñas con puntuación pero sin comentario (Booking lo permite) generan `review_text` vacío — tratado como caso válido, no error
-- Pequeño porcentaje de direcciones con espacios faltantes en el texto (no afecta geocodificación)
-- Tabla `bronze.*` en Postgres acumula duplicados en cada corrida de `ingest_booking_to_postgres.py` (modo `append`) — la deduplicación real ocurre en el paso hacia `silver`
-
-Para el detalle técnico completo de cada bug encontrado y su solución, ver la skill `booking-tenerife-scraper`.

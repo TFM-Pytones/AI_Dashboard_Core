@@ -1,4 +1,4 @@
-# 🎯 Plan Final TFM — TUI Tenerife
+# Plan Final TFM — TUI Tenerife
 ## Arquitectura Completa y Estado Real del Proyecto
 
 > **Documento de referencia actualizado:** 25 agosto 2026  
@@ -6,7 +6,7 @@
 
 ---
 
-## 🗺️ Arquitectura General: Pipeline Medallón
+## Arquitectura General: Pipeline Medallón
 
 ```
 [Fuentes Externas] → Bronze (Azure Blob + Postgres) → Silver (dbt, limpieza) → Gold (dbt, análisis)
@@ -20,7 +20,7 @@ El flujo de datos completo es:
 
 ---
 
-## 🥉 Capa Bronze — Estado Real
+## Capa Bronze — Estado Real
 
 Las siguientes tablas en PostgreSQL existen en el esquema `bronze`:
 
@@ -45,7 +45,7 @@ Las siguientes tablas en PostgreSQL existen en el esquema `bronze`:
 | `estaciones_agrocabildo` | Metadatos de las 67 estaciones meteorológicas | `ingest_bronze_to_postgres.py` |
 | `clima_horario_agrocabildo` | Lecturas horarias de las estaciones | `ingest_bronze_to_postgres.py` |
 | `open_meteo_era5land` | Histórico climático ERA5-Land (reanálisis) | `ingest_bronze_to_postgres.py` |
-| `open_meteo_forecast` | Predicciones GFS (⚠️ baja prioridad para el TFM) | `ingest_bronze_to_postgres.py` |
+| `open_meteo_forecast` | Predicciones GFS (baja prioridad para el TFM) | `ingest_bronze_to_postgres.py` |
 | `istac_municipios` | Indicadores económicos municipales ISTAC | `ingest_bronze_to_postgres.py` |
 | `istac_mun_plazas_vv` + otras ISTAC | Estadísticas de VV por municipio | `ingest_bronze_to_postgres.py` |
 | `h3_grid` | Malla hexagonal H3 resolución 8 (2.746 celdas Bronze / 2.579 Silver/Gold) | `01_ingest_vector_to_postgres.py` |
@@ -60,86 +60,86 @@ Las siguientes tablas en PostgreSQL existen en el esquema `bronze`:
 
 ---
 
-## 🥈 Capa Silver — Estado Real y Completo
+## Capa Silver — Estado Real y Completo
 
 La capa Silver tiene la siguiente estructura final (tras consolidación). 
 
 > [!IMPORTANT]
 > En todos los modelos con geometrías, la columna se llama `geometry` y es de tipo `geometry(4326)`. Los índices GIST se definen en el `{{ config() }}` de dbt.
 
-### 📁 alojamiento/
+### alojamiento/
 | Modelo | Descripción | Estado |
 |---|---|---|
-| `silver_registro_hoteles` | Hoteles limpios con `geometry` PostGIS. Coordenadas enriquecidas con geocodificador (COALESCE). Cast seguro `NULLIF`+`REPLACE` en lugar de `TRY_CAST`. | ✅ Completo |
-| `silver_registro_viviendas_vacacionales` | Mismo patrón que hoteles | ✅ Completo |
-| `silver_registro_extrahoteleros` | Mismo patrón que hoteles | ✅ Completo |
-| **`silver_alojamiento_unificado`** | **TABLA PRINCIPAL.** `UNION ALL` de los 3 registros anteriores. Añade columna `tipo_alojamiento`. Índice GIST. Esta es la tabla que usa la capa Gold. | ✅ Completo |
+| `silver_registro_hoteles` | Hoteles limpios con `geometry` PostGIS. Coordenadas enriquecidas con geocodificador (COALESCE). Cast seguro `NULLIF`+`REPLACE` en lugar de `TRY_CAST`. | Completo |
+| `silver_registro_viviendas_vacacionales` | Mismo patrón que hoteles | Completo |
+| `silver_registro_extrahoteleros` | Mismo patrón que hoteles | Completo |
+| **`silver_alojamiento_unificado`** | **TABLA PRINCIPAL.** `UNION ALL` de los 3 registros anteriores. Añade columna `tipo_alojamiento`. Índice GIST. Esta es la tabla que usa la capa Gold. | Completo |
 
-### 📁 booking/
+### booking/
 | Modelo | Descripción | Estado |
 |---|---|---|
-| `silver_booking_establishments` | Establecimientos de Booking. `geometry` PostGIS. Deduplicación y enriquecimiento de coordenadas con geocodificador. | ✅ Completo |
-| `silver_booking_reviews` | Reseñas de texto de Booking. **Sin agregar** (1 fila = 1 reseña). Flag `periodo_covid`. Campo `longitud_texto`. Filtra reseñas vacías. | ✅ Completo |
+| `silver_booking_establishments` | Establecimientos de Booking. `geometry` PostGIS. Deduplicación y enriquecimiento de coordenadas con geocodificador. | Completo |
+| `silver_booking_reviews` | Reseñas de texto de Booking. **Sin agregar** (1 fila = 1 reseña). Flag `periodo_covid`. Campo `longitud_texto`. Filtra reseñas vacías. | Completo |
 
-### 📁 espacial/
+### espacial/
 | Modelo | Descripción | Estado |
 |---|---|---|
-| `silver_h3_grid` | Malla H3 + cálculo de área y centroides | ✅ Completo |
-| `silver_limites_municipales` | Polígonos municipales + área km² + centroides | ✅ Completo |
-| `silver_enp` | Espacios Naturales Protegidos. ⚠️ `municipio` es NULL (se asigna en Gold vía `ST_Intersection`) | ✅ Completo |
-| `silver_zonas_turisticas` | Polígonos de zonas turísticas | ✅ Completo |
-| `silver_osm_pois` | 15.000+ POIs OSM con `geometry`. Sub-dependencia del unificado. | ✅ Completo |
-| `silver_bienes_culturales` | BIC (polígonos). Campos: `bic_nombre`, `municipio_nombre`. Sub-dependencia del unificado. | ✅ Completo |
-| `silver_oficinas_turismo` | Oficinas de turismo (puntos). Campos: `nombre`, `horario`, `descripcion`, `telefono`, `estado`. Filtro: excluye cerradas temporalmente. Sub-dependencia del unificado. | ✅ Completo |
-| **`silver_puntos_interes_unificados`** | **TABLA PRINCIPAL.** `UNION ALL` de OSM + BIC + Oficinas. Columna `fuente` para diferenciar origen. Preserve campos específicos de oficinas. | ✅ Completo |
-| `silver_gtfs_paradas` | Paradas TITSA con `geometry` PostGIS | ✅ Completo |
-| `silver_gtfs_rutas` | Rutas TITSA | ✅ Completo |
-| `silver_indices_satelite` | NDVI, NDBI por H3 (pre-calculados) | ✅ Completo |
+| `silver_h3_grid` | Malla H3 + cálculo de área y centroides | Completo |
+| `silver_limites_municipales` | Polígonos municipales + área km² + centroides | Completo |
+| `silver_enp` | Espacios Naturales Protegidos. `municipio` es NULL (se asigna en Gold vía `ST_Intersection`) | Completo |
+| `silver_zonas_turisticas` | Polígonos de zonas turísticas | Completo |
+| `silver_osm_pois` | 15.000+ POIs OSM con `geometry`. Sub-dependencia del unificado. | Completo |
+| `silver_bienes_culturales` | BIC (polígonos). Campos: `bic_nombre`, `municipio_nombre`. Sub-dependencia del unificado. | Completo |
+| `silver_oficinas_turismo` | Oficinas de turismo (puntos). Campos: `nombre`, `horario`, `descripcion`, `telefono`, `estado`. Filtro: excluye cerradas temporalmente. Sub-dependencia del unificado. | Completo |
+| **`silver_puntos_interes_unificados`** | **TABLA PRINCIPAL.** `UNION ALL` de OSM + BIC + Oficinas. Columna `fuente` para diferenciar origen. Preserve campos específicos de oficinas. | Completo |
+| `silver_gtfs_paradas` | Paradas TITSA con `geometry` PostGIS | Completo |
+| `silver_gtfs_rutas` | Rutas TITSA | Completo |
+| `silver_indices_satelite` | NDVI, NDBI por H3 (pre-calculados) | Completo |
 
-### 📁 clima/
+### clima/
 | Modelo | Descripción | Estado |
 |---|---|---|
-| `silver_estaciones_agrocabildo` | Metadatos de estaciones con `geometry` PostGIS | ✅ Completo |
-| `silver_clima_horario_agrocabildo` | Lecturas horarias limpias. ⚠️ Problema #7: `id_sensor` sin tabla de metadatos de variable (temperatura, lluvia, etc.) | ⚠️ Funcional, mejorable |
-| `silver_era5land` | Histórico climático reanálisis ERA5 | ✅ Completo |
-| `silver_gfs_hist` | Predicciones GFS. **⚠️ Baja prioridad**: este dato no es relevante para el modelo MGWR ni el dashboard. Excluir de Gold. | ℹ️ Excluir de Gold |
+| `silver_estaciones_agrocabildo` | Metadatos de estaciones con `geometry` PostGIS | Completo |
+| `silver_clima_horario_agrocabildo` | Lecturas horarias limpias. Problema #7: `id_sensor` sin tabla de metadatos de variable (temperatura, lluvia, etc.) | Funcional, mejorable |
+| `silver_era5land` | Histórico climático reanálisis ERA5 | Completo |
+| `silver_gfs_hist` | Predicciones GFS. **Baja prioridad**: este dato no es relevante para el modelo MGWR ni el dashboard. Excluir de Gold. | ℹExcluir de Gold |
 
-### 📁 istac/
+### istac/
 | Modelo | Granularidad | Indicadores y Variables Contenidas | Estado |
 |---|---|---|---|
-| **`silver_istac_mensual`** | Mensual (`YYYY-MM`) | **Paro registrado** + **Vivienda Vacacional** (`plazas_vv`, `tasa_ocupacion_vv`, `estancia_media_vv`, `ingresos_vv`, `alojamientos_abiertos_vv`) + **Alojamientos Turísticos EOH** (`pernoctaciones`, `plazas_ofertadas`, `tasa_ocupacion_plazas`, `viajeros_entrados`). | ✅ Completo |
-| **`silver_istac_trimestral`** | Trimestral (`YYYY-QX`) | **Suite de Empleo y Seguridad Social** (9 indicadores): `empleo_total`, `empleo_asalariados`, `empleo_autonomos`, `empleo_hosteleria`, `empleo_servicios`, `empleo_comercio`, `empleo_construccion`, `empleo_industria`, `empleo_agricultura`. | ✅ Completo |
-| **`silver_istac_anual`** | Anual (`YYYY`) | **Demografía Oficial** (`poblacion_total`, `poblacion_15_64`, `poblacion_65_mas`, `edad_media`) + **Presión Turística Estructural** (`pob_turistica_equiv`). | ✅ Completo |
-| ~~`silver_istac_vivienda_vacacional`~~ | — | **CONSOLIDADO.** Sus métricas están integradas en `silver_istac_mensual`. | 🔄 Consolidado |
-| ~~`silver_istac_estatico`~~ | — | **ELIMINADO.** Duplicaba `silver_limites_municipales`. | 🗑️ Eliminado |
-| ~~`silver_istac_municipios_cifras_tenerife`~~ | — | **ELIMINADO.** Sustituido por anual/mensual/trimestral. | 🗑️ Eliminado |
+| **`silver_istac_mensual`** | Mensual (`YYYY-MM`) | **Paro registrado** + **Vivienda Vacacional** (`plazas_vv`, `tasa_ocupacion_vv`, `estancia_media_vv`, `ingresos_vv`, `alojamientos_abiertos_vv`) + **Alojamientos Turísticos EOH** (`pernoctaciones`, `plazas_ofertadas`, `tasa_ocupacion_plazas`, `viajeros_entrados`). | Completo |
+| **`silver_istac_trimestral`** | Trimestral (`YYYY-QX`) | **Suite de Empleo y Seguridad Social** (9 indicadores): `empleo_total`, `empleo_asalariados`, `empleo_autonomos`, `empleo_hosteleria`, `empleo_servicios`, `empleo_comercio`, `empleo_construccion`, `empleo_industria`, `empleo_agricultura`. | Completo |
+| **`silver_istac_anual`** | Anual (`YYYY`) | **Demografía Oficial** (`poblacion_total`, `poblacion_15_64`, `poblacion_65_mas`, `edad_media`) + **Presión Turística Estructural** (`pob_turistica_equiv`). | Completo |
+| ~~`silver_istac_vivienda_vacacional`~~ | — | **CONSOLIDADO.** Sus métricas están integradas en `silver_istac_mensual`. | Consolidado |
+| ~~`silver_istac_estatico`~~ | — | **ELIMINADO.** Duplicaba `silver_limites_municipales`. | Eliminado |
+| ~~`silver_istac_municipios_cifras_tenerife`~~ | — | **ELIMINADO.** Sustituido por anual/mensual/trimestral. | Eliminado |
 
-### 📁 movilidad/
+### movilidad/
 | Modelo | Descripción | Estado |
 |---|---|---|
-| `silver_aena_pasajeros` | Estadísticas de pasajeros (AENA). Movida de `espacial/` porque es dato tabular, no geográfico. | ✅ Completo |
+| `silver_aena_pasajeros` | Estadísticas de pasajeros (AENA). Movida de `espacial/` porque es dato tabular, no geográfico. | Completo |
 
-### 📁 youtube/
+### youtube/
 | Modelo | Descripción | Estado |
 |---|---|---|
-| `silver_youtube` | Métricas agregadas por vídeo (engagement, nº comentarios válidos). Para el Dashboard de engagement. | ✅ Completo |
-| `silver_losviajeros` | Métricas agregadas por hilo del foro. Para el Dashboard de engagement. | ✅ Completo |
-| `silver_youtube_comentarios` | **Sin agregar** (1 fila = 1 comentario). Flag `periodo_covid`. Para el Squad NLP. | ✅ Completo |
-| `silver_losviajeros_mensajes` | **Sin agregar** (1 fila = 1 mensaje). Flag `periodo_covid`. Para el Squad NLP. | ✅ Completo |
+| `silver_youtube` | Métricas agregadas por vídeo (engagement, nº comentarios válidos). Para el Dashboard de engagement. | Completo |
+| `silver_losviajeros` | Métricas agregadas por hilo del foro. Para el Dashboard de engagement. | Completo |
+| `silver_youtube_comentarios` | **Sin agregar** (1 fila = 1 comentario). Flag `periodo_covid`. Para el Squad NLP. | Completo |
+| `silver_losviajeros_mensajes` | **Sin agregar** (1 fila = 1 mensaje). Flag `periodo_covid`. Para el Squad NLP. | Completo |
 
-### 📁 tripadvisor/
+### tripadvisor/
 | Modelo | Descripción | Estado |
 |---|---|---|
-| `silver_tripadvisor_ubicaciones` | Establecimientos con `geometry` PostGIS e índice GIST. | ✅ Completo |
-| `silver_tripadvisor_resenas` | Reseñas (1 fila = 1 reseña). Flag `periodo_covid`. Filtra reseñas vacías. | ✅ Completo |
+| `silver_tripadvisor_ubicaciones` | Establecimientos con `geometry` PostGIS e índice GIST. | Completo |
+| `silver_tripadvisor_resenas` | Reseñas (1 fila = 1 reseña). Flag `periodo_covid`. Filtra reseñas vacías. | Completo |
 
 ---
 
-## 🥇 Capa Gold — Plan de Implementación y Matriz de Explotación
+## Capa Gold — Plan de Implementación y Matriz de Explotación
 
 > **NOTA DE CONVENCIONES:** Todos los modelos analíticos residen bajo el esquema `gold.*` en Azure PostgreSQL (las referencias históricas a `oro.*` quedan unificadas a `gold.*`).
 
-### 🗺️ Catálogo de Tablas Gold y Explotación en los 4 Pilares del TFM
+### Catálogo de Tablas Gold y Explotación en los 4 Pilares del TFM
 El proyecto estructura su capa analítica Gold en tres niveles territoriales/temporales (Micro H3, Meso Municipal y Macro Insular) más un componente vectorial de texto cualitativo:
 
 | Tabla en `gold.*` | Granularidad / Registros | 1. Variables Numéricas & Modelos | 2. Dashboard Streamlit | 3. LLM (Text-to-SQL) | 4. RAG Semántico |
@@ -172,7 +172,7 @@ pip install streamlit pydeck plotly wordcloud          # Bloque 8 (Dashboard)
 
 ---
 
-## 🔵 BLOQUE 1: `gold_h3_master` — La Tabla Maestra H3 que une todo el proyecto
+## BLOQUE 1: `gold_h3_master` — La Tabla Maestra H3 que une todo el proyecto
 **Squad:** B (Personas 3 y 4) | **Prioridad:** CRÍTICA — todo lo demás depende de esta | **Semana:** 1
 
 ### ¿Qué es y para qué sirve?
@@ -397,7 +397,7 @@ GROUP BY h.h3_index
 
 ---
 
-## 🔵 BLOQUE 1.B: Tablas Maestras Municipales y Macrotendencias de Movilidad
+## BLOQUE 1.B: Tablas Maestras Municipales y Macrotendencias de Movilidad
 Tablas de la capa Gold que consolidan la información a nivel municipal (con geometría PostGIS para mapas coropléticos) y series temporales (ISTAC y AENA) para el Dashboard, el análisis numérico y el agente LLM Text-to-SQL.
 
 ### Subtarea 1.B.1 — `gold_municipio_master` (La Tabla Maestra Municipal con PostGIS)
@@ -465,7 +465,7 @@ Tablas de la capa Gold que consolidan la información a nivel municipal (con geo
 
 ---
 
-## 🔴 BLOQUE 2: NLP CON COORDENADAS — Sentimiento y Aspectos Geolocalizados (Booking + TripAdvisor → Malla H3)
+## BLOQUE 2: NLP CON COORDENADAS — Sentimiento y Aspectos Geolocalizados (Booking + TripAdvisor → Malla H3)
 **Squad:** A (Personas 1 y 2) | **Prioridad:** Alta | **Semana:** 1-2
 
 ### ¿Qué es y para qué sirve?
@@ -539,7 +539,7 @@ GROUP BY h.h3_index
 
 ---
 
-## 🟤 BLOQUE 3: NLP CUALITATIVO Y SIN COORDENADAS — Percepción Global, Tópicos y Base de Conocimiento RAG (YouTube + LosViajeros)
+## BLOQUE 3: NLP CUALITATIVO Y SIN COORDENADAS — Percepción Global, Tópicos y Base de Conocimiento RAG (YouTube + LosViajeros)
 **Squad:** A (Personas 1 y 2) | **Prioridad:** Media | **Semana:** 1-2 (en paralelo con Bloque 2)
 
 ### ¿Qué es y para qué sirve?
@@ -605,7 +605,7 @@ El pipeline en `analytics/topics/` divide el corpus en dos modelos complementari
 
 ---
 
-## 🟡 BLOQUE 4: `gold_h3_accesibilidad` — Accesibilidad Territorial Completa (ORS Matrix + PostGIS)
+## BLOQUE 4: `gold_h3_accesibilidad` — Accesibilidad Territorial Completa (ORS Matrix + PostGIS)
 **Squad:** C (Personas 5 y 6) | **Prioridad:** Alta | **Semana:** 1
 
 ### ¿Qué es y para qué sirve?
@@ -943,7 +943,7 @@ Desglose exhaustivo de las **27 columnas** calculadas por [`analytics/accesibili
 
 
 
-## 🟠 BLOQUE 5: `gold_h3_ptna` — Regresión Espacial MGWR + Índice PTNA (Potencial Turístico No Aprovechado)
+## BLOQUE 5: `gold_h3_ptna` — Regresión Espacial MGWR + Índice PTNA (Potencial Turístico No Aprovechado)
 **Squad:** B (Personas 3 y 4) | **Prioridad:** Alta | **Semana:** 2
 
 ### ¿Qué es y para qué sirve?
@@ -962,25 +962,25 @@ pip install mgwr libpysal scikit-learn numpy pandas matplotlib
 - **Variables X para MGWR (Seleccionadas bajo criterio de VIF < 10 y sin multicolinealidad):**
   | Variable X Real | Tabla Origen | Decisión / Razón de Negocio TUI |
   |---|---|---|
-  | `altitud_media_m` | `gold_h3_master` | ✅ **Incluir** (Gradiente orográfico costa-cumbre, barrera a sol y playa) |
-  | `slope_mean` | `gold_h3_master` | ✅ **Incluir** (Pendiente media: barrera constructiva y vial) |
-  | `ndvi_medio` | `gold_h3_master` | ✅ **Incluir** (Sentinel-2: cobertura vegetal y atractivo paisajístico) |
-  | `temp_media_anual` | `gold_h3_master` | ✅ **Incluir** (Confort térmico corregido por altitud con gradiente) |
-  | `lluvia_mm_anual` | `gold_h3_master` | ✅ **Incluir** (Diferencial pluviométrico estructural norte/sur) |
-  | `tiempo_aeropuerto_min` | `gold_h3_accesibilidad` | ✅ **Incluir** (`MIN(tiempo_tfs, tiempo_tfn)`: variable reina de conectividad exterior) |
-  | `tiempo_polo_turistico_min` | `gold_h3_accesibilidad` | ✅ **Sustitución recomendada:** `MIN(tiempo_extremo_sur_min, tiempo_extremo_norte_min)` para capturar proximidad al polo turístico maduro más cercano evitando la colinealidad negativa de meter sur y norte separados. |
-  | `tiempo_teide_min` | `gold_h3_accesibilidad` | ✅ **Incluir** (Fricción temporal al Parque Nacional / centro insular) |
-  | `dist_parada_cercana_m` | `gold_h3_accesibilidad` | ✅ **Sustitución recomendada:** Usar la distancia continua en metros en lugar del conteo `n_paradas_bus_500m`, para evitar el exceso de ceros en zonas rurales y medir aislamiento continuo. |
-  | `dist_hospital_km` | `gold_h3_accesibilidad` | ✅ **Incluir** (Seguridad sanitaria, factor crítico para turismo familiar y senior de TUI) |
-  | `dist_costa_km` | `gold_h3_master` / `acc` | ✅ **Incluir** (Litoralidad y distancia al modelo sol y playa) |
-  | `pct_area_enp` | `gold_h3_master` | ✅ **Incluir** (Restricción legal estricta al desarrollo hotelero) |
-  | `n_restaurantes`, `n_naturaleza`, `n_cultura` | `gold_h3_master` | ✅ **Incluir** (Densidad de POIs y servicios de ocio caminables) |
-  | `sentimiento_medio` | `gold_h3_sentimiento` | ✅ **Incluir** (Calidad percibida en Booking + TripAdvisor) |
-  | `ndbi_medio` | `gold_h3_master` | ⚠️ **Excluir** (Proxy directo de urbanización, colineal con plazas) |
-  | `viirs_medio` (todos) | `gold_h3_master` | ❌ **EXCLUIR** (Proxy directo de Y por luz nocturna, inflaría el R2 de forma tramposa) |
-  | Columnas trimestrales (clima/NDVI/VIIRS) | `gold_h3_master` | ❌ **EXCLUIR** (Colinealidad casi perfecta con las medias anuales, VIF > 20) |
-  | 15 Destinos secundarios ORS | `gold_h3_accesibilidad` | ❌ **EXCLUIR** (Los tiempos a Garachico, Buenavista, Güímar, etc. saturan el modelo de colinealidad. Solo se usan los 3 polos estratégicos). |
-  | `walkability_index` | Teórico (pgRouting) | ❌ **EXCLUIR** (Sustituido con éxito por `dist_parada_cercana_m` + `n_restaurantes`). |
+  | `altitud_media_m` | `gold_h3_master` | **Incluir** (Gradiente orográfico costa-cumbre, barrera a sol y playa) |
+  | `slope_mean` | `gold_h3_master` | **Incluir** (Pendiente media: barrera constructiva y vial) |
+  | `ndvi_medio` | `gold_h3_master` | **Incluir** (Sentinel-2: cobertura vegetal y atractivo paisajístico) |
+  | `temp_media_anual` | `gold_h3_master` | **Incluir** (Confort térmico corregido por altitud con gradiente) |
+  | `lluvia_mm_anual` | `gold_h3_master` | **Incluir** (Diferencial pluviométrico estructural norte/sur) |
+  | `tiempo_aeropuerto_min` | `gold_h3_accesibilidad` | **Incluir** (`MIN(tiempo_tfs, tiempo_tfn)`: variable reina de conectividad exterior) |
+  | `tiempo_polo_turistico_min` | `gold_h3_accesibilidad` | **Sustitución recomendada:** `MIN(tiempo_extremo_sur_min, tiempo_extremo_norte_min)` para capturar proximidad al polo turístico maduro más cercano evitando la colinealidad negativa de meter sur y norte separados. |
+  | `tiempo_teide_min` | `gold_h3_accesibilidad` | **Incluir** (Fricción temporal al Parque Nacional / centro insular) |
+  | `dist_parada_cercana_m` | `gold_h3_accesibilidad` | **Sustitución recomendada:** Usar la distancia continua en metros en lugar del conteo `n_paradas_bus_500m`, para evitar el exceso de ceros en zonas rurales y medir aislamiento continuo. |
+  | `dist_hospital_km` | `gold_h3_accesibilidad` | **Incluir** (Seguridad sanitaria, factor crítico para turismo familiar y senior de TUI) |
+  | `dist_costa_km` | `gold_h3_master` / `acc` | **Incluir** (Litoralidad y distancia al modelo sol y playa) |
+  | `pct_area_enp` | `gold_h3_master` | **Incluir** (Restricción legal estricta al desarrollo hotelero) |
+  | `n_restaurantes`, `n_naturaleza`, `n_cultura` | `gold_h3_master` | **Incluir** (Densidad de POIs y servicios de ocio caminables) |
+  | `sentimiento_medio` | `gold_h3_sentimiento` | **Incluir** (Calidad percibida en Booking + TripAdvisor) |
+  | `ndbi_medio` | `gold_h3_master` | **Excluir** (Proxy directo de urbanización, colineal con plazas) |
+  | `viirs_medio` (todos) | `gold_h3_master` | **EXCLUIR** (Proxy directo de Y por luz nocturna, inflaría el R2 de forma tramposa) |
+  | Columnas trimestrales (clima/NDVI/VIIRS) | `gold_h3_master` | **EXCLUIR** (Colinealidad casi perfecta con las medias anuales, VIF > 20) |
+  | 15 Destinos secundarios ORS | `gold_h3_accesibilidad` | **EXCLUIR** (Los tiempos a Garachico, Buenavista, Güímar, etc. saturan el modelo de colinealidad. Solo se usan los 3 polos estratégicos). |
+  | `walkability_index` | Teórico (pgRouting) | **EXCLUIR** (Sustituido con éxito por `dist_parada_cercana_m` + `n_restaurantes`). |
 
 ---
 
@@ -1069,7 +1069,7 @@ df['ptna_score'] = modelo.predy.flatten() - y.flatten()  # Esperado - Observado
 
 ---
 
-## 🟣 BLOQUE 6: `gold_h3_clusters` — Clustering de Zonas Turísticas (HDBSCAN)
+## BLOQUE 6: `gold_h3_clusters` — Clustering de Zonas Turísticas (HDBSCAN)
 **Squad:** A (Personas 1 y 2) | **Prioridad:** Media | **Semana:** 2
 
 ### ¿Qué es y para qué sirve?
@@ -1116,7 +1116,7 @@ pip install hdbscan scikit-learn numpy pandas
 - *Output:* Tabla `oro.h3_clusters` con columnas `h3_index`, `tipo_zona` (ej: `"Overtourism"`, `"Rural Infrautilizaada"`, `"Transicion"`).
 ---
 
-## ⚡ BLOQUE 7: Agente Text-to-SQL — Consultas en Lenguaje Natural al Mapa (LangChain + LLM)
+## BLOQUE 7: Agente Text-to-SQL — Consultas en Lenguaje Natural al Mapa (LangChain + LLM)
 **Squad:** B (Personas 3 y 4) | **Prioridad:** Media | **Semana:** 2
 
 ### ¿Qué es y para qué sirve?
@@ -1220,7 +1220,7 @@ Probar el agente con consultas reales de diferentes granularidades:
 
 ---
 
-## 🖥️ BLOQUE 8: Dashboard Streamlit — Mapa H3 Interactivo + Chatbot IA
+## BLOQUE 8: Dashboard Streamlit — Mapa H3 Interactivo + Chatbot IA
 **Squad:** C (Personas 5 y 6) | **Prioridad:** Alta | **Semana:** 2-3
 
 ### ¿Qué es y para qué sirve?
@@ -1329,7 +1329,7 @@ pip install streamlit pydeck sqlalchemy geopandas pandas plotly wordcloud
   - Sliders para modificar variables locales (ej. "+300 plazas hoteleras", "-10 min al aeropuerto por mejora vial").
   - Multiplicación matricial instantánea por los coeficientes locales guardados de MGWR (`coef_tiempo_aeropuerto`, `coef_ndvi`) para proyectar el nuevo $PTNA$ estimado sin demoras de base de datos.
 
-## 📄 BLOQUE 9: Informe Narrativo Automático + Redacción del TFM
+## BLOQUE 9: Informe Narrativo Automático + Redacción del TFM
 **Squad:** Todos | **Semana:** 3
 
 ### ¿Qué es y para qué sirve?
@@ -1348,7 +1348,7 @@ Convertir los resultados numéricos del modelo en lenguaje ejecutivo comprensibl
 - **Técnica**: Programar un script que se ejecute post-dbt (o al iniciar el dashboard) que busque:
   1. *Alertas de Overtourism*: `esg_territorial_score < 40` + `sentimiento_medio < 2`.
   2. *Alertas de Oportunidad*: `ptna_score > 80` + `esg_territorial_score > 80`.
-- **Integración con el LLM**: Se le pasa esa lista de hexágonos al LLM para que redacte la alerta en tono ejecutivo (ej. "⚠️ Riesgo detectado en Arona Sur: saturación crítica y quejas por ruido").
+- **Integración con el LLM**: Se le pasa esa lista de hexágonos al LLM para que redacte la alerta en tono ejecutivo (ej. "Riesgo detectado en Arona Sur: saturación crítica y quejas por ruido").
 - **Output**: Sección "Notificaciones / Inbox" en la barra lateral del Dashboard.
 
 ---
@@ -1360,7 +1360,7 @@ Convertir los resultados numéricos del modelo en lenguaje ejecutivo comprensibl
 
 ---
 
-## 🚨 BLOQUE 10: DÍAS FINALES (Días 19-21) — Pruebas y Cierre
+## BLOQUE 10: DÍAS FINALES (Días 19-21) — Pruebas y Cierre
 **Squad:** Todos | **Semana:** 3 (últimos días)
 
 ### Día 19 — Test de Integración End-to-End
@@ -1380,7 +1380,7 @@ Convertir los resultados numéricos del modelo en lenguaje ejecutivo comprensibl
 
 ---
 
-## 🚨 Issues Pendientes en Silver (No bloqueantes para Gold)
+## Issues Pendientes en Silver (No bloqueantes para Gold)
 | # | Problema | Acción recomendada |
 |---|---|---|
 | #7 | `silver_clima_horario_agrocabildo` sin variable semántica | Descargar metadatos Agrocabildo y hacer JOIN |
@@ -1389,7 +1389,7 @@ Convertir los resultados numéricos del modelo en lenguaje ejecutivo comprensibl
 
 ---
 
-## 📋 Orden de Ejecución Recomendado
+## Orden de Ejecución Recomendado
 ```
 SEMANA 1:
   Día 1-2: dbt run --select silver

@@ -4,7 +4,7 @@ Esta guía explica paso a paso cómo conectar el gestor de bases de datos **DBea
 
 ---
 
-## 📋 Requisitos Previos
+## Requisitos Previos
 
 Antes de comenzar, asegúrate de tener instalados los siguientes componentes:
 1. **DBeaver Community Edition**: Descargable de forma gratuita desde [dbeaver.io](https://dbeaver.io/).
@@ -12,7 +12,7 @@ Antes de comenzar, asegúrate de tener instalados los siguientes componentes:
 
 ---
 
-## 🛠️ Paso a Paso para la Conexión
+## Paso a Paso para la Conexión
 
 ### Paso 1: Crear una Nueva Conexión en DBeaver
 1. Abre DBeaver.
@@ -57,7 +57,7 @@ Azure Database for PostgreSQL obliga a realizar conexiones encriptadas. Para con
 
 ---
 
-## 🔍 Exploración de Esquemas del TFM
+## Exploración de Esquemas del TFM
 Una vez guardada la conexión, haz doble clic sobre ella en el panel de navegación izquierdo de DBeaver. Al desplegarla, dentro de **postgres** y luego en la opción **Schemas**, podrás acceder a:
 * **`silver`**: Contiene las tablas limpias de transporte, límites de municipios y zonas turísticas de Tenerife.
 * **`gold`**: El esquema destinado a las tablas finales de KPIs e indicadores.

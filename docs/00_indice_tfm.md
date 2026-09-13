@@ -1,49 +1,118 @@
-# Índice del Proyecto
+# Índice General del Proyecto — Trabajo de Fin de Máster (TFM)
 
-AI-Dashboard para la Gestión oferta turista georreferenciada & integración con datos abiertos externos de la isla de Tenerife
+**Título:** AI-Dashboard para la Gestión y Sostenibilidad de la Oferta Turística Georreferenciada e Integración con Datos Abiertos de la Isla de Tenerife  
+**Caso de Aplicación de Negocio:** Consultoría Estratégica de Redistribución de Flujos Turísticos y Nuevas Oportunidades (Caso TUI)
+
+---
 
 ## 1. Introducción y Contexto de Negocio
 - 1.1. Resumen Ejecutivo y Alcance del Proyecto
-- 1.2. El Problema de Negocio en Tenerife: Tensión entre saturación costera e interior rural infrautilizado
+- 1.2. El Paradigma Turístico en Tenerife: Tensión entre saturación de la franja costera sur e interior rural infrautilizado
 - 1.3. Objetivos Generales y Específicos de la Plataforma
-- 1.4. Preguntas Estratégicas que Resolver (Aplicación al caso TUI)
-- 1.5. Justificación del Aporte Diferencial
+- 1.4. Preguntas Estratégicas de Negocio (Aplicación al caso TUI: redistribución, capacidad de carga y diversificación de producto)
+- 1.5. Propuesta de Valor y Aporte Diferencial frente a Cuadros de Mando Tradicionales y Herramientas AutoML
 
-## 2. Configuración de Infraestructura y Adquisición de Datos
-- 2.1. Aprovisionamiento de infraestructura cloud en Microsoft Azure (VM Ubuntu + PostgreSQL Flexible + Blob Storage)
-- 2.2. Extracción de microdatos tabulares y espaciales (Cabildo de Tenerife, IDECanarias e ISTAC)
-- 2.3. Integración de la topología de transporte público (Ficheros GTFS de TITSA y Metropolitano de Tenerife)
-- 2.4. Automatización de ingesta de datos meteorológicos (Agrocabildo SOAP + Open-Meteo API + ERA5-Land) y satelitales (Copernicus Sentinel / VIIRS)
-- 2.5. Extracción de datos cualitativos y reseñas (YouTube API, scraping LosViajeros, Booking, TripAdvisor)
+---
 
-## 3. Estructuración, Data Warehouse y Topología Geoespacial
-- 3.1. Diseño del almacén de datos (Data Warehouse) espacial en PostgreSQL/PostGIS
-- 3.2. Estandarización de sistemas de coordenadas espaciales (EPSG:32628) y creación de índices GIST
-- 3.3. Orquestación del pipeline ETL con Apache Airflow y transformaciones en base de datos usando dbt
+## 2. Configuración de Infraestructura Cloud y Adquisición de Datos (Capa Bronze / Raw)
+- 2.1. Aprovisionamiento de Infraestructura Cloud en Microsoft Azure:
+  - Almacén de objetos desacoplado: Azure Blob Storage (contenedor `bronce-raw`)
+  - Servidor de base de datos relacional y espacial: Azure Database for PostgreSQL (Flexible Server con extensión PostGIS)
+  - Cómputo orquestador en máquina virtual Linux Ubuntu (`mv-orquestador-tfm`)
+- 2.2. Ingesta de Registros Oficiales y Microdatos Estadísticos:
+  - Censo oficial de alojamientos turísticos reglados del Gobierno de Canarias (Hoteles, Extrahoteleros y Vivienda Vacacional bajo el Decreto 113/2015)
+  - Microdatos demográficos, mercado laboral por sectores CNAE y Encuesta de Ocupación Hotelera (API REST del ISTAC, sistemas C00067A y C00065A_000061)
+  - Tráfico aeroportuario mensual de pasajeros comerciales, vuelos y carga (Estadísticas oficiales de AENA para TFS y TFN)
+- 2.3. Topología de Red de Movilidad y Capas Espaciales Base:
+  - Ficheros GTFS del transporte público regular insular (Guaguas de TITSA y Tranvía de Metropolitano de Tenerife)
+  - Capas geográficas institucionales (Límites de los 31 municipios, Espacios Naturales Protegidos [ENP], Zonas Turísticas Oficiales, Bienes de Interés Cultural [BIC] y Oficinas de Turismo)
+  - Puntos de interés (POIs) turísticos y servicios complementarios de OpenStreetMap (Overpass API)
+- 2.4. Teledetección Satelital y Red Meteorológica Oficial:
+  - Consumo de la red de 67 estaciones automáticas de Agrocabildo (API REST v2.0.0 con control de flujo a 10 req/min y particionamiento Hive `año=YYYY/mes=MM/`)
+  - Extracción y procesamiento en Google Earth Engine (GEE) de composites trimestrales Sentinel-2 L2A (NDVI y NDBI con triple filtrado SCL, calima AOT < 0.3 y banda azul B02)
+  - Calibración de radianza económica mensual mediante luces nocturnas NOAA/NASA VIIRS (VNP46A2) con tratamiento específico del período pandémico COVID-19 (2020-2021)
+- 2.5. Captura Ética de Datos Cualitativos y Reputación de Destino:
+  - Web scraping ético y distribuido sobre Booking.com (descubrimiento por sitemaps XML, exclusión estricta de PII y persistencia por lotes)
+  - Extracción vía API de TripAdvisor (Terra API con validación geoespacial perimetral PostGIS para evitar homónimos)
+  - Minería de foros de viajeros (LosViajeros.com: 248 hilos temáticos y 167.000 mensajes) y contenidos audiovisuales de YouTube Data API v3
 
-## 4. Analítica Avanzada e Inteligencia Espacial
-- 4.1. Análisis de Sentimiento Multilingüe (NLP con inferencia por lotes con modelos transformadores Multilingual BERT)
-- 4.2. Detección Espacial de Tópicos de conversación turística y Extracción de Aspectos (BERTopic y pyabsa)
-- 4.3. Monitorización Ambiental por Satélite (Cálculo de NDVI, NDBI y Noches VIIRS)
-- 4.4. Detección de Brechas de Mercado y Aglomeraciones (Clustering Espacial de Densidad con HDBSCAN)
-- 4.5. Modelado de Accesibilidad y Enrutamiento (Isocronas con OpenRouteService / pgRouting)
-- 4.6. Evaluación de Factores de Éxito Local (Regresión Geográficamente Ponderada Multiescalar - MGWR)
+---
 
-## 5. Integración de Inteligencia Artificial Generativa (LLM)
+## 3. Ingeniería de Datos, Data Lakehouse y Topología Geoespacial (Capa Silver)
+- 3.1. Arquitectura Medallón en Azure Database for PostgreSQL (PostGIS)
+- 3.2. La Malla Hexagonal Uber H3 (Resolución 8) como Soporte Territorial Canónico:
+  - Adopción de teselado hexagonal regular frente a divisiones administrativas tradicionales para mitigar el Problema de la Unidad de Área Modificable (MAUP)
+  - Buffer perimetral de amortiguación costera de 0.01° (~1,1 km) y transición metodológica de 2.746 celdas Bronze a 2.579 celdas terrestres limpias en Silver/Gold
+  - Centroides canónicos puramente geométricos (`ST_Centroid`) para evitar sesgos de atracción por densidad de POIs
+  - Estándar de Sistemas de Coordenadas: Almacenamiento e indexación en `EPSG:4326` y proyección métrica al vuelo en `EPSG:32628` (UTM 28N)
+- 3.3. Transformaciones Analíticas y Control de Calidad con dbt:
+  - Desnormalización y consolidación de la red GTFS (reducción de 7 tablas operativas a modelos espaciales analíticos de paradas y trazados viarios)
+  - Estandarización de series temporales del ISTAC, tratamiento de secreto estadístico y tipado numérico
+  - Deduplicación idempotente de establecimientos y opiniones
+- 3.4. Geocodificación y Limpieza Centralizada en Base de Datos:
+  - Normalización toponímica canaria (inversión de artículos gramaticales y expansión de abreviaturas del callejero)
+  - Persistencia de coordenadas en tablas relacionales de consulta (`bronze_registro_geocoding_lookup` y `bronze_booking_geocoding_lookup`)
 
-- 5.1. Configuración de rutinas analíticas de extracción (Python Scripts)
-- 5.2. Conexión y autenticación con modelo fundacional vía Groq API (`openai/gpt-oss-120b`)
-- 5.3. Generación de informes ejecutivos narrativos e insights automáticos (Generative AI Summarization)
+---
 
-## 6. Productivización: Tablero Visual y Simulador de Decisiones
-- 6.1. Traducción del Modelado Matemático a KPIs Estratégicos de Negocio
-- 6.2. Diseño de la Plataforma Interactiva Frontend (Streamlit y renderizado acelerado)
-- 6.3. Mapeo de Calor y Congestión Horaria mediante Indexación H3
-- 6.4. Motor de Insights Automatizados con IA Generativa (Integración de Azure OpenAI / Ollama Local)
-- 6.5. Simulador de Escenarios Gravitatorios (Redistribución de la demanda y flujos turísticos)
-- 6.6. Generación de Alertas Parametrizadas
+## 4. Inteligencia Territorial, Modelado Microclimático y Machine Learning (Capa Gold)
+- 4.1. Análisis Topográfico y Geomorfométrico de Alta Resolución:
+  - Procesamiento del Modelo Digital del Terreno (MDT25 de GRAFCAN)
+  - Derivación matemática de Pendiente (Método de Horn, 1981), Orientación (*Aspect*) y Sombreado (*Hillshade*) con estadísticas zonales por celda H3
+- 4.2. Monitorización Ambiental, Vigor Vegetal y Huella Antrópica:
+  - Dinámica trimestral de cobertura vegetal (NDVI), presión de suelo sellado/construido (NDBI) y actividad nocturna (VIIRS)
+- 4.3. Climatología Analítica y Modelado Topoclimático Microinsular:
+  - Interpolación espacial ponderada por distancia inversa (IDW K=3) sobre las 67 estaciones automáticas
+  - Calibración altimétrica de temperatura mediante gradiente térmico vertical (-0,0065 °C/m) y termorregulación marina litoral (`delta_dist_costa`)
+  - Modelado topoclimático de humedad y precipitación bajo el régimen de Alisios:
+    - Estrato de condensación e inversión térmica ("Mar de Nubes" / "Panza de burro" entre 800 m y 1.500 m: +25% de humedad)
+    - Cumbre árida subsidente por encima de la inversión térmica (> 1.500 m: -30% de humedad)
+    - Efecto Föhn y sombra de lluvia en la vertiente sur de sotavento (-15% humedad, -60% lluvia)
+    - Amortiguación por brisa marina litoral (franja costera < 1,5 km: +15% humedad)
+  - Viento orográfico e indicadores climáticos ESG: horas de sol diarias reales bajo estándar OMM ($\ge 120\text{ W/m}^2$), amplitud térmica diaria y detección de eventos extremos de ola de calor y calima sahariana
+- 4.4. Modelado de Accesibilidad Multimodal y Fricción Espacial (`gold_h3_accesibilidad`):
+  - Matrices viales de tiempo de conducción continuo con OpenRouteService hacia 18 polos turísticos estratégicos (aeropuertos, Teide, núcleos costeros)
+  - Generación de isócronas visuales de alcance temporal (15, 30, 45 y 60 minutos)
+  - Accesibilidad peatonal a la red de transporte público GTFS bajo 3 umbrales escalonados (paradas a $\le 200\text{ m}$, $\le 500\text{ m}$ y $\le 1000\text{ m}$) y distancia continua (`dist_parada_cercana_m`)
+  - Proximidad a infraestructuras críticas de seguridad sanitaria (`dist_hospital_km`)
+- 4.5. Detección de Aglomeraciones y Oportunidades Territoriales:
+  - Segmentación no supervisada de tipologías territoriales mediante Clustering Espacial Basado en Densidad con Ruido (HDBSCAN)
+  - Evaluación de factores explicativos de localización turística mediante Regresión Geográficamente Ponderada Multiescalar (MGWR)
 
-## 7. Pruebas, Validación y Documentación
-- 7.1. Depuración integral del código y pruebas de estrés de los endpoints
-- 7.2. Análisis empírico de los resultados territoriales extraídos de Tenerife
-- 7.3. Redacción científica, conclusiones y empaquetado del Trabajo de Fin de Máster
+---
+
+## 5. Procesamiento del Lenguaje Natural (NLP) y Percepción de Marca Destino
+- 5.1. Inferencia de Sentimiento Multilingüe por Lotes:
+  - Implementación del modelo transformador `cardiffnlp/twitter-xlm-roberta-base-sentiment` sobre opiniones de Booking, TripAdvisor, YouTube y LosViajeros
+  - Puntuación continua de polaridad y métricas de confianza estadística
+- 5.2. Modelado de Tópicos No Supervisado con BERTopic:
+  - Modelo A (Percepción Macro Insular): Detección de macro-temáticas en comentarios de redes y foros (masificación, precios, transporte, paisaje)
+  - Modelo B (Tópicos Micro Geolocalizados): Extracción de tópicos asociados a establecimientos y núcleos urbanos específicos
+- 5.3. Minería de Aspectos Específicos (PyABSA):
+  - Desglose de polaridad por dimensiones de experiencia: relación calidad/precio, limpieza, atención del personal, confort térmico y ubicación
+
+---
+
+## 6. Inteligencia Artificial Generativa y Asistente RAG
+- 6.1. Arquitectura de Generación Aumentada por Recuperación (RAG) sobre opiniones y datos territoriales
+- 6.2. Motor de Inferencia de Alta Velocidad (Groq API con modelos fundacionales Llama-3 / GPT-OSS)
+- 6.3. Generación Automatizada de Informes Ejecutivos:
+  - Informe macro insular para dirección estratégica de producto (rol analista senior de TUI)
+  - Diagnóstico micro territorial de oferta, clima y reputación al seleccionar celdas H3 en el mapa interactivo
+
+---
+
+## 7. Productivización: AI Dashboard Interactivo y Simulación de Decisiones
+- 7.1. Arquitectura Frontend de la Plataforma (Streamlit con renderizado acelerado Deck.gl / PyDeck)
+- 7.2. Módulos Interactivos de Explotación:
+  - Explorador territorial H3 con capas conmutables: Biofísica (NDVI/NDBI/VIIRS), Microclima, Accesibilidad y Saturación Turística
+  - Monitor interactivo de Sentimiento y Tópicos NLP
+  - Simulador de redistribución de flujos y capacidad de carga territorial hacia el interior insular
+  - Sistema de alertas automatizadas basadas en umbrales de saturación y eventos climáticos adversos
+
+---
+
+## 8. Pruebas, Validación y Conclusiones
+- 8.1. Validación Empírica de los Resultados en Tenerife y Contraste con Datos Reales
+- 8.2. Impacto Estratégico y Retorno de Inversión (ROI) para la Toma de Decisiones en TUI
+- 8.3. Limitaciones Técnicas del Proyecto, Consideraciones Éticas y Vías Futuras de Investigación

@@ -150,7 +150,7 @@ def calcular_isocronas(ors_api_key: str):
                     logging.error(f"    Destino '{nombre}' fallido definitivamente: {e}")
 
         if response is None:
-            logging.error(f"  ✗ {nombre}: no se generaron isócronas")
+            logging.error(f"  [ERROR] {nombre}: no se generaron isócronas")
             continue
 
         for feature in response.get("features", []):
@@ -163,7 +163,7 @@ def calcular_isocronas(ors_api_key: str):
                 "rango_min":     rango_min,
                 "geometry":      geom,
             })
-            logging.info(f"    ✓ {nombre} — {rango_min} min: {geom.geom_type}")
+            logging.info(f"    [OK] {nombre} — {rango_min} min: {geom.geom_type}")
 
         time.sleep(1.5)  # Pausa cortés entre peticiones
 
@@ -275,7 +275,7 @@ def main():
     )
     for nombre, info in DESTINOS.items():
         n_poligonos = len(gdf[gdf["destino"] == nombre])
-        status = "✓" if n_poligonos == len(RANGOS_MIN) else f"⚠ solo {n_poligonos}"
+        status = "OK" if n_poligonos == len(RANGOS_MIN) else f"Aviso: solo {n_poligonos}"
         logging.info(f"    {status}  {nombre}: {info['label']}")
 
     logging.info(f"{'='*60}")

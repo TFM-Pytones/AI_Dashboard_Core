@@ -70,3 +70,8 @@ next-env.d.ts
 # 9. Scripts temporales / scratch
 scratch/
 main
+
+# 10. Documentos Word binarios y volcados auxiliares
+*.docx
+extracted_*.txt
+

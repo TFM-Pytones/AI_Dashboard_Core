@@ -50,7 +50,7 @@ def fetch_and_upload_stations(blob_service_client):
     blob_destination_path = "clima/estaciones/estaciones_agrocabildo.parquet"
     blob_client = blob_service_client.get_blob_client(container=BLOB_CONTAINER_NAME, blob=blob_destination_path)
     blob_client.upload_blob(parquet_buffer, overwrite=True)
-    logger.info(f"✅ Estaciones subidas a: {blob_destination_path}")
+    logger.info(f"Estaciones subidas a: {blob_destination_path}")
 
 def fetch_and_upload_measures(blob_service_client):
     logger.info("Obteniendo lista de sensores/medidas desde API...")
@@ -70,7 +70,7 @@ def fetch_and_upload_measures(blob_service_client):
     blob_destination_path = "clima/sensores/sensores_meteorologicos.parquet"
     blob_client = blob_service_client.get_blob_client(container=BLOB_CONTAINER_NAME, blob=blob_destination_path)
     blob_client.upload_blob(parquet_buffer, overwrite=True)
-    logger.info(f"✅ Sensores subidos a: {blob_destination_path}")
+    logger.info(f"Sensores subidos a: {blob_destination_path}")
 
 def main():
     if not AZURE_CONNECTION_STRING:

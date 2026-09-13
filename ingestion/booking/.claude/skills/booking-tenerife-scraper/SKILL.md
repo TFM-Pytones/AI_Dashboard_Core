@@ -273,7 +273,7 @@ pip uninstall nvidia-cublas-cu12 nvidia-cuda-cupti-cu12 nvidia-cuda-nvrtc-cu12 \
 
 ## Encoding en Windows: emojis rompen la consola por defecto
 
-La consola de Windows usa `cp1252` por defecto, no UTF-8 — un emoji en una reseña real (ej. `🥰`) puede crashear un script con `UnicodeEncodeError` al imprimir o loguear. Arreglo permanente, no workaround manual (`PYTHONIOENCODING=utf-8` puntual):
+La consola de Windows usa `cp1252` por defecto, no UTF-8 — un emoji en una reseña real (ej. ``) puede crashear un script con `UnicodeEncodeError` al imprimir o loguear. Arreglo permanente, no workaround manual (`PYTHONIOENCODING=utf-8` puntual):
 
 ```python
 # en utils/logger.py
