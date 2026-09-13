@@ -1,0 +1,281 @@
+version: 2
+
+models:
+  - name: gold_h3_master
+    description: "Capa analítica multidimensional canónica a nivel celda hexagonal H3 (Resolución 8, 2.579 hexágonos terrestres limpios). Integra oferta turística (hoteles, VV, extrahoteleros, Booking, TripAdvisor), puntos de interés (OSM, BIC, turismo), relieve y topografía (MDT25), biofísica y teledetección (NDVI, NDBI, VIIRS), clima histórico y restricciones ambientales (ENP, costas)."
+    columns:
+      - name: h3_index
+        description: "Identificador hexadecimal único del hexágono Uber H3 Resolución 8."
+        tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('silver_h3_grid')
+                field: h3_index
+      - name: cod_municipio
+        description: "Código INE de 5 dígitos del municipio de pertenencia."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('gold_municipio_master')
+                field: cod_municipio
+      - name: municipio
+        description: "Nombre del término municipal asignado al hexágono."
+        tests:
+          - not_null
+      - name: area_km2
+        description: "Superficie en kilómetros cuadrados (~0,737 km² por celda)."
+        tests:
+          - not_null
+      - name: centroide_lon
+        description: "Longitud WGS84 del centroide canónico del hexágono."
+        tests:
+          - not_null
+      - name: centroide_lat
+        description: "Latitud WGS84 del centroide canónico del hexágono."
+        tests:
+          - not_null
+      - name: altitud_media_m
+        description: "Altitud topográfica media en metros sobre el nivel del mar (100% no nula y > 0)."
+        tests:
+          - not_null
+      - name: ndvi_medio
+        description: "Índice de vegetación de diferencia normalizada (NDVI) medio plurianual (0% nulos)."
+        tests:
+          - not_null
+      - name: viirs_medio
+        description: "Radiancia media nocturna de luz artificial (VIIRS DNB) plurianual (0% nulos)."
+        tests:
+          - not_null
+      - name: temp_media_anual
+        description: "Temperatura media anual interpolada en grados Celsius (0% nulos)."
+        tests:
+          - not_null
+      - name: dist_costa_km
+        description: "Distancia mínima a la línea de costa en kilómetros."
+        tests:
+          - not_null
+      - name: geometry
+        description: "Geometría poligonal PostGIS (SRID 4326) del hexágono H3."
+        tests:
+          - not_null
+
+  - name: gold_municipio_master
+    description: "Capa maestra municipal consolidada (31 municipios de Tenerife). Integra indicadores demográficos, mercado laboral, parque alojativo oficial, presión turística, POIs, topografía, climatología y reflectancia satelital."
+    columns:
+      - name: cod_municipio
+        description: "Código INE de 5 dígitos único del municipio."
+        tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('silver_limites_municipales')
+                field: cod_municipio
+      - name: municipio
+        description: "Nombre oficial normalizado del municipio."
+        tests:
+          - not_null
+      - name: area_km2
+        description: "Superficie total municipal en kilómetros cuadrados."
+        tests:
+          - not_null
+      - name: poblacion_actual
+        description: "Población empadronada oficial más reciente suministrada por el ISTAC."
+        tests:
+          - not_null
+      - name: n_hexagonos
+        description: "Número total de celdas H3 terrestres asignadas al término municipal."
+        tests:
+          - not_null
+      - name: geometry
+        description: "Polígono municipal PostGIS (SRID 4326)."
+        tests:
+          - not_null
+
+  - name: gold_municipio_anual
+    description: "Serie histórica anual municipal (2022-2026) con indicadores de evolución de población, paro registrado medio, empleo medio y actividad de vivienda vacacional con tasas de crecimiento interanual (YoY)."
+    columns:
+      - name: cod_municipio
+        description: "Código INE del municipio; clave foránea a gold_municipio_master."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('gold_municipio_master')
+                field: cod_municipio
+      - name: municipio
+        description: "Nombre del municipio."
+        tests:
+          - not_null
+      - name: anio
+        description: "Año de la serie anual."
+        tests:
+          - not_null
+      - name: n_meses
+        description: "Número de meses con datos reportados en el año."
+        tests:
+          - not_null
+      - name: poblacion
+        description: "Población empadronada oficial en el año."
+        tests:
+          - not_null
+
+  - name: gold_municipio_mensual
+    description: "Panel mensual municipal (2022-2026) de paro registrado e indicadores de oferta y demanda de vivienda vacacional (plazas, ocupación, estancia media e ingresos) con variaciones interanuales (YoY)."
+    columns:
+      - name: cod_municipio
+        description: "Código INE del municipio; clave foránea a gold_municipio_master."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('gold_municipio_master')
+                field: cod_municipio
+      - name: municipio
+        description: "Nombre del municipio."
+        tests:
+          - not_null
+      - name: periodo
+        description: "Periodo mensual en formato YYYY-MM."
+        tests:
+          - not_null
+      - name: anio
+        description: "Año de la observación."
+        tests:
+          - not_null
+      - name: mes
+        description: "Mes numérico (1 a 12)."
+        tests:
+          - not_null
+
+  - name: gold_municipio_empleo
+    description: "Panel trimestral municipal (2021-2026) de afiliación a la Seguridad Social, desglose por régimen (asalariados vs autónomos) y tasas de variación interanual (YoY)."
+    columns:
+      - name: cod_municipio
+        description: "Código INE del municipio; clave foránea a gold_municipio_master."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('gold_municipio_master')
+                field: cod_municipio
+      - name: municipio
+        description: "Nombre del municipio."
+        tests:
+          - not_null
+      - name: periodo
+        description: "Periodo trimestral (ej. '2023-Q3')."
+        tests:
+          - not_null
+      - name: anio
+        description: "Año de la serie trimestral."
+        tests:
+          - not_null
+      - name: trimestre
+        description: "Trimestre numérico (1 a 4)."
+        tests:
+          - not_null
+      - name: empleo_total
+        description: "Afiliación total a la Seguridad Social en el trimestre."
+        tests:
+          - not_null
+
+  - name: gold_turismo_hotelero_anual
+    description: "Serie histórica anual y sobrecarga demográfica (Población Turística Equivalente - PTE) en los 6 municipios turísticos oficiales de Tenerife (Adeje, Arona, Puerto de la Cruz, Santa Cruz de Tenerife, Granadilla de Abona, Santiago del Teide)."
+    columns:
+      - name: cod_municipio
+        description: "Código INE del municipio turístico; clave foránea a gold_municipio_master."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('gold_municipio_master')
+                field: cod_municipio
+      - name: municipio
+        description: "Nombre del municipio turístico."
+        tests:
+          - not_null
+      - name: polo_turistico
+        description: "Agrupación comarcal turística ('Polo Sur', 'Polo Norte', 'Polo Metropolitano')."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Polo Sur', 'Polo Norte', 'Polo Metropolitano']
+      - name: anio
+        description: "Año de la serie anual."
+        tests:
+          - not_null
+      - name: poblacion
+        description: "Población residente oficial."
+        tests:
+          - not_null
+
+  - name: gold_turismo_hotelero_mensual
+    description: "Serie temporal mensual de la Encuesta de Ocupación Hotelera (EOH) del ISTAC para los 6 municipios turísticos oficiales de Tenerife (viajeros, pernoctaciones, plazas y ocupación con variaciones interanuales mes a mes)."
+    columns:
+      - name: cod_municipio
+        description: "Código INE del municipio turístico; clave foránea a gold_municipio_master."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('gold_municipio_master')
+                field: cod_municipio
+      - name: municipio
+        description: "Nombre del municipio turístico."
+        tests:
+          - not_null
+      - name: polo_turistico
+        description: "Agrupación del polo turístico ('Polo Sur', 'Polo Norte', 'Polo Metropolitano')."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Polo Sur', 'Polo Norte', 'Polo Metropolitano']
+      - name: periodo
+        description: "Periodo mensual en formato YYYY-MM."
+        tests:
+          - not_null
+      - name: anio
+        description: "Año de la observación."
+        tests:
+          - not_null
+      - name: mes
+        description: "Mes de la observación (1 a 12)."
+        tests:
+          - not_null
+
+  - name: gold_aena_pasajeros
+    description: "Tráfico aeroportuario mensual consolidado de Tenerife Norte (TFN) y Tenerife Sur (TFS) con tipología de tráfico, estacionalidad y ratio de pasajeros por vuelo comercial."
+    columns:
+      - name: periodo
+        description: "Periodo mensual en formato YYYY-MM."
+        tests:
+          - not_null
+      - name: anio
+        description: "Año de la observación."
+        tests:
+          - not_null
+      - name: mes
+        description: "Mes (1 a 12)."
+        tests:
+          - not_null
+      - name: aeropuerto_codigo
+        description: "Código IATA de 3 letras del aeropuerto insular ('TFN' o 'TFS')."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['TFN', 'TFS']
+      - name: pasajeros
+        description: "Pasajeros comerciales procesados en el mes."
+        tests:
+          - not_null
+      - name: operaciones
+        description: "Operaciones aéreas comerciales procesadas en el mes."
+        tests:
+          - not_null

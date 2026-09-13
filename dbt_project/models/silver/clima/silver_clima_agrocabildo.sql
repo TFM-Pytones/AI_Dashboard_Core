@@ -55,9 +55,9 @@ lecturas_con_umbrales AS (
 ),
 
 sensor_base AS (
-    -- Calculamos el sensor mínimo de cada estación, que es el sensor base (Temperatura)
-    -- El resto de variables se derivan por offset relativo:
-    -- +0=Temperatura, +1=Humedad, +2=Precipitación, +3=Vel.Viento, +5=Dir.Viento, +8=Radiación
+    -- Calculamos el sensor mínimo de cada estación, que es el sensor base (Velocidad del viento)
+    -- El resto de variables se derivan por offset relativo desde el sensor de viento:
+    -- +0=Vel.Viento, +1=Dir.Viento, +2=Temperatura, +3=Humedad, +5=Precipitación, +8=Radiación
     SELECT id_estacion, MIN(id_sensor) AS base_sensor
     FROM {{ source('bronze', 'bronze_clima_horario_agrocabildo') }}
     GROUP BY id_estacion
@@ -76,12 +76,12 @@ FROM lecturas_con_umbrales l
 JOIN sensor_base sb ON l.id_estacion = sb.id_estacion
 LEFT JOIN {{ source('bronze', 'bronze_sensores_meteorologicos') }} s
     ON CASE (l.id_sensor - sb.base_sensor)
-        WHEN 0 THEN 10
-        WHEN 1 THEN 11
-        WHEN 2 THEN 12
-        WHEN 3 THEN 13
-        WHEN 5 THEN 14
-        WHEN 8 THEN 15
+        WHEN 0 THEN 13 -- Velocidad del viento
+        WHEN 1 THEN 14 -- Dirección del viento
+        WHEN 2 THEN 10 -- Temperatura
+        WHEN 3 THEN 11 -- Humedad relativa
+        WHEN 5 THEN 12 -- Precipitación
+        WHEN 8 THEN 15 -- Radiación solar
         ELSE NULL
     END = s.id_weatherdatatype
 WHERE l.valor_limpio IS NOT NULL

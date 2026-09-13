@@ -46,8 +46,8 @@ DESTINOS = {
     "tfs":           {"coords": [-16.5726, 28.0445], "label": "Aeropuerto Sur (TFS)"},
     "tfn":           {"coords": [-16.3413, 28.4827], "label": "Aeropuerto Norte (TFN)"},
     "capital":       {"coords": [-16.2519, 28.4700], "label": "Santa Cruz (Puerto)"},
-    "polo_sur":      {"coords": [-16.7356, 28.0805], "label": "Costa Adeje (centro)"},
-    "polo_norte":    {"coords": [-16.5488, 28.4148], "label": "Puerto de la Cruz (centro)"},
+    "extremo_sur":   {"coords": [-16.7356, 28.0805], "label": "Costa Adeje (centro)"},
+    "extremo_norte": {"coords": [-16.5488, 28.4148], "label": "Puerto de la Cruz (centro)"},
     "teide":         {"coords": [-16.6214, 28.2547], "label": "Teleférico del Teide (Base)"},
     "la_laguna":     {"coords": [-16.3155, 28.4871], "label": "La Laguna (Histórico)"},
     "candelaria":    {"coords": [-16.3683, 28.3516], "label": "Basílica Candelaria"},
@@ -215,7 +215,7 @@ def main():
     # ── Subir a gold.isocronas_visuales ──────────────────────────────────────
     logging.info(f"Subiendo {len(gdf)} polígonos a gold.gold_isocronas_visuales...")
     gdf.to_postgis(
-        name="isocronas_visuales",
+        name="gold_isocronas_visuales",
         con=engine,
         schema="gold",
         if_exists="replace",

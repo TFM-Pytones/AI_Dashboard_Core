@@ -8,29 +8,13 @@ from azure.storage.blob import BlobServiceClient
 # Cargar variables de entorno locales
 load_dotenv()
 
-# Variables globales para Booking
-NUMERIC_COLUMNS_BY_TABLE = {
-    "bronze_booking_establishments": ["longitude", "latitude", "review_score", "review_count", "price_amount"],
-    "bronze_booking_reviews": ["rating"],
-}
-
-def _normalize_numeric_columns(df: pd.DataFrame, table_name: str) -> pd.DataFrame:
-    """Fuerza a numérico (float) las columnas que deben serlo."""
-    columns = NUMERIC_COLUMNS_BY_TABLE.get(table_name, [])
-    for col in columns:
-        if col in df.columns:
-            before_dtype = df[col].dtype
-            df[col] = pd.to_numeric(df[col], errors="coerce")
-            if before_dtype != df[col].dtype:
-                print(f"  [AVISO] Columna '{col}' normalizada: {before_dtype} -> {df[col].dtype}")
-    return df
 
 # --- Configuración Azure Blob Storage (Capa Bronce / Raw) ---
 AZURE_CONNECTION_STRING = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
 BLOB_CONTAINER_NAME = "bronce-raw"
 
 # --- Configuración de Ingesta Incremental (Clima) ---
-INCREMENTAL_LOAD = False  # Cambiado a False para ingesta histórica completa
+INCREMENTAL_LOAD = True  # Cambiar a False para ingesta histórica completa
 
 # --- Configuración Azure PostgreSQL (Flexible Server) ---
 PG_USER = os.getenv("AZURE_DB_USER")
@@ -277,34 +261,8 @@ def main():
         print("  [Info] No se encontraron archivos particionados para ingestar.")
 
 
-    # 3. Lectura de múltiples archivos de scrapping de Booking
-    print("\n--- 3. Carga de Parquets de Booking (Capa Bronce) ---")
-    booking_tables = {
-        "bronze_booking_establishments": [b for b in blobs if b.startswith("booking/booking_establishments") and b.endswith(".parquet")],
-        "bronze_booking_reviews": [b for b in blobs if b.startswith("booking/booking_reviews") and b.endswith(".parquet")]
-    }
-
-    for table_name, b_blobs in booking_tables.items():
-        if b_blobs:
-            print(f"Encontrados {len(b_blobs)} archivos para {table_name}.")
-            dataframes = []
-            for blob_name in b_blobs:
-                try:
-                    df = download_blob_to_dataframe(blob_service_client, blob_name)
-                    dataframes.append(df)
-                except Exception as e:
-                    print(f"  [AVISO] No se pudo descargar {blob_name}: {e}")
-            
-            if dataframes:
-                full_df = pd.concat(dataframes, ignore_index=True)
-                full_df = _normalize_numeric_columns(full_df, table_name)
-                # En esta fase de ingesta a Postgres solo hacemos append, la deduplicación va en dbt hacia la capa silver
-                ingest_to_postgres(full_df, table_name, engine, if_exists="append")
-                print(f"  [OK] Combinadas y subidas {len(full_df)} filas a {table_name}")
-        else:
-            print(f"  [Info] No se encontraron archivos para {table_name}.")
-
-    print("\n--- 3.5 Carga de JSONs de TripAdvisor (Capa Bronce) ---")
+    # 3. Carga de Parquets de TripAdvisor (Capa Bronce)
+    print("\n--- 3. Carga de Parquets de TripAdvisor (Capa Bronce) ---")
     tripadvisor_tables = {
         "bronze_tripadvisor_ubicaciones": [
             "tripadvisor/ubicaciones_raw_reconstruccion_2026-08-27.json",
@@ -344,6 +302,7 @@ def main():
         else:
             print(f"  [Info] No se encontraron archivos para {table_name}.")
 
+    # 4. Carga de Blobs Grandes (LosViajeros Mensajes)  
     print("\n--- 4. Carga de Blobs Grandes (LosViajeros Mensajes) ---")
     large_blobs = {
         "losviajeros/losviajeros_mensajes.parquet": "bronze_losviajeros_mensajes",

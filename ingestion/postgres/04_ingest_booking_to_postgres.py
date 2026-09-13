@@ -22,8 +22,11 @@ import pandas as pd
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 
-from utils.azure_storage import get_container_client, list_files
-
+import sys
+import os
+# Añadimos el directorio raíz (ingestion/) al path para poder importar módulos de otras carpetas
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from booking.utils.azure_storage import get_container_client, list_files
 load_dotenv()
 
 PG_USER = os.getenv("AZURE_DB_USER")

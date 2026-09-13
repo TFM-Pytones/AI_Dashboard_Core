@@ -14,8 +14,7 @@ logger = logging.getLogger("GeocodeRegistrosPG")
 
 load_dotenv()
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-CACHE_FILE = os.path.join(BASE_DIR, "scratch", "geocode_cache.json")
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # --- Configuración Azure PostgreSQL ---
 PG_USER = os.getenv("AZURE_DB_USER")
@@ -101,24 +100,27 @@ def clean_address(row):
     components.extend(["Santa Cruz de Tenerife", "España"])
     return ", ".join(components)
 
-def load_cache():
-    if os.path.exists(CACHE_FILE):
-        with open(CACHE_FILE, 'r', encoding='utf-8') as f: return json.load(f)
-    return {}
-
-def save_cache(cache):
-    with open(CACHE_FILE, 'w', encoding='utf-8') as f:
-        json.dump(cache, f, ensure_ascii=False, indent=2)
+def load_cache(engine):
+    cache = {}
+    try:
+        query = "SELECT establecimiento_id, latitud_geocoded, longitud_geocoded FROM bronze.bronze_registro_geocoding_lookup"
+        df_db = pd.read_sql(query, engine)
+        for _, row in df_db.iterrows():
+            cache[str(row['establecimiento_id'])] = {'lat': row['latitud_geocoded'], 'lon': row['longitud_geocoded'], 'query': 'from_db'}
+        logger.info(f"Cargados {len(cache)} registros cacheados desde PostgreSQL.")
+    except Exception as e:
+        logger.info("Aun no existe tabla en Postgres para usar de caché o está vacía.")
+    return cache
 
 def process_and_geocode():
     engine = get_pg_engine()
     geolocator = Nominatim(user_agent="TFM_Tenerife_Geocoding_App")
-    cache = load_cache()
+    cache = load_cache(engine)
     
     tables = [
-        "registro_hoteles",
-        "registro_extrahoteleros",
-        "registro_viviendas_vacacionales"
+        "bronze_registro_hoteles",
+        "bronze_registro_extrahoteleros",
+        "bronze_registro_viviendas_vacacionales"
     ]
     
     lookup_data = []
@@ -223,17 +225,12 @@ def process_and_geocode():
                     
             except (GeocoderTimedOut, GeocoderUnavailable) as e:
                 logger.error(f"⚠️ Error de API geocodificando {id_registro}: {e}")
-                save_cache(cache)
                 break
             except Exception as e:
                 logger.error(f"Error inesperado con {id_registro}: {e}")
                 cache[id_registro] = {'lat': None, 'lon': None, 'query': clean_str}
             
             total_geocoded_session += 1
-            if total_geocoded_session % 50 == 0:
-                save_cache(cache)
-                
-    save_cache(cache)
     
     if lookup_data:
         lookup_df = pd.DataFrame(lookup_data)
@@ -242,7 +239,7 @@ def process_and_geocode():
         logger.info(f"Guardando {len(lookup_df)} registros únicos en bronze.registro_geocoding_lookup...")
         try:
             lookup_df.to_sql(
-                name="registro_geocoding_lookup",
+                name="bronze_registro_geocoding_lookup",
                 con=engine,
                 schema="bronze",
                 if_exists="replace",

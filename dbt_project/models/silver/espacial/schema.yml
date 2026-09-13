@@ -1,0 +1,226 @@
+version: 2
+
+models:
+  - name: silver_h3_grid
+    description: "Malla hexagonal canónica H3 Resolución 8 para la isla de Tenerife (2.579 celdas terrestres activas con altitud y reflectancia satelital válida). Base espacial del data warehouse."
+    columns:
+      - name: h3_index
+        description: "Índice alfanumérico hexadecimal único de la celda H3 (Resolución 8)."
+        tests:
+          - unique
+          - not_null
+      - name: resolution
+        description: "Nivel de resolución espacial de Uber H3 (valor constante 8)."
+        tests:
+          - not_null
+      - name: centroide_lon
+        description: "Longitud WGS84 del centroide canónico geométrico."
+        tests:
+          - not_null
+      - name: centroide_lat
+        description: "Latitud WGS84 del centroide canónico geométrico."
+        tests:
+          - not_null
+      - name: elevation_mean
+        description: "Elevación topográfica media en metros extraída del MDT de IDE Canarias (0% nulos, elevación física > 0 m)."
+        tests:
+          - not_null
+      - name: is_protected_area
+        description: "Indicador booleano de intersección espacial con la red de Espacios Naturales Protegidos."
+        tests:
+          - not_null
+      - name: geometry
+        description: "Polígono hexagonal PostGIS (SRID 4326)."
+        tests:
+          - not_null
+
+  - name: silver_limites_municipales
+    description: "Límites administrativos de los 31 municipios oficiales de la isla de Tenerife (fuente IDE Canarias)."
+    columns:
+      - name: cod_municipio
+        description: "Código INE único del municipio (ej. 38001 para Adeje, 38038 para Santa Cruz de Tenerife)."
+        tests:
+          - unique
+          - not_null
+      - name: nombre_municipio
+        description: "Nombre oficial normalizado del municipio."
+        tests:
+          - not_null
+      - name: area_km2
+        description: "Área oficial calculada en kilómetros cuadrados."
+        tests:
+          - not_null
+      - name: geometry
+        description: "Polígono municipal PostGIS (SRID 4326)."
+        tests:
+          - not_null
+
+  - name: silver_enp
+    description: "Espacios Naturales Protegidos (ENP) de Tenerife según la Red Canaria de Espacios Naturales Protegidos."
+    columns:
+      - name: id_enp
+        description: "Código identificador único oficial del espacio protegido."
+        tests:
+          - unique
+          - not_null
+      - name: nombre_enp
+        description: "Denominación del espacio natural (ej. Parque Nacional del Teide, Parque Rural de Anaga)."
+        tests:
+          - not_null
+      - name: categoria
+        description: "Figura jurídica de protección (Parque Nacional, Parque Rural, Reserva Natural Integral, etc.)."
+        tests:
+          - not_null
+      - name: area_km2
+        description: "Área del espacio natural en km²."
+        tests:
+          - not_null
+      - name: geometry
+        description: "Geometría poligonal PostGIS (SRID 4326)."
+        tests:
+          - not_null
+
+  - name: silver_zonas_turisticas
+    description: "Zonas de concentración turística delimitadas oficialmente por el ISTAC en Tenerife."
+    columns:
+      - name: id_zona
+        description: "Código oficial alfanumérico del ISTAC de la microzona turística."
+        tests:
+          - unique
+          - not_null
+      - name: nombre_zona
+        description: "Denominación oficial de la zona turística (ej. Costa Adeje, Playa de Las Américas, Puerto de la Cruz)."
+        tests:
+          - not_null
+      - name: cod_municipio
+        description: "Código municipal predominante en la zona turística."
+        tests:
+          - not_null
+      - name: area_km2
+        description: "Área de la microzona turística en km²."
+        tests:
+          - not_null
+      - name: geometry
+        description: "Polígono PostGIS (SRID 4326)."
+        tests:
+          - not_null
+
+  - name: silver_bienes_interes_culturales
+    description: "Catálogo de Bienes de Interés Cultural (BIC) declarados en Tenerife."
+    columns:
+      - name: id
+        description: "Hash determinístico MD5 unívoco basado en el nombre y municipio del monumento o patrimonio histórico."
+        tests:
+          - unique
+          - not_null
+      - name: nombre
+        description: "Nombre del Bien de Interés Cultural con preposiciones normalizadas."
+        tests:
+          - not_null
+      - name: municipio
+        description: "Municipio en el que se ubica el BIC."
+        tests:
+          - not_null
+      - name: geometry
+        description: "Punto o geometría espacial PostGIS (SRID 4326)."
+        tests:
+          - not_null
+
+  - name: silver_oficinas_turismo
+    description: "Red de oficinas y puntos de información turística en Tenerife."
+    columns:
+      - name: nombre
+        description: "Nombre del centro u oficina de turismo."
+        tests:
+          - not_null
+      - name: tipo
+        description: "Tipo de punto de interés ('oficina_turismo')."
+        tests:
+          - not_null
+      - name: geometry
+        description: "Punto espacial PostGIS (SRID 4326)."
+        tests:
+          - not_null
+
+  - name: silver_osm_pois
+    description: "Puntos de interés (POIs) extraídos y categorizados de OpenStreetMap para Tenerife."
+    columns:
+      - name: osm_id
+        description: "Identificador único de OSM para el nodo o elemento geográfico."
+        tests:
+          - unique
+          - not_null
+      - name: poi_type
+        description: "Etiqueta específica del POI (ej. viewpoint, museum, attraction, restaurant)."
+        tests:
+          - not_null
+      - name: poi_group
+        description: "Grupo agregado (cultura, naturaleza, ocio, restauración, etc.)."
+        tests:
+          - not_null
+      - name: latitud
+        description: "Latitud en grados decimales."
+        tests:
+          - not_null
+      - name: longitud
+        description: "Longitud en grados decimales."
+        tests:
+          - not_null
+      - name: geometry
+        description: "Punto PostGIS (SRID 4326)."
+        tests:
+          - not_null
+
+  - name: silver_puntos_interes_unificados
+    description: "Capa integrada que unifica los POIs de OpenStreetMap, Bienes de Interés Cultural y Oficinas de Información Turística."
+    columns:
+      - name: tipo
+        description: "Tipología funcional del punto de interés."
+        tests:
+          - not_null
+      - name: categoria
+        description: "Categoría agregada de alto nivel."
+        tests:
+          - not_null
+      - name: fuente
+        description: "Origen de los datos ('OSM' o 'IDE_Canarias')."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['OSM', 'IDE_Canarias']
+      - name: geometry
+        description: "Punto PostGIS (SRID 4326)."
+        tests:
+          - not_null
+
+  - name: silver_satelite_stats
+    description: "Panel espacio-temporal trimestral (2022-2026) con métricas satelitales (NDVI vegetación, NDBI edificación, VIIRS radiación nocturna) para las celdas H3 activas."
+    columns:
+      - name: h3_index
+        description: "Índice H3 de la celda; clave foránea a silver_h3_grid."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('silver_h3_grid')
+                field: h3_index
+      - name: year
+        description: "Año de observación de la serie temporal (>= 2022)."
+        tests:
+          - not_null
+      - name: quarter
+        description: "Trimestre de observación (Q1 a Q4)."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Q1', 'Q2', 'Q3', 'Q4']
+      - name: time_period
+        description: "Identificador temporal compuesto (ej. '2024_Q3')."
+        tests:
+          - not_null
+      - name: is_winter_shadow_season
+        description: "Flag que marca trimestres de invierno (Q1 y Q4) sujetos al efecto de sombra topográfica del relieve sobre índices espectrales."
+        tests:
+          - not_null

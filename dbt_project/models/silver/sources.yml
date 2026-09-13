@@ -50,15 +50,34 @@ sources:
       - name: bronze_ml_sentiment_results
       - name: bronze_ml_aspect_results
 
-      # ISTAC
+      # ISTAC - Demografía y Paro
       - name: bronze_istac_mun_edad_media
-      - name: bronze_istac_mun_empleo_hosteleria
       - name: bronze_istac_mun_paro_registrado
       - name: bronze_istac_mun_poblacion_15_64
       - name: bronze_istac_mun_poblacion_65_mas
       - name: bronze_istac_mun_poblacion_total
+      
+      # ISTAC - Suite Completa de Empleo y Seguridad Social
+      - name: bronze_istac_mun_empleo_total
+      - name: bronze_istac_mun_empleo_asalariados
+      - name: bronze_istac_mun_empleo_autonomos
+      - name: bronze_istac_mun_empleo_hosteleria
+      - name: bronze_istac_mun_empleo_servicios
+      - name: bronze_istac_mun_empleo_comercio
+      - name: bronze_istac_mun_empleo_construccion
+      - name: bronze_istac_mun_empleo_industria
+      - name: bronze_istac_mun_empleo_agricultura
+
+      # ISTAC - Vivienda Vacacional
       - name: bronze_istac_mun_alojamientos_abiertos_vv
       - name: bronze_istac_mun_estancia_media_vv
       - name: bronze_istac_mun_ingresos_vv
       - name: bronze_istac_mun_plazas_vv
       - name: bronze_istac_mun_tasa_ocupacion_vv
+
+      # ISTAC - Turismo Hotelero EOH
+      - name: bronze_istac_mun_pernoctaciones
+      - name: bronze_istac_mun_plazas_ofertadas
+      - name: bronze_istac_mun_pob_turistica_equiv
+      - name: bronze_istac_mun_tasa_ocupacion_plazas
+      - name: bronze_istac_mun_viajeros_entrados

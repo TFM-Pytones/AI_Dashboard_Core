@@ -12,17 +12,14 @@ models:
       - name: name
         tests:
           - not_null
-      - name: latitude
-        description: "Puede ser NULL en casos donde falló la geocodificación (limitación conocida)."
+      - name: latitud
+        description: "Latitud WGS84 del establecimiento en Tenerife."
         tests:
-          - not_null:
-              config:
-                severity: warn
-      - name: longitude
+          - not_null
+      - name: longitud
+        description: "Longitud WGS84 del establecimiento en Tenerife."
         tests:
-          - not_null:
-              config:
-                severity: warn
+          - not_null
 
   - name: silver_booking_reviews
     description: "Reseñas de Booking, deduplicadas por review_id, solo de establecimientos válidos en Tenerife."

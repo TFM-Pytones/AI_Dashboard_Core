@@ -8,7 +8,7 @@ Calcula los indicadores de accesibilidad territorial para cada hexágono H3 de T
   4.3 → PostGIS:    Paradas de bus TITSA a ≤500m del centroide de cada hexágono
   4.4 → PostGIS:    Distancia al hospital/clínica más cercana
 
-Output: gold.h3_accesibilidad (2.396 filas, una por hexágono H3)
+Output: gold.gold_h3_accesibilidad (2.579 filas, una por hexágono H3 consolidado en silver.silver_h3_grid)
 
 Uso:
     python ingestion/gold/gold_h3_accesibilidad.py
@@ -48,8 +48,8 @@ DESTINOS = {
     "tfs":           [-16.5726, 28.0445],  # Aeropuerto Sur
     "tfn":           [-16.3413, 28.4827],  # Aeropuerto Norte
     "capital":       [-16.2519, 28.4700],  # Santa Cruz
-    "polo_sur":      [-16.7356, 28.0805],  # Costa Adeje
-    "polo_norte":    [-16.5488, 28.4148],  # Puerto de la Cruz
+    "extremo_sur":   [-16.7356, 28.0805],  # Costa Adeje
+    "extremo_norte": [-16.5488, 28.4148],  # Puerto de la Cruz
     "teide":         [-16.6214, 28.2547],  # Teleférico base
     "la_laguna":     [-16.3155, 28.4871],  # La Laguna
     "candelaria":    [-16.3683, 28.3516],  # Candelaria
@@ -102,7 +102,7 @@ def ensure_gold_schema(engine):
 def calcular_tiempos_ors(df_h3: pd.DataFrame, ors_api_key: str) -> pd.DataFrame:
     """
     Envía 1 petición a la API Matrix de ORS por cada destino estratégico.
-    2.396 orígenes × 1 destino = 2.396 pares por petición (< límite 3.500).
+    2.579 orígenes × 1 destino = 2.579 pares por petición (< límite 3.500).
     Total = 6 peticiones  <<  500 peticiones/día del plan gratuito.
 
     La API devuelve tiempos en segundos; convertimos a minutos.
