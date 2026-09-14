@@ -1,4 +1,7 @@
+import math
+
 import pandas as pd
+import plotly.express as px
 import streamlit as st
 
 from app.detail_panel import format_kpi_value
@@ -12,26 +15,31 @@ HEX_KPI_COLUMNS = [
     ("ndvi_medio", "NDVI medio"),
 ]
 
-# NOTA: silver_istac_anual tiene un bug de ingesta confirmado (auditado
-# 2026-09-09) -- poblacion_15_64, poblacion_65_mas y edad_media traen
-# exactamente el mismo valor que poblacion_total en todas las filas (p.ej.
-# Adeje 2025: las 4 columnas valen 50612). Es un problema del pipeline de
-# ingestion/istac/, no de este dashboard -- reportado al equipo. Mientras
-# tanto solo se muestra poblacion_total, la unica columna de esta tabla en
-# la que se puede confiar.
-ISTAC_ANUAL_KPI_COLUMNS = [
-    ("poblacion_total", "Población"),
+# (value_column, yoy_delta_column | None, label)
+ECONOMIA_KPI_COLUMNS = [
+    ("poblacion", None, "Población"),
+    ("paro_medio", "var_paro_yoy_pct", "Paro medio"),
+    ("empleo_total_medio", "crec_empleo_total_yoy_pct", "Empleo total medio"),
+    ("empleo_autonomos_medio", "crec_empleo_autonomos_yoy_pct", "Empleo autónomos medio"),
 ]
 
-# NOTA: el esquema real de silver_istac_mensual ya no coincide con
-# dbt_project/models/silver/istac/silver_istac_mensual.sql (auditado
-# 2026-09-09) -- las columnas que trae hoy son de vivienda vacacional
-# (*_vv), no las genericas pernoctaciones/plazas_ofertadas/tasa_ocupacion_plazas
-# que describe ese archivo. Se usan las columnas reales.
-ISTAC_MENSUAL_KPI_COLUMNS = [
-    ("paro_registrado", "Paro registrado"),
-    ("tasa_ocupacion_vv", "Ocupación viviendas vacacionales (%)"),
-    ("plazas_vv", "Plazas de vivienda vacacional"),
+TURISMO_VV_KPI_COLUMNS = [
+    ("plazas_vv_media", "crec_plazas_vv_yoy_pct", "Plazas VV media"),
+    ("ingresos_vv_media_mensual", "crec_ingresos_mensual_yoy_pct", "Ingresos VV media mensual (€)"),
+    ("tasa_ocupacion_vv_media", None, "Ocupación VV media (%)"),
+    ("estancia_media_vv", None, "Estancia media VV (días)"),
+]
+
+EVOLUCION_METRICS = {
+    "Paro medio": "paro_medio",
+    "Empleo total medio": "empleo_total_medio",
+    "Ingresos VV media mensual": "ingresos_vv_media_mensual",
+    "Ocupación VV media (%)": "tasa_ocupacion_vv_media",
+}
+
+EMPLEO_TYPES = [
+    ("empleo_asalariados", "Asalariados"),
+    ("empleo_autonomos", "Autónomos"),
 ]
 
 
@@ -42,41 +50,50 @@ def get_municipio_row(df: pd.DataFrame, municipio: str) -> pd.Series | None:
     return matches.iloc[0]
 
 
-def list_available_years(istac_anual_df: pd.DataFrame) -> list[int]:
-    return sorted(istac_anual_df["anio"].dropna().unique().tolist())
+def list_available_years(municipio_anual_df: pd.DataFrame) -> list[int]:
+    return sorted(municipio_anual_df["anio"].dropna().unique().tolist())
 
 
-def get_istac_anual_row(istac_anual_df: pd.DataFrame, municipio: str, anio: int) -> pd.Series | None:
-    matches = istac_anual_df.loc[
-        (istac_anual_df["municipio"] == municipio) & (istac_anual_df["anio"] == anio)
-    ]
+def get_anual_row(df: pd.DataFrame, municipio: str, anio: int) -> pd.Series | None:
+    matches = df.loc[(df["municipio"] == municipio) & (df["anio"] == anio)]
     if matches.empty:
         return None
     return matches.iloc[0]
 
 
-def get_istac_mensual_row_for_year(
-    istac_mensual_df: pd.DataFrame, municipio: str, anio: int
-) -> pd.Series | None:
-    matches = istac_mensual_df.loc[
-        (istac_mensual_df["municipio"] == municipio)
-        & (istac_mensual_df["periodo_codigo"].str.startswith(str(anio)))
-    ]
+def format_yoy_delta(value) -> str | None:
+    if value is None or (isinstance(value, float) and math.isnan(value)):
+        return None
+    return f"{value:+.1f}%"
+
+
+def evolucion_series(df: pd.DataFrame, municipio: str, column: str) -> pd.DataFrame:
+    rows = df.loc[df["municipio"] == municipio, ["anio", column]].sort_values("anio")
+    return rows.rename(columns={column: "valor"})
+
+
+def get_latest_empleo_row(df: pd.DataFrame, municipio: str, anio: int) -> pd.Series | None:
+    matches = df.loc[(df["municipio"] == municipio) & (df["anio"] == anio)]
     if matches.empty:
         return None
-    return matches.sort_values("periodo_codigo").iloc[-1]
+    return matches.sort_values("periodo").iloc[-1]
+
+
+def empleo_breakdown(row: pd.Series) -> pd.DataFrame:
+    rows = [{"tipo": label, "cantidad": row[column]} for column, label in EMPLEO_TYPES]
+    return pd.DataFrame(rows)
 
 
 def render_municipios_tab(
     municipio_master_df: pd.DataFrame,
-    istac_anual_df: pd.DataFrame,
-    istac_mensual_df: pd.DataFrame,
+    municipio_anual_df: pd.DataFrame,
+    municipio_empleo_df: pd.DataFrame,
 ) -> None:
     col1, col2 = st.columns([2, 1])
     municipio = col1.selectbox(
         "Municipio", sorted(municipio_master_df["municipio"].dropna().unique().tolist())
     )
-    years = list_available_years(istac_anual_df)
+    years = list_available_years(municipio_anual_df)
     anio = col2.selectbox("Año", years, index=len(years) - 1)
 
     hex_row = get_municipio_row(municipio_master_df, municipio)
@@ -84,25 +101,53 @@ def render_municipios_tab(
         st.warning("No hay datos para este municipio.")
         return
 
-    anual_row = get_istac_anual_row(istac_anual_df, municipio, anio)
-    mensual_row = get_istac_mensual_row_for_year(istac_mensual_df, municipio, anio)
-
-    periodo_caption = mensual_row["periodo_codigo"] if mensual_row is not None else "sin datos"
-    st.caption(f"Población de {anio} · Ocupación/paro de {periodo_caption}")
-
     st.subheader("Oferta turística (hexágonos)")
     cols = st.columns(3)
     for i, (column, label) in enumerate(HEX_KPI_COLUMNS):
         cols[i % 3].metric(label, format_kpi_value(hex_row.get(column)))
 
-    st.subheader(f"Población y economía ({anio})")
-    cols = st.columns(2)
-    for i, (column, label) in enumerate(ISTAC_ANUAL_KPI_COLUMNS):
-        value = anual_row.get(column) if anual_row is not None else None
-        cols[i % 2].metric(label, format_kpi_value(value))
+    anual_row = get_anual_row(municipio_anual_df, municipio, anio)
 
-    st.subheader("Turismo y empleo (último mes disponible del año)")
-    cols = st.columns(3)
-    for i, (column, label) in enumerate(ISTAC_MENSUAL_KPI_COLUMNS):
-        value = mensual_row.get(column) if mensual_row is not None else None
-        cols[i % 3].metric(label, format_kpi_value(value))
+    st.subheader(f"Población y economía ({anio})")
+    if anual_row is None:
+        st.info("No hay datos económicos para este municipio en el año seleccionado.")
+    else:
+        if not bool(anual_row.get("es_anio_completo", True)):
+            st.caption(f"⚠️ Año en curso: datos de solo {int(anual_row['n_meses'])} de 12 meses.")
+        cols = st.columns(4)
+        for i, (column, delta_column, label) in enumerate(ECONOMIA_KPI_COLUMNS):
+            delta = format_yoy_delta(anual_row.get(delta_column)) if delta_column else None
+            cols[i % 4].metric(label, format_kpi_value(anual_row.get(column)), delta=delta)
+
+        st.subheader("Turismo: vivienda vacacional")
+        cols = st.columns(4)
+        for i, (column, delta_column, label) in enumerate(TURISMO_VV_KPI_COLUMNS):
+            delta = format_yoy_delta(anual_row.get(delta_column)) if delta_column else None
+            cols[i % 4].metric(label, format_kpi_value(anual_row.get(column)), delta=delta)
+
+    st.subheader("Evolución")
+    metrica_label = st.selectbox(
+        "Métrica", list(EVOLUCION_METRICS.keys()), key="municipios_evolucion_metrica"
+    )
+    serie = evolucion_series(municipio_anual_df, municipio, EVOLUCION_METRICS[metrica_label])
+    fig = px.line(
+        serie, x="anio", y="valor", markers=True, title=f"{metrica_label} por año — {municipio}"
+    )
+    fig.update_traces(line_color="#2a78d6")
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.subheader("Empleo: asalariados vs. autónomos")
+    empleo_row = get_latest_empleo_row(municipio_empleo_df, municipio, anio)
+    if empleo_row is None:
+        st.info("No hay datos de empleo para este municipio en el año seleccionado.")
+        return
+    st.caption(f"Datos de {empleo_row['periodo_texto']}")
+    breakdown = empleo_breakdown(empleo_row)
+    fig_empleo = px.pie(
+        breakdown,
+        names="tipo",
+        values="cantidad",
+        title="Reparto de empleo",
+        color_discrete_sequence=["#2a78d6", "#eb6834"],
+    )
+    st.plotly_chart(fig_empleo, use_container_width=True)
