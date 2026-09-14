@@ -109,6 +109,19 @@ def test_merge_accesibilidad_joins_on_h3_index_and_cleans_sentinel():
     assert pd.isna(merged.loc[merged["h3_index"] == "b", "tiempo_aeropuerto_min"].iloc[0])
 
 
+def test_merge_accesibilidad_drops_duplicate_dist_costa_km_from_accesibilidad():
+    # gold_h3_master already has its own dist_costa_km; without dropping
+    # accesibilidad's copy first, pandas would suffix both to _x/_y and
+    # "dist_costa_km" would silently disappear from the merged frame.
+    gdf = pd.DataFrame({"h3_index": ["a"], "dist_costa_km": [3.0]})
+    accesibilidad_df = pd.DataFrame({"h3_index": ["a"], "dist_costa_km": [999.0]})
+    merged = merge_accesibilidad(gdf, accesibilidad_df)
+    assert "dist_costa_km" in merged.columns
+    assert "dist_costa_km_x" not in merged.columns
+    assert "dist_costa_km_y" not in merged.columns
+    assert merged.loc[0, "dist_costa_km"] == 3.0
+
+
 def test_drop_municipio_alias_rows_removes_known_aliases_only():
     df = pd.DataFrame({
         "municipio": ["Guia de Isora", "Guía de Isora", "Adeje", "Güímar"],

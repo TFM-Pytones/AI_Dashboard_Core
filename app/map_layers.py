@@ -48,7 +48,7 @@ METRICS = {
     # Site-selection layers (alojamiento turístico): cada una es una columna
     # real de gold_h3_master, sin combinarlas en un índice/score inventado.
     "Distancia a la costa": {
-        "column": "distancia_costa_metros",
+        "column": "dist_costa_km",
         "scale": "sequential",
         "ramp": SEQUENTIAL_DENSITY,
     },

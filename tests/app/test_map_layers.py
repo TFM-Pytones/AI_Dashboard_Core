@@ -22,7 +22,7 @@ def _gdf():
             "densidad_metric": [0, 10, 20],
             "sentimiento_medio": [1.0, 3.0, 5.0],
             "ndvi_medio": [None, 0.5, 1.0],
-            "distancia_costa_metros": [0, 1000, 2000],
+            "dist_costa_km": [0, 1000, 2000],
             "n_pois_total": [0, 5, 10],
             "slope_mean": [0, 15, 30],
             "restriction_category": ["ENP", "Zona turística oficial", "Sin restricción"],
@@ -48,7 +48,7 @@ def test_build_fill_color_column_handles_null_values():
 
 def test_build_fill_color_column_new_sequential_layers_scale_min_to_max():
     for metric_key, column in [
-        ("Distancia a la costa", "distancia_costa_metros"),
+        ("Distancia a la costa", "dist_costa_km"),
         ("Puntos de interés turísticos", "n_pois_total"),
         ("Pendiente del terreno", "slope_mean"),
     ]:

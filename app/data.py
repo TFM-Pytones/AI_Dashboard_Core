@@ -188,6 +188,13 @@ def clean_accesibilidad_sentinel(df: pd.DataFrame) -> pd.DataFrame:
 
 def merge_accesibilidad(gdf: pd.DataFrame, accesibilidad_df: pd.DataFrame) -> pd.DataFrame:
     cleaned = clean_accesibilidad_sentinel(accesibilidad_df)
+    # gold_h3_master already carries its own dist_costa_km (identical values,
+    # confirmed by direct comparison against gold_h3_accesibilidad's copy).
+    # Without dropping it here, the merge silently renames both copies to
+    # dist_costa_km_x/_y, which broke every downstream reference to the
+    # plain "dist_costa_km" column name (detail panel showed "-", the map's
+    # "Distancia a la costa" layer raised a KeyError).
+    cleaned = cleaned.drop(columns=["dist_costa_km"], errors="ignore")
     return gdf.merge(cleaned, on="h3_index", how="left")
 
 
