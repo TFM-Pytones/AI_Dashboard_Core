@@ -48,11 +48,46 @@ def top_topicos_dataframe(row: pd.Series) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def sample_chunks(chunks_df: pd.DataFrame, municipio: str, topic_id: int, n: int = 15) -> pd.DataFrame:
+def _map_fuente(source_column: pd.Series) -> pd.Series:
+    return source_column.map(lambda s: SOURCE_LABELS.get(s, s))
+
+
+def available_fuentes(chunks_df: pd.DataFrame, municipio: str) -> list[str]:
+    subset = chunks_df.loc[chunks_df["municipio"] == municipio]
+    return sorted(_map_fuente(subset["source"]).dropna().unique().tolist())
+
+
+def topics_for_municipio(
+    chunks_df: pd.DataFrame, municipio: str, fuentes: list[str] | None = None, n: int = 20
+) -> pd.DataFrame:
+    # topicos_top3 (top_topicos_dataframe) only ever has 3 entries -- this
+    # scans every chunk for the municipio so the dropdown can offer more than
+    # just the top 3 topics, and can be narrowed down by fuente.
+    subset = chunks_df.loc[chunks_df["municipio"] == municipio].copy()
+    subset["fuente"] = _map_fuente(subset["source"])
+    if fuentes:
+        subset = subset[subset["fuente"].isin(fuentes)]
+    counts = (
+        subset.groupby("topic_id").agg(n=("topic_id", "size"), label=("topic_label", "first")).reset_index()
+    )
+    counts["label_es"] = counts.apply(lambda r: topic_label_es(int(r["topic_id"]), r["label"]), axis=1)
+    counts["display"] = counts["label_es"] + " (" + counts["n"].astype(str) + ")"
+    return counts.sort_values("n", ascending=False).head(n)[["topic_id", "label_es", "display", "n"]]
+
+
+def sample_chunks(
+    chunks_df: pd.DataFrame,
+    municipio: str,
+    topic_id: int,
+    fuentes: list[str] | None = None,
+    n: int = 15,
+) -> pd.DataFrame:
     filtered = chunks_df.loc[
         (chunks_df["municipio"] == municipio) & (chunks_df["topic_id"] == topic_id)
     ].copy()
-    filtered["fuente"] = filtered["source"].map(lambda s: SOURCE_LABELS.get(s, s))
+    filtered["fuente"] = _map_fuente(filtered["source"])
+    if fuentes:
+        filtered = filtered[filtered["fuente"].isin(fuentes)]
     return filtered.sort_values("fecha", ascending=False).head(n)
 
 
@@ -142,47 +177,72 @@ def render_temas_tab(topicos_municipio_df: pd.DataFrame, chunks_df: pd.DataFrame
         )
 
     st.subheader("Ver opiniones reales de un tema")
-    st.caption("Elige un tema en el desplegable, o haz clic directamente en una barra del gráfico.")
+    st.caption(
+        "Combina los filtros de fuente y tema, o haz clic directamente en una barra del "
+        "gráfico de arriba."
+    )
 
-    topic_options = topicos_df.sort_values("n", ascending=False)["label_es"].tolist()
+    filtro_tema_col, filtro_fuente_col = st.columns([2, 2])
 
-    # A chart click pushes its label into the selectbox's own state *before*
-    # the widget is created, so it wins this rerun without fighting the
-    # selectbox's normal key-based state on later reruns.
-    event = st.session_state.get("temas_topicos_chart")
-    clicked_topic_id = selected_topic_from_event(event, topicos_df)
-    if clicked_topic_id is not None:
-        clicked_label = topicos_df.loc[topicos_df["topic_id"] == clicked_topic_id, "label_es"].iloc[0]
-        st.session_state["temas_topico_elegido"] = clicked_label
+    fuente_options = available_fuentes(chunks_df, municipio)
+    if "temas_fuentes_filtro" not in st.session_state or not set(
+        st.session_state["temas_fuentes_filtro"]
+    ).issubset(set(fuente_options)):
+        st.session_state["temas_fuentes_filtro"] = fuente_options
+    fuentes_seleccionadas = filtro_fuente_col.multiselect(
+        "Fuente", fuente_options, key="temas_fuentes_filtro"
+    )
 
-    if st.session_state.get("temas_topico_elegido") not in topic_options:
-        st.session_state["temas_topico_elegido"] = topic_options[0]
-
-    topico_elegido = st.selectbox("Tema", topic_options, key="temas_topico_elegido")
-    topic_id_elegido = int(topicos_df.loc[topicos_df["label_es"] == topico_elegido, "topic_id"].iloc[0])
-
-    muestra = sample_chunks(chunks_df, municipio, topic_id_elegido, n=15)
-    if muestra.empty:
-        st.info("No hay opiniones de muestra para este tema en este municipio.")
+    if not fuentes_seleccionadas:
+        st.info("Selecciona al menos una fuente para ver los temas y las opiniones.")
     else:
-        for card in prepare_review_cards(muestra):
-            with st.container(border=True):
-                meta_cols = st.columns([2, 1, 1, 2])
-                meta_cols[0].markdown(f"{card['icono']} **{card['fuente']}**")
-                meta_cols[1].markdown(f"⭐ {card['rating']:.1f}" if card["rating"] is not None else "⭐ —")
-                meta_cols[2].markdown(f"📅 {card['fecha']}")
-                meta_cols[3].markdown(f"🌍 {card['pais']}")
-                st.write(card["text"])
+        topics_df = topics_for_municipio(chunks_df, municipio, fuentes=fuentes_seleccionadas, n=20)
+        topic_options = topics_df["display"].tolist()
 
-                traduccion_key = f"temas_traduccion_{card['chunk_id']}"
-                if st.button("🌐 Traducir", key=f"temas_traducir_{card['chunk_id']}"):
-                    with st.spinner("Traduciendo..."):
-                        try:
-                            st.session_state[traduccion_key] = translate_to_spanish(card["text"])
-                        except Exception:
-                            st.error("No se pudo traducir esta opinión. Inténtalo de nuevo.")
-                if st.session_state.get(traduccion_key):
-                    st.markdown(f"🌐 *{st.session_state[traduccion_key]}*")
+        # A chart click pushes its display string into the selectbox's own
+        # state *before* the widget is created, so it wins this rerun without
+        # fighting the selectbox's normal key-based state on later reruns.
+        event = st.session_state.get("temas_topicos_chart")
+        clicked_topic_id = selected_topic_from_event(event, topicos_df)
+        if clicked_topic_id is not None:
+            clicked_match = topics_df.loc[topics_df["topic_id"] == clicked_topic_id]
+            if not clicked_match.empty:
+                st.session_state["temas_topico_elegido"] = clicked_match["display"].iloc[0]
+
+        if st.session_state.get("temas_topico_elegido") not in topic_options:
+            st.session_state["temas_topico_elegido"] = topic_options[0]
+
+        topico_elegido_display = filtro_tema_col.selectbox(
+            "Tema", topic_options, key="temas_topico_elegido"
+        )
+        topic_id_elegido = int(
+            topics_df.loc[topics_df["display"] == topico_elegido_display, "topic_id"].iloc[0]
+        )
+
+        muestra = sample_chunks(chunks_df, municipio, topic_id_elegido, fuentes=fuentes_seleccionadas, n=15)
+        if muestra.empty:
+            st.info("No hay opiniones de muestra para esta combinación de tema y fuente.")
+        else:
+            for card in prepare_review_cards(muestra):
+                with st.container(border=True):
+                    meta_cols = st.columns([2, 1, 1, 2])
+                    meta_cols[0].markdown(f"{card['icono']} **{card['fuente']}**")
+                    meta_cols[1].markdown(
+                        f"⭐ {card['rating']:.1f}" if card["rating"] is not None else "⭐ —"
+                    )
+                    meta_cols[2].markdown(f"📅 {card['fecha']}")
+                    meta_cols[3].markdown(f"🌍 {card['pais']}")
+                    st.write(card["text"])
+
+                    traduccion_key = f"temas_traduccion_{card['chunk_id']}"
+                    if st.button("🌐 Traducir", key=f"temas_traducir_{card['chunk_id']}"):
+                        with st.spinner("Traduciendo..."):
+                            try:
+                                st.session_state[traduccion_key] = translate_to_spanish(card["text"])
+                            except Exception:
+                                st.error("No se pudo traducir esta opinión. Inténtalo de nuevo.")
+                    if st.session_state.get(traduccion_key):
+                        st.markdown(f"🌐 *{st.session_state[traduccion_key]}*")
 
     render_footer(
         "gold.gold_topicos_municipio, gold.nlp_chunks (BERTopic)",

@@ -1,12 +1,14 @@
 import pandas as pd
 
 from app.temas import (
+    available_fuentes,
     fuentes_breakdown,
     get_topicos_row,
     prepare_review_cards,
     sample_chunks,
     selected_topic_from_event,
     top_topicos_dataframe,
+    topics_for_municipio,
 )
 
 
@@ -86,26 +88,63 @@ def _chunks_df():
         [
             {
                 "chunk_id": 1, "source": "booking_review", "text": "Precioso apartamento",
-                "topic_id": 11, "municipio": "Adeje", "h3_index": "a",
+                "topic_id": 11, "topic_label": "villa, outdoor, family", "municipio": "Adeje", "h3_index": "a",
                 "fecha": "2025-01-10", "pais_resenante": "España", "rating": 9.0,
             },
             {
                 "chunk_id": 2, "source": "tripadvisor_review", "text": "Great villa",
-                "topic_id": 11, "municipio": "Adeje", "h3_index": "b",
+                "topic_id": 11, "topic_label": "villa, outdoor, family", "municipio": "Adeje", "h3_index": "b",
                 "fecha": "2025-03-01", "pais_resenante": "Reino Unido", "rating": 5.0,
             },
             {
                 "chunk_id": 3, "source": "booking_review", "text": "Otro tema",
-                "topic_id": 12, "municipio": "Adeje", "h3_index": "c",
+                "topic_id": 12, "topic_label": "small, coffee, living room", "municipio": "Adeje", "h3_index": "c",
                 "fecha": "2025-02-15", "pais_resenante": "Francia", "rating": 8.0,
             },
             {
                 "chunk_id": 4, "source": "booking_review", "text": "Villa en Arona",
-                "topic_id": 11, "municipio": "Arona", "h3_index": "d",
+                "topic_id": 11, "topic_label": "villa, outdoor, family", "municipio": "Arona", "h3_index": "d",
                 "fecha": "2025-01-20", "pais_resenante": "Italia", "rating": 10.0,
             },
         ]
     )
+
+
+def test_topics_for_municipio_counts_every_topic_not_just_top3():
+    result = topics_for_municipio(_chunks_df(), "Adeje", n=20)
+    assert set(result["topic_id"]) == {11, 12}
+
+
+def test_topics_for_municipio_sorts_by_count_descending():
+    result = topics_for_municipio(_chunks_df(), "Adeje", n=20)
+    assert result["topic_id"].tolist() == [11, 12]
+    assert result["n"].tolist() == [2, 1]
+
+
+def test_topics_for_municipio_display_includes_curated_label_and_count():
+    result = topics_for_municipio(_chunks_df(), "Adeje", n=20)
+    top = result.iloc[0]
+    assert top["label_es"] == "Villas familiares con espacio exterior"
+    assert top["display"] == "Villas familiares con espacio exterior (2)"
+
+
+def test_topics_for_municipio_respects_n():
+    result = topics_for_municipio(_chunks_df(), "Adeje", n=1)
+    assert len(result) == 1
+
+
+def test_topics_for_municipio_filters_by_fuentes():
+    result = topics_for_municipio(_chunks_df(), "Adeje", fuentes=["TripAdvisor"], n=20)
+    assert result["topic_id"].tolist() == [11]
+    assert result["n"].tolist() == [1]
+
+
+def test_available_fuentes_returns_sorted_distinct_sources_for_municipio():
+    assert available_fuentes(_chunks_df(), "Adeje") == ["Booking", "TripAdvisor"]
+
+
+def test_available_fuentes_scopes_to_municipio():
+    assert available_fuentes(_chunks_df(), "Arona") == ["Booking"]
 
 
 def test_sample_chunks_filters_by_municipio_and_topic():
@@ -126,6 +165,11 @@ def test_sample_chunks_respects_n():
 def test_sample_chunks_maps_source_to_display_label():
     result = sample_chunks(_chunks_df(), "Adeje", 11, n=15)
     assert set(result["fuente"]) == {"Booking", "TripAdvisor"}
+
+
+def test_sample_chunks_filters_by_fuentes():
+    result = sample_chunks(_chunks_df(), "Adeje", 11, fuentes=["TripAdvisor"], n=15)
+    assert result["chunk_id"].tolist() == [2]
 
 
 def _topicos_df():
