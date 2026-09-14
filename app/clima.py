@@ -2,6 +2,8 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
+from app.ui_helpers import render_footer
+
 CLIMATE_VARIABLES = {
     "Temperatura": "temp_media",
     "Lluvia": "lluvia_mm",
@@ -34,3 +36,5 @@ def render_clima_tab(gdf: pd.DataFrame) -> None:
     )
     fig.update_traces(line_color="#1e3a8a")
     st.plotly_chart(fig, use_container_width=True)
+
+    render_footer("silver_clima_agrocabildo (agregado a hexágono H3)")

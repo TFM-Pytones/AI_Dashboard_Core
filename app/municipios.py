@@ -5,29 +5,30 @@ import plotly.express as px
 import streamlit as st
 
 from app.detail_panel import format_kpi_value
+from app.ui_helpers import latest_value, render_footer
 
 HEX_KPI_COLUMNS = [
-    ("n_hexagonos", "Hexágonos analizados"),
-    ("n_establecimientos_registro", "Alojamientos registrados"),
-    ("n_plazas_registro", "Plazas registradas"),
-    ("rating_booking_medio", "Rating Booking"),
-    ("rating_tripadvisor_medio", "Rating TripAdvisor"),
-    ("ndvi_medio", "NDVI medio"),
+    ("n_hexagonos", "🔷 Hexágonos analizados"),
+    ("n_establecimientos_registro", "🏨 Alojamientos registrados"),
+    ("n_plazas_registro", "🛏️ Plazas registradas"),
+    ("rating_booking_medio", "⭐ Rating Booking"),
+    ("rating_tripadvisor_medio", "⭐ Rating TripAdvisor"),
+    ("ndvi_medio", "🌿 NDVI medio"),
 ]
 
 # (value_column, yoy_delta_column | None, label)
 ECONOMIA_KPI_COLUMNS = [
-    ("poblacion", None, "Población"),
-    ("paro_medio", "var_paro_yoy_pct", "Paro medio"),
-    ("empleo_total_medio", "crec_empleo_total_yoy_pct", "Empleo total medio"),
-    ("empleo_autonomos_medio", "crec_empleo_autonomos_yoy_pct", "Empleo autónomos medio"),
+    ("poblacion", None, "👥 Población"),
+    ("paro_medio", "var_paro_yoy_pct", "📉 Paro medio"),
+    ("empleo_total_medio", "crec_empleo_total_yoy_pct", "💼 Empleo total medio"),
+    ("empleo_autonomos_medio", "crec_empleo_autonomos_yoy_pct", "🧑‍💼 Empleo autónomos medio"),
 ]
 
 TURISMO_VV_KPI_COLUMNS = [
-    ("plazas_vv_media", "crec_plazas_vv_yoy_pct", "Plazas VV media"),
-    ("ingresos_vv_media_mensual", "crec_ingresos_mensual_yoy_pct", "Ingresos VV media mensual (€)"),
-    ("tasa_ocupacion_vv_media", None, "Ocupación VV media (%)"),
-    ("estancia_media_vv", None, "Estancia media VV (días)"),
+    ("plazas_vv_media", "crec_plazas_vv_yoy_pct", "🏘️ Plazas VV media"),
+    ("ingresos_vv_media_mensual", "crec_ingresos_mensual_yoy_pct", "💶 Ingresos VV media mensual (€)"),
+    ("tasa_ocupacion_vv_media", None, "📊 Ocupación VV media (%)"),
+    ("estancia_media_vv", None, "🕐 Estancia media VV (días)"),
 ]
 
 EVOLUCION_METRICS = {
@@ -154,3 +155,8 @@ def render_municipios_tab(
         color_discrete_sequence=["#1e3a8a", "#eb6834"],
     )
     st.plotly_chart(fig_empleo, use_container_width=True)
+
+    render_footer(
+        "gold.gold_municipio_master, gold.gold_municipio_anual, gold.gold_municipio_empleo",
+        as_of=latest_value(municipio_anual_df["anio"]),
+    )

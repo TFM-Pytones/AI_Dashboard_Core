@@ -32,6 +32,7 @@ from app.summary import compute_summary_stats
 from app.table_view import filter_table, prepare_table_view
 from app.temas import render_temas_tab
 from app.turismo import render_turismo_tab
+from app.ui_helpers import render_footer
 
 st.set_page_config(page_title="AI-Dashboard Tenerife", page_icon="🌋", layout="wide")
 
@@ -95,22 +96,23 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-engine = get_engine()
-h3_master = load_h3_master(engine)
-sentimiento = load_sentimiento(engine)
-accesibilidad = load_accesibilidad(engine)
-isocronas = load_isocronas(engine)
-municipio_master = load_municipio_master(engine)
-municipio_anual = load_municipio_anual(engine)
-municipio_empleo = load_municipio_empleo(engine)
-topicos_municipio = load_topicos_municipio(engine)
-nlp_chunks = load_nlp_chunks(engine)
-turismo_hotelero_anual = load_turismo_hotelero_anual(engine)
-turismo_hotelero_mensual = load_turismo_hotelero_mensual(engine)
-aena_pasajeros = load_aena_pasajeros(engine)
+with st.spinner("Cargando datos del dashboard..."):
+    engine = get_engine()
+    h3_master = load_h3_master(engine)
+    sentimiento = load_sentimiento(engine)
+    accesibilidad = load_accesibilidad(engine)
+    isocronas = load_isocronas(engine)
+    municipio_master = load_municipio_master(engine)
+    municipio_anual = load_municipio_anual(engine)
+    municipio_empleo = load_municipio_empleo(engine)
+    topicos_municipio = load_topicos_municipio(engine)
+    nlp_chunks = load_nlp_chunks(engine)
+    turismo_hotelero_anual = load_turismo_hotelero_anual(engine)
+    turismo_hotelero_mensual = load_turismo_hotelero_mensual(engine)
+    aena_pasajeros = load_aena_pasajeros(engine)
 
-full_gdf = merge_h3_data(h3_master, sentimiento)
-full_gdf = merge_accesibilidad(full_gdf, accesibilidad)
+    full_gdf = merge_h3_data(h3_master, sentimiento)
+    full_gdf = merge_accesibilidad(full_gdf, accesibilidad)
 
 
 def page_resumen() -> None:
@@ -118,22 +120,24 @@ def page_resumen() -> None:
 
     col1, col2, col3, col4 = st.columns(4)
     with col1.container(border=True):
-        st.metric("Hexágonos analizados", stats["total_hexagonos"])
+        st.metric("🔷 Hexágonos analizados", stats["total_hexagonos"])
     with col2.container(border=True):
-        st.metric("Sin restricción legal", f"{stats['pct_sin_restriccion']}%")
+        st.metric("✅ Sin restricción legal", f"{stats['pct_sin_restriccion']}%")
     with col3.container(border=True):
-        st.metric("Con datos de sentimiento", f"{stats['pct_con_sentimiento']}%")
+        st.metric("😊 Con datos de sentimiento", f"{stats['pct_con_sentimiento']}%")
     with col4.container(border=True):
-        st.metric("Municipios", stats["n_municipios"])
+        st.metric("🏛️ Municipios", stats["n_municipios"])
 
     st.subheader("Reparto de restricciones legales")
     st.bar_chart(stats["restriction_counts"])
 
     col5, col6 = st.columns(2)
     with col5.container(border=True):
-        st.metric("Municipio con más oferta registrada", stats["municipio_mas_oferta"])
+        st.metric("📈 Municipio con más oferta registrada", stats["municipio_mas_oferta"])
     with col6.container(border=True):
-        st.metric("Municipio con menos oferta registrada", stats["municipio_menos_oferta"])
+        st.metric("📉 Municipio con menos oferta registrada", stats["municipio_menos_oferta"])
+
+    render_footer("gold.gold_h3_master, gold.gold_h3_accesibilidad, gold.gold_sentimiento_h3")
 
 
 def page_mapa() -> None:
@@ -157,6 +161,9 @@ def page_mapa() -> None:
             isocrona_destino = st.selectbox("Destino de referencia", list_destinos(isocronas))
 
     filtered_gdf = filter_by_municipio(full_gdf, map_municipio)
+
+    if map_municipio != "Todos":
+        st.caption(f"🔍 Filtrando por municipio: **{map_municipio}**")
 
     map_col, detail_col = st.columns([3, 2])
 
@@ -188,6 +195,14 @@ def page_tabla() -> None:
         key="tabla_restriccion",
     )
 
+    active_filters = []
+    if tabla_municipio != "Todos":
+        active_filters.append(f"Municipio: **{tabla_municipio}**")
+    if tabla_restriccion != "Todas":
+        active_filters.append(f"Restricción: **{tabla_restriccion}**")
+    if active_filters:
+        st.caption("🔍 Filtrando por " + " · ".join(active_filters))
+
     tabla_filtrada = filter_table(full_gdf, tabla_municipio, tabla_restriccion)
     tabla_mostrable = prepare_table_view(tabla_filtrada)
 
@@ -199,6 +214,8 @@ def page_tabla() -> None:
         mime="text/csv",
     )
 
+    render_footer("gold.gold_h3_master, gold.gold_h3_accesibilidad, gold.gold_sentimiento_h3")
+
 
 def page_rankings() -> None:
     render_rankings_tab(full_gdf)
@@ -208,6 +225,8 @@ def page_clima() -> None:
     clima_municipio = st.selectbox(
         "Municipio", ["Todos"] + list_municipios(full_gdf), key="clima_municipio"
     )
+    if clima_municipio != "Todos":
+        st.caption(f"🔍 Filtrando por municipio: **{clima_municipio}**")
     render_clima_tab(filter_by_municipio(full_gdf, clima_municipio))
 
 
@@ -219,6 +238,8 @@ def page_alojamiento() -> None:
     alojamiento_municipio = st.selectbox(
         "Municipio", ["Todos"] + list_municipios(full_gdf), key="alojamiento_municipio"
     )
+    if alojamiento_municipio != "Todos":
+        st.caption(f"🔍 Filtrando por municipio: **{alojamiento_municipio}**")
     render_alojamiento_tab(filter_by_municipio(full_gdf, alojamiento_municipio))
 
 

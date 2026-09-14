@@ -1,6 +1,11 @@
 import pandas as pd
 
-from app.detail_panel import format_kpi_value, municipio_aspect_comparison, restriction_badges
+from app.detail_panel import (
+    format_kpi_value,
+    municipio_aspect_comparison,
+    nearest_destinos,
+    restriction_badges,
+)
 
 
 def test_format_kpi_value_none_returns_dash():
@@ -76,3 +81,21 @@ def test_restriction_badges_empty_when_neither_overlaps():
 def test_restriction_badges_treats_missing_values_as_no_overlap():
     row = pd.Series({"pct_area_enp": float("nan"), "pct_area_zona_turistica": None})
     assert restriction_badges(row) == []
+
+
+def test_nearest_destinos_sorts_by_minutes_ascending():
+    row = pd.Series({"tiempo_capital_min": 40.0, "tiempo_teide_min": 25.0, "tiempo_la_laguna_min": 35.0})
+    result = nearest_destinos(row, n=5)
+    assert result["destino"].tolist() == ["El Teide", "La Laguna", "Santa Cruz de Tenerife"]
+
+
+def test_nearest_destinos_drops_missing_values():
+    row = pd.Series({"tiempo_capital_min": None, "tiempo_teide_min": 25.0})
+    result = nearest_destinos(row)
+    assert result["destino"].tolist() == ["El Teide"]
+
+
+def test_nearest_destinos_respects_limit():
+    row = pd.Series({"tiempo_capital_min": 10.0, "tiempo_teide_min": 20.0, "tiempo_la_laguna_min": 30.0})
+    result = nearest_destinos(row, n=2)
+    assert len(result) == 2

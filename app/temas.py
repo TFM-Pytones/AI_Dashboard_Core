@@ -3,6 +3,7 @@ import plotly.express as px
 import streamlit as st
 
 from app.topic_labels_es import topic_label_es
+from app.ui_helpers import latest_value, render_footer
 
 SOURCE_LABELS = {
     "booking_review": "Booking",
@@ -58,9 +59,9 @@ def render_temas_tab(topicos_municipio_df: pd.DataFrame, chunks_df: pd.DataFrame
 
     col1, col2 = st.columns(2)
     with col1.container(border=True):
-        st.metric("Opiniones analizadas", int(row["n_opiniones"]))
+        st.metric("💬 Opiniones analizadas", int(row["n_opiniones"]))
     with col2.container(border=True):
-        st.metric("Temas distintos detectados", int(row["n_topicos_distintos"]))
+        st.metric("🏷️ Temas distintos detectados", int(row["n_topicos_distintos"]))
 
     fuentes_df = fuentes_breakdown(row)
     topicos_df = top_topicos_dataframe(row)
@@ -93,8 +94,13 @@ def render_temas_tab(topicos_municipio_df: pd.DataFrame, chunks_df: pd.DataFrame
     muestra = sample_chunks(chunks_df, municipio, topic_id_elegido, n=15)
     if muestra.empty:
         st.info("No hay opiniones de muestra para este tema en este municipio.")
-        return
-    st.dataframe(
-        muestra[["fecha", "pais_resenante", "rating", "fuente", "text"]],
-        width="stretch",
+    else:
+        st.dataframe(
+            muestra[["fecha", "pais_resenante", "rating", "fuente", "text"]],
+            width="stretch",
+        )
+
+    render_footer(
+        "gold.gold_topicos_municipio, gold.nlp_chunks (BERTopic)",
+        as_of=latest_value(chunks_df["fecha"]),
     )

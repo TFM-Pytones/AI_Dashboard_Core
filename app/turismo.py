@@ -5,13 +5,14 @@ import plotly.express as px
 import streamlit as st
 
 from app.detail_panel import format_kpi_value
+from app.ui_helpers import latest_value, render_footer
 
 # (value_column, yoy_delta_column | None, label)
 HOTELERO_KPI_COLUMNS = [
-    ("viajeros_entrados_total", "crec_viajeros_yoy_pct", "Viajeros entrados"),
-    ("pernoctaciones_total", "crec_pernoctaciones_yoy_pct", "Pernoctaciones"),
-    ("ocupacion_media_plazas", None, "Ocupación media plazas (%)"),
-    ("estancia_media_hotel_dias", None, "Estancia media (días)"),
+    ("viajeros_entrados_total", "crec_viajeros_yoy_pct", "🧳 Viajeros entrados"),
+    ("pernoctaciones_total", "crec_pernoctaciones_yoy_pct", "🛌 Pernoctaciones"),
+    ("ocupacion_media_plazas", None, "📊 Ocupación media plazas (%)"),
+    ("estancia_media_hotel_dias", None, "🕐 Estancia media (días)"),
 ]
 
 ESTACIONALIDAD_METRICS = {
@@ -28,9 +29,9 @@ MES_LABELS = {
 MES_ORDER = [MES_LABELS[m] for m in range(1, 13)]
 
 AENA_KPI_COLUMNS = [
-    ("pasajeros", "Pasajeros"),
-    ("operaciones", "Operaciones"),
-    ("pasajeros_por_operacion", "Pasajeros por operación"),
+    ("pasajeros", "✈️ Pasajeros"),
+    ("operaciones", "🛫 Operaciones"),
+    ("pasajeros_por_operacion", "👥 Pasajeros por operación"),
 ]
 
 
@@ -125,3 +126,8 @@ def render_turismo_tab(
     )
     fig_aena.update_traces(line_color="#eb6834")
     st.plotly_chart(fig_aena, use_container_width=True)
+
+    render_footer(
+        "gold.gold_turismo_hotelero_anual, gold.gold_turismo_hotelero_mensual, gold.gold_aena_pasajeros",
+        as_of=latest_value(hotelero_anual_df["anio"]),
+    )

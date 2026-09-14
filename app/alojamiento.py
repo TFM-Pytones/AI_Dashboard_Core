@@ -2,6 +2,8 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
+from app.ui_helpers import render_footer
+
 ACCOMMODATION_TYPES = [
     ("n_hoteles", "Hoteles"),
     ("n_vv", "Viviendas vacacionales"),
@@ -28,11 +30,11 @@ def render_alojamiento_tab(gdf: pd.DataFrame) -> None:
 
     col1, col2, col3 = st.columns(3)
     with col1.container(border=True):
-        st.metric("Rating medio Booking", summary["rating_booking_medio"])
+        st.metric("⭐ Rating medio Booking", summary["rating_booking_medio"])
     with col2.container(border=True):
-        st.metric("Rating medio TripAdvisor", summary["rating_tripadvisor_medio"])
+        st.metric("⭐ Rating medio TripAdvisor", summary["rating_tripadvisor_medio"])
     with col3.container(border=True):
-        st.metric("Reseñas Booking totales", summary["total_reviews_booking"])
+        st.metric("📝 Reseñas Booking totales", summary["total_reviews_booking"])
 
     fig = px.pie(
         breakdown,
@@ -42,3 +44,5 @@ def render_alojamiento_tab(gdf: pd.DataFrame) -> None:
         color_discrete_sequence=["#1e3a8a", "#eb6834", "#6b7280"],
     )
     st.plotly_chart(fig, use_container_width=True)
+
+    render_footer("gold.gold_h3_master (alojamiento oficial y reputación)")

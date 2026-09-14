@@ -2,6 +2,8 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
+from app.ui_helpers import render_footer
+
 RANKINGS = {
     "Más vegetación (NDVI)": {"column": "ndvi_medio"},
     "Más turística (nº establecimientos Booking)": {"column": "n_establecimientos_booking"},
@@ -28,15 +30,16 @@ def render_rankings_tab(gdf: pd.DataFrame) -> None:
 
     if result.empty:
         st.info("No hay hexágonos con datos para este ranking.")
-        return
+    else:
+        fig = px.bar(
+            result.sort_values(column),
+            x=column,
+            y="h3_index",
+            color="municipio",
+            orientation="h",
+            title=ranking_key,
+        )
+        st.plotly_chart(fig, use_container_width=True)
+        st.dataframe(result, width="stretch")
 
-    fig = px.bar(
-        result.sort_values(column),
-        x=column,
-        y="h3_index",
-        color="municipio",
-        orientation="h",
-        title=ranking_key,
-    )
-    st.plotly_chart(fig, use_container_width=True)
-    st.dataframe(result, width="stretch")
+    render_footer("gold.gold_h3_master, gold.gold_sentimiento_h3")
