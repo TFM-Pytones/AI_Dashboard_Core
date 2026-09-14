@@ -77,21 +77,10 @@ st.markdown(
         max-width: 46ch;
         text-shadow: 0 1px 8px rgba(0,0,0,0.35);
     }}
-    .hero-credit {{
-        position: absolute;
-        bottom: 0.6rem;
-        right: 1rem;
-        font-size: 0.7rem;
-        color: rgba(255,255,255,0.75);
-        background: rgba(13,54,107,0.4);
-        padding: 0.2rem 0.6rem;
-        border-radius: 999px;
-    }}
     </style>
     <div class="hero-banner">
         <h1>AI-Dashboard — Oferta turística de Tenerife</h1>
         <p>Analítica geoespacial por hexágono H3: alojamiento, clima, satélite y economía municipal</p>
-        <span class="hero-credit">Foto: Puerto de la Cruz, Atlantic Ambience — Pexels License</span>
     </div>
     """,
     unsafe_allow_html=True,
