@@ -44,7 +44,7 @@ Dependiendo de qué sistema operativo utilices en tu ordenador personal para tra
        ssh tu_usuario_de_la_vm@IP_PUBLICA_DE_LA_VM
        ```
 
-#### ⚠️ Problema común: Intentar ejecutar los comandos de Linux en la consola de tu PC Windows
+#### Problema común: Intentar ejecutar los comandos de Linux en la consola de tu PC Windows
 *   **Síntoma**: Si ejecutas comandos como `sudo fallocate` en tu PowerShell local de Windows, recibirás el error: *"Sudo está deshabilitado en este equipo. Para habilitarlo, vaya a Página Configuración del desarrollador..."*.
 *   **Por qué ocurre**: Has escrito el comando en la terminal local de tu ordenador personal en lugar de hacerlo dentro de la sesión de SSH de la VM.
 *   **Solución**: Conéctate primero a la máquina virtual usando `ssh usuario@IP` (Paso 2.2) y ejecuta los comandos solo cuando veas el prompt de Linux en verde/azul (`usuario@mv-orquestador-tfm:~$`).
@@ -71,7 +71,7 @@ git clone https://TU_TOKEN_DE_GITHUB@github.com/TFM-Pytones/AI_Dashboard_Core.gi
 ```
 *(Sustituye `TU_TOKEN_DE_GITHUB` por el token largo que copiaste de GitHub en el paso anterior).*
 
-#### ⚠️ Problema común al actualizar el código más adelante: "Your local changes would be overwritten by merge"
+#### Problema común al actualizar el código más adelante: "Your local changes would be overwritten by merge"
 *   **Por qué ocurre**: Has ejecutado pruebas en la VM que han modificado algún archivo localmente (como el progreso del scraping) y Git bloquea el `git pull` para no sobreescribir tus cambios.
 *   **Solución**: Si quieres descartar esos cambios de la VM y traer la versión limpia de GitHub, ejecuta:
     ```bash
@@ -93,7 +93,7 @@ source .venv/bin/activate
 ```
 *(Sabrás que se ha activado correctamente porque el indicador de tu consola ahora empezará por el prefijo `(.venv)`)*.
 
-#### ⚠️ Problema común 1: Error "ensurepip is not available" al crear el entorno
+#### Problema común 1: Error "ensurepip is not available" al crear el entorno
 *   **Por qué ocurre**: En distribuciones Linux limpias (como Ubuntu o Debian), el módulo `venv` de Python viene separado del paquete base por defecto para ahorrar espacio.
 *   **Solución**: Instala el paquete de entornos virtuales en el sistema operativo mediante el gestor de paquetes de la VM e inténtalo de nuevo:
     ```bash
@@ -108,7 +108,7 @@ source .venv/bin/activate
     python3 -m venv .venv
     ```
 
-#### ⚠️ Problema común 2: Ha desaparecido el "(.venv)" al principio de la consola al reconectarte
+#### Problema común 2: Ha desaparecido el "(.venv)" al principio de la consola al reconectarte
 *   **Por qué ocurre**: Cada vez que cierras la consola SSH y te vuelves a conectar, inicias una sesión de terminal limpia. El entorno sigue existiendo en el disco, pero está desactivado.
 *   **Solución**: Entra en tu carpeta de proyecto y vuelve a activarlo:
     ```bash
@@ -151,7 +151,7 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-#### ⚠️ Problema común: Error "pg_config executable not found" o fallos instalando "psycopg2"
+#### Problema común: Error "pg_config executable not found" o fallos instalando "psycopg2"
 *   **Por qué ocurre**: Librerías de bases de datos como `psycopg2` o herramientas de datos como `dbt-postgres` necesitan compilar código C localmente en la VM y requieren dependencias de desarrollo del sistema operativo.
 *   **Solución**: Instala las herramientas de compilación y librerías de PostgreSQL necesarias en el sistema operativo de tu VM antes de volver a ejecutar el comando de instalación de Python:
     ```bash
@@ -180,14 +180,14 @@ Si quieres volver a conectarte más tarde para ver el progreso de los logs en ti
 tail -f scraper.log
 ```
 
-#### ⚠️ Problema común: Error "ModuleNotFoundError: No module named 'pandas'" al arrancar el script
+#### Problema común: Error "ModuleNotFoundError: No module named 'pandas'" al arrancar el script
 *   **Por qué ocurre**: Has abierto una nueva conexión SSH y has intentado ejecutar el script de Python sin haber activado el entorno virtual. El sistema está usando el intérprete de Python básico de Linux, que no tiene instaladas tus dependencias.
 *   **Solución**: Activa siempre el entorno virtual en cada nueva sesión de consola antes de lanzar el scraper:
     ```bash
     source ../.venv/bin/activate
     ```
 
-#### ⚠️ Problema común: El script se detiene de fondo silenciosamente sin dar ningún error en `scraper.log`
+#### Problema común: El script se detiene de fondo silenciosamente sin dar ningún error en `scraper.log`
 *   **Por qué ocurre**: Nuestra máquina virtual tiene solo **1 GiB de RAM** (Standard B2ats v2). Si Python tiene un pico de uso de memoria, el kernel de Linux activa el *OOM-Killer* (Out of Memory Killer) y mata el proceso Python de forma fulminante (enviando un `SIGKILL`), lo que no le da oportunidad al script de escribir un error o traceback en el log.
 *   **Solución**: Configura un **archivo de intercambio (SWAP)** de 2 GB en el disco duro de la VM para que sirva como RAM de respaldo y evite que el sistema colapse:
     ```bash

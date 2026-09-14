@@ -3,6 +3,13 @@
     tags=['silver', 'istac', 'anual']
 ) }}
 
+/*
+  Modelo Silver: silver_istac_anual
+  Consolida los indicadores anuales del ISTAC (2022 a 2026):
+  - Demografía oficial: población total, población 15-64, población 65+, edad media.
+  - Presión turística estructural: población turística equivalente en alojamientos turísticos.
+*/
+
 WITH poblacion_total AS (
     SELECT 
         "GEOGRAPHICAL" AS municipio,
@@ -14,33 +21,47 @@ WITH poblacion_total AS (
       AND LENGTH(TRIM("TIME_CODE"::text)) = 4
       AND CAST(TRIM("TIME_CODE"::text) AS INTEGER) >= 2022
 ),
+
 poblacion_15_64 AS (
     SELECT 
         "GEOGRAPHICAL_CODE" AS municipio_cod,
         CAST(SUBSTRING(TRIM("TIME_CODE"::text) FROM 1 FOR 4) AS INTEGER) AS anio,
         CAST(NULLIF(REPLACE(TRIM("OBS_VALUE"::text), ',', '.'), '.') AS NUMERIC) AS poblacion_15_64
     FROM {{ source('bronze', 'bronze_istac_mun_poblacion_15_64') }}
-    WHERE "MEASURE_CODE" = 'ABSOLUTE'
+    WHERE "MEASURE_CODE" = 'ABSOLUTE' 
       AND LENGTH(TRIM("TIME_CODE"::text)) = 4
       AND CAST(TRIM("TIME_CODE"::text) AS INTEGER) >= 2022
 ),
+
 poblacion_65_mas AS (
     SELECT 
         "GEOGRAPHICAL_CODE" AS municipio_cod,
         CAST(SUBSTRING(TRIM("TIME_CODE"::text) FROM 1 FOR 4) AS INTEGER) AS anio,
         CAST(NULLIF(REPLACE(TRIM("OBS_VALUE"::text), ',', '.'), '.') AS NUMERIC) AS poblacion_65_mas
     FROM {{ source('bronze', 'bronze_istac_mun_poblacion_65_mas') }}
-    WHERE "MEASURE_CODE" = 'ABSOLUTE'
+    WHERE "MEASURE_CODE" = 'ABSOLUTE' 
       AND LENGTH(TRIM("TIME_CODE"::text)) = 4
       AND CAST(TRIM("TIME_CODE"::text) AS INTEGER) >= 2022
 ),
+
 edad_media AS (
     SELECT 
         "GEOGRAPHICAL_CODE" AS municipio_cod,
         CAST(SUBSTRING(TRIM("TIME_CODE"::text) FROM 1 FOR 4) AS INTEGER) AS anio,
         CAST(NULLIF(REPLACE(TRIM("OBS_VALUE"::text), ',', '.'), '.') AS NUMERIC) AS edad_media
     FROM {{ source('bronze', 'bronze_istac_mun_edad_media') }}
-    WHERE "MEASURE_CODE" = 'ABSOLUTE'
+    WHERE "MEASURE_CODE" = 'ABSOLUTE' 
+      AND LENGTH(TRIM("TIME_CODE"::text)) = 4
+      AND CAST(TRIM("TIME_CODE"::text) AS INTEGER) >= 2022
+),
+
+pob_turistica_equiv AS (
+    SELECT 
+        "GEOGRAPHICAL_CODE" AS municipio_cod,
+        CAST(SUBSTRING(TRIM("TIME_CODE"::text) FROM 1 FOR 4) AS INTEGER) AS anio,
+        CAST(NULLIF(REPLACE(TRIM("OBS_VALUE"::text), ',', '.'), '.') AS NUMERIC) AS pob_turistica_equiv
+    FROM {{ source('bronze', 'bronze_istac_mun_pob_turistica_equiv') }}
+    WHERE "MEASURE_CODE" = 'ABSOLUTE' 
       AND LENGTH(TRIM("TIME_CODE"::text)) = 4
       AND CAST(TRIM("TIME_CODE"::text) AS INTEGER) >= 2022
 )
@@ -52,9 +73,11 @@ SELECT
     pt.poblacion_total,
     p15.poblacion_15_64,
     p65.poblacion_65_mas,
-    em.edad_media
+    em.edad_media,
+    pte.pob_turistica_equiv
 FROM poblacion_total pt
 LEFT JOIN poblacion_15_64 p15 ON pt.municipio_cod = p15.municipio_cod AND pt.anio = p15.anio
 LEFT JOIN poblacion_65_mas p65 ON pt.municipio_cod = p65.municipio_cod AND pt.anio = p65.anio
 LEFT JOIN edad_media em ON pt.municipio_cod = em.municipio_cod AND pt.anio = em.anio
+LEFT JOIN pob_turistica_equiv pte ON pt.municipio_cod = pte.municipio_cod AND pt.anio = pte.anio
 ORDER BY pt.municipio ASC, pt.anio ASC

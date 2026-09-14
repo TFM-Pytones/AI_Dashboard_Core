@@ -27,7 +27,7 @@ def main():
     # 3. Ejecutar uno a uno
     for script in scripts:
         script_path = os.path.join(current_dir, script)
-        print(f"\n🚀 EJECUTANDO: {script}")
+        print(f"\nEJECUTANDO: {script}")
         print("-" * 50)
         
         # Ejecutar el subproceso (sys.executable asegura que usa el mismo entorno virtual)
@@ -38,14 +38,14 @@ def main():
                 check=True
             )
             print("-" * 50)
-            print(f"✅ ÉXITO: {script} completado correctamente.")
+            print(f"ÉXITO: {script} completado correctamente.")
         except subprocess.CalledProcessError as e:
             print("-" * 50)
-            print(f"❌ ERROR: El script {script} falló o se interrumpió.")
+            print(f"ERROR: El script {script} falló o se interrumpió.")
             print("Deteniendo la ejecución. Los siguientes scripts no se ejecutarán.")
             sys.exit(1)
             
-    print("\n🎉 TODOS LOS SCRIPTS SE HAN EJECUTADO CON ÉXITO 🎉")
+    print("\nTODOS LOS SCRIPTS SE HAN EJECUTADO CON ÉXITO")
 
 if __name__ == "__main__":
     main()

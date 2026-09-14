@@ -20,7 +20,7 @@ Cuando migres el proyecto, el nuevo administrador de la cuenta de Azure deberá 
    * **`Propietario` (Owner)**: Permite administrar todos los recursos y, además, delegar accesos y añadir a otras personas.
 6. En la pestaña de miembros, busca y selecciona a tus compañeros por su correo y haz clic en **Revisar y asignar**.
 
-### ⚠️ Permiso extra para explorar archivos en el Portal:
+### Permiso extra para explorar archivos en el Portal:
 El rol de *Colaborador* general a veces bloquea la descarga o visualización de archivos desde la interfaz web del Datalake. Si los desarrolladores necesitan explorar los archivos Parquet directamente desde el portal web, debes asignarles adicionalmente el rol:
 *   **`Colaborador de datos de Storage Blob`** (*Storage Blob Data Contributor*).
 
