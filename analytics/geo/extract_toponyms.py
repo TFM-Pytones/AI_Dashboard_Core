@@ -125,13 +125,13 @@ def ensure_schema(conn):
 def fetch_temas_geo(conn) -> dict[int, tuple[str, str] | None]:
     """titulo del hilo -> lugar detectado (respaldo si el mensaje no menciona nada)."""
     with conn.cursor() as cur:
-        cur.execute("SELECT tema_id, titulo FROM bronze.losviajeros_temas;")
+        cur.execute("SELECT tema_id, titulo FROM bronze.bronze_losviajeros_temas;")
         return {tema_id: detecta_lugar(titulo) for tema_id, titulo in cur.fetchall()}
 
 
 def fetch_mensajes(conn) -> list[tuple[int, int, str]]:
     with conn.cursor() as cur:
-        cur.execute("SELECT id_mensaje, id_tema, texto_mensaje_limpio FROM silver.stg_losviajeros_mensajes;")
+        cur.execute("SELECT mensaje_id, tema_id, texto FROM silver.silver_losviajeros_mensajes;")
         return cur.fetchall()
 
 

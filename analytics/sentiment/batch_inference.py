@@ -81,7 +81,7 @@ def fetch_pending_comments(conn) -> list[tuple[str, str]]:
         cur.execute(
             """
             SELECT c.comment_id, c.text
-            FROM bronze.youtube_comments c
+            FROM bronze.bronze_youtube_comments c
             LEFT JOIN bronze.ml_sentiment_results r
                 ON r.source = %s AND r.source_id = c.comment_id
             WHERE r.id IS NULL AND c.text IS NOT NULL
