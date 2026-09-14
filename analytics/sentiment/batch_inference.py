@@ -2,7 +2,7 @@
 
 Procesa TODOS los comentarios de YouTube que aun no tengan resultado, corre el
 modelo de sentimiento (el mismo del Issue #16) y guarda las predicciones en
-silver.sentiment_results (Azure). Incremental: si se repite, solo procesa lo
+bronze.ml_sentiment_results (Azure). Incremental: si se repite, solo procesa lo
 nuevo (no reprocesa lo ya hecho).
 
 La tabla de resultados es generica (columna `source`) para poder añadir
@@ -50,9 +50,23 @@ def get_db_connection():
 
 
 def ensure_schema(conn):
-    schema_path = Path(__file__).resolve().parents[2] / "sql" / "silver_sentiment_results_schema.sql"
     with conn.cursor() as cur:
-        cur.execute(schema_path.read_text())
+        cur.execute("""
+            CREATE SCHEMA IF NOT EXISTS bronze;
+            CREATE TABLE IF NOT EXISTS bronze.ml_sentiment_results (
+                id              SERIAL PRIMARY KEY,
+                source          TEXT NOT NULL,
+                source_id       TEXT NOT NULL,
+                text            TEXT NOT NULL,
+                label           TEXT NOT NULL,
+                score           REAL NOT NULL,
+                model_name      TEXT NOT NULL,
+                processed_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+                is_relevant     BOOLEAN NOT NULL DEFAULT true,
+                relevance_score REAL,
+                UNIQUE (source, source_id)
+            );
+        """)
     conn.commit()
 
 
@@ -67,8 +81,8 @@ def fetch_pending_comments(conn) -> list[tuple[str, str]]:
         cur.execute(
             """
             SELECT c.comment_id, c.text
-            FROM bronze.youtube_comments c
-            LEFT JOIN silver.sentiment_results r
+            FROM bronze.bronze_youtube_comments c
+            LEFT JOIN bronze.ml_sentiment_results r
                 ON r.source = %s AND r.source_id = c.comment_id
             WHERE r.id IS NULL AND c.text IS NOT NULL
             """,
@@ -160,7 +174,7 @@ def print_summary(results: list[dict]) -> None:
     counts = {}
     for r in results:
         counts[r["label"]] = counts.get(r["label"], 0) + 1
-    print(f"\nGuardados {len(results)} resultados nuevos en silver.sentiment_results.")
+    print(f"\nGuardados {len(results)} resultados nuevos en bronze.ml_sentiment_results.")
     print("Distribución:", counts)
 
 
@@ -171,7 +185,7 @@ def save_results(conn, results: list[dict]):
         psycopg2.extras.execute_batch(
             cur,
             """
-            INSERT INTO silver.sentiment_results
+            INSERT INTO bronze.ml_sentiment_results
                 (source, source_id, text, label, score, model_name, is_relevant, relevance_score)
             VALUES (%(source)s, %(source_id)s, %(text)s, %(label)s, %(score)s, %(model_name)s,
                     %(is_relevant)s, %(relevance_score)s)

@@ -1,0 +1,62 @@
+version: 2
+
+models:
+  - name: silver_tripadvisor_ubicaciones
+    description: "Establecimientos y atractivos turísticos de Tenerife catalogados en TripAdvisor, deduplicados por location_id y georreferenciados."
+    columns:
+      - name: location_id
+        description: "Identificador numérico único del establecimiento en TripAdvisor."
+        tests:
+          - unique
+          - not_null
+      - name: nombre
+        description: "Nombre del establecimiento o atracción turística."
+        tests:
+          - not_null
+      - name: categoria
+        description: "Categoría de búsqueda (hoteles, restaurantes, atracciones)."
+        tests:
+          - not_null
+      - name: latitud
+        description: "Latitud en grados decimales (WGS84)."
+        tests:
+          - not_null
+      - name: longitud
+        description: "Longitud en grados decimales (WGS84)."
+        tests:
+          - not_null
+      - name: geometry
+        description: "Punto PostGIS (SRID 4326) para intersección espacial con la malla H3."
+        tests:
+          - not_null
+
+  - name: silver_tripadvisor_resenas
+    description: "Reseñas textuales de TripAdvisor en español (2022-2026), limpias y etiquetadas para modelos NLP de sentimiento y aspectos."
+    columns:
+      - name: review_id
+        description: "Identificador unívoco de la reseña en TripAdvisor (posible duplicidad menor en reingestas de la API)."
+        tests:
+          - not_null
+          - unique:
+              config:
+                severity: warn
+      - name: location_id
+        description: "Identificador del establecimiento evaluado; clave foránea a silver_tripadvisor_ubicaciones."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('silver_tripadvisor_ubicaciones')
+                field: location_id
+      - name: rating
+        description: "Puntuación otorgada por el usuario (1 a 5 burbujas)."
+        tests:
+          - not_null
+      - name: texto
+        description: "Contenido textual de la reseña (filtrado > 15 caracteres)."
+        tests:
+          - not_null
+      - name: fecha_publicacion
+        description: "Fecha en la que fue publicada la opinión."
+        tests:
+          - not_null

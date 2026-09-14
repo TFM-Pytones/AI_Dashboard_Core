@@ -1,0 +1,149 @@
+# Fase 5 del RAG (ver plan_rag.md) -- Conjunto de oro para evaluar el sistema.
+#
+# Tres tipos de pregunta, cada uno mide algo distinto:
+#
+#   normal      Debe responder citando fragmentos relevantes. Se comprueba que
+#               los filtros deducidos son los correctos y que entre los
+#               fragmentos recuperados aparece al menos uno de los terminos
+#               esperados (en cualquier idioma: el corpus es multilingue).
+#
+#   abstencion  La respuesta NO esta en el corpus. Debe decir que no hay
+#               informacion suficiente, no inventarsela. Es la prueba de que el
+#               sistema esta anclado en los datos.
+#
+#   agregacion  Preguntas de conteo o totales. El RAG solo ve k fragmentos de
+#               87.981, asi que NO puede responderlas: debe abstenerse o
+#               responder en terminos cualitativos. Estas preguntas justifican
+#               empiricamente la decision de arquitectura de dos herramientas
+#               (RAG + Text-to-SQL) de la seccion 2 de plan_rag.md.
+#
+# terminos_esperados se cumple con que aparezca UNO cualquiera, no todos.
+
+- id: ruido_arona
+  pregunta: "¿qué opinan del ruido por la noche en Arona?"
+  tipo: normal
+  filtros_esperados:
+    municipio: Arona
+  terminos_esperados: [ruido, noise, rumor, laut, lawaai, noches]
+
+- id: quejas_alemanes_adeje
+  pregunta: "¿de qué se quejaban los alemanes en Adeje en 2024?"
+  tipo: normal
+  filtros_esperados:
+    municipio: Adeje
+    pais_resenante: Alemania
+    fecha_desde: "2024-01-01"
+    fecha_hasta: "2024-12-31"
+  terminos_esperados: [nicht, kein, leider, schlecht, sucio, dirty]
+
+- id: siam_park
+  pregunta: "¿qué dicen los visitantes del Siam Park?"
+  tipo: normal
+  terminos_esperados: [siam]
+
+- id: teide_subida
+  pregunta: "¿qué cuentan en el foro sobre la subida al Teide?"
+  tipo: normal
+  filtros_esperados:
+    zona: Parque Nacional del Teide
+    source: losviajeros_message
+  terminos_esperados: [teide, teleferico, teleférico, subir, coche, cañadas]
+
+- id: limpieza_puerto_cruz
+  pregunta: "¿qué se dice de la limpieza en Puerto de la Cruz?"
+  tipo: normal
+  filtros_esperados:
+    municipio: Puerto de la Cruz
+  terminos_esperados: [limpieza, limpio, sucio, clean, sauber, pulizia]
+
+- id: comida_tripadvisor
+  pregunta: "¿cómo valoran la comida en los restaurantes?"
+  tipo: normal
+  terminos_esperados: [comida, food, restaurante, cena, essen, plato]
+
+- id: guachinches
+  pregunta: "¿qué recomiendan sobre los guachinches y la comida canaria?"
+  tipo: normal
+  terminos_esperados: [guachinche, mojo, papas, canaria, vino]
+
+- id: ballenas
+  pregunta: "¿qué experiencias cuentan sobre la excursión a ver ballenas y delfines?"
+  tipo: normal
+  terminos_esperados: [ballena, delfin, delfín, barco, whale, excursion, excursión]
+
+- id: aparcamiento
+  pregunta: "¿hay problemas de aparcamiento?"
+  tipo: normal
+  terminos_esperados: [aparcamiento, parking, aparcar, plaza, garaje]
+
+- id: aire_acondicionado
+  pregunta: "¿qué dicen sobre el aire acondicionado de los alojamientos?"
+  tipo: normal
+  terminos_esperados: [aire, acondicionado, calor, air, conditioning, klima, ventilador]
+
+- id: los_gigantes
+  pregunta: "¿qué opinan de Los Gigantes?"
+  tipo: normal
+  filtros_esperados:
+    zona: Los Gigantes (Santiago del Teide)
+  terminos_esperados: [gigantes, acantilado, barco, vistas]
+
+- id: masca
+  pregunta: "¿cómo es el barranco de Masca?"
+  tipo: normal
+  filtros_esperados:
+    zona: Masca (Buenavista del Norte)
+  terminos_esperados: [masca, barranco, senderismo, caminata, bajada]
+
+- id: vistas_mar
+  pregunta: "¿qué valoran de las vistas al mar?"
+  tipo: normal
+  terminos_esperados: [vistas, mar, meerblick, sea view, vista, terraza]
+
+- id: trato_personal
+  pregunta: "¿cómo describen el trato del personal?"
+  tipo: normal
+  terminos_esperados: [personal, amable, trato, staff, freundlich, atencion, atención]
+
+- id: italianos_puerto
+  pregunta: "¿qué opinan los italianos de Puerto de la Cruz?"
+  tipo: normal
+  filtros_esperados:
+    municipio: Puerto de la Cruz
+    pais_resenante: Italia
+  terminos_esperados: [posizione, molto, buona, hotel, camera, bene]
+
+- id: youtube_marca
+  pregunta: "¿qué imagen se transmite de Tenerife en los comentarios de YouTube?"
+  tipo: normal
+  filtros_esperados:
+    source: youtube_comment
+  terminos_esperados: [isla, tenerife, canarias, bonito, beautiful]
+
+# --- Deben abstenerse: la respuesta no esta en el corpus -------------------
+
+- id: abstencion_bce
+  pregunta: "¿cuál es el tipo de interés del Banco Central Europeo?"
+  tipo: abstencion
+
+- id: abstencion_mundial
+  pregunta: "¿quién ganó el mundial de fútbol de 2022?"
+  tipo: abstencion
+
+- id: abstencion_irpf
+  pregunta: "¿cómo se rellena la declaración de la renta en España?"
+  tipo: abstencion
+
+# --- Trampas de agregacion: son para el agente Text-to-SQL, no para el RAG --
+
+- id: agregacion_cuantas
+  pregunta: "¿cuántas reseñas hay de Arona en total?"
+  tipo: agregacion
+
+- id: agregacion_ranking
+  pregunta: "¿qué municipio tiene el mayor número de opiniones negativas?"
+  tipo: agregacion
+
+- id: agregacion_porcentaje
+  pregunta: "¿qué porcentaje de las reseñas de Booking son negativas?"
+  tipo: agregacion

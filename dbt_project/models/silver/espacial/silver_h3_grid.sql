@@ -6,18 +6,33 @@
     ]
 ) }}
 
-WITH grid AS (
-    SELECT
-        h3_index,
-        resolution,
-        geometry,
-        -- Area real en km2 (::geography para que ST_Area no de grados^2,
-        -- ya que bronze.h3_grid esta en SRID 4326)
-        ROUND((ST_Area(geometry::geography) / 1000000)::numeric, 6) AS area_km2,
-        -- Centroide en lon/lat (geometry ya esta en 4326, no hace falta transformar)
-        ST_X(ST_Centroid(geometry)) AS centroide_lon,
-        ST_Y(ST_Centroid(geometry)) AS centroide_lat
-    FROM {{ source('bronze', 'h3_grid') }}
+/*
+  Modelo Silver: silver_h3_grid
+  -------------------------------------------------------------
+  Transformación, depuración y filtrado de la malla espacial H3 Res 8:
+  - Capa Bronze (bronze.bronze_h3_grid): 2.746 celdas generadas con
+    buffer de amortiguación costera de 0.01° (~1,1 km).
+  - Filtro 1 (Límites Municipales): Descarta 163 celdas 100% marinas en aguas
+    abiertas sin intersección con los 31 municipios de Tenerife (2.583 celdas).
+  - Filtro 2 (Integridad Biofísica y Topográfica): Descarta 4 celdas residuales
+    costeras/roques marinos que carecen de elevación válida (cota <= 0 o NoData en MDT)
+    o de cobertura satelital biofísica (NDVI nulo en Sentinel-2), consolidando
+    exactamente 2.579 celdas terrestres 100% completas y libres de nulos.
+  - Centroides geométricos canónicos puros (ST_Centroid de H3) sin distorsiones espaciales.
+  - Enriquecimiento: relieve MDT25 (GRAFCAN) y figuras protegidas (ENP).
+*/
+
+WITH grid_municipal AS (
+    SELECT 
+        g.h3_index,
+        g.resolution,
+        g.geometry
+    FROM {{ source('bronze', 'bronze_h3_grid') }} g
+    WHERE EXISTS (
+        SELECT 1
+        FROM {{ ref('silver_limites_municipales') }} lm
+        WHERE ST_Intersects(g.geometry, lm.geometry)
+    )
 ),
 
 mdt AS (
@@ -35,7 +50,16 @@ mdt AS (
         aspect_mean,
         -- Hillshade (útil para visualización en Dashboard)
         hillshade_mean
-    FROM {{ source('bronze', 'mdt_stats') }}
+    FROM {{ source('bronze', 'bronze_mdt_stats') }}
+    WHERE elevation_mean IS NOT NULL 
+      AND elevation_mean > 0
+),
+
+satelite_valid AS (
+    -- Asegura que el hexágono tiene lecturas válidas de vegetación / teledetección
+    SELECT DISTINCT h3_index
+    FROM {{ source('bronze', 'bronze_satelite_stats') }}
+    WHERE ndvi_mean IS NOT NULL
 ),
 
 enp_intersection AS (
@@ -43,8 +67,8 @@ enp_intersection AS (
     SELECT DISTINCT
         g.h3_index,
         TRUE AS is_protected_area
-    FROM grid g
-    JOIN {{ source('bronze', 'espacios_naturales') }} e
+    FROM grid_municipal g
+    JOIN {{ source('bronze', 'bronze_espacios_naturales') }} e
       ON ST_Intersects(g.geometry, e.geometry)
 )
 
@@ -52,24 +76,25 @@ SELECT
     g.h3_index,
     g.resolution,
     g.geometry,
-    g.area_km2,
-    g.centroide_lon,
-    g.centroide_lat,
-    -- Elevación (rellenar con 0 si el hexágono cae en el mar)
-    COALESCE(m.elevation_mean, 0.0) AS elevation_mean,
-    COALESCE(m.elevation_min,  0.0) AS elevation_min,
-    COALESCE(m.elevation_max,  0.0) AS elevation_max,
+    -- Centroide geométrico canónico de la celda H3
+    ST_X(ST_Centroid(g.geometry)) AS centroide_lon,
+    ST_Y(ST_Centroid(g.geometry)) AS centroide_lat,
+    -- Elevación
+    m.elevation_mean,
+    m.elevation_min,
+    m.elevation_max,
     -- Pendiente en grados
-    COALESCE(m.slope_mean, 0.0) AS slope_mean,
-    COALESCE(m.slope_min,  0.0) AS slope_min,
-    COALESCE(m.slope_max,  0.0) AS slope_max,
+    m.slope_mean,
+    m.slope_min,
+    m.slope_max,
     -- Orientación en grados (Norte=0°)
-    COALESCE(m.aspect_mean, 0.0) AS aspect_mean,
+    m.aspect_mean,
     -- Hillshade para visualización
-    COALESCE(m.hillshade_mean, 0.0) AS hillshade_mean,
+    m.hillshade_mean,
     -- Área protegida (ENP)
     COALESCE(e.is_protected_area, FALSE) AS is_protected_area
-FROM grid g
-LEFT JOIN mdt m ON g.h3_index = m.h3_index
+FROM grid_municipal g
+INNER JOIN mdt m ON g.h3_index = m.h3_index
+INNER JOIN satelite_valid s ON g.h3_index = s.h3_index
 LEFT JOIN enp_intersection e ON g.h3_index = e.h3_index
 

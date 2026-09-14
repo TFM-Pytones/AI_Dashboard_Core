@@ -10,7 +10,7 @@ discutidos en YouTube y foros de viajeros" -- eso encaja ahora que LosViajeros
 a YouTube.
 
 Filtro de fecha (>= 2022, tal y como pedia el prompt original): solo aplica a
-YouTube (bronze.youtube_comments.published_at). LosViajeros no tiene una
+YouTube (bronze.bronze_youtube_comments.published_at). LosViajeros no tiene una
 fecha real del mensaje (solo fecha_extraccion, que es cuando se scrapeo, no
 cuando se escribio), asi que sus filas entran siempre -- filtrarlas por una
 fecha que no es la suya seria inventar un dato. Se aplica sobre el conteo que
@@ -76,7 +76,7 @@ def fetch_topic_summary(conn) -> tuple[list[tuple[str, int]], int]:
             """
             SELECT t.topic_label, COUNT(*) AS n
             FROM gold.nlp_topics t
-            LEFT JOIN bronze.youtube_comments c
+            LEFT JOIN bronze.bronze_youtube_comments c
               ON t.source = 'youtube_comment' AND c.comment_id = t.source_id
             WHERE t.model_name = %s
               AND t.topic_id != -1

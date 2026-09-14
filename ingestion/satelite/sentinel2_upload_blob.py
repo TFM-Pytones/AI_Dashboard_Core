@@ -288,9 +288,9 @@ class Sentinel2GEEPipeline:
                 self.blob_client = BlobServiceClient.from_connection_string(conn_str)
                 logger.info("Conectado a Azure Blob Storage.")
             except Exception as exc:
-                logger.warning(f"⚠️ No se pudo conectar a Azure Blob: {exc}")
+                logger.warning(f"No se pudo conectar a Azure Blob: {exc}")
         else:
-            logger.warning("⚠️ AZURE_STORAGE_CONNECTION_STRING no configurada. Solo export a Drive.")
+            logger.warning("AZURE_STORAGE_CONNECTION_STRING no configurada. Solo export a Drive.")
 
     # ── GEE init ──────────────────────────────────────────────────────────────
 
@@ -338,7 +338,7 @@ class Sentinel2GEEPipeline:
                 (i for i, c in enumerate(combos) if c >= resume_from), 0
             )
             combos = combos[resume_idx:]
-            logger.info(f"▶️  Retomando desde {resume_from[0]} Q{resume_from[1]}")
+            logger.info(f"Retomando desde {resume_from[0]} Q{resume_from[1]}")
 
         logger.info(
             f"\n{'='*65}\n"
@@ -370,11 +370,11 @@ class Sentinel2GEEPipeline:
                 n = composite.get("n_source_images").getInfo()
                 if n == 0:
                     logger.warning(
-                        f"    ⚠️  Sin imágenes disponibles para {year} Q{q}. "
+                        f"    Sin imágenes disponibles para {year} Q{q}. "
                         "Puede ser que el periodo no tenga datos en COPERNICUS/S2_SR_HARMONIZED."
                     )
                     continue
-                logger.info(f"    📦 {n} escenas en colección fuente")
+                logger.info(f"    {n} escenas en colección fuente")
 
                 task = ee.batch.Export.image.toDrive(
                     image=composite,
@@ -433,7 +433,7 @@ class Sentinel2GEEPipeline:
         logger.info(f"  ESTADO DE TASKS GEE — TFM Tenerife Sentinel-2")
         logger.info(f"{'='*55}")
         for state, count in status_summary.items():
-            icon = {"COMPLETED": "✅", "RUNNING": "🔄", "READY": "⏳", "FAILED": "❌"}.get(state, "❓")
+            icon = {"COMPLETED": "[OK]", "RUNNING": "[RUNNING]", "READY": "[READY]", "FAILED": "[FAILED]"}.get(state, "[?]")
             logger.info(f"  {icon} {state}: {count} tasks")
 
         failed = [t for t in tfm_tasks if t.get("state") == "FAILED"]
@@ -462,7 +462,7 @@ class Sentinel2GEEPipeline:
         geotiffs = [f for f in os.listdir(local_dir) if f.endswith(".tif")]
 
         if not geotiffs:
-            logger.warning(f"⚠️ No se encontraron GeoTIFFs en: {local_dir}")
+            logger.warning(f"No se encontraron GeoTIFFs en: {local_dir}")
             logger.info(
                 "  Descarga los archivos de Google Drive (carpeta TFM_Tenerife_Sentinel2)\n"
                 f"  y colócalos en: {local_dir}"
@@ -491,7 +491,7 @@ class Sentinel2GEEPipeline:
                 with open(local_path, "rb") as f:
                     blob.upload_blob(f, overwrite=True)
                 size_mb = os.path.getsize(local_path) / 1024 / 1024
-                logger.info(f"  ☁️  Subido: {blob_name} ({size_mb:.1f} MB)")
+                logger.info(f"    Subido: {blob_name} ({size_mb:.1f} MB)")
                 ok_count += 1
             except Exception as exc:
                 logger.error(f"Error subiendo {fname}: {exc}")
@@ -527,11 +527,11 @@ class Sentinel2GEEPipeline:
                 covid = " [COVID]" if year in COVID_YEARS else ""
                 logger.info(f"{year} Q{qnum}{covid} — {fname}")
             except (IndexError, ValueError):
-                logger.info(f"  ❓ {fname} (nombre inesperado)")
+                logger.info(f"  ? {fname} (nombre inesperado)")
 
         missing = [(y, q) for y, q in expected if (y, q) not in downloaded]
         if missing:
-            logger.warning(f"\n  ⚠️  Composites faltantes ({len(missing)}):")
+            logger.warning(f"\n  Composites faltantes ({len(missing)}):")
             for y, q in missing:
                 covid = " [COVID]" if y in COVID_YEARS else ""
                 logger.warning(f"    - {y} Q{q}{covid}")

@@ -14,7 +14,7 @@ WITH source_hoteles AS (
         establecimiento_clasificacion AS categoria,
         establecimiento_modalidad AS modalidad,
         'hotel' AS tipo_alojamiento
-    FROM {{ source('bronze', 'registro_hoteles') }}
+    FROM {{ source('bronze', 'bronze_registro_hoteles') }}
     WHERE direccion_isla_nombre ILIKE '%Tenerife%'
 ),
 source_extrahoteleros AS (
@@ -24,7 +24,7 @@ source_extrahoteleros AS (
         establecimiento_clasificacion AS categoria,
         establecimiento_modalidad AS modalidad,
         'extrahotelero' AS tipo_alojamiento
-    FROM {{ source('bronze', 'registro_extrahoteleros') }}
+    FROM {{ source('bronze', 'bronze_registro_extrahoteleros') }}
     WHERE direccion_isla_nombre ILIKE '%Tenerife%'
 ),
 source_vv AS (
@@ -36,7 +36,7 @@ source_vv AS (
         establecimiento_clasificacion AS categoria,
         establecimiento_modalidad AS modalidad,
         'vivienda_vacacional' AS tipo_alojamiento
-    FROM {{ source('bronze', 'registro_viviendas_vacacionales') }}
+    FROM {{ source('bronze', 'bronze_registro_viviendas_vacacionales') }}
     WHERE direccion_isla_nombre ILIKE '%Tenerife%'
 ),
 source_data AS (
@@ -48,7 +48,7 @@ source_data AS (
 ),
 lookup AS (
     SELECT *
-    FROM {{ source('bronze', 'registro_geocoding_lookup') }}
+    FROM {{ source('bronze', 'bronze_registro_geocoding_lookup') }}
 ),
 cleaned_coords AS (
     SELECT
@@ -76,8 +76,8 @@ cleaned_coords AS (
             ELSE s.categoria
         END AS categoria,
         CASE WHEN s.modalidad = '_U' THEN NULL ELSE s.modalidad END AS modalidad,
-        CAST(NULLIF(TRIM(REPLACE(CAST(s.plazas AS VARCHAR), ',', '.')), '') AS NUMERIC) AS plazas,
-        CAST(NULLIF(TRIM(REPLACE(CAST(s.unidades_explotacion AS VARCHAR), ',', '.')), '') AS NUMERIC) AS unidades_alojativas,
+        NULLIF(CAST(NULLIF(TRIM(REPLACE(CAST(s.plazas AS VARCHAR), ',', '.')), '') AS NUMERIC), 0) AS plazas,
+        NULLIF(CAST(NULLIF(TRIM(REPLACE(CAST(s.unidades_explotacion AS VARCHAR), ',', '.')), '') AS NUMERIC), 0) AS unidades_alojativas,
         
         -- Prioridad: 1) Geocodificador (lookup) 2) Coordenada original limpia
         COALESCE(
@@ -103,16 +103,16 @@ SELECT
     modalidad,
     plazas,
     unidades_alojativas,
-    -- Limpiamos coordenadas que sean nulas, 0 o estén fuera del bounding box de Tenerife
-    CASE 
-        WHEN longitud IS NULL OR longitud = 0 OR longitud NOT BETWEEN -16.95 AND -16.09 THEN NULL
-        ELSE longitud
-    END AS longitud,
-    CASE 
-        WHEN latitud IS NULL OR latitud = 0 OR latitud NOT BETWEEN 27.97 AND 28.59 THEN NULL
-        ELSE latitud
-    END AS latitud,
-    -- Generamos la geometría solo si las coordenadas finales son válidas
+        -- Limpiamos coordenadas que sean nulas, 0 o estén fuera del bounding box de Tenerife
+        CASE 
+            WHEN longitud IS NULL OR longitud = 0 OR longitud NOT BETWEEN -16.95 AND -16.09 THEN NULL
+            ELSE longitud
+        END AS longitud,
+        CASE 
+            WHEN latitud IS NULL OR latitud = 0 OR latitud NOT BETWEEN 27.97 AND 28.59 THEN NULL
+            ELSE latitud
+        END AS latitud,
+        -- Generamos la geometría solo si las coordenadas finales son válidas
     CASE
         WHEN longitud IS NOT NULL AND longitud != 0 AND longitud BETWEEN -16.95 AND -16.09 
          AND latitud IS NOT NULL AND latitud != 0 AND latitud BETWEEN 27.97 AND 28.59

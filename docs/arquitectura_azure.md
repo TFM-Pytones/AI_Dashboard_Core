@@ -4,7 +4,7 @@ Este documento describe la configuración de todos los recursos aprovisionados e
 
 ---
 
-## 🗺️ Mapa de Componentes y Capas
+## Mapa de Componentes y Capas
 
 La arquitectura sigue los principios del **Data Lakehouse**, combinando almacenamiento en ficheros de bajo coste (Capa Bronce) con un motor relacional e indexación espacial (Capas Plata y Oro) y un orquestador automatizado.
 
@@ -31,7 +31,7 @@ flowchart TD
 
 ---
 
-## 🗄️ 1. Almacenamiento: Capa Bronce (Raw Data)
+## 1. Almacenamiento: Capa Bronce (Raw Data)
 * **Nombre de la Cuenta**: `datalaketfmtenerife`
 * **Tipo de Cuenta**: StorageV2 (Uso General v2)
 * **Rendimiento**: Estándar
@@ -43,7 +43,7 @@ flowchart TD
 
 ---
 
-## 🛢️ 2. Base de Datos: Capas Plata (Silver) y Oro (Gold)
+## 2. Base de Datos: Capas Plata (Silver) y Oro (Gold)
 * **Servidor**: Azure Database for PostgreSQL (Servidor Flexible)
 * **Nombre del Servidor**: `db-tfm-tenerife` (Punto de conexión: `db-tfm-tenerife.postgres.database.azure.com`)
 * **Configuración**: Con capacidad de ráfaga (Burstable B1ms), 1 núcleo virtual, 2 GiB de RAM, 32 GiB de almacenamiento.
@@ -56,7 +56,7 @@ flowchart TD
 
 ---
 
-## 💻 3. Cómputo y Orquestación: Apache Airflow & dbt
+## 3. Cómputo y Orquestación: Apache Airflow & dbt
 * **Nombre de la VM**: `mv-orquestador-tfm`
 * **Tamaño**: Standard B2ats_v2 (2 vCPUs, 2 GiB RAM - ~$0.0122/h)
 * **Sistema Operativo**: Ubuntu Server 24.04 LTS

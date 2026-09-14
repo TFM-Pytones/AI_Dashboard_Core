@@ -6,6 +6,7 @@
 *.geojson
 *.tiff
 *.shp
+*.parquet
 
 # 2. Carpetas de datos locales
 data/
@@ -44,6 +45,9 @@ scraping_progress_deep.json
 ingestion/booking/scraping_progress_deep.json
 tenerife_osm_keywords_priority.json
 priority_urls.json
+*geocode_cache.json
+geocode_booking_cache.json
+geocode_cache.json
 # 7. pyabsa (descarga checkpoints ~1GB y vuelca resultados en la raiz por defecto)
 checkpoints/
 checkpoints.json
@@ -66,3 +70,8 @@ next-env.d.ts
 # 9. Scripts temporales / scratch
 scratch/
 main
+
+# 10. Documentos Word binarios y volcados auxiliares
+*.docx
+extracted_*.txt
+

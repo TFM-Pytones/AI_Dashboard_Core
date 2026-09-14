@@ -22,7 +22,7 @@ logger = logging.getLogger("AENA_Ingestion")
 load_dotenv()
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-AENA_RAW_DIR = os.path.join(BASE_DIR, "data", "bronce", "tabular", "raw", "aena")
+AENA_RAW_DIR = os.path.join(BASE_DIR, "data", "aena")
 os.makedirs(AENA_RAW_DIR, exist_ok=True)
 
 AZURE_CONNECTION_STRING = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
@@ -32,13 +32,27 @@ BLOB_FOLDER = "aena"
 def extract_aena_data(filepath):
     # Intentamos leer el archivo
     try:
-        # AENA a veces usa varias hojas. Si hay una llamada "Ranking mensual", la usamos.
+        # AENA a veces usa varias hojas. Descartamos carátulas técnicas y acumulados.
         xls = pd.ExcelFile(filepath)
-        sheet_to_parse = xls.sheet_names[0]
+        sheet_to_parse = None
+
+        # 1. Prioridad: hoja explícita de "Ranking mensual" o "Ranking anual"
         for sn in xls.sheet_names:
-            if "Ranking mensual" in sn:
+            sn_lower = sn.lower()
+            if "ranking mensual" in sn_lower or "ranking anual" in sn_lower:
                 sheet_to_parse = sn
                 break
+
+        # 2. Prioridad: hoja del mes descartando carátula técnica 'Mozart Reports' y hojas de acumulado
+        if not sheet_to_parse:
+            candidate_sheets = [
+                sn for sn in xls.sheet_names
+                if "mozart" not in sn.lower() and "acumulado" not in sn.lower()
+            ]
+            if candidate_sheets:
+                sheet_to_parse = candidate_sheets[0]
+            else:
+                sheet_to_parse = xls.sheet_names[0]
         
         df = pd.read_excel(filepath, sheet_name=sheet_to_parse, header=None)
     except Exception as e:
@@ -134,7 +148,7 @@ def process_and_upload():
 
     df_aena = pd.DataFrame(all_records)
     
-    # Opcional: Pivotar la tabla para tener una fila por Mes-Aeropuerto y columnas de Pasajeros, Operaciones, Carga
+    # Pivotar la tabla para tener una fila por Mes-Aeropuerto y columnas de Pasajeros, Operaciones, Carga
     df_pivot = df_aena.pivot_table(
         index=["TIME_CODE", "AEROPUERTO"], 
         columns="CATEGORIA", 

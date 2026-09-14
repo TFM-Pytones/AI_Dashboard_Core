@@ -48,7 +48,7 @@ class AgrocabildoHistoricalBackfill:
             self.blob_service_client = BlobServiceClient.from_connection_string(conn_str)
         else:
             self.blob_service_client = None
-            logger.warning("⚠️ AZURE_STORAGE_CONNECTION_STRING no configurado. Solo se guardará en local.")
+            logger.warning("AZURE_STORAGE_CONNECTION_STRING no configurado. Solo se guardará en local.")
 
     def download_from_blob(self, blob_name: str, local_path: str):
         """Descarga un archivo del contenedor bronce-raw al disco local."""
@@ -59,7 +59,7 @@ class AgrocabildoHistoricalBackfill:
             with open(local_path, "wb") as f:
                 data = blob_client.download_blob()
                 data.readinto(f)
-            logger.info(f"📥 Archivo {blob_name} descargado de Azure Blob a local.")
+            logger.info(f"Archivo {blob_name} descargado de Azure Blob a local.")
         except Exception as e:
             logger.warning(f"No se pudo descargar {blob_name} de Azure Blob: {e}")
 

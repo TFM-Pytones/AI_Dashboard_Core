@@ -2,8 +2,8 @@
     materialized='table',
     tags=['silver', 'espacial', 'tripadvisor'],
     indexes=[
-      {'columns': ['geometry'], 'type': 'gist'},
-      {'columns': ['categoria']}
+      {'columns': ['location_id'], 'unique': True},
+      {'columns': ['geometry'], 'type': 'gist'}
     ]
 ) }}
 
@@ -20,11 +20,11 @@ WITH source_data AS (
         location::jsonb AS location,
         categoria_busqueda,
         municipio_busqueda
-    FROM {{ source('bronze', 'tripadvisor_ubicaciones') }}
+    FROM {{ source('bronze', 'bronze_tripadvisor_ubicaciones') }}
 ),
 raw_data AS (
-    SELECT
-        location->>'id' AS location_id,
+    SELECT DISTINCT ON (location_id)
+        (location->>'id')::bigint AS location_id,
         COALESCE(
             jsonb_path_query_first(location->'names', '$[*] ? (@.language == "es").value') #>> '{}',
             jsonb_path_query_first(location->'names', '$[*] ? (@.primary == true).value') #>> '{}',

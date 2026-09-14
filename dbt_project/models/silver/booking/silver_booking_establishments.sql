@@ -10,7 +10,7 @@
 -- 1. Deduplicamos los establecimientos desde bronze para evitar repetidos (del de booking)
 WITH raw_booking AS (
     SELECT DISTINCT ON (establishment_id) *
-    FROM {{ source('bronze', 'booking_establishments') }}
+    FROM {{ source('bronze', 'bronze_booking_establishments') }}
     ORDER BY establishment_id
 ),
 
@@ -20,7 +20,7 @@ lookup AS (
         establishment_id,
         latitud_geocoded,
         longitud_geocoded
-    FROM {{ source('bronze', 'booking_geocoding_lookup') }}
+    FROM {{ source('bronze', 'bronze_booking_geocoding_lookup') }}
 ),
 
 -- 3. Cruzamos y enriquecemos priorizando las coordenadas corregidas (del de alojamiento)

@@ -1,225 +1,247 @@
-# dbt_project — Transformaciones Silver
+# dbt_project — Transformaciones Silver y Gold (Medallion Pipeline)
 
-Proyecto **dbt** del TFM *AI Dashboard Core — Tenerife Tourism*. Gestiona todas las
-transformaciones de la capa **Bronze → Silver** en Azure PostgreSQL.
+Proyecto **dbt** del Trabajo Fin de Máster *AI Dashboard Core — Tenerife Tourism*. Gestiona el ciclo completo de transformación y enriquecimiento analítico del Data Lakehouse en **Azure PostgreSQL**: desde los datos crudos (**Bronze → Silver**) hasta las tablas maestras multidimensionales (**Silver → Gold**).
 
 ---
 
-## Requisitos previos
+## 1. Requisitos previos y configuración
+
+### Instalación
+El proyecto requiere `dbt-core` con el adaptador de PostgreSQL:
 
 ```bash
-# Instalar dbt con el adaptador de PostgreSQL
 pip install dbt-postgres
-
-# Verificar instalación
-dbt --version
 ```
 
-Las variables de conexión se leen del fichero `.env` en la raíz del proyecto:
+### Variables de conexión (.env)
+Las credenciales de acceso se gestionan a través del fichero `.env` en la raíz del repositorio. El archivo `profiles.yml` está configurado para leerlas automáticamente mediante `env_var()`:
 
-| Variable de entorno | Descripción |
+| Variable | Descripción |
 |---|---|
-| `AZURE_DB_HOST` | Host del servidor Azure PostgreSQL |
-| `AZURE_DB_USER` | Usuario de la base de datos |
+| `AZURE_DB_HOST` | Host del servidor Azure Database for PostgreSQL Flexible |
+| `AZURE_DB_PORT` | Puerto de conexión (por defecto `5432`) |
+| `AZURE_DB_USER` | Usuario administrador de la base de datos |
 | `AZURE_DB_PASSWORD` | Contraseña |
-| `AZURE_DB_NAME` | Nombre de la base de datos |
+| `AZURE_DB_NAME` | Nombre de la base de datos analítica |
 
-> **Nota**: el `profiles.yml` ya está configurado para leer estas variables con
-> `env_var()`. No hay que editar `profiles.yml` manualmente.
+> **Nota:** No es necesario modificar `profiles.yml`. Para verificar la conectividad con la base de datos ejecuta `dbt debug` (o `python run_dbt.py debug`).
 
 ---
 
-## Estructura del proyecto
+## 2. Estructura del proyecto dbt
 
 ```
 dbt_project/
-├── dbt_project.yml          # Configuración global del proyecto dbt
-├── profiles.yml             # Conexión a Azure PostgreSQL (lee del .env)
-├── models/
-│   └── silver/
-│       ├── sources.yml      # Declaración de todas las tablas Bronze
-│       ├── clima/           # Modelos de clima y meteorología
-│       ├── espacial/        # Modelos de datos geoespaciales y movilidad
-│       ├── istac/           # Modelos de estadísticas ISTAC
-│       └── youtube/         # Modelos de NLP / redes sociales
+├── dbt_project.yml              # Configuración global del proyecto y esquemas
+├── profiles.yml                 # Perfil de conexión a Azure PostgreSQL (vía .env)
+└── models/
+    ├── silver/                  # CAPA SILVER: Limpieza, tipado y reproyección EPSG:32628
+    │   ├── sources.yml          # Declaración de todas las fuentes Bronze (raw)
+    │   ├── alojamiento/         # Registros oficiales de turismo georreferenciados
+    │   ├── booking/             # Establecimientos y reseñas de Booking.com
+    │   ├── tripadvisor/         # Ubicaciones y reseñas de TripAdvisor
+    │   ├── clima/               # Lecturas horarias y metadatos de estaciones Agrocabildo
+    │   ├── espacial/            # Malla H3, límites municipales, ENP, zonas turísticas y POIs
+    │   ├── istac/               # Microdatos ISTAC (demografía, empleo, turismo)
+    │   ├── movilidad/           # Pasajeros AENA y red de transporte público GTFS (TITSA)
+    │   ├── losviajeros/         # Hilos y mensajes depurados del foro LosViajeros.com
+    │   └── youtube/             # Vídeos y comentarios de YouTube
+    └── gold/                    # CAPA GOLD: Modelos analíticos maestros y KPIs
+        ├── sources.yml          # Fuentes externas Gold (salidas de notebooks NLP)
+        ├── gold_h3_master.sql               # Tabla maestra territorial H3 (60+ indicadores)
+        ├── gold_sentimiento_h3.sql          # Sentimiento y quejas agregadas por hexágono
+        ├── gold_municipio_master.sql        # Tabla maestra municipal 31 mun (con PostGIS)
+        ├── gold_municipio_anual.sql         # Serie temporal anual con variaciones YoY
+        ├── gold_municipio_mensual.sql       # Serie continua 56 meses para estacionalidad
+        ├── gold_municipio_empleo.sql        # Afiliación trimestral (asalariados vs autónomos)
+        ├── gold_turismo_hotelero_mensual.sql# Encuesta hotelera EOH en polos turísticos
+        ├── gold_turismo_hotelero_anual.sql  # Población Turística Equivalente (PTE ISTAC)
+        └── gold_aena_pasajeros.sql          # Tráfico mensual de pasajeros en TFS y TFN
 ```
 
 ---
 
-## Cómo ejecutar
+## 3. Cómo ejecutar
 
-Todos los comandos se ejecutan **dentro de la carpeta `dbt_project/`**:
+Puedes ejecutar dbt de dos formas:
 
-```bash
-cd AI_Dashboard_Core/dbt_project
-```
-
-### Ejecutar todos los modelos Silver de una vez
+### Opción A (Recomendada en Windows — Script raíz)
+Desde la carpeta raíz del proyecto, sin necesidad de cambiar de directorio ni activar entornos manualmente:
 
 ```bash
-dbt run --select silver.*
+# Verificar conexión a Azure PostgreSQL
+python run_dbt.py debug
+
+# Ejecutar todos los modelos Gold
+python run_dbt.py run --select gold.*
+
+# Ejecutar todos los modelos Silver
+python run_dbt.py run --select silver.*
+
+# Ejecutar un modelo concreto
+python run_dbt.py run --select gold_municipio_master
+
+# Pasar los tests de calidad de datos
+python run_dbt.py test
 ```
 
-### Ejecutar un modelo concreto
+### Opción B (Estándar dbt — Dentro de `dbt_project/`)
+Entrando en el directorio del proyecto dbt:
 
 ```bash
-dbt run --select silver_clima_horario_agrocabildo
-```
+cd dbt_project
 
-### Ejecutar solo un grupo temático
-
-```bash
-# Solo clima
-dbt run --select silver.clima.*
-
-# Solo espacial + movilidad
-dbt run --select silver.espacial.*
-
-# Solo ISTAC
-dbt run --select silver.istac.*
-
-# Solo YouTube / NLP
-dbt run --select silver.youtube.*
-```
-
-### Verificar la conexión antes de ejecutar
-
-```bash
-dbt debug
-```
-
-### Compilar sin ejecutar (útil para revisar el SQL generado)
-
-```bash
-dbt compile --select silver.*
-# El SQL compilado queda en: dbt_project/target/compiled/
-```
-
----
-
-## Modelos disponibles
-
-### `clima/` — Meteorología y clima
-
-| Modelo | Tabla resultante | Fuente Bronze | Descripción |
-|---|---|---|---|
-| `silver_clima_horario_agrocabildo` | `silver.silver_clima_horario_agrocabildo` | `bronze.clima_horario_agrocabildo` | Lecturas de sensores diezminutales filtradas a **horas en punto**, eliminando códigos de error (-999, -9999) y valores extremos (<-50 o >1500). Columnas: `id_estacion`, `id_sensor`, `timestamp`, `valor_limpio`, `es_validado`, `es_extremo`. |
-| `silver_estaciones_agrocabildo` | `silver.silver_estaciones_agrocabildo` | `bronze.estaciones_agrocabildo` | Metadatos limpios de estaciones meteorológicas. Descarta estaciones sin coordenadas. |
-| `silver_era5land` | `silver.silver_era5land` | `bronze.era5land_consolidado` | Reanálisis ERA5-Land con conversión de unidades: Kelvin→°C, m→mm precipitación, componentes u/v→velocidad viento (m/s), J/m²→W/m² radiación. |
-| `silver_gfs_hist` | `silver.silver_gfs_hist` | `bronze.hist_forecast_gfs_seamless_consolidado` | Histórico de forecast GFS seamless (Open-Meteo) con las mismas conversiones de unidades que ERA5. |
-
-```bash
-dbt run --select silver.clima.*
-```
-
----
-
-### `espacial/` — Geodatos y movilidad
-
-| Modelo | Tabla resultante | Fuente Bronze | Descripción |
-|---|---|---|---|
-| `silver_limites_municipales` | `silver.silver_limites_municipales` | `bronze.limites_municipales` | Geometrías de los 31 municipios de Tenerife. Añade área en km² calculada con PostGIS y centroide (lon/lat) para joins rápidos sin geometría. |
-| `silver_zonas_turisticas` | `silver.silver_zonas_turisticas` | `bronze.zonas_turisticas` | Polígonos de zonas turísticas con área calculada. |
-| `silver_enp` | `silver.silver_enp` | `bronze.tenerife_espacios_naturales_protegidos` | Espacios Naturales Protegidos (Parque Nacional, Parque Rural, Reserva, Monumento Natural) con área en km². |
-| `silver_gtfs_paradas` | `silver.silver_gtfs_paradas` | `bronze.gtfs_paradas` | Paradas de transporte público TITSA/TITF. Descarta paradas sin coordenadas válidas. La asignación a zona turística se hace en Gold con `ST_Within`. |
-| `silver_gtfs_rutas` | `silver.silver_gtfs_rutas` | `bronze.gtfs_rutas` | Rutas de transporte público con tipo normalizado (Bus / Tren / Tram). |
-
-> **Requisito**: PostGIS debe estar activado en la base de datos para los modelos
-> que usan `ST_Area`, `ST_Centroid` y `ST_X/ST_Y`.
-
-```bash
-dbt run --select silver.espacial.*
-```
-
----
-
-### `istac/` — Estadísticas Instituto Canario
-
-Todos los modelos de ISTAC leen de la misma tabla `bronze.istac_municipios` y la
-pivotean en distintas granularidades temporales.
-
-| Modelo | Tabla resultante | Granularidad | Variables principales |
-|---|---|---|---|
-| `silver_istac_estatico` | `silver.silver_istac_estatico` | Sin periodo | `superficie_km2` por municipio |
-| `silver_istac_anual` | `silver.silver_istac_anual` | Anual | `poblacion_total`, `poblacion_15_64`, `poblacion_65_mas`, `edad_media`, `saldo_migratorio`, `pob_turistica_equiv` |
-| `silver_istac_trimestral` | `silver.silver_istac_trimestral` | Trimestral | `empleo_hosteleria`, `empleo_servicios` |
-| `silver_istac_mensual` | `silver.silver_istac_mensual` | Mensual | `pernoctaciones`, `viajeros_entrados`, `plazas_ofertadas`, `alojamientos_abiertos`, `tasa_ocupacion_plazas`, `paro_registrado`, `empresas_ss` |
-| `silver_istac_municipios_cifras_tenerife` | `silver.silver_istac_municipios_cifras_tenerife` | Mixta | Vista consolidada con todos los indicadores por municipio |
-
-```bash
-dbt run --select silver.istac.*
-```
-
----
-
-### `youtube/` — NLP y redes sociales
-
-| Modelo | Tabla resultante | Fuente Bronze | Descripción |
-|---|---|---|---|
-| `silver_youtube` | `silver.silver_youtube` | `bronze.youtube_videos` + `bronze.youtube_comments` | Videos con métricas de engagement calculadas (ratio likes+comentarios/visualizaciones) y conteo de comentarios válidos (sin texto vacío). |
-| `silver_losviajeros` | `silver.silver_losviajeros` | `bronze.losviajeros_temas` + `bronze.losviajeros_mensajes` | Temas del foro LosViajeros.com con métricas de actividad (mensajes válidos, longitud media, fechas primera/última respuesta). |
-
-```bash
-dbt run --select silver.youtube.*
-```
-
-> **Tablas de output NLP — NO gestionadas por dbt:**
-> Las tablas `silver.sentiment_results` y `silver.aspect_results` son escritas
-> directamente por los scripts Python de `analytics/`. Su DDL de creación está en
-> `sql/silver_sentiment_results_schema.sql` y `sql/silver_aspect_results_schema.sql`.
-> Ejecutar `dbt run` sobre ellas borraría los resultados de inferencia ya calculados.
-
----
-
-## Tablas Bronze declaradas en `sources.yml`
-
-El fichero `models/silver/sources.yml` declara las siguientes fuentes:
-
-```
-bronze.estaciones_agrocabildo
-bronze.clima_horario_agrocabildo
-bronze.era5land_consolidado
-bronze.hist_forecast_gfs_seamless_consolidado
-bronze.leadtime_gfs_seamless_consolidado
-bronze.limites_municipales
-bronze.zonas_turisticas
-bronze.tenerife_espacios_naturales_protegidos
-bronze.gtfs_paradas
-bronze.gtfs_rutas
-bronze.youtube_videos
-bronze.youtube_comments
-bronze.losviajeros_temas
-bronze.losviajeros_mensajes
-bronze.istac_municipios
-```
-
----
-
-## Datos fuera de dbt (rásters)
-
-Los datos satelitales y el MDT son archivos GeoTIFF almacenados en Azure Blob Storage.
-**No son modelos dbt** porque dbt solo gestiona SQL sobre tablas relacionales.
-
-| Dato | Formato | Bronze | Procesamiento Silver/Gold |
-|---|---|---|---|
-| Sentinel-2 NDVI/NDBI | GeoTIFF (20m, EPSG:32628) | Azure Blob + `data/Satelite_Sentinel2/` (30 composites trimestrales 2019-2026) | Script Python Issue #21 → estadísticas por municipio en `gold` |
-| VIIRS luces nocturnas | GeoTIFF (~500m) | Azure Blob + `data/Satelite_VIIRS/` (88 meses 2019-2026) | Script Python Issue #24 → radianza por municipio en `gold` |
-| MDT elevación | GeoTIFF | Azure Blob | Script Python → altitud media, pendiente, orientación por municipio en `gold` |
-
----
-
-## Orden recomendado de ejecución
-
-```bash
-# 1. Verificar conexión
+# Verificar conexión
 dbt debug
 
-# 2. Ejecutar todo Silver (primera vez, puede tardar ~10-15 min por el volumen de clima)
+# Ejecutar por capas
 dbt run --select silver.*
+dbt run --select gold.*
 
-# 3. En ejecuciones posteriores, por grupos para mayor control
-dbt run --select silver.istac.*
-dbt run --select silver.espacial.*
-dbt run --select silver.clima.*
-dbt run --select silver.youtube.*
+# Ejecutar por dominios o tags temáticos
+dbt run --select tag:gold
+dbt run --select tag:municipio
+dbt run --select tag:clima
+dbt run --select tag:espacial
+
+# Validar aserciones y calidad
+dbt test
 ```
+
+---
+
+## 4. Catálogo de modelos Gold (Capa Analítica de Explotación)
+
+La capa Gold implementa una **arquitectura analítica en tres niveles territoriales/temporales** diseñada para alimentar el dashboard interactivo y los modelos de machine learning:
+
+| Modelo Gold | Nivel Territorial | Granularidad / Filas | Descripción y Variables Clave |
+|---|---|---|---|
+| **`gold_h3_master`** | Microespacial | 2.579 hexágonos H3 (Res 8) | **Columna vertebral del TFM.** Cruza más de 60 indicadores por celda: oferta oficial (hoteles, VV), plataformas (Booking, TripAdvisor), POIs, paradas bus GTFS, relieve MDT (altitud, pendiente, hillshade), satélite Sentinel-2 (NDVI, NDBI) y VIIRS (2022-2026), clima Agrocabildo IDW con gradiente térmico y **horas de sol reales OMM ($\ge 120\text{ W/m}^2$)**, ENP y distancia euclidiana a la costa. |
+| **`gold_sentimiento_h3`** | Microespacial | Hexágonos con reviews | Sentimiento medio ponderado (1-5) y queja principal modal a partir de más de 55.000 reseñas geolocalizadas de Booking y TripAdvisor. |
+| **`gold_municipio_master`** | Mesomunicipal | 31 municipios (0% nulos) | **Tabla maestra municipal con MultiPolygon PostGIS (SRID 4326).** Foto estructural de oferta, empleo CNAE 2026, renta, demografía, ratios de sobrecarga (`plazas_por_1000_hab`) y métricas de evolución histórica continua 2022 vs 2026. |
+| **`gold_municipio_anual`** | Mesomunicipal | 155 filas (31 mun × 5 años) | Series históricas anuales con variaciones interanuales (`LAG` YoY) de desempleo, afiliación y plazas/ingresos de vivienda vacacional. |
+| **`gold_municipio_mensual`** | Mesomunicipal | 1.736 filas (31 mun × 56 meses) | Serie continua mes a mes para análisis de estacionalidad multivariante y variación YoY mensual `LAG(..., 12)`. |
+| **`gold_municipio_empleo`** | Mesomunicipal | 558 filas (31 mun × 18 trimestres) | Radiografía laboral continua trimestral (2022-2026): régimen general (asalariados) vs. cuenta propia (autónomos) y ratios de resiliencia empresarial. |
+| **`gold_turismo_hotelero_mensual`** | Polos Turísticos | 330 filas (6 polos × 55 meses) | Flujos hoteleros tradicionales de la Encuesta de Ocupación Hotelera (EOH): viajeros, pernoctaciones, plazas, tasa de ocupación y estancia media. |
+| **`gold_turismo_hotelero_anual`** | Polos Turísticos | 24 filas (6 polos × 4 años) | **Población Turística Equivalente (PTE)** del ISTAC y ratio de sobrecarga demográfica flotante sobre residentes censados. |
+| **`gold_aena_pasajeros`** | Macroinsular | 110 filas mensuales | Tráfico aéreo mensual y operaciones en TFS (Sur, internacional) y TFN (Norte, nacional/interinsular) para medir la estacionalidad de llegada de demanda. |
+
+---
+
+## 5. Catálogo de modelos Silver (Limpieza y Estandarización)
+
+La capa Silver toma las tablas crudas de la capa `bronze.*`, descarta registros corruptos, estandariza tipados y proyecta todas las capas vectoriales al sistema oficial de Canarias (**EPSG:32628**):
+
+### `alojamiento/` & Plataformas OTAs
+* `silver_alojamientos_oficiales`: Registros oficiales de turismo (hoteles, extrahoteleros, viviendas vacacionales) georreferenciados con PostGIS.
+* `silver_booking_establishments`: Establecimientos de Booking.com con coordenadas validadas y tipología.
+* `silver_booking_reviews`: Reseñas limpias con puntuación normalizada y flag de filtrado pre/post-COVID.
+* `silver_tripadvisor_ubicaciones`: Establecimientos turísticos de TripAdvisor georreferenciados.
+* `silver_tripadvisor_resenas`: Opiniones depuradas de TripAdvisor con ratings de viajeros.
+
+### `espacial/` & Geodatos
+* `silver_h3_grid`: Malla poligonal hexagonal Uber H3 (Res 8). Filtra espacialmente la capa `bronze_h3_grid` (2.746 hexágonos con buffer costero de 1,1 km) descartando 163 celdas oceánicas de buffer y 4 celdas residuales marinas sin MDT/NDVI, consolidando exactamente **2.579 celdas terrestres y litorales** 100% completas con centroides canónicos, relieve MDT (altitud, pendiente) y ENP.
+* `silver_limites_municipales`: Polígonos de los **31 municipios oficiales de Tenerife** con área calculada y centroide.
+* `silver_zonas_turisticas`: Delimitaciones de zonas turísticas oficiales de IDECanarias.
+* `silver_enp`: Espacios Naturales Protegidos clasificados con cálculo de superficie.
+* `silver_osm_pois` y `silver_puntos_interes_unificados`: Puntos de interés categorizados (restauración, ocio, cultura, naturaleza).
+* `silver_bienes_interes_culturales`: Bienes de Interés Cultural (BIC) y patrimonio histórico insular.
+* `silver_oficinas_turismo`: Red insular de oficinas de información turística.
+* `silver_satelite_stats`: Estadísticas zonales de Sentinel-2 (NDVI, NDBI) y radiancia nocturna VIIRS.
+
+### `clima/`
+* `silver_clima_agrocabildo`: Lecturas horarias depuradas de 67 estaciones del Cabildo, filtrando códigos de error (-999, -9999).
+* `silver_estaciones_agrocabildo`: Metadatos y coordenadas de la red de estaciones meteorológicas.
+* `silver_era5land`: Reanálisis atmosférico ERA5-Land con conversión de unidades (temperatura a °C, precipitación a mm).
+
+### `istac/`
+* `silver_istac_anual`: Cifras de población, tramos de edad y demografía municipal.
+* `silver_istac_mensual`: Estadísticas mensuales de ocupación, empleo hostelero, paro y empresas dadas de alta.
+* `silver_istac_trimestral`: Afiliaciones trimestrales a la Seguridad Social por sector de actividad.
+
+### `movilidad/`
+* `silver_aena_pasajeros`: Serie histórica limpia de pasajeros y vuelos por aeropuerto.
+* `silver_gtfs_paradas`: 3.893 paradas geolocalizadas de la red de transporte insular (TITSA y Tranvía).
+* `silver_gtfs_rutas`: Trazados, cabeceras y frecuencias de líneas de guagua y tranvía.
+
+### `losviajeros/` — Foros de viajes (NLP)
+* `silver_losviajeros`: Temas del foro LosViajeros con estadísticas de actividad y volumen de mensajes.
+* `silver_losviajeros_mensajes`: Corpus textual de viajeros depurado sin etiquetas HTML.
+
+### `youtube/` — Redes sociales (NLP)
+* `silver_youtube`: Vídeos con métricas de engagement normalizadas.
+* `silver_youtube_comentarios`: Comentarios depurados en español e inglés.
+
+---
+
+## 6. Fuentes Bronze declaradas (`sources.yml`)
+
+Las tablas fuente se almacenan en el esquema `bronze.*` de Azure PostgreSQL, pobladas desde Azure Blob Storage mediante los scripts de ingesta (`ingestion/postgres/01` a `07`). Se encuentran declaradas formalmente en `models/silver/sources.yml`:
+
+```
+bronze.bronze_estaciones_agrocabildo
+bronze.bronze_clima_horario_agrocabildo
+bronze.bronze_sensores_meteorologicos
+bronze.bronze_h3_grid
+bronze.bronze_espacios_naturales
+bronze.bronze_mdt_stats
+bronze.bronze_satelite_stats
+bronze.bronze_limites_municipales
+bronze.bronze_zonas_turisticas
+bronze.bronze_osm_pois
+bronze.bronze_bienes_interes_cultural
+bronze.bronze_oficinas_turismo
+bronze.bronze_gtfs_paradas
+bronze.bronze_gtfs_rutas
+bronze.bronze_gtfs_viajes
+bronze.bronze_gtfs_horarios
+bronze.bronze_aena_pasajeros
+bronze.bronze_booking_establishments
+bronze.bronze_booking_reviews
+bronze.bronze_registro_hoteles
+bronze.bronze_registro_viviendas_vacacionales
+bronze.bronze_registro_extrahoteleros
+bronze.bronze_tripadvisor_resenas
+bronze.bronze_tripadvisor_ubicaciones
+bronze.bronze_youtube_videos
+bronze.bronze_youtube_comments
+bronze.bronze_losviajeros_temas
+bronze.bronze_losviajeros_mensajes
+bronze.bronze_istac_mun_*
+```
+
+---
+
+## 7. Pruebas y validación de calidad de datos (Data Governance)
+
+Siguiendo las directrices del **Bloque 2 del TFM (Gobernanza y Calidad de Datos)** y los estándares de *Analytics Engineering*, cada una de las subcarpetas del proyecto (`silver/` y `gold/`) cuenta con su correspondiente archivo de gobernanza **`schema.yml`**, configurando un total de **216 pruebas automatizadas** de integración y validación:
+
+| Capa / Dominio | Archivo de Especificación | Modelos Cubiertos | Pruebas de Calidad |
+|---|---|---|---|
+| **Gold** | `models/gold/schema.yml` | 8 modelos analíticos | 64 pruebas (`unique`, `not_null`, `relationships`, `accepted_values`) |
+| **Silver Espacial** | `models/silver/espacial/schema.yml` | 9 modelos espaciales | 52 pruebas (integridad geométrica, `unique`, `not_null`, `relationships`) |
+| **Silver Clima** | `models/silver/clima/schema.yml` | 2 modelos climáticos | 15 pruebas (validación de sensores, integridad referencial de 1.8M filas) |
+| **Silver Movilidad** | `models/silver/movilidad/schema.yml` | 3 modelos GTFS / AENA | 19 pruebas (`stop_id`, `shape_id`, aeropuertos canónicos) |
+| **Silver ISTAC** | `models/silver/istac/schema.yml` | 3 modelos demográficos/laborales | 19 pruebas (códigos INE municipales, temporalidad) |
+| **Silver Alojamiento** | `models/silver/alojamiento/schema.yml` | 1 modelo oficial | 7 pruebas (categorías oficiales, tipologías regladas) |
+| **Silver Booking** | `models/silver/booking/schema.yml` | 2 modelos OTA Booking | 13 pruebas (integridad referencial review-hotel, ratings) |
+| **Silver TripAdvisor** | `models/silver/tripadvisor/schema.yml` | 2 modelos OTA TripAdvisor | 14 pruebas (location_id, reviews limpias > 15 chars) |
+| **Silver YouTube** | `models/silver/youtube/schema.yml` | 2 modelos social video | 12 pruebas (`video_id`, comentarios válidos) |
+| **Silver LosViajeros** | `models/silver/losviajeros/schema.yml` | 2 modelos foros de viajes | Pruebas estructurales de hilos y mensajes |
+| **Singular Tests** | `tests/` | Pruebas transversales | `assert_no_personal_data_columns`, `assert_rating_in_range`, etc. |
+
+### Ejecución de la suite completa de calidad:
+```bash
+# Desde la raíz del repositorio
+python scratch/run_dbt.py test
+
+# O desde dentro de dbt_project/
+dbt test
+```
+
+### Tipología de pruebas implementadas:
+- **Unicidad (`unique`):** Claves primarias únicas estrictas (`h3_index` en `gold_h3_master` y `silver_h3_grid`, `cod_municipio` en `gold_municipio_master`, `stop_id`, `shape_id`, `location_id`, `video_id`, `id_estacion`).
+- **Completitud y No Nulos (`not_null`):** Campos críticos de negocio 100% libres de nulos (geometrías PostGIS, elevaciones MDT > 0 m, centroides canónicos, población empadronada, afiliación laboral, series temporales).
+- **Integridad Referencial (`relationships`):** Garantía relacional estricta entre dimensiones (cada celda de `gold_h3_master` se relaciona biunívocamente con `silver_h3_grid` y `gold_municipio_master`; cada reseña se enlaza obligatoriamente con un establecimiento existente).
+- **Dominios Aceptados (`accepted_values`):** Validación estricta de diccionarios de variables (ej. trimestres `['Q1', 'Q2', 'Q3', 'Q4']`, aeropuertos IATA `['TFN', 'TFS']`, polos turísticos `['Polo Sur', 'Polo Norte', 'Polo Metropolitano']`, fuentes de POIs `['OSM', 'IDE_Canarias']`).
+- **Gestión de Advertencias (`severity: warn`):** Tratamiento analítico de peculiaridades inherentes a datos crudos de terceros (ej. licencias turísticas multi-modalidad en el registro oficial canario o reingestas puntuales de comentarios en YouTube/TripAdvisor).

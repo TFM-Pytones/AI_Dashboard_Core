@@ -21,7 +21,7 @@ En una corrida de 96 establecimientos nuevos incorporados el 15 de agosto de 202
 
 Entre los establecimientos que sí tienen reseñas, el promedio observado fue de **~8.7 reseñas por establecimiento** — cifra consistente con lo observado en corridas anteriores del proyecto, lo que descarta que se trate de un problema de extracción y confirma que el fenómeno es real y propio de los datos de origen.
 
-## ⚠️ Sesgo de selección detectado al contrastar con el dataset acumulado completo
+## Sesgo de selección detectado al contrastar con el dataset acumulado completo
 
 Al calcular la misma proporción sobre el dataset **acumulado completo** (407 establecimientos, sumando todas las corridas desde el inicio del proyecto), el resultado fue notablemente distinto:
 

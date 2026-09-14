@@ -1,0 +1,83 @@
+version: 2
+
+models:
+  - name: silver_aena_pasajeros
+    description: "Series temporales mensuales de tráfico de pasajeros y operaciones comerciales en los aeropuertos insulares (Tenerife Norte y Tenerife Sur) suministradas por AENA."
+    columns:
+      - name: periodo
+        description: "Periodo temporal mensual en formato YYYY-MM (desde enero 2022)."
+        tests:
+          - not_null
+      - name: anio
+        description: "Año de la serie mensual."
+        tests:
+          - not_null
+      - name: mes
+        description: "Mes (1 a 12) del año."
+        tests:
+          - not_null
+      - name: aeropuerto
+        description: "Denominación del aeropuerto insular ('TENERIFE SUR', 'TENERIFE-SUR' o 'TENERIFE NORTE-C. LA LAGUNA')."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['TENERIFE SUR', 'TENERIFE-SUR', 'TENERIFE NORTE-C. LA LAGUNA']
+      - name: pasajeros
+        description: "Número total de pasajeros comerciales procesados en el mes."
+        tests:
+          - not_null
+      - name: operaciones
+        description: "Número de aeronaves y vuelos comerciales operados en el mes."
+        tests:
+          - not_null
+
+  - name: silver_gtfs_paradas
+    description: "Red oficial de paradas de transporte público regular (guaguas TITSA y tranvía Metropolitano de Tenerife) con oferta de líneas y frecuencia agregada diaria."
+    columns:
+      - name: stop_id
+        description: "Identificador unívoco oficial de la parada en el feed GTFS."
+        tests:
+          - unique
+          - not_null
+      - name: stop_name
+        description: "Nombre o descripción de la parada."
+        tests:
+          - not_null
+      - name: operador
+        description: "Entidad operadora del servicio de transporte ('TITSA' o 'Tranvía')."
+        tests:
+          - not_null
+      - name: modo
+        description: "Modo de transporte ('Bus' o 'Tram')."
+        tests:
+          - not_null
+      - name: total_expediciones_parada
+        description: "Número total de expediciones diarias consolidadas que efectúan parada."
+        tests:
+          - not_null
+      - name: geometry
+        description: "Punto PostGIS (SRID 4326) con la localización espacial de la parada."
+        tests:
+          - not_null
+
+  - name: silver_gtfs_rutas
+    description: "Trazados geométricos lineales de las rutas de guagua y tranvía de Tenerife a partir de la geometría shape de GTFS."
+    columns:
+      - name: shape_id
+        description: "Identificador único de la variante geométrica del itinerario."
+        tests:
+          - unique
+          - not_null
+      - name: route_short_name
+        description: "Código comercial o número de línea (ej. 110, 473, L1)."
+        tests:
+          - not_null
+      - name: operador
+        description: "Empresa operadora de la ruta ('TITSA' o 'Tranvía')."
+        tests:
+          - not_null
+      - name: geometry
+        description: "Linestring PostGIS (SRID 4326) que representa el itinerario completo sobre el viario insular."
+        tests:
+          - not_null

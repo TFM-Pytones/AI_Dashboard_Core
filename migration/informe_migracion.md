@@ -4,7 +4,7 @@ Este documento resume para el equipo la migración de datos completada desde Neo
 
 ---
 
-## 📥 1. Capa Bronce (Datos en Bruto / Raw)
+## 1. Capa Bronce (Datos en Bruto / Raw)
 
 Para optimizar el almacenamiento y reducir costes en la nube, hemos migrado el histórico en bruto (`raw_data`) de Neon a archivos binarios comprimidos (parquet) en **Azure Blob Storage**.
 
@@ -27,7 +27,7 @@ Para optimizar el almacenamiento y reducir costes en la nube, hemos migrado el h
 
 ---
 
-## ⚙️ 2. Capa Plata (Datos Procesados / Estandarizados)
+## 2. Capa Plata (Datos Procesados / Estandarizados)
 
 El esquema procesado (`processed_data`) de Neon se ha migrado a la base de datos PostgreSQL de Azure en el esquema `silver` para servir como base para el modelado y cálculo de indicadores.
 
@@ -52,5 +52,5 @@ El esquema procesado (`processed_data`) de Neon se ha migrado a la base de datos
 
 ---
 
-## 🚫 Exclusiones de la Migración
+## Exclusiones de la Migración
 - **AEMET**: La tabla `clima_horario_aemet` ha sido excluida de la migración. Para los datos climatológicos se usarán exclusivamente los registros de **Agrocabildo** (almacenados en la capa bronce).

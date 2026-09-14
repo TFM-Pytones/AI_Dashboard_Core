@@ -7,6 +7,10 @@ models:
   tenerife_tourism_dbt:
     silver:
       +materialized: table
+      silver_sentiment_results:
+        +enabled: true
+      silver_aspect_results:
+        +enabled: true
     gold:
       +materialized: table
       +schema: gold

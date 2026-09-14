@@ -67,3 +67,8 @@ streamlit>=1.42  # st.pydeck_chart(on_select=..., selection_mode=...) requires >
 pydeck==0.9.1
 plotly==5.24.1
 pytest==8.3.4  # ya estaba instalado en el venv; se declara para reproducibilidad
+
+# Bloque 4 — Accesibilidad y Routing
+openrouteservice>=2.3.3        # Cliente oficial para la API de OpenRouteService (isócronas y routing)
+
+partridge
