@@ -46,16 +46,6 @@ st.markdown(
         padding-top: 1rem;
         max-width: 100%;
     }}
-    .stTabs [data-baseweb="tab-list"] {{ gap: 4px; }}
-    .stTabs [data-baseweb="tab"] {{
-        background-color: #f3f4f6;
-        border-radius: 8px 8px 0 0;
-        padding: 8px 16px;
-    }}
-    .stTabs [aria-selected="true"] {{
-        background-color: #1e3a8a;
-        color: white;
-    }}
     .hero-banner {{
         position: relative;
         height: 420px;
@@ -122,40 +112,8 @@ aena_pasajeros = load_aena_pasajeros(engine)
 full_gdf = merge_h3_data(h3_master, sentimiento)
 full_gdf = merge_accesibilidad(full_gdf, accesibilidad)
 
-with st.sidebar:
-    st.subheader("Filtros del mapa")
-    show_hexagons = st.checkbox("Mostrar capa de hexágonos", value=True)
-    metric_key = st.selectbox("Capa del mapa", list(METRICS.keys()), disabled=not show_hexagons)
-    hex_opacity = st.slider(
-        "Opacidad de hexágonos",
-        min_value=0.05,
-        max_value=1.0,
-        value=DEFAULT_HEXAGON_OPACITY,
-        step=0.05,
-        disabled=not show_hexagons,
-        help="Más bajo = se ve más el satélite de fondo. Más alto = se ve más el color de los hexágonos.",
-    )
-    map_municipio = st.selectbox("Municipio", ["Todos"] + list_municipios(full_gdf), key="map_municipio")
-    show_isocronas = st.checkbox("Mostrar isócronas")
-    isocrona_destino = None
-    if show_isocronas:
-        isocrona_destino = st.selectbox("Destino de referencia", list_destinos(isocronas))
 
-tab_resumen, tab_mapa, tab_tabla, tab_rankings, tab_clima, tab_municipios, tab_alojamiento, tab_temas, tab_turismo = st.tabs(
-    [
-        "📊 Resumen",
-        "🗺️ Mapa",
-        "📋 Tabla",
-        "🏆 Rankings",
-        "🌡️ Clima",
-        "🏛️ Municipios",
-        "🏨 Alojamiento",
-        "💬 Temas",
-        "✈️ Turismo",
-    ]
-)
-
-with tab_resumen:
+def page_resumen() -> None:
     stats = compute_summary_stats(full_gdf)
 
     col1, col2, col3, col4 = st.columns(4)
@@ -177,7 +135,27 @@ with tab_resumen:
     with col6.container(border=True):
         st.metric("Municipio con menos oferta registrada", stats["municipio_menos_oferta"])
 
-with tab_mapa:
+
+def page_mapa() -> None:
+    with st.sidebar:
+        st.subheader("Filtros del mapa")
+        show_hexagons = st.checkbox("Mostrar capa de hexágonos", value=True)
+        metric_key = st.selectbox("Capa del mapa", list(METRICS.keys()), disabled=not show_hexagons)
+        hex_opacity = st.slider(
+            "Opacidad de hexágonos",
+            min_value=0.05,
+            max_value=1.0,
+            value=DEFAULT_HEXAGON_OPACITY,
+            step=0.05,
+            disabled=not show_hexagons,
+            help="Más bajo = se ve más el satélite de fondo. Más alto = se ve más el color de los hexágonos.",
+        )
+        map_municipio = st.selectbox("Municipio", ["Todos"] + list_municipios(full_gdf), key="map_municipio")
+        show_isocronas = st.checkbox("Mostrar isócronas")
+        isocrona_destino = None
+        if show_isocronas:
+            isocrona_destino = st.selectbox("Destino de referencia", list_destinos(isocronas))
+
     filtered_gdf = filter_by_municipio(full_gdf, map_municipio)
 
     map_col, detail_col = st.columns([3, 2])
@@ -198,7 +176,8 @@ with tab_mapa:
     with detail_col:
         render_detail_panel(full_gdf, selected_h3_index)
 
-with tab_tabla:
+
+def page_tabla() -> None:
     col1, col2 = st.columns(2)
     tabla_municipio = col1.selectbox(
         "Municipio", ["Todos"] + list_municipios(full_gdf), key="tabla_municipio"
@@ -220,26 +199,48 @@ with tab_tabla:
         mime="text/csv",
     )
 
-with tab_rankings:
+
+def page_rankings() -> None:
     render_rankings_tab(full_gdf)
 
-with tab_clima:
+
+def page_clima() -> None:
     clima_municipio = st.selectbox(
         "Municipio", ["Todos"] + list_municipios(full_gdf), key="clima_municipio"
     )
     render_clima_tab(filter_by_municipio(full_gdf, clima_municipio))
 
-with tab_municipios:
+
+def page_municipios() -> None:
     render_municipios_tab(municipio_master, municipio_anual, municipio_empleo)
 
-with tab_alojamiento:
+
+def page_alojamiento() -> None:
     alojamiento_municipio = st.selectbox(
         "Municipio", ["Todos"] + list_municipios(full_gdf), key="alojamiento_municipio"
     )
     render_alojamiento_tab(filter_by_municipio(full_gdf, alojamiento_municipio))
 
-with tab_temas:
+
+def page_temas() -> None:
     render_temas_tab(topicos_municipio, nlp_chunks)
 
-with tab_turismo:
+
+def page_turismo() -> None:
     render_turismo_tab(turismo_hotelero_anual, turismo_hotelero_mensual, aena_pasajeros)
+
+
+pages = [
+    st.Page(page_resumen, title="Resumen", icon="📊", default=True),
+    st.Page(page_mapa, title="Mapa", icon="🗺️"),
+    st.Page(page_tabla, title="Tabla", icon="📋"),
+    st.Page(page_rankings, title="Rankings", icon="🏆"),
+    st.Page(page_clima, title="Clima", icon="🌡️"),
+    st.Page(page_municipios, title="Municipios", icon="🏛️"),
+    st.Page(page_alojamiento, title="Alojamiento", icon="🏨"),
+    st.Page(page_temas, title="Temas", icon="💬"),
+    st.Page(page_turismo, title="Turismo", icon="✈️"),
+]
+
+pg = st.navigation(pages)
+pg.run()
