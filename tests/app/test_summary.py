@@ -1,6 +1,6 @@
 import pandas as pd
 
-from app.summary import compute_summary_stats
+from app.summary import compute_summary_stats, restriction_counts_dataframe
 
 
 def _gdf():
@@ -44,3 +44,14 @@ def test_compute_summary_stats_municipio_mas_y_menos_oferta():
     stats = compute_summary_stats(_gdf())
     assert stats["municipio_mas_oferta"] == "Adeje"
     assert stats["municipio_menos_oferta"] == "Arona"
+
+
+def test_restriction_counts_dataframe_sorts_descending():
+    result = restriction_counts_dataframe({"ENP": 2, "Sin restricción": 1, "Zona turística oficial": 1})
+    assert result["restriction_category"].tolist()[0] == "ENP"
+    assert result["n_hexagonos"].tolist()[0] == 2
+
+
+def test_restriction_counts_dataframe_has_expected_columns():
+    result = restriction_counts_dataframe({"ENP": 2})
+    assert list(result.columns) == ["restriction_category", "n_hexagonos"]

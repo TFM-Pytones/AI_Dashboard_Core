@@ -109,13 +109,14 @@ def prepare_review_cards(muestra: pd.DataFrame) -> list[dict]:
         fuente = row.get("fuente")
         rating = row.get("rating")
         pais = row.get("pais_resenante")
+        fecha = row.get("fecha")
         cards.append(
             {
                 "chunk_id": row.get("chunk_id"),
                 "icono": SOURCE_ICONS.get(fuente, "💬"),
                 "fuente": fuente,
                 "rating": None if pd.isna(rating) else float(rating),
-                "fecha": row.get("fecha"),
+                "fecha": "Fecha no disponible" if pd.isna(fecha) else fecha,
                 "pais": "—" if pd.isna(pais) else pais,
                 "text": row.get("text"),
             }

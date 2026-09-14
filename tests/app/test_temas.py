@@ -212,3 +212,11 @@ def test_prepare_review_cards_handles_missing_rating():
     cards = prepare_review_cards(muestra)
     assert cards[0]["rating"] is None
     assert cards[0]["pais"] == "—"
+
+
+def test_prepare_review_cards_handles_missing_fecha():
+    muestra = pd.DataFrame(
+        [{"fuente": "Los Viajeros (foro)", "rating": None, "fecha": None, "pais_resenante": None, "text": "x"}]
+    )
+    cards = prepare_review_cards(muestra)
+    assert cards[0]["fecha"] == "Fecha no disponible"

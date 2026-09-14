@@ -1,6 +1,7 @@
 import base64
 from pathlib import Path
 
+import plotly.express as px
 import streamlit as st
 
 from app.alojamiento import render_alojamiento_tab
@@ -28,7 +29,7 @@ from app.detail_panel import render_detail_panel
 from app.map_layers import DEFAULT_HEXAGON_OPACITY, METRICS, build_deck, build_isocronas_layer, list_destinos
 from app.municipios import render_municipios_tab
 from app.rankings import render_rankings_tab
-from app.summary import compute_summary_stats
+from app.summary import compute_summary_stats, restriction_counts_dataframe
 from app.table_view import build_table_column_config, filter_table, prepare_table_view
 from app.temas import render_temas_tab
 from app.turismo import render_turismo_tab
@@ -145,7 +146,11 @@ def page_resumen() -> None:
         )
 
     st.subheader("Reparto de restricciones legales")
-    st.bar_chart(stats["restriction_counts"])
+    restriction_df = restriction_counts_dataframe(stats["restriction_counts"])
+    fig_restriction = px.bar(restriction_df, x="restriction_category", y="n_hexagonos")
+    fig_restriction.update_traces(marker_color="#1e3a8a")
+    fig_restriction.update_layout(xaxis_title=None, yaxis_title="Nº de hexágonos")
+    st.plotly_chart(fig_restriction, use_container_width=True)
 
     col5, col6 = st.columns(2)
     with col5.container(border=True):

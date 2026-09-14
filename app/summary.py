@@ -1,6 +1,15 @@
 import pandas as pd
 
 
+def restriction_counts_dataframe(restriction_counts: dict) -> pd.DataFrame:
+    return pd.DataFrame(
+        {
+            "restriction_category": list(restriction_counts.keys()),
+            "n_hexagonos": list(restriction_counts.values()),
+        }
+    ).sort_values("n_hexagonos", ascending=False)
+
+
 def compute_summary_stats(gdf: pd.DataFrame) -> dict:
     total = len(gdf)
     restriction_counts = gdf["restriction_category"].value_counts().to_dict()
