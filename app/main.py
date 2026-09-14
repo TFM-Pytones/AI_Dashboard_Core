@@ -29,7 +29,7 @@ from app.map_layers import DEFAULT_HEXAGON_OPACITY, METRICS, build_deck, build_i
 from app.municipios import render_municipios_tab
 from app.rankings import render_rankings_tab
 from app.summary import compute_summary_stats
-from app.table_view import filter_table, prepare_table_view
+from app.table_view import build_table_column_config, filter_table, prepare_table_view
 from app.temas import render_temas_tab
 from app.turismo import render_turismo_tab
 from app.ui_helpers import format_metric, render_footer
@@ -227,10 +227,19 @@ def page_tabla() -> None:
     if active_filters:
         st.caption("🔍 Filtrando por " + " · ".join(active_filters))
 
-    tabla_filtrada = filter_table(full_gdf, tabla_municipio, tabla_restriccion)
-    tabla_mostrable = prepare_table_view(tabla_filtrada)
+    show_technical = st.checkbox(
+        "Mostrar columnas técnicas (ID de hexágono, coordenadas, satélite...)", value=False
+    )
 
-    st.dataframe(tabla_mostrable, width="stretch")
+    tabla_filtrada = filter_table(full_gdf, tabla_municipio, tabla_restriccion)
+    tabla_mostrable = prepare_table_view(tabla_filtrada, show_technical=show_technical)
+
+    st.dataframe(
+        tabla_mostrable,
+        width="stretch",
+        hide_index=True,
+        column_config=build_table_column_config(show_technical=show_technical),
+    )
     st.download_button(
         "Descargar CSV",
         data=tabla_mostrable.to_csv(index=False).encode("utf-8"),

@@ -12,6 +12,13 @@ SOURCE_LABELS = {
     "youtube_comment": "YouTube",
 }
 
+SOURCE_ICONS = {
+    "Booking": "🅱️",
+    "TripAdvisor": "🦉",
+    "Los Viajeros (foro)": "💬",
+    "YouTube": "▶️",
+}
+
 
 def get_topicos_row(df: pd.DataFrame, municipio: str) -> pd.Series | None:
     matches = df.loc[df["municipio"] == municipio]
@@ -46,6 +53,37 @@ def sample_chunks(chunks_df: pd.DataFrame, municipio: str, topic_id: int, n: int
     ].copy()
     filtered["fuente"] = filtered["source"].map(lambda s: SOURCE_LABELS.get(s, s))
     return filtered.sort_values("fecha", ascending=False).head(n)
+
+
+def selected_topic_from_event(event: dict | None, topicos_df: pd.DataFrame) -> int | None:
+    if not event:
+        return None
+    points = event.get("selection", {}).get("points", [])
+    if not points:
+        return None
+    match = topicos_df.loc[topicos_df["label_es"] == points[0].get("y")]
+    if match.empty:
+        return None
+    return int(match["topic_id"].iloc[0])
+
+
+def prepare_review_cards(muestra: pd.DataFrame) -> list[dict]:
+    cards = []
+    for _, row in muestra.iterrows():
+        fuente = row.get("fuente")
+        rating = row.get("rating")
+        pais = row.get("pais_resenante")
+        cards.append(
+            {
+                "icono": SOURCE_ICONS.get(fuente, "💬"),
+                "fuente": fuente,
+                "rating": None if pd.isna(rating) else float(rating),
+                "fecha": row.get("fecha"),
+                "pais": "—" if pd.isna(pais) else pais,
+                "text": row.get("text"),
+            }
+        )
+    return cards
 
 
 def render_temas_tab(topicos_municipio_df: pd.DataFrame, chunks_df: pd.DataFrame) -> None:
@@ -93,20 +131,36 @@ def render_temas_tab(topicos_municipio_df: pd.DataFrame, chunks_df: pd.DataFrame
             title="Temas más mencionados",
         )
         fig_topicos.update_traces(marker_color="#1e3a8a")
-        st.plotly_chart(fig_topicos, use_container_width=True)
+        st.plotly_chart(
+            fig_topicos,
+            use_container_width=True,
+            on_select="rerun",
+            selection_mode="points",
+            key="temas_topicos_chart",
+        )
 
     st.subheader("Ver opiniones reales de un tema")
-    topico_elegido = st.selectbox("Tema", topicos_df["label_es"].tolist(), key="temas_topico_elegido")
-    topic_id_elegido = int(topicos_df.loc[topicos_df["label_es"] == topico_elegido, "topic_id"].iloc[0])
+    st.caption("Haz clic en una barra del gráfico de arriba para ver las opiniones de ese tema.")
+
+    event = st.session_state.get("temas_topicos_chart")
+    topic_id_elegido = selected_topic_from_event(event, topicos_df)
+    if topic_id_elegido is None:
+        topic_id_elegido = int(topicos_df.sort_values("n", ascending=False)["topic_id"].iloc[0])
+    topico_elegido = topicos_df.loc[topicos_df["topic_id"] == topic_id_elegido, "label_es"].iloc[0]
+    st.markdown(f"**Tema seleccionado:** {topico_elegido}")
 
     muestra = sample_chunks(chunks_df, municipio, topic_id_elegido, n=15)
     if muestra.empty:
         st.info("No hay opiniones de muestra para este tema en este municipio.")
     else:
-        st.dataframe(
-            muestra[["fecha", "pais_resenante", "rating", "fuente", "text"]],
-            width="stretch",
-        )
+        for card in prepare_review_cards(muestra):
+            with st.container(border=True):
+                meta_cols = st.columns([2, 1, 1, 2])
+                meta_cols[0].markdown(f"{card['icono']} **{card['fuente']}**")
+                meta_cols[1].markdown(f"⭐ {card['rating']:.1f}" if card["rating"] is not None else "⭐ —")
+                meta_cols[2].markdown(f"📅 {card['fecha']}")
+                meta_cols[3].markdown(f"🌍 {card['pais']}")
+                st.write(card["text"])
 
     render_footer(
         "gold.gold_topicos_municipio, gold.nlp_chunks (BERTopic)",

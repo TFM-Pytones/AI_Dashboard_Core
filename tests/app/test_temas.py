@@ -3,7 +3,9 @@ import pandas as pd
 from app.temas import (
     fuentes_breakdown,
     get_topicos_row,
+    prepare_review_cards,
     sample_chunks,
+    selected_topic_from_event,
     top_topicos_dataframe,
 )
 
@@ -124,3 +126,44 @@ def test_sample_chunks_respects_n():
 def test_sample_chunks_maps_source_to_display_label():
     result = sample_chunks(_chunks_df(), "Adeje", 11, n=15)
     assert set(result["fuente"]) == {"Booking", "TripAdvisor"}
+
+
+def _topicos_df():
+    row = get_topicos_row(_topicos_municipio_df(), "Adeje")
+    return top_topicos_dataframe(row)
+
+
+def test_selected_topic_from_event_returns_none_when_no_event():
+    assert selected_topic_from_event(None, _topicos_df()) is None
+
+
+def test_selected_topic_from_event_returns_none_when_no_points():
+    assert selected_topic_from_event({"selection": {"points": []}}, _topicos_df()) is None
+
+
+def test_selected_topic_from_event_maps_clicked_label_to_topic_id():
+    event = {"selection": {"points": [{"y": "Apartamentos pequeños tipo estudio (cocina, lavadora)"}]}}
+    assert selected_topic_from_event(event, _topicos_df()) == 12
+
+
+def test_selected_topic_from_event_returns_none_for_unknown_label():
+    event = {"selection": {"points": [{"y": "no existe"}]}}
+    assert selected_topic_from_event(event, _topicos_df()) is None
+
+
+def test_prepare_review_cards_maps_source_to_icon_and_formats_fields():
+    muestra = sample_chunks(_chunks_df(), "Adeje", 11, n=15)
+    cards = prepare_review_cards(muestra)
+    booking_card = next(c for c in cards if c["fuente"] == "Booking")
+    assert booking_card["icono"] == "🅱️"
+    assert booking_card["rating"] == 9.0
+    assert booking_card["pais"] == "España"
+
+
+def test_prepare_review_cards_handles_missing_rating():
+    muestra = pd.DataFrame(
+        [{"fuente": "Booking", "rating": None, "fecha": "2025-01-01", "pais_resenante": None, "text": "x"}]
+    )
+    cards = prepare_review_cards(muestra)
+    assert cards[0]["rating"] is None
+    assert cards[0]["pais"] == "—"
