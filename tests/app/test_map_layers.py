@@ -157,6 +157,15 @@ def test_build_deck_has_one_layer_centered_on_tenerife(monkeypatch):
     assert round(deck.initial_view_state.longitude, 2) == -16.62
 
 
+def test_build_deck_constrains_zoom_so_it_cant_show_the_whole_globe(monkeypatch):
+    monkeypatch.setenv("MAPBOX_API_KEY", "pk.test_token")
+    deck = build_deck(_gdf(), "Sentimiento")
+    # min_zoom == the initial zoom: zooming out is clamped back to the
+    # Tenerife framing instead of ever reaching a world view.
+    assert deck.initial_view_state.min_zoom == deck.initial_view_state.zoom
+    assert deck.initial_view_state.max_zoom == 16
+
+
 def test_build_deck_uses_mapbox_satellite_provider(monkeypatch):
     monkeypatch.setenv("MAPBOX_API_KEY", "pk.test_token")
     deck = build_deck(_gdf(), "Sentimiento")

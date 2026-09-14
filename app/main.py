@@ -170,7 +170,7 @@ def page_resumen() -> None:
 def page_mapa() -> None:
     with st.sidebar:
         st.subheader("Filtros del mapa")
-        show_hexagons = st.checkbox("Mostrar capa de hexágonos", value=True)
+        show_hexagons = st.checkbox("Mostrar capa de hexágonos", value=False)
         metric_key = st.selectbox("Capa del mapa", list(METRICS.keys()), disabled=not show_hexagons)
         hex_opacity = st.slider(
             "Opacidad de hexágonos",

@@ -20,7 +20,14 @@ from app.color_scales import (
 )
 from app.ui_helpers import format_metric
 
-TENERIFE_VIEW_STATE = pdk.ViewState(latitude=28.29, longitude=-16.62, zoom=9, pitch=0)
+# min_zoom == the initial zoom: scrolling/pinching out is clamped right back
+# to the Tenerife framing instead of zooming out to the rest of the world.
+# (Streamlit's pydeck widget doesn't expose per-gesture controller options --
+# e.g. disabling scrollZoom specifically -- so min/max zoom is the only
+# reliable lever here; confirmed empirically against the rendered widget.)
+TENERIFE_VIEW_STATE = pdk.ViewState(
+    latitude=28.29, longitude=-16.62, zoom=9, pitch=0, min_zoom=9, max_zoom=16
+)
 
 METRICS = {
     "Densidad hotelera": {
