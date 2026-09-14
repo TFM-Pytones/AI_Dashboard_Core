@@ -21,6 +21,12 @@ ISOCRONAS_QUERY = "SELECT * FROM gold.gold_isocronas_visuales"
 MUNICIPIO_MASTER_QUERY = "SELECT * FROM gold.gold_municipio_master"
 ISTAC_ANUAL_QUERY = "SELECT * FROM silver.silver_istac_anual"
 ISTAC_MENSUAL_QUERY = "SELECT * FROM silver.silver_istac_mensual"
+TOPICOS_MUNICIPIO_QUERY = "SELECT * FROM gold.gold_topicos_municipio"
+NLP_CHUNKS_QUERY = """
+    SELECT chunk_id, source, source_id, chunk_index, text, topic_id, topic_label,
+           municipio, zona, h3_index, fecha, pais_resenante, rating, processed_at
+    FROM gold.nlp_chunks
+"""
 
 # gold_h3_accesibilidad usa 999 como centinela de "destino inalcanzable" en
 # vez de NULL en las columnas tiempo_*_min (confirmado por auditoría directa
@@ -44,6 +50,28 @@ SENTIMIENTO_COLUMNS = [
     "n_resenas_tripadvisor",
     "queja_principal",
 ]
+
+# gold_topicos_municipio has 37 rows for Tenerife's 31 real municipios -- 6
+# are alias rows using an accented/official-long-form spelling that doesn't
+# match the spelling gold_h3_master (and the rest of this app) uses, e.g.
+# "Guía de Isora" alongside the canonical "Guia de Isora" (confirmed by
+# direct audit 2026-09-14: every alias carries a small minority of that
+# municipio's opinions, worst case "San Cristobal de La Laguna" 189 +
+# "San Cristóbal de La Laguna" 7 vs. canonical "La Laguna" 3679). Dropped
+# outright rather than merged into the canonical row: merging would require
+# recomputing topicos_top3's ranking from scratch for a <5% correction.
+MUNICIPIO_ALIAS_DROP = {
+    "Guía de Isora",
+    "Güímar",
+    "San Cristobal de La Laguna",
+    "San Cristóbal de La Laguna",
+    "Santa Úrsula",
+    "Vilaflor de Chasna",
+}
+
+
+def drop_municipio_alias_rows(df: pd.DataFrame) -> pd.DataFrame:
+    return df.loc[~df["municipio"].isin(MUNICIPIO_ALIAS_DROP)].reset_index(drop=True)
 
 
 @st.cache_resource
@@ -86,6 +114,16 @@ def load_istac_anual(_engine: Engine) -> pd.DataFrame:
 @st.cache_data
 def load_istac_mensual(_engine: Engine) -> pd.DataFrame:
     return pd.read_sql(ISTAC_MENSUAL_QUERY, _engine)
+
+
+@st.cache_data
+def load_topicos_municipio(_engine: Engine) -> pd.DataFrame:
+    return drop_municipio_alias_rows(pd.read_sql(TOPICOS_MUNICIPIO_QUERY, _engine))
+
+
+@st.cache_data
+def load_nlp_chunks(_engine: Engine) -> pd.DataFrame:
+    return pd.read_sql(NLP_CHUNKS_QUERY, _engine)
 
 
 def compute_density_metric(gdf: pd.DataFrame) -> pd.DataFrame:

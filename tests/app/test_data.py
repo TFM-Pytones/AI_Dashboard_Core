@@ -6,6 +6,7 @@ from app.data import (
     clean_accesibilidad_sentinel,
     compute_density_metric,
     compute_restriction_category,
+    drop_municipio_alias_rows,
     filter_by_municipio,
     list_municipios,
     merge_accesibilidad,
@@ -106,3 +107,18 @@ def test_merge_accesibilidad_joins_on_h3_index_and_cleans_sentinel():
     merged = merge_accesibilidad(gdf, accesibilidad_df)
     assert pd.isna(merged.loc[merged["h3_index"] == "a", "tiempo_aeropuerto_min"].iloc[0])
     assert pd.isna(merged.loc[merged["h3_index"] == "b", "tiempo_aeropuerto_min"].iloc[0])
+
+
+def test_drop_municipio_alias_rows_removes_known_aliases_only():
+    df = pd.DataFrame({
+        "municipio": ["Guia de Isora", "Guía de Isora", "Adeje", "Güímar"],
+        "n_opiniones": [1564, 9, 100, 12],
+    })
+    result = drop_municipio_alias_rows(df)
+    assert sorted(result["municipio"].tolist()) == ["Adeje", "Guia de Isora"]
+
+
+def test_drop_municipio_alias_rows_resets_index():
+    df = pd.DataFrame({"municipio": ["Guía de Isora", "Adeje"], "n_opiniones": [9, 100]})
+    result = drop_municipio_alias_rows(df)
+    assert result.index.tolist() == [0]
