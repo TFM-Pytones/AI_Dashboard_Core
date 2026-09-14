@@ -4,6 +4,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
+from app.color_scales import ACCENT_ALOJAMIENTO, ACCENT_MUNICIPIOS, hex_to_rgba
 from app.ui_helpers import add_chart_motion, format_metric, latest_value, render_footer
 
 # (column, label, kind, help) -- kind drives number formatting (see format_metric).
@@ -206,10 +207,12 @@ def render_municipios_tab(
         "Métrica", list(EVOLUCION_METRICS.keys()), key="municipios_evolucion_metrica"
     )
     serie = evolucion_series(municipio_anual_df, municipio, EVOLUCION_METRICS[metrica_label])
-    fig = px.line(
+    fig = px.area(
         serie, x="anio", y="valor", markers=True, title=f"{metrica_label} por año — {municipio}"
     )
-    fig.update_traces(line_color="#1e3a8a")
+    fig.update_traces(
+        line_color=ACCENT_MUNICIPIOS, line_shape="spline", fillcolor=hex_to_rgba(ACCENT_MUNICIPIOS, 0.2)
+    )
     add_chart_motion(fig)
     st.plotly_chart(fig, use_container_width=True)
 
@@ -223,10 +226,12 @@ def render_municipios_tab(
     if serie_mensual.empty:
         st.info("No hay datos mensuales para este municipio.")
     else:
-        fig_mensual = px.line(
+        fig_mensual = px.area(
             serie_mensual, x="periodo", y="valor", title=f"{metrica_mensual_label} por mes — {municipio}"
         )
-        fig_mensual.update_traces(line_color="#1e3a8a")
+        fig_mensual.update_traces(
+            line_color=ACCENT_MUNICIPIOS, line_shape="spline", fillcolor=hex_to_rgba(ACCENT_MUNICIPIOS, 0.15)
+        )
         add_chart_motion(fig_mensual)
         st.plotly_chart(fig_mensual, use_container_width=True)
 
@@ -242,7 +247,8 @@ def render_municipios_tab(
             names="tipo",
             values="cantidad",
             title="Reparto de empleo",
-            color_discrete_sequence=["#1e3a8a", "#eb6834"],
+            hole=0.45,
+            color_discrete_sequence=[ACCENT_MUNICIPIOS, ACCENT_ALOJAMIENTO],
         )
         add_chart_motion(fig_empleo)
         st.plotly_chart(fig_empleo, use_container_width=True)

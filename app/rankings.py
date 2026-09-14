@@ -2,19 +2,43 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
+from app.color_scales import (
+    ACCENT_RANKING_CALUROSAS,
+    ACCENT_RANKING_NDVI,
+    ACCENT_RANKING_TURISTICA,
+    ACCENT_RANKING_VALORADAS,
+)
 from app.ui_helpers import add_chart_motion, format_metric, render_footer
 
 # "agg" controls how each metric is rolled up from hexagon-level rows to one
-# value per municipio -- "mean" for rates/scores, "sum" for counts.
+# value per municipio -- "mean" for rates/scores, "sum" for counts. "color"
+# matches what's measured (green=vegetation, amber=volume, purple=rating,
+# red=heat) instead of every ranking looking the same in navy.
 RANKINGS = {
-    "Más vegetación (NDVI)": {"column": "ndvi_medio", "agg": "mean", "kind": "decimal2"},
+    "Más vegetación (NDVI)": {
+        "column": "ndvi_medio",
+        "agg": "mean",
+        "kind": "decimal2",
+        "color": ACCENT_RANKING_NDVI,
+    },
     "Más turística (nº establecimientos Booking)": {
         "column": "n_establecimientos_booking",
         "agg": "sum",
         "kind": "entero",
+        "color": ACCENT_RANKING_TURISTICA,
     },
-    "Mejor valoradas (rating Booking)": {"column": "rating_booking_medio", "agg": "mean", "kind": "decimal"},
-    "Más calurosas": {"column": "temp_media_anual", "agg": "mean", "kind": "decimal"},
+    "Mejor valoradas (rating Booking)": {
+        "column": "rating_booking_medio",
+        "agg": "mean",
+        "kind": "decimal",
+        "color": ACCENT_RANKING_VALORADAS,
+    },
+    "Más calurosas": {
+        "column": "temp_media_anual",
+        "agg": "mean",
+        "kind": "decimal",
+        "color": ACCENT_RANKING_CALUROSAS,
+    },
 }
 
 
@@ -44,7 +68,7 @@ def render_rankings_tab(gdf: pd.DataFrame) -> None:
             orientation="h",
             title=ranking_key,
         )
-        fig.update_traces(marker_color="#1e3a8a")
+        fig.update_traces(marker_color=spec["color"])
         add_chart_motion(fig)
         st.plotly_chart(fig, use_container_width=True)
 

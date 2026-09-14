@@ -6,6 +6,7 @@ import streamlit as st
 
 from app.alojamiento import render_alojamiento_tab
 from app.clima import render_clima_tab
+from app.color_scales import RESTRICTION_COLOR_MAP_HEX
 from app.data import (
     filter_by_municipio,
     get_engine,
@@ -188,9 +189,14 @@ def page_resumen() -> None:
 
     st.subheader("Reparto de restricciones legales")
     restriction_df = restriction_counts_dataframe(stats["restriction_counts"])
-    fig_restriction = px.bar(restriction_df, x="restriction_category", y="n_hexagonos")
-    fig_restriction.update_traces(marker_color="#1e3a8a")
-    fig_restriction.update_layout(xaxis_title=None, yaxis_title="Nº de hexágonos")
+    fig_restriction = px.bar(
+        restriction_df,
+        x="restriction_category",
+        y="n_hexagonos",
+        color="restriction_category",
+        color_discrete_map=RESTRICTION_COLOR_MAP_HEX,
+    )
+    fig_restriction.update_layout(xaxis_title=None, yaxis_title="Nº de hexágonos", showlegend=False)
     add_chart_motion(fig_restriction)
     st.plotly_chart(fig_restriction, use_container_width=True)
 

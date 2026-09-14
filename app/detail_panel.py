@@ -2,6 +2,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
+from app.color_scales import SEQUENTIAL_TEAL
 from app.ui_helpers import add_chart_motion, format_metric, render_footer
 
 # (column, label, kind, help) -- kind drives number formatting (see
@@ -148,9 +149,11 @@ def render_detail_panel(gdf: pd.DataFrame, selected_h3_index: str | None) -> Non
             x="minutos",
             y="destino",
             orientation="h",
+            color="minutos",
+            color_continuous_scale=list(SEQUENTIAL_TEAL),
             title="Destinos más cercanos (min. en coche)",
         )
-        fig_dest.update_traces(marker_color="#1e3a8a")
+        fig_dest.update_layout(coloraxis_showscale=False)
         add_chart_motion(fig_dest)
         st.plotly_chart(fig_dest, width="stretch")
 

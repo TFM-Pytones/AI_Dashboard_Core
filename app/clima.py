@@ -2,30 +2,43 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
+from app.color_scales import (
+    ACCENT_CLIMA_HUMEDAD,
+    ACCENT_CLIMA_LLUVIA,
+    ACCENT_CLIMA_TEMPERATURA,
+    ACCENT_CLIMA_VIENTO,
+    hex_to_rgba,
+)
 from app.ui_helpers import add_chart_motion, render_footer
 
 # prefix: column prefix in gold_h3_master (suffixed _q1.._q4 per trimestre).
 # unidad/help: shown next to the chart so the numbers aren't left unexplained.
+# color: each variable gets its own hue (heat=red, water=blue, air=teal,
+# moisture=purple) instead of every climate chart being the same navy.
 CLIMATE_VARIABLES = {
     "Temperatura": {
         "prefix": "temp_media",
         "unidad": "°C",
         "help": "Temperatura media del aire, en grados Celsius.",
+        "color": ACCENT_CLIMA_TEMPERATURA,
     },
     "Lluvia": {
         "prefix": "lluvia_mm",
         "unidad": "mm",
         "help": "Precipitación acumulada media, en milímetros (litros por metro cuadrado).",
+        "color": ACCENT_CLIMA_LLUVIA,
     },
     "Viento": {
         "prefix": "vel_viento_media",
         "unidad": "m/s",
         "help": "Velocidad media del viento, en metros por segundo.",
+        "color": ACCENT_CLIMA_VIENTO,
     },
     "Humedad": {
         "prefix": "humedad_media",
         "unidad": "%",
         "help": "Humedad relativa media del aire, en porcentaje.",
+        "color": ACCENT_CLIMA_HUMEDAD,
     },
 }
 
@@ -48,7 +61,8 @@ def render_clima_tab(gdf: pd.DataFrame) -> None:
     st.caption(f"📏 Unidad: **{unidad}** — {variable['help']}")
 
     result = climate_by_trimestre(gdf, variable["prefix"])
-    fig = px.line(
+    color = variable["color"]
+    fig = px.area(
         result,
         x="trimestre",
         y="valor",
@@ -56,7 +70,7 @@ def render_clima_tab(gdf: pd.DataFrame) -> None:
         title=f"{variable_label} media por trimestre ({unidad})",
         labels={"trimestre": "Trimestre", "valor": f"{variable_label} ({unidad})"},
     )
-    fig.update_traces(line_color="#1e3a8a")
+    fig.update_traces(line_color=color, line_shape="spline", fillcolor=hex_to_rgba(color, 0.15))
     add_chart_motion(fig)
     st.plotly_chart(fig, use_container_width=True)
 

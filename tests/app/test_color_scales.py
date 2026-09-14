@@ -2,6 +2,7 @@ from app.color_scales import (
     NO_DATA_COLOR,
     categorical_color,
     diverging_color,
+    hex_to_rgba,
     interpolate_hex,
     sequential_color,
 )
@@ -76,3 +77,7 @@ def test_categorical_color_returns_no_data_for_none():
 
 def test_categorical_color_returns_no_data_for_nan():
     assert categorical_color(float("nan"), _RESTRICTION_COLORS) == NO_DATA_COLOR
+
+
+def test_hex_to_rgba_converts_hex_and_applies_alpha():
+    assert hex_to_rgba("#1e3a8a", 0.2) == "rgba(30, 58, 138, 0.2)"

@@ -2,6 +2,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
+from app.color_scales import ACCENT_ALOJAMIENTO
 from app.ui_helpers import add_chart_motion, format_metric, render_footer
 
 ACCOMMODATION_TYPES = [
@@ -53,7 +54,8 @@ def render_alojamiento_tab(gdf: pd.DataFrame) -> None:
         names="tipo",
         values="cantidad",
         title="Distribución del tipo de alojamiento",
-        color_discrete_sequence=["#1e3a8a", "#eb6834", "#6b7280"],
+        hole=0.45,
+        color_discrete_sequence=[ACCENT_ALOJAMIENTO, "#1e3a8a", "#6b7280"],
     )
     add_chart_motion(fig)
     st.plotly_chart(fig, use_container_width=True)
