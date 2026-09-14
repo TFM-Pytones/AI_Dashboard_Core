@@ -12,8 +12,8 @@ from app.data import (
     load_accesibilidad,
     load_h3_master,
     load_isocronas,
-    load_istac_anual,
-    load_istac_mensual,
+    load_municipio_anual,
+    load_municipio_empleo,
     load_municipio_master,
     load_nlp_chunks,
     load_sentimiento,
@@ -107,8 +107,8 @@ sentimiento = load_sentimiento(engine)
 accesibilidad = load_accesibilidad(engine)
 isocronas = load_isocronas(engine)
 municipio_master = load_municipio_master(engine)
-istac_anual = load_istac_anual(engine)
-istac_mensual = load_istac_mensual(engine)
+municipio_anual = load_municipio_anual(engine)
+municipio_empleo = load_municipio_empleo(engine)
 topicos_municipio = load_topicos_municipio(engine)
 nlp_chunks = load_nlp_chunks(engine)
 
@@ -216,7 +216,7 @@ with tab_clima:
     render_clima_tab(filter_by_municipio(full_gdf, clima_municipio))
 
 with tab_municipios:
-    render_municipios_tab(municipio_master, istac_anual, istac_mensual)
+    render_municipios_tab(municipio_master, municipio_anual, municipio_empleo)
 
 with tab_alojamiento:
     alojamiento_municipio = st.selectbox(
