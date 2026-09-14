@@ -43,7 +43,7 @@ RAG_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAG_DIR))
 sys.path.insert(0, str(RAG_DIR.parent / "llm"))
 
-from filtros import extraer_filtros  # noqa: E402
+from filtros import extraer_filtros, relajar_filtros  # noqa: E402
 from llm_client import LLMClient  # noqa: E402
 from rag_answer import responder  # noqa: E402
 from retriever import search  # noqa: E402
@@ -163,7 +163,9 @@ def main():
             marcas.append(f"filtros={'OK' if acierto else 'FALLO'}")
 
         if tipo == "normal":
-            filtros = extraer_filtros(pregunta)
+            # Misma relajacion que aplica responder(), para que el recall mida
+            # lo mismo que luego ve el LLM.
+            filtros, _ = relajar_filtros(extraer_filtros(pregunta))
             chunks = search(pregunta, k=K, filters=filtros, hibrida=hibrida)
             if caso.get("terminos_esperados"):
                 recall_total += 1
@@ -176,8 +178,8 @@ def main():
                 # evaluacion completa consume una buena parte: si se agota a
                 # mitad, se anota y se sigue en vez de perder todo el resultado.
                 try:
-                    respuesta, _ = responder(pregunta, k=K, filters=filtros, hibrida=hibrida)
-                    veredicto = juzgar(cliente, respuesta, chunks)
+                    r = responder(pregunta, k=K, filters=filtros, hibrida=hibrida)
+                    veredicto = juzgar(cliente, r.texto, r.chunks)
                     veredictos[veredicto] = veredictos.get(veredicto, 0) + 1
                     marcas.append(veredicto.lower())
                 except Exception as e:
@@ -190,7 +192,7 @@ def main():
             marcas.append("sin evaluar (--rapido)")
         else:
             try:
-                respuesta, chunks = responder(pregunta, k=K, filters=extraer_filtros(pregunta), hibrida=hibrida)
+                respuesta = responder(pregunta, k=K, filters=extraer_filtros(pregunta), hibrida=hibrida).texto
             except Exception as e:
                 errores.append((caso["id"], str(e)[:120]))
                 print(f"  [{tipo:10s}] {caso['id']:24s} ERROR")

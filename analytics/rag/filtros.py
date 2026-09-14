@@ -37,22 +37,28 @@ ALIAS_MUNICIPIOS = {
 
 # Gentilicios mas habituales -> valor de pais_resenante (que la BD guarda en
 # español, tal y como viene de Booking).
+#
+# Solo en plural: "los alemanes" casi siempre son personas, mientras que el
+# singular suele ser un idioma o un adjetivo ("reseñas en inglés", "comida
+# española"). Con el singular, esas preguntas acababan filtradas por pais y
+# se respondian sobre otra cosa.
 GENTILICIOS = {
-    "aleman": "Alemania", "alemanes": "Alemania", "alemana": "Alemania", "alemanas": "Alemania",
-    "britanico": "Reino Unido", "britanicos": "Reino Unido", "ingles": "Reino Unido",
-    "ingleses": "Reino Unido", "britanica": "Reino Unido",
-    "italiano": "Italia", "italianos": "Italia", "italiana": "Italia",
-    "frances": "Francia", "franceses": "Francia", "francesa": "Francia",
-    "español": "España", "españoles": "España", "española": "España", "espanol": "España",
-    "polaco": "Polonia", "polacos": "Polonia",
-    "irlandes": "Irlanda", "irlandeses": "Irlanda",
-    "holandes": "Países Bajos", "holandeses": "Países Bajos", "neerlandes": "Países Bajos",
-    "belga": "Bélgica", "belgas": "Bélgica",
-    "suizo": "Suiza", "suizos": "Suiza",
-    "rumano": "Rumanía", "rumanos": "Rumanía",
-    "ucraniano": "Ucrania", "ucranianos": "Ucrania",
-    "checo": "República Checa", "checos": "República Checa",
-    "hungaro": "Hungría", "hungaros": "Hungría",
+    "alemanes": "Alemania", "alemanas": "Alemania",
+    "británicos": "Reino Unido", "británicas": "Reino Unido", "ingleses": "Reino Unido",
+    "inglesas": "Reino Unido", "escoceses": "Reino Unido",
+    "italianos": "Italia", "italianas": "Italia",
+    "franceses": "Francia", "francesas": "Francia",
+    "españoles": "España", "españolas": "España",
+    "polacos": "Polonia", "polacas": "Polonia",
+    "irlandeses": "Irlanda", "irlandesas": "Irlanda",
+    "holandeses": "Países Bajos", "holandesas": "Países Bajos", "neerlandeses": "Países Bajos",
+    "belgas": "Bélgica",
+    "suizos": "Suiza", "suizas": "Suiza",
+    "austriacos": "Austria", "austriacas": "Austria",
+    "rumanos": "Rumanía", "rumanas": "Rumanía",
+    "ucranianos": "Ucrania", "ucranianas": "Ucrania",
+    "checos": "República Checa", "checas": "República Checa",
+    "húngaros": "Hungría", "húngaras": "Hungría",
 }
 
 # Como se nombran de verdad estas zonas al preguntar. En la BD estan con el
@@ -68,6 +74,35 @@ ALIAS_ZONAS = {
     "teno": "Barranco del Teno",
     "el medano": "El Medano (Granadilla)",
     "medano": "El Medano (Granadilla)",
+}
+
+# Localidades turisticas que no son municipio -> municipio(s) al que
+# pertenecen. Nadie pregunta por "Arona" sino por "Los Cristianos", y sin esto
+# esas preguntas se quedaban sin filtro de lugar. Playa de las Americas esta
+# repartida entre Arona y Adeje, de ahi los dos.
+LOCALIDADES = {
+    "santa cruz": ["Santa Cruz de Tenerife"],
+    "las teresitas": ["Santa Cruz de Tenerife"],
+    "san andres": ["Santa Cruz de Tenerife"],
+    "los cristianos": ["Arona"],
+    "las americas": ["Arona", "Adeje"],
+    "playa de las americas": ["Arona", "Adeje"],
+    "costa del silencio": ["Arona"],
+    "las galletas": ["Arona"],
+    "callao salvaje": ["Adeje"],
+    "playa paraiso": ["Adeje"],
+    "golf del sur": ["San Miguel de Abona"],
+    "san miguel": ["San Miguel de Abona"],
+    "granadilla": ["Granadilla de Abona"],
+    "los abrigos": ["Granadilla de Abona"],
+    "puerto de santiago": ["Santiago del Teide"],
+    "playa san juan": ["Guia de Isora"],
+    "alcala": ["Guia de Isora"],
+    "icod": ["Icod de los Vinos"],
+    "bajamar": ["La Laguna"],
+    "punta del hidalgo": ["La Laguna"],
+    "radazul": ["El Rosario"],
+    "tabaiba": ["El Rosario"],
 }
 
 FUENTES = {
@@ -171,23 +206,35 @@ def extraer_filtros(pregunta: str) -> dict:
 
     municipios, zonas = catalogo_lugares()
 
+    # Nombre que puede aparecer en la pregunta -> municipios a los que equivale.
+    # Todos pasan por resolver_municipio para recoger cada variante escrita en
+    # la BD: sin eso "La Laguna" dejaba fuera los fragmentos guardados como
+    # "San Cristóbal de La Laguna".
+    nombres = {clave: [clave] for clave in [*municipios, *ALIAS_MUNICIPIOS]}
+    nombres.update(LOCALIDADES)
+
     # Del nombre mas largo al mas corto: asi "San Miguel de Abona" no se queda
     # en un match parcial de otro municipio mas corto contenido en el.
-    for clave in sorted(municipios, key=len, reverse=True):
+    for clave in sorted(nombres, key=len, reverse=True):
         if re.search(rf"\b{re.escape(clave)}\b", texto):
-            filtros["municipio"] = municipios[clave]
+            filtros["municipio"] = _variantes_municipios(nombres[clave])
             break
 
-    # Municipio y zona son excluyentes: ningun fragmento tiene los dos a la vez
-    # (Booking/TripAdvisor traen municipio, LosViajeros una cosa o la otra), asi
-    # que activar ambos filtraria a cero. Si ya hay municipio, no se busca zona
-    # -- ademas evita que "Santiago del Teide" dispare tambien el Teide.
+    # Si ya hay municipio no se busca zona: evita que "Santiago del Teide"
+    # dispare tambien el Teide.
     if "municipio" not in filtros:
         for alias in sorted(ALIAS_ZONAS, key=len, reverse=True):
             if re.search(rf"\b{re.escape(alias)}\b", texto):
                 real = ALIAS_ZONAS[alias]
                 if normalizar(real) in zonas:
                     filtros["zona"] = zonas[normalizar(real)]
+                    # La zona solo existe en el foro. Si es una localidad de un
+                    # municipio concreto ("Los Gigantes (Santiago del Teide)"),
+                    # sus alojamientos estan en Booking y TripAdvisor bajo ese
+                    # municipio: se buscan ambos (build_where los une con OR).
+                    padre = re.search(r"\(([^)]+)\)$", real)
+                    if padre:
+                        filtros["municipio"] = resolver_municipio(padre.group(1))
                 break
 
     for gentilicio, pais in GENTILICIOS.items():
@@ -214,3 +261,79 @@ def extraer_filtros(pregunta: str) -> dict:
             filtros["fecha_hasta"] = hasta
 
     return filtros
+
+
+def _variantes_municipios(nombres: list[str]) -> list[str]:
+    variantes: list[str] = []
+    for nombre in nombres:
+        for variante in resolver_municipio(nombre):
+            if variante not in variantes:
+                variantes.append(variante)
+    return variantes
+
+
+# Orden en que se sueltan los filtros deducidos cuando, combinados, no dejan
+# ningun fragmento. Cada fuente trae metadatos distintos (el pais solo esta en
+# Booking, la fecha en Booking y TripAdvisor, la zona solo en el foro), asi que
+# una pregunta razonable como "¿que dicen en Booking del Teide?" pedia un cruce
+# que no existe y se respondia "no hay informacion", que es falso. El lugar no
+# se suelta nunca: casi siempre es el nucleo de la pregunta.
+ORDEN_RELAJACION = [
+    ("pais_resenante",),
+    ("fecha_desde", "fecha_hasta"),
+    ("source",),
+]
+
+
+def relajar_filtros(filtros: dict, fijos=frozenset()) -> tuple[dict, dict]:
+    """Quita filtros, por ORDEN_RELAJACION, hasta que algun fragmento cumpla
+    los que quedan. Devuelve (filtros a aplicar, filtros descartados).
+
+    Los `fijos` (los escritos a mano) no se sueltan nunca: si esa combinacion
+    pedida explicitamente no existe, lo correcto es decirlo."""
+    from retriever import hay_fragmentos
+
+    aplicables = dict(filtros)
+    descartados: dict = {}
+    for grupo in ORDEN_RELAJACION:
+        if not aplicables or hay_fragmentos(aplicables):
+            break
+        for clave in grupo:
+            if clave in aplicables and clave not in fijos:
+                descartados[clave] = aplicables.pop(clave)
+    return aplicables, descartados
+
+
+# De que trata la pregunta. Booking es el 84 % del corpus y habla del
+# alojamiento: sin distinguirlo, "¿que hacer en Garachico?" recuperaba seis
+# reseñas de apartamentos de ocho. Ver retriever.diversificar. Palabras ya
+# normalizadas (sin tildes ni eñes).
+PALABRAS_ALOJAMIENTO = {
+    "hotel", "hoteles", "apartamento", "apartamentos", "alojamiento", "alojamientos", "habitacion",
+    "habitaciones", "huesped", "huespedes", "anfitrion", "anfitriona", "piscina", "piscinas", "desayuno",
+    "buffet", "check", "checkin", "recepcion", "cama", "camas", "colchon", "bano", "banos", "ducha", "wifi",
+    "limpieza", "personal", "villa", "estancia", "booking",
+}
+PALABRAS_DESTINO = {
+    "playa", "playas", "ciudad", "ciudades", "pueblo", "pueblos", "visitar", "visita", "visitas", "hacer",
+    "ver", "comer", "restaurante", "restaurantes", "guachinche", "guachinches", "comida", "gastronomia",
+    "transporte", "guagua", "guaguas", "autobus", "bus", "coche", "coches", "carretera", "carreteras",
+    "trafico", "masificacion", "masificado", "masificada", "turismo", "turistas", "turistico", "precio",
+    "precios", "caro", "cara", "barato", "ambiente", "excursion", "excursiones", "ruta", "rutas", "sendero",
+    "senderos", "senderismo", "clima", "gente", "seguridad", "suciedad", "destino", "isla", "ocio", "compras",
+    "cultura", "fiesta", "fiestas", "carnaval", "teide", "parque", "ballenas", "delfines", "residentes",
+    "vivienda", "impacto", "nocturna",
+}
+
+
+def detectar_perspectiva(pregunta: str) -> str:
+    """'alojamiento' si la pregunta solo habla del alojamiento, 'destino' si solo
+    habla de la isla o de un lugar, y 'general' si mezcla ambas o ninguna."""
+    tokens = set(re.findall(r"[a-z]+", normalizar(pregunta)))
+    alojamiento = bool(tokens & PALABRAS_ALOJAMIENTO)
+    destino = bool(tokens & PALABRAS_DESTINO)
+    if alojamiento and not destino:
+        return "alojamiento"
+    if destino and not alojamiento:
+        return "destino"
+    return "general"
