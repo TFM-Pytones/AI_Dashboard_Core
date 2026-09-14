@@ -15,7 +15,9 @@ from app.data import (
     load_istac_anual,
     load_istac_mensual,
     load_municipio_master,
+    load_nlp_chunks,
     load_sentimiento,
+    load_topicos_municipio,
     merge_accesibilidad,
     merge_h3_data,
 )
@@ -25,6 +27,7 @@ from app.municipios import render_municipios_tab
 from app.rankings import render_rankings_tab
 from app.summary import compute_summary_stats
 from app.table_view import filter_table, prepare_table_view
+from app.temas import render_temas_tab
 
 st.set_page_config(page_title="AI-Dashboard Tenerife", page_icon="🌋", layout="wide")
 
@@ -106,6 +109,8 @@ isocronas = load_isocronas(engine)
 municipio_master = load_municipio_master(engine)
 istac_anual = load_istac_anual(engine)
 istac_mensual = load_istac_mensual(engine)
+topicos_municipio = load_topicos_municipio(engine)
+nlp_chunks = load_nlp_chunks(engine)
 
 full_gdf = merge_h3_data(h3_master, sentimiento)
 full_gdf = merge_accesibilidad(full_gdf, accesibilidad)
@@ -129,7 +134,7 @@ with st.sidebar:
     if show_isocronas:
         isocrona_destino = st.selectbox("Destino de referencia", list_destinos(isocronas))
 
-tab_resumen, tab_mapa, tab_tabla, tab_rankings, tab_clima, tab_municipios, tab_alojamiento = st.tabs(
+tab_resumen, tab_mapa, tab_tabla, tab_rankings, tab_clima, tab_municipios, tab_alojamiento, tab_temas = st.tabs(
     [
         "📊 Resumen",
         "🗺️ Mapa",
@@ -138,6 +143,7 @@ tab_resumen, tab_mapa, tab_tabla, tab_rankings, tab_clima, tab_municipios, tab_a
         "🌡️ Clima",
         "🏛️ Municipios",
         "🏨 Alojamiento",
+        "💬 Temas",
     ]
 )
 
@@ -217,3 +223,6 @@ with tab_alojamiento:
         "Municipio", ["Todos"] + list_municipios(full_gdf), key="alojamiento_municipio"
     )
     render_alojamiento_tab(filter_by_municipio(full_gdf, alojamiento_municipio))
+
+with tab_temas:
+    render_temas_tab(topicos_municipio, nlp_chunks)
