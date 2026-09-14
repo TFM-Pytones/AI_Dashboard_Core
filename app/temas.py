@@ -3,6 +3,7 @@ import plotly.express as px
 import streamlit as st
 
 from app.topic_labels_es import topic_label_es
+from app.translation import translate_to_spanish
 from app.ui_helpers import format_metric, latest_value, render_footer
 
 SOURCE_LABELS = {
@@ -75,6 +76,7 @@ def prepare_review_cards(muestra: pd.DataFrame) -> list[dict]:
         pais = row.get("pais_resenante")
         cards.append(
             {
+                "chunk_id": row.get("chunk_id"),
                 "icono": SOURCE_ICONS.get(fuente, "💬"),
                 "fuente": fuente,
                 "rating": None if pd.isna(rating) else float(rating),
@@ -161,6 +163,16 @@ def render_temas_tab(topicos_municipio_df: pd.DataFrame, chunks_df: pd.DataFrame
                 meta_cols[2].markdown(f"📅 {card['fecha']}")
                 meta_cols[3].markdown(f"🌍 {card['pais']}")
                 st.write(card["text"])
+
+                traduccion_key = f"temas_traduccion_{card['chunk_id']}"
+                if st.button("🌐 Traducir", key=f"temas_traducir_{card['chunk_id']}"):
+                    with st.spinner("Traduciendo..."):
+                        try:
+                            st.session_state[traduccion_key] = translate_to_spanish(card["text"])
+                        except Exception:
+                            st.error("No se pudo traducir esta opinión. Inténtalo de nuevo.")
+                if st.session_state.get(traduccion_key):
+                    st.markdown(f"🌐 *{st.session_state[traduccion_key]}*")
 
     render_footer(
         "gold.gold_topicos_municipio, gold.nlp_chunks (BERTopic)",

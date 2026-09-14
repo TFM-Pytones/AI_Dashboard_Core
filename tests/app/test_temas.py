@@ -158,6 +158,7 @@ def test_prepare_review_cards_maps_source_to_icon_and_formats_fields():
     assert booking_card["icono"] == "🅱️"
     assert booking_card["rating"] == 9.0
     assert booking_card["pais"] == "España"
+    assert booking_card["chunk_id"] == 1
 
 
 def test_prepare_review_cards_handles_missing_rating():
