@@ -21,6 +21,9 @@ ISOCRONAS_QUERY = "SELECT * FROM gold.gold_isocronas_visuales"
 MUNICIPIO_MASTER_QUERY = "SELECT * FROM gold.gold_municipio_master"
 MUNICIPIO_ANUAL_QUERY = "SELECT * FROM gold.gold_municipio_anual"
 MUNICIPIO_EMPLEO_QUERY = "SELECT * FROM gold.gold_municipio_empleo"
+TURISMO_HOTELERO_ANUAL_QUERY = "SELECT * FROM gold.gold_turismo_hotelero_anual"
+TURISMO_HOTELERO_MENSUAL_QUERY = "SELECT * FROM gold.gold_turismo_hotelero_mensual"
+AENA_PASAJEROS_QUERY = "SELECT * FROM gold.gold_aena_pasajeros"
 TOPICOS_MUNICIPIO_QUERY = "SELECT * FROM gold.gold_topicos_municipio"
 NLP_CHUNKS_QUERY = """
     SELECT chunk_id, source, source_id, chunk_index, text, topic_id, topic_label,
@@ -114,6 +117,21 @@ def load_municipio_anual(_engine: Engine) -> pd.DataFrame:
 @st.cache_data
 def load_municipio_empleo(_engine: Engine) -> pd.DataFrame:
     return pd.read_sql(MUNICIPIO_EMPLEO_QUERY, _engine)
+
+
+@st.cache_data
+def load_turismo_hotelero_anual(_engine: Engine) -> pd.DataFrame:
+    return pd.read_sql(TURISMO_HOTELERO_ANUAL_QUERY, _engine)
+
+
+@st.cache_data
+def load_turismo_hotelero_mensual(_engine: Engine) -> pd.DataFrame:
+    return pd.read_sql(TURISMO_HOTELERO_MENSUAL_QUERY, _engine)
+
+
+@st.cache_data
+def load_aena_pasajeros(_engine: Engine) -> pd.DataFrame:
+    return pd.read_sql(AENA_PASAJEROS_QUERY, _engine)
 
 
 @st.cache_data
