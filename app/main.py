@@ -36,7 +36,7 @@ from app.map_layers import (
     list_destinos,
 )
 from app.municipios import render_municipios_tab
-from app.rankings import render_rankings_tab
+from app.rankings import RANKINGS, render_rankings_tab
 from app.summary import compute_summary_stats, restriction_counts_dataframe
 from app.table_view import build_table_column_config, filter_table, prepare_table_view
 from app.temas import render_temas_tab
@@ -208,6 +208,73 @@ def page_resumen() -> None:
             help="Municipio con menos alojamientos turísticos registrados.",
         )
 
+    st.subheader("Explora el dashboard")
+    overview_cards = [
+        (
+            nav_mapa,
+            "🗺️",
+            "Mapa",
+            "Colorea Tenerife hexágono a hexágono: densidad hotelera, sentimiento, accesibilidad y más.",
+            f"{len(METRICS)} capas de color",
+        ),
+        (
+            nav_tabla,
+            "📋",
+            "Tabla",
+            "Consulta y descarga todos los datos en una tabla filtrable.",
+            f"{format_metric(len(full_gdf), 'entero')} hexágonos",
+        ),
+        (
+            nav_rankings,
+            "🏆",
+            "Rankings",
+            "Compara municipios: más vegetación, mejor valorados, más turísticos, más calurosos.",
+            f"{len(RANKINGS)} rankings",
+        ),
+        (
+            nav_clima,
+            "🌡️",
+            "Clima",
+            "Temperatura, lluvia, viento y humedad por trimestre y municipio.",
+            "4 variables climáticas",
+        ),
+        (
+            nav_municipios,
+            "🏛️",
+            "Municipios",
+            "Economía, empleo y turismo por municipio, con evolución anual y mensual.",
+            f"{municipio_master['municipio'].nunique()} municipios",
+        ),
+        (
+            nav_alojamiento,
+            "🏨",
+            "Alojamiento",
+            "Reputación y tipo de alojamiento: hoteles, viviendas vacacionales y extrahoteleros.",
+            f"{format_metric(int(full_gdf['n_reviews_booking'].sum()), 'entero')} reseñas Booking",
+        ),
+        (
+            nav_temas,
+            "💬",
+            "Temas y Opinión",
+            "Qué opinan los visitantes de verdad, extraído con NLP de miles de reseñas.",
+            f"{format_metric(len(nlp_chunks), 'entero')} opiniones analizadas",
+        ),
+        (
+            nav_turismo,
+            "✈️",
+            "Turismo",
+            "Ocupación hotelera y tráfico aéreo por polo turístico, con estacionalidad mensual.",
+            f"{aena_pasajeros['aeropuerto_nombre'].nunique()} aeropuertos monitorizados",
+        ),
+    ]
+    overview_cols = st.columns(4)
+    for i, (page_obj, icon, title, description, highlight) in enumerate(overview_cards):
+        with overview_cols[i % 4].container(border=True):
+            st.markdown(f"#### {icon} {title}")
+            st.caption(description)
+            st.markdown(f"**{highlight}**")
+            st.page_link(page_obj, label="Explorar →", use_container_width=True)
+
     render_footer("gold.gold_h3_master, gold.gold_h3_accesibilidad, gold.gold_sentimiento_h3")
 
 
@@ -350,16 +417,26 @@ def page_turismo() -> None:
     render_turismo_tab(turismo_hotelero_anual, turismo_hotelero_mensual, aena_pasajeros)
 
 
+nav_resumen = st.Page(page_resumen, title="Resumen", icon="📊", default=True)
+nav_mapa = st.Page(page_mapa, title="Mapa", icon="🗺️")
+nav_tabla = st.Page(page_tabla, title="Tabla", icon="📋")
+nav_rankings = st.Page(page_rankings, title="Rankings", icon="🏆")
+nav_clima = st.Page(page_clima, title="Clima", icon="🌡️")
+nav_municipios = st.Page(page_municipios, title="Municipios", icon="🏛️")
+nav_alojamiento = st.Page(page_alojamiento, title="Alojamiento", icon="🏨")
+nav_temas = st.Page(page_temas, title="Temas", icon="💬")
+nav_turismo = st.Page(page_turismo, title="Turismo", icon="✈️")
+
 pages = [
-    st.Page(page_resumen, title="Resumen", icon="📊", default=True),
-    st.Page(page_mapa, title="Mapa", icon="🗺️"),
-    st.Page(page_tabla, title="Tabla", icon="📋"),
-    st.Page(page_rankings, title="Rankings", icon="🏆"),
-    st.Page(page_clima, title="Clima", icon="🌡️"),
-    st.Page(page_municipios, title="Municipios", icon="🏛️"),
-    st.Page(page_alojamiento, title="Alojamiento", icon="🏨"),
-    st.Page(page_temas, title="Temas", icon="💬"),
-    st.Page(page_turismo, title="Turismo", icon="✈️"),
+    nav_resumen,
+    nav_mapa,
+    nav_tabla,
+    nav_rankings,
+    nav_clima,
+    nav_municipios,
+    nav_alojamiento,
+    nav_temas,
+    nav_turismo,
 ]
 
 pg = st.navigation(pages)
