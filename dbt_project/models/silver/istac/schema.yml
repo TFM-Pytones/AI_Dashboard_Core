@@ -1,0 +1,90 @@
+version: 2
+
+models:
+  - name: silver_istac_anual
+    description: "Indicadores demográficos anuales y presión turística equivalente oficial del ISTAC para los 31 municipios de Tenerife (2022-2026)."
+    columns:
+      - name: municipio_cod
+        description: "Código INE de 5 dígitos del municipio; clave foránea a silver_limites_municipales."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('silver_limites_municipales')
+                field: cod_municipio
+      - name: municipio
+        description: "Nombre del municipio."
+        tests:
+          - not_null
+      - name: anio
+        description: "Año natural de referencia estadística."
+        tests:
+          - not_null
+      - name: poblacion_total
+        description: "Cifra oficial de población empadronada en el municipio."
+        tests:
+          - not_null
+
+  - name: silver_istac_mensual
+    description: "Series temporales mensuales del ISTAC (paro registrado municipal, indicadores de vivienda vacacional y de la Encuesta de Ocupación Hotelera EOH) para Tenerife (2022-2026)."
+    columns:
+      - name: municipio_cod
+        description: "Código INE del municipio; clave foránea a silver_limites_municipales."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('silver_limites_municipales')
+                field: cod_municipio
+      - name: municipio
+        description: "Nombre oficial del municipio."
+        tests:
+          - not_null
+      - name: anio
+        description: "Año de la observación mensual."
+        tests:
+          - not_null
+      - name: mes
+        description: "Mes numérico (1 a 12)."
+        tests:
+          - not_null
+      - name: periodo_codigo
+        description: "Código canónico del periodo mensual en formato YYYY-MM."
+        tests:
+          - not_null
+      - name: paro_registrado
+        description: "Número total de personas en situación de desempleo registradas en el SEPE/OBECAN."
+        tests:
+          - not_null
+
+  - name: silver_istac_trimestral
+    description: "Series temporales trimestrales de afiliación a la Seguridad Social y empleo sectorial desagregado (hostelería, servicios, comercio, industria, construcción, agricultura) del ISTAC (2021-2026)."
+    columns:
+      - name: municipio_cod
+        description: "Código INE de 5 dígitos del municipio; clave foránea a silver_limites_municipales."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('silver_limites_municipales')
+                field: cod_municipio
+      - name: municipio
+        description: "Nombre del municipio."
+        tests:
+          - not_null
+      - name: anio
+        description: "Año de la serie trimestral."
+        tests:
+          - not_null
+      - name: trimestre
+        description: "Trimestre natural (1, 2, 3 o 4)."
+        tests:
+          - not_null
+      - name: periodo_codigo
+        description: "Código formal del periodo trimestral (ej. '2023-Q2')."
+        tests:
+          - not_null
+      - name: empleo_total
+        description: "Total de puestos de trabajo cotizantes a la Seguridad Social."
+        tests:
+          - not_null

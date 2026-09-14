@@ -6,7 +6,23 @@
     ]
 ) }}
 
-WITH grid AS (
+/*
+  Modelo Silver: silver_h3_grid
+  -------------------------------------------------------------
+  Transformación, depuración y filtrado de la malla espacial H3 Res 8:
+  - Capa Bronze (bronze.bronze_h3_grid): 2.746 celdas generadas con
+    buffer de amortiguación costera de 0.01° (~1,1 km).
+  - Filtro 1 (Límites Municipales): Descarta 163 celdas 100% marinas en aguas
+    abiertas sin intersección con los 31 municipios de Tenerife (2.583 celdas).
+  - Filtro 2 (Integridad Biofísica y Topográfica): Descarta 4 celdas residuales
+    costeras/roques marinos que carecen de elevación válida (cota <= 0 o NoData en MDT)
+    o de cobertura satelital biofísica (NDVI nulo en Sentinel-2), consolidando
+    exactamente 2.579 celdas terrestres 100% completas y libres de nulos.
+  - Centroides geométricos canónicos puros (ST_Centroid de H3) sin distorsiones espaciales.
+  - Enriquecimiento: relieve MDT25 (GRAFCAN) y figuras protegidas (ENP).
+*/
+
+WITH grid_municipal AS (
     SELECT 
         g.h3_index,
         g.resolution,
@@ -35,6 +51,15 @@ mdt AS (
         -- Hillshade (útil para visualización en Dashboard)
         hillshade_mean
     FROM {{ source('bronze', 'bronze_mdt_stats') }}
+    WHERE elevation_mean IS NOT NULL 
+      AND elevation_mean > 0
+),
+
+satelite_valid AS (
+    -- Asegura que el hexágono tiene lecturas válidas de vegetación / teledetección
+    SELECT DISTINCT h3_index
+    FROM {{ source('bronze', 'bronze_satelite_stats') }}
+    WHERE ndvi_mean IS NOT NULL
 ),
 
 enp_intersection AS (
@@ -42,46 +67,34 @@ enp_intersection AS (
     SELECT DISTINCT
         g.h3_index,
         TRUE AS is_protected_area
-    FROM grid g
+    FROM grid_municipal g
     JOIN {{ source('bronze', 'bronze_espacios_naturales') }} e
       ON ST_Intersects(g.geometry, e.geometry)
-)
-
-, poi_centroids AS (
-    -- Mejora de MAUP: Centroide ponderado por actividad humana
-    -- Calcula el centro de masa de todos los POIs que caen dentro del hexágono.
-    SELECT
-        g.h3_index,
-        ST_Centroid(ST_Collect(p.geometry)) AS poi_centroid
-    FROM grid g
-    JOIN {{ ref('silver_osm_pois') }} p
-      ON ST_Intersects(g.geometry, p.geometry)
-    WHERE p.geometry IS NOT NULL
-    GROUP BY g.h3_index
 )
 
 SELECT
     g.h3_index,
     g.resolution,
     g.geometry,
-    -- Coordenadas: Si hay POIs usamos su centro de masa, si no, el centroide geométrico
-    ST_X(COALESCE(pc.poi_centroid, ST_Centroid(g.geometry))) AS centroide_lon,
-    ST_Y(COALESCE(pc.poi_centroid, ST_Centroid(g.geometry))) AS centroide_lat,
-    -- Elevación (rellenar con 0 si el hexágono cae en el mar)
-    COALESCE(m.elevation_mean, 0.0) AS elevation_mean,
-    COALESCE(m.elevation_min,  0.0) AS elevation_min,
-    COALESCE(m.elevation_max,  0.0) AS elevation_max,
+    -- Centroide geométrico canónico de la celda H3
+    ST_X(ST_Centroid(g.geometry)) AS centroide_lon,
+    ST_Y(ST_Centroid(g.geometry)) AS centroide_lat,
+    -- Elevación
+    m.elevation_mean,
+    m.elevation_min,
+    m.elevation_max,
     -- Pendiente en grados
-    COALESCE(m.slope_mean, 0.0) AS slope_mean,
-    COALESCE(m.slope_min,  0.0) AS slope_min,
-    COALESCE(m.slope_max,  0.0) AS slope_max,
+    m.slope_mean,
+    m.slope_min,
+    m.slope_max,
     -- Orientación en grados (Norte=0°)
-    COALESCE(m.aspect_mean, 0.0) AS aspect_mean,
+    m.aspect_mean,
     -- Hillshade para visualización
-    COALESCE(m.hillshade_mean, 0.0) AS hillshade_mean,
+    m.hillshade_mean,
     -- Área protegida (ENP)
     COALESCE(e.is_protected_area, FALSE) AS is_protected_area
-FROM grid g
-LEFT JOIN mdt m ON g.h3_index = m.h3_index
+FROM grid_municipal g
+INNER JOIN mdt m ON g.h3_index = m.h3_index
+INNER JOIN satelite_valid s ON g.h3_index = s.h3_index
 LEFT JOIN enp_intersection e ON g.h3_index = e.h3_index
-LEFT JOIN poi_centroids pc ON g.h3_index = pc.h3_index
+

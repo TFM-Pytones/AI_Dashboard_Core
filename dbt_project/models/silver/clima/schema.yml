@@ -1,0 +1,67 @@
+version: 2
+
+models:
+  - name: silver_estaciones_agrocabildo
+    description: "Red oficial de estaciones meteorológicas del Cabildo Insular de Tenerife (Agrocabildo), georreferenciadas con elevación y metadatos operativos."
+    columns:
+      - name: id_estacion
+        description: "Identificador numérico único de la estación agrometeorológica."
+        tests:
+          - unique
+          - not_null
+      - name: nombre_estacion
+        description: "Nombre descriptivo y localización de la estación."
+        tests:
+          - not_null
+      - name: municipio
+        description: "Municipio en el que se emplaza la estación meteorológica."
+        tests:
+          - not_null
+      - name: altitud_m
+        description: "Altitud en metros sobre el nivel del mar."
+        tests:
+          - not_null
+      - name: latitud
+        description: "Latitud en grados decimales (WGS84)."
+        tests:
+          - not_null
+      - name: longitud
+        description: "Longitud en grados decimales (WGS84)."
+        tests:
+          - not_null
+      - name: geometry
+        description: "Geometría de punto PostGIS (SRID 4326)."
+        tests:
+          - not_null
+
+  - name: silver_clima_agrocabildo
+    description: "Series temporales meteorológicas horarias de Agrocabildo (temperatura, humedad, viento, precipitación y radiación solar) filtradas a horas en punto y depuradas de fallos de sensorización."
+    columns:
+      - name: id_estacion
+        description: "Identificador de la estación sensora; clave foránea a silver_estaciones_agrocabildo."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('silver_estaciones_agrocabildo')
+                field: id_estacion
+      - name: id_sensor
+        description: "Identificador unívoco del sensor físico."
+        tests:
+          - not_null
+      - name: timestamp
+        description: "Marca temporal en hora en punto (:00:00) de la medición horaria."
+        tests:
+          - not_null
+      - name: valor_limpio
+        description: "Valor meteorológico depurado de códigos de error y acotado por plausibilidad física."
+        tests:
+          - not_null
+      - name: es_validado
+        description: "Booleano que indica si el dato original fue validado por los técnicos de Agrocabildo."
+        tests:
+          - not_null
+      - name: es_extremo
+        description: "Flag que marca si la lectura original superó los umbrales plausibles de seguridad física."
+        tests:
+          - not_null

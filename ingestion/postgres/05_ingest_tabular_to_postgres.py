@@ -14,7 +14,7 @@ AZURE_CONNECTION_STRING = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
 BLOB_CONTAINER_NAME = "bronce-raw"
 
 # --- Configuración de Ingesta Incremental (Clima) ---
-INCREMENTAL_LOAD = False  # Cambiar a False para ingesta histórica completa
+INCREMENTAL_LOAD = True  # Cambiar a False para ingesta histórica completa
 
 # --- Configuración Azure PostgreSQL (Flexible Server) ---
 PG_USER = os.getenv("AZURE_DB_USER")

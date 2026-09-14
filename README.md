@@ -4,7 +4,7 @@ Este repositorio contiene el código fuente y la documentación para el Trabajo 
 
 ---
 
-## 📋 Estructura del Proyecto (Índice de Desarrollo)
+## Estructura del Proyecto (Índice de Desarrollo)
 
 ### 1. Introducción y Contexto de Negocio
 * **1.1. Resumen Ejecutivo y Alcance del Proyecto**: Visión global de la plataforma para resolver las necesidades del turismo en Tenerife.
@@ -72,7 +72,7 @@ Este repositorio contiene el código fuente y la documentación para el Trabajo 
 
 ---
 
-## 📁 Organización del Repositorio
+## Organización del Repositorio
 
 * **`infra/`**: Configuración de servidores, variables de entorno y scripts de despliegue en Azure.
 * **`ingestion/`**: Pipelines de extracción incremental divididos por fuentes de datos (agrocabildo, open_meteo, microdatos, etc.).

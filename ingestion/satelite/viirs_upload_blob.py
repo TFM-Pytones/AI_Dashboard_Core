@@ -215,7 +215,7 @@ class VIIRSGEEExporter:
 
                 n = collection.size().getInfo()
                 if n == 0:
-                    logger.warning(f"    ⚠️  Sin imágenes para {year}/{month:02d} en GEE.")
+                    logger.warning(f"    Sin imágenes para {year}/{month:02d} en GEE.")
                     continue
 
                 # Para VIIRS mensual: tomar la imagen del mes (ya es un composite)
@@ -277,7 +277,7 @@ class VIIRSNASADownloader:
         self.token   = os.getenv("EARTHDATA_TOKEN", "")
         if not self.token:
             logger.warning(
-                "⚠️ EARTHDATA_TOKEN no configurado en .env\n"
+                "EARTHDATA_TOKEN no configurado en .env\n"
                 "   Regístrate en https://urs.earthdata.nasa.gov/ y genera un token Bearer."
             )
         os.makedirs(LOCAL_VIIRS_DIR, exist_ok=True)
@@ -420,12 +420,12 @@ class VIIRSNASADownloader:
             # Buscar URL del HDF5 en LAADS
             url = self._find_hdf5_for_month(year, month)
             if not url:
-                logger.warning(f"    ⚠️ No se encontró HDF5 para {year}/{month:02d} en LAADS.")
+                logger.warning(f"    No se encontró HDF5 para {year}/{month:02d} en LAADS.")
                 continue
 
             # Descargar HDF5
             try:
-                logger.info(f"    📥 Descargando: {url.split('/')[-1]}")
+                logger.info(f"    Descargando: {url.split('/')[-1]}")
                 resp = requests.get(url, headers=self._get_auth_headers(), stream=True, timeout=120)
                 resp.raise_for_status()
                 with open(h5_tmp, "wb") as f:
@@ -467,9 +467,9 @@ class VIIRSAzureUploader:
                 self.blob_client = BlobServiceClient.from_connection_string(conn_str)
                 logger.info("Conectado a Azure Blob Storage.")
             except Exception as exc:
-                logger.warning(f"⚠️ No se pudo conectar a Azure: {exc}")
+                logger.warning(f"No se pudo conectar a Azure: {exc}")
         else:
-            logger.warning("⚠️ AZURE_STORAGE_CONNECTION_STRING no configurada.")
+            logger.warning("AZURE_STORAGE_CONNECTION_STRING no configurada.")
 
     def upload_all(self, local_dir: str = LOCAL_VIIRS_DIR):
         """Sube todos los GeoTIFFs VIIRS a Azure Blob."""
@@ -479,7 +479,7 @@ class VIIRSAzureUploader:
 
         geotiffs = sorted(f for f in os.listdir(local_dir) if f.endswith(".tif"))
         if not geotiffs:
-            logger.warning(f"⚠️ No hay GeoTIFFs en: {local_dir}")
+            logger.warning(f"No hay GeoTIFFs en: {local_dir}")
             return
 
         logger.info(f"\n{'='*55}")
@@ -505,7 +505,7 @@ class VIIRSAzureUploader:
                     blob.upload_blob(f, overwrite=True)
                 size_mb = os.path.getsize(local_path) / 1024 / 1024
                 covid_flag = " [COVID]" if year in {"2020", "2021"} else ""
-                logger.info(f"  ☁️  {blob_name} ({size_mb:.1f} MB){covid_flag}")
+                logger.info(f"    {blob_name} ({size_mb:.1f} MB){covid_flag}")
                 ok_count += 1
             except Exception as exc:
                 logger.error(f"Error subiendo {fname}: {exc}")
@@ -539,11 +539,11 @@ def list_local_viirs(local_dir: str = LOCAL_VIIRS_DIR):
             covid  = " [COVID — excluir modelo]" if year in COVID_YEARS else ""
             logger.info(f"{year}/{month:02d}{covid} — {fname}")
         except (IndexError, ValueError):
-            logger.info(f"  ❓ {fname}")
+            logger.info(f"    ? {fname}")
 
     missing = [(y, m) for y, m in expected if (y, m) not in downloaded]
     if missing:
-        logger.warning(f"\n  ⚠️  Meses faltantes ({len(missing)}):")
+        logger.warning(f"\n  Meses faltantes ({len(missing)}):")
         for y, m in missing:
             covid = " [COVID]" if y in COVID_YEARS else ""
             logger.warning(f"    - {y}/{m:02d}{covid}")

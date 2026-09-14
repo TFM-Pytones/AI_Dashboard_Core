@@ -1,0 +1,44 @@
+version: 2
+
+models:
+  - name: silver_alojamientos_oficiales
+    description: "Censo unificado de la oferta alojativa reglada de Tenerife (hoteles, extrahoteleros y viviendas vacacionales) del Registro General Turístico del Gobierno de Canarias, georreferenciado y enriquecido con lookup espacial."
+    columns:
+      - name: id
+        description: "Identificador del establecimiento en el registro oficial canario. Puede presentar duplicidades si una misma licencia agrupa distintas modalidades o bloques."
+        tests:
+          - not_null
+          - unique:
+              config:
+                severity: warn
+      - name: nombre
+        description: "Nombre comercial del establecimiento alojativo (puede ser nulo en un pequeño porcentaje de licencias VV sin denominación)."
+        tests:
+          - not_null:
+              config:
+                severity: warn
+      - name: tipo_alojamiento
+        description: "Tipología de establecimiento unificada según tipología oficial."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['hotel', 'extrahotelero', 'vivienda_vacacional']
+      - name: municipio
+        description: "Término municipal oficial donde se localiza el alojamiento."
+        tests:
+          - not_null
+      - name: isla
+        description: "Isla de ubicación (filtrado estricto a Tenerife)."
+        tests:
+          - not_null
+      - name: plazas
+        description: "Número total de plazas alojativas autorizadas."
+      - name: unidades_alojativas
+        description: "Número de unidades de explotación autorizadas (habitaciones, apartamentos o villas)."
+      - name: latitud
+        description: "Latitud WGS84 dentro del bounding box insular de Tenerife."
+      - name: longitud
+        description: "Longitud WGS84 dentro del bounding box insular de Tenerife."
+      - name: geometry
+        description: "Geometría de punto PostGIS (SRID 4326) para intersección espacial con la malla H3."
