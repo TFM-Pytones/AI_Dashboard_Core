@@ -2,6 +2,7 @@ import pandas as pd
 
 from app.municipios import (
     empleo_breakdown,
+    evolucion_mensual_series,
     evolucion_series,
     format_yoy_delta,
     get_anual_row,
@@ -79,6 +80,27 @@ def test_evolucion_series_returns_year_ordered_tidy_frame():
     result = evolucion_series(_municipio_anual_df(), "Adeje", "paro_medio")
     assert result["anio"].tolist() == [2024, 2025, 2026]
     assert result["valor"].tolist() == [1996.0, 1925.0, 1902.0]
+
+
+def _municipio_mensual_df():
+    return pd.DataFrame(
+        [
+            {"municipio": "Adeje", "periodo": "2026-01", "paro_registrado": 1876.0, "plazas_vv": 17486.0},
+            {"municipio": "Adeje", "periodo": "2025-12", "paro_registrado": 1900.0, "plazas_vv": 18553.0},
+            {"municipio": "Arona", "periodo": "2026-01", "paro_registrado": 3100.0, "plazas_vv": 9000.0},
+        ]
+    )
+
+
+def test_evolucion_mensual_series_returns_period_ordered_tidy_frame():
+    result = evolucion_mensual_series(_municipio_mensual_df(), "Adeje", "paro_registrado")
+    assert result["periodo"].tolist() == ["2025-12", "2026-01"]
+    assert result["valor"].tolist() == [1900.0, 1876.0]
+
+
+def test_evolucion_mensual_series_scopes_to_municipio():
+    result = evolucion_mensual_series(_municipio_mensual_df(), "Arona", "plazas_vv")
+    assert result["valor"].tolist() == [9000.0]
 
 
 def _municipio_empleo_df():

@@ -17,6 +17,7 @@ from app.data import (
     load_municipio_anual,
     load_municipio_empleo,
     load_municipio_master,
+    load_municipio_mensual,
     load_nlp_chunks,
     load_sentimiento,
     load_topicos_municipio,
@@ -95,6 +96,7 @@ with st.spinner("Cargando datos del dashboard..."):
     municipio_master = load_municipio_master(engine)
     municipio_anual = load_municipio_anual(engine)
     municipio_empleo = load_municipio_empleo(engine)
+    municipio_mensual = load_municipio_mensual(engine)
     topicos_municipio = load_topicos_municipio(engine)
     nlp_chunks = load_nlp_chunks(engine)
     turismo_hotelero_anual = load_turismo_hotelero_anual(engine)
@@ -258,7 +260,7 @@ def page_clima() -> None:
 
 
 def page_municipios() -> None:
-    render_municipios_tab(municipio_master, municipio_anual, municipio_empleo)
+    render_municipios_tab(municipio_master, municipio_anual, municipio_empleo, municipio_mensual)
 
 
 def page_alojamiento() -> None:

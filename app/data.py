@@ -21,6 +21,7 @@ ISOCRONAS_QUERY = "SELECT * FROM gold.gold_isocronas_visuales"
 MUNICIPIO_MASTER_QUERY = "SELECT * FROM gold.gold_municipio_master"
 MUNICIPIO_ANUAL_QUERY = "SELECT * FROM gold.gold_municipio_anual"
 MUNICIPIO_EMPLEO_QUERY = "SELECT * FROM gold.gold_municipio_empleo"
+MUNICIPIO_MENSUAL_QUERY = "SELECT * FROM gold.gold_municipio_mensual"
 TURISMO_HOTELERO_ANUAL_QUERY = "SELECT * FROM gold.gold_turismo_hotelero_anual"
 TURISMO_HOTELERO_MENSUAL_QUERY = "SELECT * FROM gold.gold_turismo_hotelero_mensual"
 AENA_PASAJEROS_QUERY = "SELECT * FROM gold.gold_aena_pasajeros"
@@ -117,6 +118,11 @@ def load_municipio_anual(_engine: Engine) -> pd.DataFrame:
 @st.cache_data
 def load_municipio_empleo(_engine: Engine) -> pd.DataFrame:
     return pd.read_sql(MUNICIPIO_EMPLEO_QUERY, _engine)
+
+
+@st.cache_data
+def load_municipio_mensual(_engine: Engine) -> pd.DataFrame:
+    return pd.read_sql(MUNICIPIO_MENSUAL_QUERY, _engine)
 
 
 @st.cache_data

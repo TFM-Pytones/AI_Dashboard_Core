@@ -95,6 +95,15 @@ EVOLUCION_METRICS = {
     "Ocupación VV media (%)": "tasa_ocupacion_vv_media",
 }
 
+EVOLUCION_MENSUAL_METRICS = {
+    "Paro registrado": "paro_registrado",
+    "Plazas VV": "plazas_vv",
+    "Ocupación VV (%)": "tasa_ocupacion_vv",
+    "Estancia media VV (días)": "estancia_media_vv",
+    "Ingresos VV": "ingresos_vv",
+    "Alojamientos VV abiertos": "alojamientos_abiertos_vv",
+}
+
 EMPLEO_TYPES = [
     ("empleo_asalariados", "Asalariados"),
     ("empleo_autonomos", "Autónomos"),
@@ -130,6 +139,11 @@ def evolucion_series(df: pd.DataFrame, municipio: str, column: str) -> pd.DataFr
     return rows.rename(columns={column: "valor"})
 
 
+def evolucion_mensual_series(df: pd.DataFrame, municipio: str, column: str) -> pd.DataFrame:
+    rows = df.loc[df["municipio"] == municipio, ["periodo", column]].sort_values("periodo")
+    return rows.rename(columns={column: "valor"})
+
+
 def get_latest_empleo_row(df: pd.DataFrame, municipio: str, anio: int) -> pd.Series | None:
     matches = df.loc[(df["municipio"] == municipio) & (df["anio"] == anio)]
     if matches.empty:
@@ -146,6 +160,7 @@ def render_municipios_tab(
     municipio_master_df: pd.DataFrame,
     municipio_anual_df: pd.DataFrame,
     municipio_empleo_df: pd.DataFrame,
+    municipio_mensual_df: pd.DataFrame,
 ) -> None:
     col1, col2 = st.columns([2, 1])
     municipio = col1.selectbox(
@@ -197,23 +212,40 @@ def render_municipios_tab(
     fig.update_traces(line_color="#1e3a8a")
     st.plotly_chart(fig, use_container_width=True)
 
+    st.subheader("Evolución mensual")
+    metrica_mensual_label = st.selectbox(
+        "Métrica mensual", list(EVOLUCION_MENSUAL_METRICS.keys()), key="municipios_evolucion_mensual_metrica"
+    )
+    serie_mensual = evolucion_mensual_series(
+        municipio_mensual_df, municipio, EVOLUCION_MENSUAL_METRICS[metrica_mensual_label]
+    )
+    if serie_mensual.empty:
+        st.info("No hay datos mensuales para este municipio.")
+    else:
+        fig_mensual = px.line(
+            serie_mensual, x="periodo", y="valor", title=f"{metrica_mensual_label} por mes — {municipio}"
+        )
+        fig_mensual.update_traces(line_color="#1e3a8a")
+        st.plotly_chart(fig_mensual, use_container_width=True)
+
     st.subheader("Empleo: asalariados vs. autónomos")
     empleo_row = get_latest_empleo_row(municipio_empleo_df, municipio, anio)
     if empleo_row is None:
         st.info("No hay datos de empleo para este municipio en el año seleccionado.")
-        return
-    st.caption(f"Datos de {empleo_row['periodo_texto']}")
-    breakdown = empleo_breakdown(empleo_row)
-    fig_empleo = px.pie(
-        breakdown,
-        names="tipo",
-        values="cantidad",
-        title="Reparto de empleo",
-        color_discrete_sequence=["#1e3a8a", "#eb6834"],
-    )
-    st.plotly_chart(fig_empleo, use_container_width=True)
+    else:
+        st.caption(f"Datos de {empleo_row['periodo_texto']}")
+        breakdown = empleo_breakdown(empleo_row)
+        fig_empleo = px.pie(
+            breakdown,
+            names="tipo",
+            values="cantidad",
+            title="Reparto de empleo",
+            color_discrete_sequence=["#1e3a8a", "#eb6834"],
+        )
+        st.plotly_chart(fig_empleo, use_container_width=True)
 
     render_footer(
-        "gold.gold_municipio_master, gold.gold_municipio_anual, gold.gold_municipio_empleo",
+        "gold.gold_municipio_master, gold.gold_municipio_anual, gold.gold_municipio_empleo, "
+        "gold.gold_municipio_mensual",
         as_of=latest_value(municipio_anual_df["anio"]),
     )
