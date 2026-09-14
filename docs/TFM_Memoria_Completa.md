@@ -74,9 +74,9 @@ Tenerife receives over 7.2 million international visitors annually under severe 
 
 ## 1.1. El Problema de Negocio: Saturación Costera y Vacío Rural
 
-En 2024 Tenerife superó los 7,2 millones de turistas internacionales (+12 % interanual), aportando más del 35 % del PIB regional (ISTAC, 2025). Sin embargo, la actividad turística presenta una asimetría extrema: la franja sur (Adeje, Arona y Santiago del Teide) concentra más del 80 % de las plazas hoteleras regladas, colapsa diariamente la autopista TF-1 con intensidades superiores a 90.000 vehículos/día, sobrecarga las plantas desaladoras y tensiona el mercado del alquiler residencial a través de más de 27.500 viviendas vacacionales registradas (Turismo de Tenerife, 2025). Esta situación encaja con la definición de *overtourism* de Milano et al. (2019): el volumen turístico degrada inaceptablemente tanto la calidad de vida de los residentes como el valor de la experiencia del visitante.
+En 2024 Tenerife superó los 7,2 millones de turistas internacionales (+12 % interanual), consolidando una actividad que aporta el **35,5 % del PIB regional y el 39,7 % del empleo total de Canarias** (Gobierno de Canarias / IMPACTUR, 2024). Sin embargo, el problema de fondo no radica en el volumen global de visitantes, sino en su extrema asimetría territorial. Nuestros microdatos de afiliación a la Seguridad Social (ISTAC) evidencian una severa polarización laboral: mientras que la hostelería directa representa el 16,6 % del empleo insular (72.088 afiliados), en enclaves costeros como Adeje o Santiago del Teide absorbe el **57,0 % y el 49,2 % de la ocupación municipal total**, generando un monocultivo económico hipervulnerable.
 
-En contraste, los 25 municipios restantes —medianías agrícolas (Arico, Fasnia, Vilaflor, La Guancha, Buenavista del Norte) y la vertiente norte (Garachico, Icod de los Vinos, San Juan de la Rambla)— disponen de condiciones bioclimáticas, paisajísticas y patrimoniales excepcionales, pero sufren despoblación, abandono de tierras y una presencia casi nula en los canales de distribución internacional de TUI.
+Esta hiperconcentración se traslada con idéntica crudeza al mercado residencial a través de las **30.589 viviendas vacacionales registradas en el Registro General Turístico (128.419 plazas)** en la capa Bronze, de las cuales **más del 58 % (17.837 unidades)** se aglutinan en apenas cinco municipios del sur insular (Arona, Adeje, Granadilla de Abona, Santiago del Teide y San Miguel de Abona). Esta presión simultánea sobre el suelo, el agua y las infraestructuras colapsa diariamente las autopistas TF-1 y TF-5 con intensidades superiores a 90.000 vehículos/día, encajando en la definición formal de *overtourism* (Milano et al., 2019). En agudo contraste, los 25 municipios restantes de los 31 que integran la isla —medianías agrícolas y comarcas del norte— captan apenas una fracción residual de las pernoctaciones y del gasto, sufriendo despoblación, abandono agrario y una presencia nula en los canales de TUI.
 
 ## 1.2. Objetivos y Preguntas Estratégicas de TUI Group
 
@@ -92,7 +92,13 @@ El **objetivo general** del proyecto es diseñar, desplegar y validar una plataf
 
 ## 1.3. Propuesta de Valor y Aporte Diferencial
 
-Frente a cuadros de mando estáticos de Business Intelligence, esta plataforma aporta cinco ventajas diferenciales: (1) superación del sesgo MAUP mediante la malla H3; (2) integración multimodal holística de satélite, camas, movilidad, climatología y NLP en una única base de datos espacial; (3) modelado físico topoclimático que reproduce los microclimas reales de Tenerife; (4) Machine Learning con conciencia espacial (HDBSCAN y MGWR); y (5) cierre de la brecha entre el dato y la decisión ejecutiva mediante RAG con Groq API.
+Frente a cuadros de mando estáticos convencionales de *Business Intelligence*, la solución articula una arquitectura *Lakehouse* continua a escala insular y resolución microterritorial, fundamentada en cinco ventajas diferenciales:
+
+1. **Superación del sesgo MAUP (*Modifiable Areal Unit Problem*):** Sustitución de las delimitaciones municipales administrativas por una teselación hexagonal regular (Uber H3, resolución 8, celdas de 0,737 km² y 461 m de apotema), eliminando las distorsiones de escala espacial.
+2. **Integración multimodal holística:** Consolidación en un único modelo espacial de doce fuentes heterogéneas: teledetección (Sentinel-2 y VIIRS), oferta reglada y vacacional geocodificada, red de transporte público (GTFS e isócronas ORS), climatología horaria y minería de texto multilingüe.
+3. **Modelado físico topoclimático de precisión:** Simulación de los microclimas insulares mediante gradientes adiabáticos, inversión térmica del mar de nubes (800–1.500 m) y corrección orográfica Foehn por orientación de laderas (aspect).
+4. **Machine Learning con conciencia espacial (*Spatial ML*):** Detección de patrones mediante agrupamiento por densidad jerárquica con ruido (HDBSCAN) y regresión multiescala ponderada geográficamente (MGWR) con anchos de banda locales por variable.
+5. **Prescripción ejecutiva mediante RAG (*Retrieval-Augmented Generation*):** Interrogación en lenguaje natural sobre las tablas maestras *Gold* mediante inferencia ultrarrápida LPU (Groq y Llama-3), traduciendo el dato multidimensional en recomendaciones estratégicas inmediatas.
 
 ---
 
@@ -102,36 +108,43 @@ Frente a cuadros de mando estáticos de Business Intelligence, esta plataforma a
 
 La infraestructura se desplegó íntegramente en la región europea de Microsoft Azure con tres componentes principales:
 
-* **Azure Blob Storage (Data Lake Gen2):** Repositorio primario de objetos estructurado en contenedores `bronze-raw`, `silver-processed` y `gold-analytics`. Almacena Parquet particionados, GeoTIFF de teledetección y colecciones JSON brutas.
-* **Azure Database for PostgreSQL Flexible Server v16 + PostGIS 3.4:** Motor relacional y geoespacial central (2 vCores, 8 GiB RAM, SSD Premium). Aloja los 48 tablas brutas del esquema `bronze` y los modelos analíticos de `silver` y `gold`. Las tablas de caché de geocodificación (`bronze_registro_geocoding_lookup` y `bronze_booking_geocoding_lookup`) centralizan en la nube todas las coordenadas resueltas, evitando dependencias de archivos locales.
+* **Azure Blob Storage (Data Lake Gen2):** Repositorio primario estructurado en contenedores `bronce-raw`, `silver-processed` y `gold-analytics`. Almacena Parquet particionados, GeoTIFFs de teledetección y colecciones JSON brutas.
+* **Azure Database for PostgreSQL Flexible Server v16 + PostGIS 3.4:** Motor relacional y geoespacial central (2 vCores, 8 GiB RAM, SSD Premium). Aloja las tablas del esquema `bronze` y los modelos analíticos de `silver` y `gold`. Las tablas de caché de geocodificación (`bronze_registro_geocoding_lookup` y `bronze_booking_geocoding_lookup`) centralizan en la nube todas las coordenadas resueltas, eliminando dependencias locales.
 * **VM Azure Linux (Ubuntu 22.04 LTS):** Nodo orquestador de cron jobs, scrapers y ejecuciones de dbt Core 1.8.
 
 El proyecto partió de una instancia Neon.tech para prototipado rápido y migró a Azure al incorporar el backfill histórico de Agrocabildo y los más de dos millones de registros GTFS de TITSA, que superaban las limitaciones de la capa gratuita. La migración se realizó con el protocolo binario `COPY` de PostgreSQL.
 
-## 2.2. Fuentes de Datos Integradas
+## 2.2. Extracción de Microdatos Oficiales Tabulares y Espaciales
 
-El sistema consolida doce fuentes heterogéneas en la capa Bronze:
+La información territorial y socioeconómica de base se adquirió programáticamente a partir de fuentes institucionales abiertas:
+
+* **Instituto Canario de Estadística (ISTAC):** Mediante su API REST (recurso *Municipios en Cifras* C00067A), se ingirieron quince indicadores socioeconómicos para los 31 municipios de Tenerife (códigos INE 38001 a 38052), abarcando pernoctaciones mensuales, plazas ofertadas, ocupación, población turística equivalente, paro registrado y la serie de afiliaciones a la Seguridad Social en ocho sectores.
+* **Cartografía Vectorial Oficial (Cabildo de Tenerife e IDECanarias):** A través de la API CKAN del Portal de Datos Abiertos del Cabildo insular (`datos.tenerife.es`) se descargaron en GeoJSON los límites municipales, los Bienes de Interés Cultural (BIC) y las oficinas de turismo, complementados con las capas de Zonas Turísticas y Espacios Naturales Protegidos (ENP) de GRAFCAN / IDECanarias, consolidándose en Azure Blob como GeoParquet en EPSG:4326.
+* **Modelo Digital del Terreno (MDT25):** Con una resolución de celda de 25 metros, se derivaron matricialmente mediante el operador de gradiente de Horn (1981) la altitud, la pendiente topográfica, la orientación de laderas (aspect) y la radiancia del sombreado (*hillshade* a 315° NW y 45° de elevación solar), agregándose sus estadísticas zonales a la geometría insular.
 
 | Origen | Proveedor | Formato | Volumen / Cobertura |
 | :--- | :--- | :--- | :--- |
-| **AENA** | Ministerio de Transportes | CSV mensual | Pasajeros TFS y TFN, 2019–2026 |
-| **Alojamiento Oficial** | Gobierno de Canarias | Open Data / API | 46.820 unidades alojativas regladas |
+| **AENA** | Ministerio de Transportes | CSV mensual | Pasajeros TFS y TFN, serie 2019–2026 |
+| **Alojamiento Oficial** | Gobierno de Canarias | Open Data / API | 31.314 establecimientos (30.589 VV, 314 hoteles, 411 extrahoteleros; 263.769 plazas) |
 | **Booking.com** | Plataforma comercial | Scraping ético JSON | 38.412 reseñas geolocalizadas |
 | **TripAdvisor** | Plataforma comercial | Scraping ético JSON | 12.840 reseñas de hoteles y actividades |
-| **LosViajeros** | Comunidad de viajeros | HTML / foros | 2.650 mensajes de debate |
+| **LosViajeros** | Comunidad de viajeros | HTML / foros | 2.650 mensajes de debate (248 hilos) |
 | **YouTube** | YouTube Data API v3 | JSON API | 1.890 comentarios de vídeos turísticos |
 | **Agrocabildo** | Cabildo de Tenerife | API REST horaria | 67 estaciones agrometeorológicas insulares |
-| **Copernicus Sentinel-2** | Agencia Espacial Europea | GeoTIFF L2A 10 m | Compuestos trimestrales NDVI / NDBI |
-| **NOAA/NASA VIIRS** | Earth Observation Group | GeoTIFF DNB 500 m | Compuestos mensuales de luz nocturna |
-| **GTFS TITSA / Tranvía** | Cabildo / Open Data | GTFS ZIP | 3.893 paradas, 142 líneas y calendarios |
-| **Cartografía IDECanarias** | GRAFCAN / Gobierno de Canarias | Shapefile / WFS | Límites de 31 municipios, ENP, BIC, MDT05 |
-| **Microdatos ISTAC** | Instituto Canario de Estadística | API REST / SDMX | Series mensuales de empleo, turismo y gasto |
+| **Copernicus Sentinel-2** | Agencia Espacial Europea | GeoTIFF L2A 20 m | Compuestos trimestrales NDVI / NDBI (2019–2026) |
+| **NOAA/NASA VIIRS** | Earth Observation Group | GeoTIFF DNB 500 m | Compuestos mensuales de luz nocturna (2019–2026) |
+| **GTFS TITSA / Tranvía** | Cabildo / Open Data | GTFS ZIP | 3.893 paradas, 142 líneas y 2.082.154 registros de paso |
+| **Cartografía Abierta** | Cabildo / GRAFCAN | GeoJSON / WFS | 31 municipios, ENP, BIC, Oficinas Turismo, MDT25 |
+| **Microdatos ISTAC** | Instituto Canario de Estadística | API REST / SDMX | 15 indicadores socioeconómicos y suite de empleo |
 
-## 2.3. Ética, Licencias y Gobernanza de la Extracción
+## 2.3. Derechos de Uso, Licencias y Marco Ético de los Datos
 
-Las fuentes institucionales (ISTAC, IDECanarias, Agrocabildo) se explotan al amparo de la Directiva 2019/1024 y la Ley 37/2007 de reutilización de información del sector público. Los datos de Copernicus siguen la política de acceso abierto de la ESA; el feed GTFS de TITSA se distribuye como datos abiertos de transporte.
+Todo el proceso de adquisición se rigió por un marco estricto de diligencia debida ética y legal:
 
-Para los datos sociales, los scrapers respetan el fichero `robots.txt`, aplican un throttling probabilístico de 2,5–5,0 segundos por petición e identifican las solicitudes con un User-Agent de afiliación académica UCM. En cumplimiento del RGPD, el pipeline anonimiza de forma irreversible cualquier identificador de usuario, suprimiendo nombres y IPs que no aporten valor estadístico.
+1. **Datos abiertos institucionales y teledetección:** Las fuentes gubernamentales (ISTAC, IDECanarias, Cabildo y Agrocabildo) se explotan al amparo de la Directiva Europea 2019/1024 y la Ley 37/2007 de reutilización de información del sector público. Las imágenes Sentinel-2 se rigen por la política de acceso abierto de la ESA, los datos de radiancia nocturna VIIRS por la política de libre acceso a datos científicos de la NASA/NOAA, y la matriz GTFS de TITSA por la licencia abierta insular de transporte.
+2. **Adquisición en plataformas sociales (Booking.com y TripAdvisor):** Previo al desarrollo de los extractores, se evaluaron los archivos `robots.txt` y los Términos de Servicio (ToS) de ambas plataformas. La sección A14 de los ToS de Booking.com y las cláusulas de TripAdvisor restringen la extracción masiva automatizada con fines comerciales sin autorización previa. Para este TFM, la recolección se circunscribió estrictamente al marco de **investigación académica sin ánimo de lucro** de la Universidad Complutense, implementando un *rate limiting* conservador (retrasos probabilísticos de 2,5–5,0 s por petición) para no sobrecargar los servidores.
+3. **Privacidad y cumplimiento del RGPD:** El pipeline descarta de forma irreversible cualquier dato de carácter personal (nombres de usuario, identificadores de perfil, avatares y direcciones IP). La información extraída se limitó a texto de opinión, puntuación numérica y fecha, agregándose a nivel espacial en celdas H3 sin trazabilidad individual.
+4. **Condición mandatoria para explotación comercial (TUI Group):** La arquitectura del *Lakehouse* está totalmente desacoplada de los mecanismos de ingesta. Para cualquier despliegue operativo o comercial por parte de **TUI Group**, estos extractores experimentales **deben sustituirse necesariamente por las APIs oficiales y contratos de licencia correspondientes**: *Booking Connectivity Partner API*, *TripAdvisor Content API* y *YouTube Data API Enterprise* (Google Cloud Platform).
 
 ---
 
@@ -139,34 +152,44 @@ Para los datos sociales, los scrapers respetan el fichero `robots.txt`, aplican 
 
 ## 3.1. Arquitectura Medallón con dbt Core
 
-El almacén analítico sigue el patrón **Medallion Lakehouse** (Armbrust et al., 2021) implementado con dbt Core 1.8:
+El almacén analítico sigue el patrón **Medallion Lakehouse** (Armbrust et al., 2021) implementado con dbt Core 1.8 sobre Azure PostgreSQL Flexible Server v16 + PostGIS 3.4. La orquestación actual se realiza mediante `cron jobs` en la VM Ubuntu de Azure; la migración a Apache Airflow —para linaje de datos completo, reintentos automáticos y observabilidad de DAGs— está planificada como línea de trabajo futura. Las tres capas del *lakehouse* son:
 
-* **Bronze (Raw):** 48 tablas fuente declaradas en `sources.yml`; preserva el estado original con marca temporal de ingesta.
-* **Silver (Limpieza y Conformance):** Modelos SQL que limpian nulos, deduплican registros mediante `ROW_NUMBER() OVER (PARTITION BY id ORDER BY fecha DESC)`, tipifican columnas y proyectan geometrías a EPSG:4326 y EPSG:32628.
-* **Gold (Analítica Multidimensional):** Tablas maestras desnormalizadas listas para ML, visualización y RAG:
-  * `gold_h3_master` (394 líneas SQL): más de 60 variables biofísicas, topoclimáticas, de accesibilidad y de oferta por celda hexagonal.
-  * `gold_sentimiento_h3`: polaridad media y queja modal por celda.
-  * `gold_municipio_master` + familia de modelos municipales: datos ISTAC y AENA para los 31 municipios.
+* **Bronze (Raw):** **48 tablas fuente** declaradas en `sources.yml`, organizadas en doce áreas temáticas (alojamiento, Booking, clima, espacial, ISTAC, LosViajeros, movilidad, TripAdvisor y YouTube entre otras). Preserva el estado original con marca temporal de ingesta; ningún dato se modifica ni elimina en esta capa.
+* **Silver (Limpieza y Conformance):** **9 grupos de modelos** SQL —`alojamiento`, `booking`, `clima`, `espacial`, `istac`, `losviajeros`, `movilidad`, `tripadvisor` y `youtube`— que limpian nulos, deduплican registros mediante `ROW_NUMBER() OVER (PARTITION BY id ORDER BY fecha DESC)`, tipifican columnas y proyectan geometrías a EPSG:4326 y EPSG:32628.
+* **Gold (Analítica Multidimensional):** **11 modelos materializados** listos para ML, visualización y RAG *(catálogo detallado en la sección 4.4)*:
 
-dbt gestiona las dependencias entre modelos, los materializa como tablas físicas y aplica tests automáticos de integridad (claves únicas, rangos válidos, no nulos).
+| Modelo Gold | Granularidad | Contenido principal |
+| :--- | :---: | :--- |
+| `gold_h3_master` | H3 (2.579 celdas) | >60 variables biofísicas, topoclimáticas, alojativas y NLP |
+| `gold_sentimiento_h3` | H3 | Polaridad media y queja modal por fuente |
+| `gold_municipio_master` | Municipal (31) | KPIs ISTAC, AENA, empleo y alojamiento integrados |
+| `gold_municipio_anual / mensual` | Municipal | Series temporales de pernoctaciones y ocupación |
+| `gold_municipio_empleo` | Municipal | Afiliaciones SS por sector y ratio de monocultivo |
+| `gold_turismo_hotelero_anual / mensual` | Municipal | RevPAR, ADR y GOP hoteleros con referencia ARIMA |
+| `gold_aena_pasajeros` | Aeropuerto | Pasajeros TFS/TFN (2019–2026) |
+| `gold_h3_ptna` | H3 | Índice PTNA, coeficientes MGWR locales y score ESG *(pendiente)* |
+| `gold_h3_clusters` | H3 | Arquetipos HDBSCAN y probabilidad de pertenencia |
+
+dbt gestiona automáticamente el grafo de dependencias entre modelos (`ref()`, `source()`), los materializa como tablas físicas con índices GiST/BRIN, y aplica **tests de integridad** declarativos: unicidad de `h3_index`, rangos válidos de NDVI/NDBI, ausencia de nulos en geometría y referencial entre Silver y Gold.
 
 ## 3.2. La Malla Hexagonal Uber H3 (Resolución 8) y Resolución del MAUP
 
 En Tenerife, municipios como La Orotava abarcan desde la costa (0 m) hasta la cima del Teide (3.715 m), por lo que un promedio municipal mezcla realidades climáticas y económicas radicalmente opuestas. Para resolver el **Problema de la Unidad de Área Modificable (MAUP)** (Openshaw, 1984), el proyecto adopta como teselación primaria la **Malla Hexagonal Uber H3 en Resolución 8**:
 
-* Hexágonos isotrópicos de **~0,85 km²** con distancia uniforme entre centroides vecinos de 990 m.
-* El rasterizado bruto de la costa generó 2.746 celdas Bronze; tras el filtrado geoespacial estricto en `silver_h3_grid`, se depuraron **2.579 celdas terrestres limpias** sin valores nulos en topografía ni teledetección.
-* Cada celda se indexa por su identificador hexadecimal H3 de 64 bits y su centroide geométrico puro (`ST_Centroid(geometry)`).
-* Todas las geometrías se almacenan en **EPSG:4326** (WGS84) para indexación H3 y renderizado web, y se proyectan en tiempo de consulta a **EPSG:32628** (REGCAN95 / UTM Zona 28N) para cálculos métricos reales.
-* Los índices GiST en `gold_h3_master` permiten resolver cruces espaciales complejos en 15–45 milisegundos.
+* Hexágonos isotrópicos de **~0,85 km²** con distancia uniforme entre centroides vecinos de 990 m; la isotropía garantiza que ninguna dirección de análisis espacial recibe un sesgo sistemático de muestreo.
+* El rasterizado bruto de la costa generó 2.746 celdas Bronze; tras el filtrado geoespacial estricto en `silver_h3_grid` —que descarta celdas sin datos topográficos ni satelitales— se depuraron **2.579 celdas terrestres limpias**.
+* `silver_h3_grid` actúa como **tabla pivote maestra** del sistema: todos los modelos Gold se unen a ella mediante `ST_Contains(h.geometry, p.geometry)` o `ST_Intersects()`, garantizando que cualquier dato puntual o poligonal quede referenciado al mismo conjunto canónico de hexágonos.
+* Las geometrías se almacenan en **EPSG:4326** (WGS84) para indexación H3 y renderizado web, y se proyectan en tiempo de consulta a **EPSG:32628** (REGCAN95 / UTM Zona 28N) para cálculos métricos reales (áreas, distancias, buffers).
+* Los índices GiST sobre `geometry` y el índice único sobre `h3_index` en `gold_h3_master` permiten resolver cruces espaciales complejos en 15–45 milisegundos.
 
-## 3.3. Geocodificación Centralizada en Azure PostgreSQL
+## 3.3. Geocodificación Centralizada y Control de Calidad del Dato
 
-Para normalizar las direcciones del registro oficial sin coordenadas, se implementó un flujo centralizado de geocodificación:
+El Registro General Turístico de Canarias incluye numerosas entradas sin coordenadas geográficas o con topónimos en formatos no canónicos. Para normalizar estas direcciones sin coordenadas se implementó un flujo centralizado de geocodificación que opera íntegramente en la nube:
 
-1. **Normalización Toponímica Canaria:** Corrección de artículos pospuestos (`"Orotava (La)"` → `"La Orotava"`), expansión de abreviaturas y desambiguación insular obligatoria.
-2. **Caché en Base de Datos Cloud:** Consulta prioritaria a las tablas de lookup en Azure PostgreSQL. Solo las direcciones inéditas consumen cuota de API y se insertan de forma inmediata en la nube.
-3. **Cruce Espacial en dbt:** `silver_alojamientos_oficiales.sql` genera la geometría canónica con `ST_SetSRID(ST_MakePoint(longitud, latitud), 4326)` *(véase Anexo C.1 para el SQL completo)*.
+1. **Normalización Toponímica Canaria:** Corrección automática de artículos pospuestos (`"Orotava (La)"` → `"La Orotava"`), expansión de abreviaturas viales y desambiguación insular obligatoria (sufijo `, Tenerife, España` a toda solicitud de geocodificación).
+2. **Caché en Base de Datos Cloud (Azure PostgreSQL):** Antes de consumir cuota de API, el pipeline consulta las tablas de lookup `bronze_registro_geocoding_lookup` y `bronze_booking_geocoding_lookup`. Solo las direcciones inéditas generan una llamada externa, y su resultado se inserta de forma inmediata en la nube para reutilización futura de cualquier miembro del equipo.
+3. **Cruce Espacial en dbt:** El modelo `silver_alojamientos_oficiales.sql` genera la geometría canónica con `ST_SetSRID(ST_MakePoint(longitud, latitud), 4326)` mediante un `COALESCE` que prioriza coordenadas explícitas del registro sobre las geocodificadas *(SQL completo en Anexo C.1)*.
+4. **Deduplicación y Tests de Calidad:** `ROW_NUMBER() OVER (PARTITION BY registro_id ORDER BY fecha_actualizacion DESC)` elimina versiones duplicadas; los tests dbt comprueban unicidad de `registro_id`, rango de latitud/longitud dentro del bounding box de Tenerife y ausencia de nulos en geometría.
 
 ---
 
@@ -176,11 +199,16 @@ Para normalizar las direcciones del registro oficial sin coordenadas, se impleme
 
 La capacidad de carga de cada celda hexagonal se caracteriza mediante tres conjuntos de variables biofísicas:
 
-**A. Variables Morfométricas (MDT05 del IGN, 5 m de resolución):** Elevación media (0 m en costa – 3.715 m en el Teide), pendiente media (1,2°–48,5°), orientación o aspecto (discrimina barlovento/sotavento) y sombreado del relieve (hillshade). El operador diferencial de Horn (1981) sobre ventanas 3×3 píxeles calcula la pendiente *(detalle matemático en Anexo C.2)*.
+**A. Variables Morfométricas (MDT25 del GRAFCAN, 25 m de resolución):** Elevación media (0 m en costa – 3.715 m en el Teide), pendiente media (1,2°–48,5°), orientación topográfica (*aspect*, discrimina barlovento/sotavento) y sombreado del relieve (*hillshade*). El operador diferencial de Horn (1981) sobre ventanas 3×3 píxeles calcula la pendiente *(SQL en Anexo C.2)*.
 
-**B. Teledetección Biofísica — Copernicus Sentinel-2 (10 m, L2A):** Mosaicos estacionales filtrados a menos del 20 % de nubosidad con máscara SCL. El **NDVI** mide el vigor fotosintético: oscila de <0,15 en los malpaíses áridos del sur hasta >0,75 en la laurisilva de Anaga; el **NDBI** cartografía el suelo sellado y el asfalto como indicador de huella construida *(fórmulas en Anexo C.2)*.
+**B. Teledetección Biofísica — Copernicus Sentinel-2 (20 m, L2A):** Tenerife impide el enfoque estándar de una escena por mes: la *"panza de burro"* —banco de estratocúmulos que bloquea la vertiente norte entre 600 y 1.500 m durante 6–8 meses al año— dejaría el norte sin datos con un filtro simple de nubosidad <20 %. Adicionalmente, la calima sahariana no es detectada por el algoritmo SCL de Sentinel-2 y sesga el NDVI a la baja. La solución adoptada es el **composite de mediana trimestral** procesado en Google Earth Engine sobre la colección `COPERNICUS/S2_SR_HARMONIZED`, con un triple filtro de calidad en cascada a nivel de píxel: (1) máscara SCL que excluye nubes, cirrus y sombras (clases 1, 3, 8, 9 y 10); (2) umbral AOT < 0,3 DN para descartar aerosol sahariano; y (3) banda azul B02 < 0,18 como refuerzo anti-calima. El resultado son **30 composites trimestrales** (2019 Q1 – 2026 Q2) particionados en Azure Blob Storage con cobertura completa de los 2.579 hexágonos. Las variables derivadas calculadas directamente en GEE antes de la exportación son:
 
-**C. Radianza Nocturna NOAA/NASA VIIRS (500 m, DNB):** Compuestos mensuales calibrados en nW/(cm²·sr). Los polos turísticos del sur (Adeje, Arona) superan los 65 nW/(cm²·sr), mientras que las celdas de medianías caen por debajo de 4 nW/(cm²·sr) y la cumbre del Teide registra valores cercanos a cero, protegida por la Ley del Cielo (Ley 31/1988).
+- **NDVI** (vigor fotosintético): de <0,15 en malpaíses áridos hasta >0,75 en la laurisilva de Anaga.
+- **NDBI** (huella construida): de −0,45 en masa forestal densa hasta +0,38 en trama urbana compacta.
+
+En `gold_h3_master` se consolidan los estadísticos anuales (2022–2026) y trimestrales (Q1–Q4) de NDVI, NDBI y el cambio porcentual de luz nocturna VIIRS respecto a 2022.
+
+**C. Radianza Nocturna NOAA/NASA VIIRS (500 m, DNB):** Composites mensuales calibrados en nW/(cm²·sr) procedentes de GEE (`NOAA/VIIRS/DNB/MONTHLY_V1/VCMSLCFG`). Los polos turísticos del sur (Adeje, Arona) superan los 65 nW/(cm²·sr); las celdas de medianías caen por debajo de 4 nW/(cm²·sr). La serie Bronze cubre 90 meses (2019–2026); la capa Silver filtra desde 2022 para trabajar en la ventana post-pandemia homogénea.
 
 | Variable | Rango Empírico en Tenerife |
 | :--- | :--- |
@@ -192,21 +220,19 @@ La capacidad de carga de cada celda hexagonal se caracteriza mediante tres conju
 
 ## 4.2. Modelo Topoclimático Microinsular
 
-El clima de Tenerife responde a cuatro forzadores atmosféricos simultáneos:
+El clima de Tenerife responde a cuatro forzadores atmosféricos simultáneos: los **vientos Alisios del Noreste** (masas de aire fresco y húmedo); la **inversión térmica de subsidencia** (800–1.500 m) que genera el Mar de Nubes; el **efecto Föhn en sotavento** (aire descendente que se calienta adiabáticamente, generando el clima árido del sur); y la **calima y advección sahariana** (invasiones de polvo que elevan la temperatura por encima de 32 °C y reducen la humedad por debajo del 25 %).
 
-1. **Vientos Alisios del Noreste:** Masas de aire fresco y húmedo del anticiclón de las Azores que inciden de forma permanente sobre la vertiente norte.
-2. **Inversión Térmica de Subsidencia (800–1.500 m):** Capa de aire cálido que actúa como tapadera impidiendo el ascenso convectivo y favoreciendo la formación del Mar de Nubes.
-3. **Efecto Föhn en Sotavento:** El aire que rebasa la cumbre desciende por la vertiente sur calentándose adiabáticamente, generando un clima árido y despejado en Adeje y Arona.
-4. **Calima y Advección Sahariana:** Invasiones de polvo que provocan aumentos térmicos repentinos (>32 °C) y caídas de humedad (<25 %).
+El modelo topoclimático, implementado en `gold_h3_master.sql` como una cadena de CTEs (`clima_diario`, `estaciones_clima`, `estaciones_con_topografia`, `h3_vecinos_clima`, `h3_vecinos_clima_factores`, `h3_clima`), combina **interpolación IDW con k=3 estaciones** de la red de Agrocabildo (67 estaciones activas) ponderadas por distancia euclídea inversa cuadrática (`peso = 1 / d²`) y cuatro sistemas de corrección físicos aplicados simultáneamente al H3 de destino y a la estación de origen:
 
-La implementación en dbt Core combina **interpolación IDW con k=3 estaciones** de la red de Agrocabildo (67 estaciones activas) y cuatro factores correctores físicos:
+1. **Gradiente adiabático de temperatura:** La temperatura ajustada se calcula como `T_ajust = T_IDW + (elevación_estación − elevación_H3) × 0,0065 °C/m`. Las variaciones estacionales incorporan además un delta por diferencia de distancia a la costa (±0,05 a ±0,15 °C/km según trimestre).
 
-* **Gradiente adiabático de temperatura:** -0,0065 °C por metro de desnivel respecto a la estación de referencia.
-* **Mar de Nubes (800–1.500 m, barlovento):** Factor +25 % de humedad relativa por condensación persistente de los Alisios.
-* **Pisos de cumbre (>1.500 m):** Factor -30 % de humedad por la atmósfera cristalina y seca de alta montaña.
-* **Efecto Föhn (sotavento, orientación 90°–300°):** Factor -15 % de humedad; reducción del 60 % de precipitación.
-* **Influencia marítima costera (<1,5 km):** Bonificación de +15 % de humedad en toda la franja litoral.
-* **Medianías bajas (<800 m, barlovento):** Factor de +5 % de humedad.
+2. **Factor de humedad por orientación de ladera y altitud:** El factor multiplicativo se construye distinguiendo barlovento (aspect 300°–90°, factor +1,05 a +1,25 según altitud), sotavento (aspect 90°–300°, factor 0,85) y cumbre seca (>1.500 m, factor 0,70). La franja costera (<1,5 km) añade +0,15 puntos de factor en cualquier orientación.
+
+3. **Factor de precipitación por sombra de lluvia:** En barlovento <1.500 m el factor es 1,30 (orografía favorece la convección); en sotavento es 0,40 (efecto paraguas orográfico).
+
+4. **Factor de viento por exposición:** La cara norte-noreste (aspect 0°–90°) recibe un multiplicador 1,20; el sotavento (180°–270°), 0,60; las cumbres (>2.000 m), 1,40.
+
+5. **Indicadores ESG de extremos climáticos:** La capa `estaciones_clima` computa, por estación, los **días de ola de calor** (`temp_max ≥ 35 °C` + `humedad_min ≤ 30 %` + `dirección del viento 60°–200°` simultáneos), la **amplitud térmica media diaria** y las **horas de sol reales** según el estándar OMM (radiación medida ≥ 120 W/m²), desagregadas por trimestre. Estas variables se interpolan IDW al hexágono y alimentarán el **Índice ESG Territorial** *(pendiente de implementación, definición completa en el plan del proyecto, sección 5.3)*.
 
 La validación frente a 12 estaciones AEMET independientes redujo el RMSE de temperatura de 2,84 °C (IDW estándar) a **0,91 °C**, y el de humedad relativa de 18,6 % a **6,2 %**, confirmando la precisión del modelo físico *(SQL completo en Anexo C.2)*.
 
@@ -214,10 +240,31 @@ La validación frente a 12 estaciones AEMET independientes redujo el RMSE de tem
 
 La redistribución de flujos turísticos requiere conocer la accesibilidad real de cada celda hexagonal:
 
-* **Matriz de Conducción Vial (OpenRouteService):** Tiempos de viaje en vehículo privado desde cada uno de los 2.579 hexágonos hacia **18 destinos estratégicos insulares**: aeropuertos TFS y TFN, Santa Cruz, Costa Adeje, Puerto de la Cruz, Teleférico del Teide, La Laguna, Candelaria, Los Gigantes, El Médano, Garachico, Anaga, Masca, Vilaflor, La Orotava, Güímar, Buenavista del Norte y Arico. Adicionalmente se generaron isócronas a 15, 30, 45 y 60 minutos desde ambos aeropuertos.
-* **Cobertura en Transporte Público Regular (GTFS TITSA/Tranvía):** Recuento de paradas activas en tres umbrales escalonados: 200 m (proximidad estricta), 500 m (estándar cómodo) y 1.000 m (acceso amplio). Se complementa con la distancia continua a la marquesina más cercana y la distancia al hospital comarcal más próximo.
+* **Matriz de Conducción Vial (OpenRouteService):** Tiempos de viaje en vehículo privado desde cada uno de los 2.579 hexágonos hacia **18 destinos estratégicos insulares**: aeropuertos TFS y TFN, Santa Cruz, Costa Adeje, Puerto de la Cruz, Teleférico del Teide, La Laguna, Candelaria, Los Gigantes, El Médano, Garachico, Anaga, Masca, Vilaflor, La Orotava, Güímar, Buenavista del Norte y Arico. Adicionalmente se generaron **isócronas de conducción** a 15, 30, 45 y 60 minutos desde ambos aeropuertos (`gold_isocronas_visuales.py`), materializadas en `gold.gold_h3_accesibilidad` y listas para visualización directa en el dashboard.
 
-## 4.4. Segmentación Espacial No Supervisada: HDBSCAN
+* **Cobertura en Transporte Público Regular (GTFS TITSA/Tranvía):** Recuento de paradas activas en tres umbrales escalonados: 200 m (proximidad estricta), 500 m (estándar cómodo) y 1.000 m (acceso amplio), más la distancia continua a la marquesina más cercana. La distancia al hospital comarcal más próximo actúa como indicador de acceso a servicios esenciales y alimenta la dimensión Social del Índice ESG.
+
+## 4.4. Tablas Gold: Catálogo y Estructura
+
+El conjunto de modelos Gold materializa en PostgreSQL el resultado de toda la cadena de transformaciones. Los **11 modelos Gold** del proyecto son:
+
+| Modelo Gold | Contenido | Escala |
+| :--- | :--- | :---: |
+| `gold_h3_master` | >60 variables biofísicas, topoclimáticas, alojativas, NLP y de accesibilidad | H3 (2.579 celdas) |
+| `gold_sentimiento_h3` | Sentimiento medio, volumen por fuente, queja modal | H3 |
+| `gold_municipio_master` | Indicadores ISTAC, AENA, empleo y alojamiento | Municipal (31) |
+| `gold_municipio_anual` | Series anuales de pernoctaciones, plazas y ocupación | Municipal |
+| `gold_municipio_mensual` | Desestacionalización y estacionalidad mensual | Municipal |
+| `gold_municipio_empleo` | Afiliaciones SS por sector (hostelería, autónomos, monocultivo) | Municipal |
+| `gold_turismo_hotelero_anual` | KPIs hoteleros anuales (RevPAR, ADR, GOP) | Municipal |
+| `gold_turismo_hotelero_mensual` | KPIs hoteleros mensuales con ARIMA de referencia | Municipal |
+| `gold_aena_pasajeros` | Serie de pasajeros TFS/TFN (2019–2026) | Aeropuerto |
+| `gold_h3_ptna` | Índice PTNA, coeficientes MGWR locales, `esg_territorial_score` *(pendiente)* | H3 |
+| `gold_h3_clusters` | Arquetipos HDBSCAN, probabilidad de pertenencia, etiqueta de negocio | H3 |
+
+`gold_h3_master` actúa como **tabla maestra** de la que derivan el simulador gravitatorio, el asistente RAG y todos los módulos del dashboard. Sus índices GiST en la geometría y su índice único en `h3_index` permiten resolver cruces espaciales complejos en 15–45 milisegundos.
+
+## 4.5. Segmentación Espacial No Supervisada: HDBSCAN
 
 ### Motivación y elección del algoritmo
 
@@ -229,7 +276,7 @@ Los métodos de clustering convencionales presentan limitaciones críticas cuand
 
 ### Implementación y variables de entrada
 
-A partir de las características normalizadas con `RobustScaler` (escalado robusto ante valores extremos) en [`build_features.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/analytics/clustering/build_features.py), se construyó la matriz de entrada con diez variables por celda:
+A partir de las características normalizadas con `RobustScaler` en [`build_features.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/analytics/clustering/build_features.py), se construyó la matriz de entrada con diez variables por celda:
 
 | Variable | Descripción funcional |
 | :--- | :--- |
@@ -263,7 +310,7 @@ La evaluación comparativa de algoritmos ratifica la elección:
 | DBSCAN Clásico | 0,465 | Sí (parcial) | Deficiente: falla con densidades marcadamente heterogéneas. |
 | **HDBSCAN** | **0,582** | **Sí (robusto al ruido)** | **Seleccionado:** jerarquía multiescala adaptada al relieve insular. |
 
-## 4.5. Regresión Geográfica Ponderada (MGWR) e Índice de Potencial de Nicho (PTNA)
+## 4.6. Regresión Geográfica Ponderada (MGWR) e Índice de Potencial de Nicho (PTNA)
 
 ### Limitaciones del modelo OLS y justificación de MGWR
 
@@ -303,7 +350,7 @@ El salto de R² de 0,418 (OLS) a 0,782 (MGWR) y la reducción del AICc en más d
 
 ### El Índice de Potencial Turístico No Aprovechado (PTNA)
 
-A partir de los coeficientes locales de MGWR, se construyó el **Índice PTNA** (*Potential Tourism Niche Attraction*), una puntuación continua en escala [0, 100] que combina cinco dimensiones ponderadas por los pesos empíricos del modelo:
+A partir de los coeficientes locales de MGWR, se construyó el **Índice PTNA** (*Potential Tourism Niche Attraction*), una puntuación continua en escala [0, 100] que combina cinco dimensiones ponderadas por los pesos empíricos del modelo. El valor `ptna_score` se calcula como la diferencia entre la densidad de plazas esperada por el modelo y la observada: `ptna_score > 0` indica un hexágono con condiciones objetivamente superiores a su ocupación turística actual (oportunidad de inversión); `ptna_score < 0` señala zonas sobre-explotadas respecto a su vocación territorial (riesgo de overtourism).
 
 1. **Atractivo Ambiental (35 %):** NDVI elevado (>0,55), horas de sol favorables (según OMM) y ausencia de contaminación lumínica nocturna (VIIRS <10 nW).
 2. **Confort Climático (20 %):** Temperatura media anual entre 16 y 24 °C y humedad relativa modelada entre 50 % y 80 %, excluyendo las oscilaciones extremas de calima y sotavento.
@@ -312,6 +359,10 @@ A partir de los coeficientes locales de MGWR, se construyó el **Índice PTNA** 
 5. **Accesibilidad Razonable (10 %):** Tiempo de conducción inferior a 45 minutos hasta al menos uno de los dos aeropuertos y presencia de al menos una parada GTFS en radio de 1.000 m.
 
 Las celdas con PTNA superior a 70 sobre 100 representan los **microdestinos prioritarios para TUI**: zonas con condiciones objetivamente favorables para el ecoturismo, el turismo rural de calidad y el senderismo, pero con una cuota de mercado actual casi nula. Geográficamente, se concentran en las medianías agrícolas de la vertiente norte (Garachico, Icod de los Vinos, La Guancha, Buenavista del Norte) y en los valles del sureste (Arico, Fasnia), coincidiendo con el Cluster 2 de HDBSCAN y validando la coherencia interna entre los dos enfoques analíticos.
+
+### Línea de trabajo futura: Marco ESG Territorial
+
+Como extensión directa del Índice PTNA, el proyecto tiene planificada la implementación del **Marco Multidimensional ESG Territorial** (`gold_h3_ptna.esg_territorial_score`, campo definido en esquema pero pendiente de materialización): una puntuación compuesta [0, 100] que evalúa cada hexágono en tres dimensiones —Medioambiental [E] (40 %): evolución temporal del NDVI, polución VIIRS, sellado NDBI y `dias_ola_calor_anual`; Social [S] (40 %): densidad alojativa, cobertura GTFS, distancia a hospital y quejas NLP de masificación; y Gobernanza [G] (20 %): ratio hotel/VV y presencia de BICs—. Esta métrica permitirá filtrar las oportunidades de inversión de TUI al cruce de alto PTNA y alto ESG, garantizando un retorno financiero compatible con la sostenibilidad ecológica y social de la isla.
 
 ---
 
@@ -340,7 +391,7 @@ Contrastado frente a 1.000 opiniones anotadas manualmente, el modelo alcanzó un
 
 Antes de clasificar el sentimiento, un filtro **zero-shot** basado en `mDeBERTa-v3-base-mnli-xnli` descarta los textos no relacionados con turismo o el impacto del turismo en Canarias (umbral de confianza > 0,25), reduciendo el ruido del corpus.
 
-## 5.3. Modelado de Tópicos No Supervisado (BERTopic y pyabsa)
+## 5.3. Modelado de Tópicos No Supervisado (BERTopic) y Minería de Aspectos (PyABSA)
 
 Para descubrir los temas latentes sin categorías preconcebidas, se articuló un pipeline con **BERTopic** (Grootendorst, 2022): embeddings semánticos de 768 dimensiones con `paraphrase-multilingual-mpnet-base-v2`, reducción UMAP a 5 dimensiones y clustering HDBSCAN con representación c-TF-IDF. Se implementaron dos modelos especializados:
 

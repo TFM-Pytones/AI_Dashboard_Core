@@ -74,11 +74,9 @@ TENERIFE_BBOX = [-16.95, 27.97, -16.09, 28.59]
 # GEE: colección Sentinel-2 Surface Reflectance (armonizada entre procesadores)
 GEE_COLLECTION = "COPERNICUS/S2_SR_HARMONIZED"
 
-# Periodo de inicio (Sentinel-2 disponible desde jun 2015; 2019 = línea base TFM)
+# Periodo de inicio (Sentinel-2 disponible desde jun 2015; 2019 = línea base TFM en Bronze)
 START_YEAR = 2019
 
-# Años con disrupción COVID (se etiquetan pero se descargan)
-COVID_YEARS = {2020, 2021}
 
 # Directorio local de destino para los GeoTIFFs descargados de Google Drive
 LOCAL_SENTINEL_DIR = os.path.join(root_dir, "data", "bronce", "spatial", "satelite", "sentinel2")
@@ -242,7 +240,6 @@ def get_quarterly_composite(year: int, quarter: int, aoi):
             "date_start":         date_start,
             "date_end":           date_end,
             "n_source_images":    n_images,
-            "periodo_covid":      1 if year in COVID_YEARS else 0,
             "aot_threshold":      AOT_THRESHOLD_DN / 1000,
             "b02_threshold":      B02_THRESHOLD_DN / 10000,
             "cloud_prefilter_pct": CLOUD_PREFILTER_PCT,
@@ -355,9 +352,8 @@ class Sentinel2GEEPipeline:
         for year, q in combos:
             date_start, date_end = quarter_dates(year, q)
             desc = f"tenerife_ndvi_ndbi_{year}_Q{q}"
-            covid_flag = " [COVID]" if year in COVID_YEARS else ""
 
-            logger.info(f"\n  → {year} Q{q} ({date_start} … {date_end}){covid_flag}")
+            logger.info(f"\n  → {year} Q{q} ({date_start} … {date_end})")
 
             if self.dry_run:
                 logger.info(f"    [DRY RUN] Se omitiría el export de: {desc}")
@@ -524,8 +520,7 @@ class Sentinel2GEEPipeline:
                 year  = int(parts[-2])
                 qnum  = int(parts[-1].replace("Q", ""))
                 downloaded.add((year, qnum))
-                covid = " [COVID]" if year in COVID_YEARS else ""
-                logger.info(f"{year} Q{qnum}{covid} — {fname}")
+                logger.info(f"{year} Q{qnum} — {fname}")
             except (IndexError, ValueError):
                 logger.info(f"  ? {fname} (nombre inesperado)")
 
@@ -533,8 +528,7 @@ class Sentinel2GEEPipeline:
         if missing:
             logger.warning(f"\n  Composites faltantes ({len(missing)}):")
             for y, q in missing:
-                covid = " [COVID]" if y in COVID_YEARS else ""
-                logger.warning(f"    - {y} Q{q}{covid}")
+                logger.warning(f"    - {y} Q{q}")
         else:
             logger.info("\n  Todos los composites esperados están disponibles localmente.")
 

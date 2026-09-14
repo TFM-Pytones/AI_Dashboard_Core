@@ -17,11 +17,6 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 VIIRS_CONTAINER_NAME = "bronce-raw"
 VIIRS_BLOB_PREFIX = "satelite/viirs"
 
-# Issue #24: 2020-2021 muestran una caida artificial de radianza (~60-70%) por
-# el COVID (cierre de hoteles, toque de queda). Se etiquetan pero se excluyen
-# del modelo de regresion MGWR (#31) para no sesgar el VIIRS como indicador
-# negativo de turismo.
-VIIRS_ANOS_EXCLUIR_MODELO = {2020, 2021}
 
 def get_pg_engine():
     load_dotenv()
@@ -227,8 +222,8 @@ def process_and_ingest_viirs():
                         "radianza_media": [s["mean"] for s in viirs_stats],
                     }
                 )
-                # Issue #24: excluir 2020-2021 del modelo de regresion (caida COVID)
-                df["incluir_en_modelo"] = ~df["anio"].isin(VIIRS_ANOS_EXCLUIR_MODELO)
+                # Los modelos de Machine Learning espacial se entrenan con datos >= 2022
+                df["incluir_en_modelo"] = df["anio"] >= 2022
 
                 mode = "replace" if first_file else "append"
                 logging.info(f"  Subiendo a PostgreSQL {schema}.{table_name} ({mode})...")
