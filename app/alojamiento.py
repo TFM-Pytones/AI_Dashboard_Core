@@ -2,7 +2,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from app.ui_helpers import render_footer
+from app.ui_helpers import format_metric, render_footer
 
 ACCOMMODATION_TYPES = [
     ("n_hoteles", "Hoteles"),
@@ -30,11 +30,23 @@ def render_alojamiento_tab(gdf: pd.DataFrame) -> None:
 
     col1, col2, col3 = st.columns(3)
     with col1.container(border=True):
-        st.metric("⭐ Rating medio Booking", summary["rating_booking_medio"])
+        st.metric(
+            "⭐ Rating medio Booking",
+            format_metric(summary["rating_booking_medio"], "decimal"),
+            help="Valoración media en Booking, escala 0-10.",
+        )
     with col2.container(border=True):
-        st.metric("⭐ Rating medio TripAdvisor", summary["rating_tripadvisor_medio"])
+        st.metric(
+            "⭐ Rating medio TripAdvisor",
+            format_metric(summary["rating_tripadvisor_medio"], "decimal"),
+            help="Valoración media en TripAdvisor, escala 0-5.",
+        )
     with col3.container(border=True):
-        st.metric("📝 Reseñas Booking totales", summary["total_reviews_booking"])
+        st.metric(
+            "📝 Reseñas Booking totales",
+            format_metric(summary["total_reviews_booking"], "entero"),
+            help="Número total de reseñas recibidas en Booking.",
+        )
 
     fig = px.pie(
         breakdown,

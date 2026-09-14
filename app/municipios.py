@@ -4,31 +4,88 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from app.detail_panel import format_kpi_value
-from app.ui_helpers import latest_value, render_footer
+from app.ui_helpers import format_metric, latest_value, render_footer
 
+# (column, label, kind, help) -- kind drives number formatting (see format_metric).
 HEX_KPI_COLUMNS = [
-    ("n_hexagonos", "🔷 Hexágonos analizados"),
-    ("n_establecimientos_registro", "🏨 Alojamientos registrados"),
-    ("n_plazas_registro", "🛏️ Plazas registradas"),
-    ("rating_booking_medio", "⭐ Rating Booking"),
-    ("rating_tripadvisor_medio", "⭐ Rating TripAdvisor"),
-    ("ndvi_medio", "🌿 NDVI medio"),
+    ("n_hexagonos", "🔷 Hexágonos analizados", "entero", "Hexágonos H3 analizados en este municipio."),
+    (
+        "n_establecimientos_registro",
+        "🏨 Alojamientos registrados",
+        "entero",
+        "Alojamientos turísticos con registro oficial.",
+    ),
+    (
+        "n_plazas_registro",
+        "🛏️ Plazas registradas",
+        "entero",
+        "Plazas turísticas registradas (capacidad total).",
+    ),
+    ("rating_booking_medio", "⭐ Rating Booking", "decimal", "Valoración media en Booking, escala 0-10."),
+    (
+        "rating_tripadvisor_medio",
+        "⭐ Rating TripAdvisor",
+        "decimal",
+        "Valoración media en TripAdvisor, escala 0-5.",
+    ),
+    ("ndvi_medio", "🌿 NDVI medio", "decimal2", "Índice de vegetación por satélite, de 0 a 1."),
 ]
 
-# (value_column, yoy_delta_column | None, label)
+# (value_column, yoy_delta_column | None, label, kind, help)
 ECONOMIA_KPI_COLUMNS = [
-    ("poblacion", None, "👥 Población"),
-    ("paro_medio", "var_paro_yoy_pct", "📉 Paro medio"),
-    ("empleo_total_medio", "crec_empleo_total_yoy_pct", "💼 Empleo total medio"),
-    ("empleo_autonomos_medio", "crec_empleo_autonomos_yoy_pct", "🧑‍💼 Empleo autónomos medio"),
+    ("poblacion", None, "👥 Población", "entero", "Población total del municipio (fuente: ISTAC)."),
+    (
+        "paro_medio",
+        "var_paro_yoy_pct",
+        "📉 Paro medio",
+        "entero",
+        "Personas en situación de paro registrado, media del año.",
+    ),
+    (
+        "empleo_total_medio",
+        "crec_empleo_total_yoy_pct",
+        "💼 Empleo total medio",
+        "entero",
+        "Personas empleadas (asalariados + autónomos), media del año.",
+    ),
+    (
+        "empleo_autonomos_medio",
+        "crec_empleo_autonomos_yoy_pct",
+        "🧑‍💼 Empleo autónomos medio",
+        "entero",
+        "Trabajadores autónomos, media del año.",
+    ),
 ]
 
 TURISMO_VV_KPI_COLUMNS = [
-    ("plazas_vv_media", "crec_plazas_vv_yoy_pct", "🏘️ Plazas VV media"),
-    ("ingresos_vv_media_mensual", "crec_ingresos_mensual_yoy_pct", "💶 Ingresos VV media mensual (€)"),
-    ("tasa_ocupacion_vv_media", None, "📊 Ocupación VV media (%)"),
-    ("estancia_media_vv", None, "🕐 Estancia media VV (días)"),
+    (
+        "plazas_vv_media",
+        "crec_plazas_vv_yoy_pct",
+        "🏘️ Plazas VV media",
+        "entero",
+        "Plazas medias registradas en vivienda vacacional (VV).",
+    ),
+    (
+        "ingresos_vv_media_mensual",
+        "crec_ingresos_mensual_yoy_pct",
+        "💶 Ingresos VV media mensual",
+        "euro",
+        "Ingresos medios mensuales estimados por vivienda vacacional.",
+    ),
+    (
+        "tasa_ocupacion_vv_media",
+        None,
+        "📊 Ocupación VV media",
+        "pct",
+        "Porcentaje medio de ocupación de las viviendas vacacionales.",
+    ),
+    (
+        "estancia_media_vv",
+        None,
+        "🕐 Estancia media VV",
+        "decimal",
+        "Duración media de la estancia en vivienda vacacional, en días.",
+    ),
 ]
 
 EVOLUCION_METRICS = {
@@ -104,9 +161,9 @@ def render_municipios_tab(
 
     st.subheader("Oferta turística (hexágonos)")
     cols = st.columns(3)
-    for i, (column, label) in enumerate(HEX_KPI_COLUMNS):
+    for i, (column, label, kind, help_text) in enumerate(HEX_KPI_COLUMNS):
         with cols[i % 3].container(border=True):
-            st.metric(label, format_kpi_value(hex_row.get(column)))
+            st.metric(label, format_metric(hex_row.get(column), kind), help=help_text)
 
     anual_row = get_anual_row(municipio_anual_df, municipio, anio)
 
@@ -117,17 +174,17 @@ def render_municipios_tab(
         if not bool(anual_row.get("es_anio_completo", True)):
             st.caption(f"⚠️ Año en curso: datos de solo {int(anual_row['n_meses'])} de 12 meses.")
         cols = st.columns(4)
-        for i, (column, delta_column, label) in enumerate(ECONOMIA_KPI_COLUMNS):
+        for i, (column, delta_column, label, kind, help_text) in enumerate(ECONOMIA_KPI_COLUMNS):
             delta = format_yoy_delta(anual_row.get(delta_column)) if delta_column else None
             with cols[i % 4].container(border=True):
-                st.metric(label, format_kpi_value(anual_row.get(column)), delta=delta)
+                st.metric(label, format_metric(anual_row.get(column), kind), delta=delta, help=help_text)
 
         st.subheader("Turismo: vivienda vacacional")
         cols = st.columns(4)
-        for i, (column, delta_column, label) in enumerate(TURISMO_VV_KPI_COLUMNS):
+        for i, (column, delta_column, label, kind, help_text) in enumerate(TURISMO_VV_KPI_COLUMNS):
             delta = format_yoy_delta(anual_row.get(delta_column)) if delta_column else None
             with cols[i % 4].container(border=True):
-                st.metric(label, format_kpi_value(anual_row.get(column)), delta=delta)
+                st.metric(label, format_metric(anual_row.get(column), kind), delta=delta, help=help_text)
 
     st.subheader("Evolución")
     metrica_label = st.selectbox(

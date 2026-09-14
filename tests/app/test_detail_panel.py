@@ -1,27 +1,10 @@
 import pandas as pd
 
 from app.detail_panel import (
-    format_kpi_value,
     municipio_aspect_comparison,
     nearest_destinos,
     restriction_badges,
 )
-
-
-def test_format_kpi_value_none_returns_dash():
-    assert format_kpi_value(None) == "—"
-
-
-def test_format_kpi_value_nan_returns_dash():
-    assert format_kpi_value(float("nan")) == "—"
-
-
-def test_format_kpi_value_float_formats_with_one_decimal_by_default():
-    assert format_kpi_value(4.567) == "4.6"
-
-
-def test_format_kpi_value_int_returns_plain_string():
-    assert format_kpi_value(7) == "7"
 
 
 def _peer_gdf():

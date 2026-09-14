@@ -32,7 +32,7 @@ from app.summary import compute_summary_stats
 from app.table_view import filter_table, prepare_table_view
 from app.temas import render_temas_tab
 from app.turismo import render_turismo_tab
-from app.ui_helpers import render_footer
+from app.ui_helpers import format_metric, render_footer
 
 st.set_page_config(page_title="AI-Dashboard Tenerife", page_icon="🌋", layout="wide")
 
@@ -120,22 +120,46 @@ def page_resumen() -> None:
 
     col1, col2, col3, col4 = st.columns(4)
     with col1.container(border=True):
-        st.metric("🔷 Hexágonos analizados", stats["total_hexagonos"])
+        st.metric(
+            "🔷 Hexágonos analizados",
+            format_metric(stats["total_hexagonos"], "entero"),
+            help="Total de hexágonos H3 con datos disponibles en el dashboard.",
+        )
     with col2.container(border=True):
-        st.metric("✅ Sin restricción legal", f"{stats['pct_sin_restriccion']}%")
+        st.metric(
+            "✅ Sin restricción legal",
+            format_metric(stats["pct_sin_restriccion"], "pct"),
+            help="Porcentaje de hexágonos sin solape con un Espacio Natural Protegido ni zona turística oficial.",
+        )
     with col3.container(border=True):
-        st.metric("😊 Con datos de sentimiento", f"{stats['pct_con_sentimiento']}%")
+        st.metric(
+            "😊 Con datos de sentimiento",
+            format_metric(stats["pct_con_sentimiento"], "pct"),
+            help="Porcentaje de hexágonos con al menos una reseña analizada por NLP.",
+        )
     with col4.container(border=True):
-        st.metric("🏛️ Municipios", stats["n_municipios"])
+        st.metric(
+            "🏛️ Municipios",
+            format_metric(stats["n_municipios"], "entero"),
+            help="Municipios de Tenerife representados en los datos.",
+        )
 
     st.subheader("Reparto de restricciones legales")
     st.bar_chart(stats["restriction_counts"])
 
     col5, col6 = st.columns(2)
     with col5.container(border=True):
-        st.metric("📈 Municipio con más oferta registrada", stats["municipio_mas_oferta"])
+        st.metric(
+            "📈 Municipio con más oferta registrada",
+            stats["municipio_mas_oferta"],
+            help="Municipio con más alojamientos turísticos registrados.",
+        )
     with col6.container(border=True):
-        st.metric("📉 Municipio con menos oferta registrada", stats["municipio_menos_oferta"])
+        st.metric(
+            "📉 Municipio con menos oferta registrada",
+            stats["municipio_menos_oferta"],
+            help="Municipio con menos alojamientos turísticos registrados.",
+        )
 
     render_footer("gold.gold_h3_master, gold.gold_h3_accesibilidad, gold.gold_sentimiento_h3")
 

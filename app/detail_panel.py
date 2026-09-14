@@ -1,18 +1,39 @@
-import math
-
 import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from app.ui_helpers import render_footer
+from app.ui_helpers import format_metric, render_footer
 
+# (column, label, kind, help) -- kind drives number formatting (see
+# format_metric); help is shown as an (i) tooltip on the metric tile so the
+# raw numbers aren't left unexplained.
 KPI_COLUMNS = [
-    ("n_hoteles", "🏨 Nº hoteles"),
-    ("n_establecimientos_registro", "🛏️ Nº alojamientos registrados"),
-    ("ndvi_medio", "🌿 NDVI medio"),
-    ("sentimiento_medio", "😊 Sentimiento medio"),
-    ("rating_booking_medio", "⭐ Rating Booking"),
-    ("rating_tripadvisor_medio", "⭐ Rating TripAdvisor"),
+    ("n_hoteles", "🏨 Nº hoteles", "entero", "Hoteles registrados en este hexágono."),
+    (
+        "n_establecimientos_registro",
+        "🛏️ Nº alojamientos registrados",
+        "entero",
+        "Alojamientos turísticos con registro oficial en este hexágono.",
+    ),
+    (
+        "ndvi_medio",
+        "🌿 NDVI medio",
+        "decimal2",
+        "Índice de vegetación por satélite, de 0 (sin vegetación) a 1 (vegetación densa).",
+    ),
+    (
+        "sentimiento_medio",
+        "😊 Sentimiento medio",
+        "decimal2",
+        "Sentimiento medio de las reseñas analizadas por NLP, de -1 (muy negativo) a 1 (muy positivo).",
+    ),
+    ("rating_booking_medio", "⭐ Rating Booking", "decimal", "Valoración media en Booking, escala 0-10."),
+    (
+        "rating_tripadvisor_medio",
+        "⭐ Rating TripAdvisor",
+        "decimal",
+        "Valoración media en TripAdvisor, escala 0-5.",
+    ),
 ]
 
 # gold_h3_accesibilidad has 19 tiempo_*_min columns (one per named destino) plus
@@ -20,11 +41,26 @@ KPI_COLUMNS = [
 # (see METRICS in map_layers.py). This surfaces the rest as readable text/chart
 # in the hex detail panel.
 ACCESIBILIDAD_KPI_COLUMNS = [
-    ("aeropuerto_mas_cercano", "✈️ Aeropuerto más cercano", None),
-    ("tiempo_aeropuerto_min", "🕐 Min. al aeropuerto", 0),
-    ("dist_hospital_km", "🏥 Km al hospital", 1),
-    ("dist_costa_km", "🌊 Km a la costa", 1),
-    ("n_paradas_bus_500m", "🚌 Paradas de bus (500 m)", 0),
+    (
+        "aeropuerto_mas_cercano",
+        "✈️ Aeropuerto más cercano",
+        "texto",
+        "Aeropuerto de Tenerife más cercano por tiempo en coche (TFS = Sur, TFN = Norte).",
+    ),
+    (
+        "tiempo_aeropuerto_min",
+        "🕐 Min. al aeropuerto",
+        "entero",
+        "Minutos estimados en coche hasta el aeropuerto más cercano.",
+    ),
+    ("dist_hospital_km", "🏥 Km al hospital", "decimal", "Distancia en línea recta al hospital más cercano."),
+    ("dist_costa_km", "🌊 Km a la costa", "decimal", "Distancia en línea recta a la costa."),
+    (
+        "n_paradas_bus_500m",
+        "🚌 Paradas de bus (500 m)",
+        "entero",
+        "Número de paradas de guagua a menos de 500 metros.",
+    ),
 ]
 
 TIEMPO_DESTINOS = [
@@ -45,18 +81,8 @@ TIEMPO_DESTINOS = [
 ]
 
 
-def format_kpi_value(value, decimals: int = 1) -> str:
-    if value is None or (isinstance(value, float) and math.isnan(value)):
-        return "—"
-    if isinstance(value, float):
-        return f"{value:.{decimals}f}"
-    return str(value)
-
-
 def _has_overlap(value) -> bool:
-    if value is None:
-        return False
-    if isinstance(value, float) and math.isnan(value):
+    if value is None or pd.isna(value):
         return False
     return value > 0
 
@@ -105,17 +131,15 @@ def render_detail_panel(gdf: pd.DataFrame, selected_h3_index: str | None) -> Non
     for badge in restriction_badges(row):
         st.caption(badge)
     cols = st.columns(3)
-    for i, (column, label) in enumerate(KPI_COLUMNS):
+    for i, (column, label, kind, help_text) in enumerate(KPI_COLUMNS):
         with cols[i % 3].container(border=True):
-            st.metric(label, format_kpi_value(row.get(column)))
+            st.metric(label, format_metric(row.get(column), kind), help=help_text)
 
     st.subheader("Accesibilidad")
     acc_cols = st.columns(3)
-    for i, (column, label, decimals) in enumerate(ACCESIBILIDAD_KPI_COLUMNS):
-        value = row.get(column)
-        formatted = format_kpi_value(value) if decimals is None else format_kpi_value(value, decimals)
+    for i, (column, label, kind, help_text) in enumerate(ACCESIBILIDAD_KPI_COLUMNS):
         with acc_cols[i % 3].container(border=True):
-            st.metric(label, formatted)
+            st.metric(label, format_metric(row.get(column), kind), help=help_text)
 
     destinos = nearest_destinos(row)
     if not destinos.empty:

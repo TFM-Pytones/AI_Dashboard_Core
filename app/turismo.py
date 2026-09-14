@@ -4,15 +4,38 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from app.detail_panel import format_kpi_value
-from app.ui_helpers import latest_value, render_footer
+from app.ui_helpers import format_metric, latest_value, render_footer
 
-# (value_column, yoy_delta_column | None, label)
+# (value_column, yoy_delta_column | None, label, kind, help)
 HOTELERO_KPI_COLUMNS = [
-    ("viajeros_entrados_total", "crec_viajeros_yoy_pct", "🧳 Viajeros entrados"),
-    ("pernoctaciones_total", "crec_pernoctaciones_yoy_pct", "🛌 Pernoctaciones"),
-    ("ocupacion_media_plazas", None, "📊 Ocupación media plazas (%)"),
-    ("estancia_media_hotel_dias", None, "🕐 Estancia media (días)"),
+    (
+        "viajeros_entrados_total",
+        "crec_viajeros_yoy_pct",
+        "🧳 Viajeros entrados",
+        "entero",
+        "Viajeros alojados en establecimientos hoteleros durante el año.",
+    ),
+    (
+        "pernoctaciones_total",
+        "crec_pernoctaciones_yoy_pct",
+        "🛌 Pernoctaciones",
+        "entero",
+        "Noches pernoctadas en establecimientos hoteleros durante el año.",
+    ),
+    (
+        "ocupacion_media_plazas",
+        None,
+        "📊 Ocupación media plazas",
+        "pct",
+        "Porcentaje medio de ocupación de plazas hoteleras.",
+    ),
+    (
+        "estancia_media_hotel_dias",
+        None,
+        "🕐 Estancia media",
+        "decimal",
+        "Duración media de la estancia en establecimientos hoteleros, en días.",
+    ),
 ]
 
 ESTACIONALIDAD_METRICS = {
@@ -29,9 +52,19 @@ MES_LABELS = {
 MES_ORDER = [MES_LABELS[m] for m in range(1, 13)]
 
 AENA_KPI_COLUMNS = [
-    ("pasajeros", "✈️ Pasajeros"),
-    ("operaciones", "🛫 Operaciones"),
-    ("pasajeros_por_operacion", "👥 Pasajeros por operación"),
+    ("pasajeros", "✈️ Pasajeros", "entero", "Pasajeros totales del aeropuerto en el mes."),
+    (
+        "operaciones",
+        "🛫 Operaciones",
+        "entero",
+        "Operaciones (despegues + aterrizajes) del aeropuerto en el mes.",
+    ),
+    (
+        "pasajeros_por_operacion",
+        "👥 Pasajeros por operación",
+        "decimal",
+        "Pasajeros medios transportados por cada operación.",
+    ),
 ]
 
 
@@ -87,10 +120,10 @@ def render_turismo_tab(
     else:
         st.caption(anual_row["polo_turistico"])
         cols = st.columns(4)
-        for i, (column, delta_column, label) in enumerate(HOTELERO_KPI_COLUMNS):
+        for i, (column, delta_column, label, kind, help_text) in enumerate(HOTELERO_KPI_COLUMNS):
             delta = format_yoy_delta(anual_row.get(delta_column)) if delta_column else None
             with cols[i % 4].container(border=True):
-                st.metric(label, format_kpi_value(anual_row.get(column)), delta=delta)
+                st.metric(label, format_metric(anual_row.get(column), kind), delta=delta, help=help_text)
 
     st.subheader("Estacionalidad")
     metrica_label = st.selectbox(
@@ -116,9 +149,9 @@ def render_turismo_tab(
     if latest_row is not None:
         st.caption(f"Último dato: {latest_row['periodo']}")
         cols = st.columns(3)
-        for i, (column, label) in enumerate(AENA_KPI_COLUMNS):
+        for i, (column, label, kind, help_text) in enumerate(AENA_KPI_COLUMNS):
             with cols[i].container(border=True):
-                st.metric(label, format_kpi_value(latest_row.get(column)))
+                st.metric(label, format_metric(latest_row.get(column), kind), help=help_text)
 
     serie_aena = aena_series(aena_df, codigo)
     fig_aena = px.line(

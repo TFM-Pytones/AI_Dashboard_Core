@@ -3,7 +3,7 @@ import plotly.express as px
 import streamlit as st
 
 from app.topic_labels_es import topic_label_es
-from app.ui_helpers import latest_value, render_footer
+from app.ui_helpers import format_metric, latest_value, render_footer
 
 SOURCE_LABELS = {
     "booking_review": "Booking",
@@ -59,9 +59,17 @@ def render_temas_tab(topicos_municipio_df: pd.DataFrame, chunks_df: pd.DataFrame
 
     col1, col2 = st.columns(2)
     with col1.container(border=True):
-        st.metric("💬 Opiniones analizadas", int(row["n_opiniones"]))
+        st.metric(
+            "💬 Opiniones analizadas",
+            format_metric(row["n_opiniones"], "entero"),
+            help="Reseñas, mensajes y comentarios analizados con NLP para este municipio.",
+        )
     with col2.container(border=True):
-        st.metric("🏷️ Temas distintos detectados", int(row["n_topicos_distintos"]))
+        st.metric(
+            "🏷️ Temas distintos detectados",
+            format_metric(row["n_topicos_distintos"], "entero"),
+            help="Temas distintos identificados mediante topic modeling (BERTopic).",
+        )
 
     fuentes_df = fuentes_breakdown(row)
     topicos_df = top_topicos_dataframe(row)
