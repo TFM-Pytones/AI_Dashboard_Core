@@ -65,3 +65,15 @@ def test_latest_value_returns_max_formatted():
 
 def test_latest_value_empty_series_returns_none():
     assert latest_value(pd.Series([], dtype=float)) is None
+
+
+def test_latest_value_drops_none_before_comparing_mixed_object_dtype():
+    import datetime
+
+    series = pd.Series([datetime.date(2025, 1, 1), None, datetime.date(2025, 6, 1), None], dtype=object)
+    assert latest_value(series) == "2025-06-01"
+
+
+def test_latest_value_all_none_returns_none():
+    series = pd.Series([None, None], dtype=object)
+    assert latest_value(series) is None

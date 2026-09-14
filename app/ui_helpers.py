@@ -39,6 +39,10 @@ def format_as_of(value) -> str | None:
 
 
 def latest_value(series: pd.Series) -> str | None:
+    # dropna first: an object-dtype column mixing real values with None (e.g.
+    # nlp_chunks.fecha, where forum messages have no date) makes .max() raise
+    # TypeError when it tries to compare a value against None.
+    series = series.dropna()
     if series.empty:
         return None
     return format_as_of(series.max())
