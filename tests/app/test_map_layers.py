@@ -9,6 +9,7 @@ from app.map_layers import (
     build_isocronas_fill_color,
     build_isocronas_layer,
     build_layer,
+    legend_html,
     list_destinos,
 )
 
@@ -17,6 +18,7 @@ def _gdf():
     return pd.DataFrame(
         {
             "h3_index": ["a", "b", "c"],
+            "municipio": ["Adeje", "Arona", "Adeje"],
             "densidad_metric": [0, 10, 20],
             "sentimiento_medio": [1.0, 3.0, 5.0],
             "ndvi_medio": [None, 0.5, 1.0],
@@ -119,6 +121,23 @@ def test_build_layer_returns_pickable_h3_layer():
     assert layer.get_fill_color == "@@=fill_color"
 
 
+def test_build_layer_includes_municipio_and_formatted_tooltip_value():
+    layer = build_layer(_gdf(), "Densidad hotelera")
+    assert list(layer.data.columns) == ["h3_index", "municipio", "tooltip_value", "fill_color"]
+    assert layer.data["municipio"].tolist() == ["Adeje", "Arona", "Adeje"]
+    assert layer.data["tooltip_value"].tolist() == ["0,0", "10,0", "20,0"]
+
+
+def test_build_layer_tooltip_value_shows_sin_datos_for_missing():
+    layer = build_layer(_gdf(), "Naturaleza (NDVI)")
+    assert layer.data["tooltip_value"].iloc[0] == "Sin datos"
+
+
+def test_build_layer_tooltip_value_passes_through_categories_as_is():
+    layer = build_layer(_gdf(), "Restricciones legales")
+    assert layer.data["tooltip_value"].tolist() == ["ENP", "Zona turística oficial", "Sin restricción"]
+
+
 def test_build_layer_is_semi_transparent_by_default_so_the_basemap_shows_through():
     layer = build_layer(_gdf(), "Densidad hotelera")
     assert 0 < layer.opacity < 1
@@ -164,3 +183,31 @@ def test_build_deck_defaults_to_a_translucent_opacity_so_satellite_shows_through
     monkeypatch.setenv("MAPBOX_API_KEY", "pk.test_token")
     deck = build_deck(_gdf(), "Sentimiento")
     assert deck.layers[0].opacity <= 0.45
+
+
+def test_build_deck_tooltip_shows_municipio_and_metric_name(monkeypatch):
+    monkeypatch.setenv("MAPBOX_API_KEY", "pk.test_token")
+    deck = build_deck(_gdf(), "Sentimiento")
+    assert "{municipio}" in deck._tooltip["text"]
+    assert "Sentimiento" in deck._tooltip["text"]
+    assert "{tooltip_value}" in deck._tooltip["text"]
+
+
+def test_legend_html_sequential_shows_gradient_with_min_max_labels():
+    html = legend_html("Densidad hotelera", _gdf())
+    assert "linear-gradient" in html
+    assert "0" in html and "20" in html
+
+
+def test_legend_html_diverging_shows_fixed_domain_labels():
+    html = legend_html("Sentimiento", _gdf())
+    assert "linear-gradient" in html
+    assert "1" in html and "5" in html
+
+
+def test_legend_html_categorical_shows_a_chip_per_category():
+    html = legend_html("Restricciones legales", _gdf())
+    assert "ENP" in html
+    assert "Zona turística oficial" in html
+    assert "Sin restricción" in html
+    assert html.count("border-radius:3px") == 3

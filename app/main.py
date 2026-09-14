@@ -27,7 +27,14 @@ from app.data import (
     merge_h3_data,
 )
 from app.detail_panel import render_detail_panel
-from app.map_layers import DEFAULT_HEXAGON_OPACITY, METRICS, build_deck, build_isocronas_layer, list_destinos
+from app.map_layers import (
+    DEFAULT_HEXAGON_OPACITY,
+    METRICS,
+    build_deck,
+    build_isocronas_layer,
+    legend_html,
+    list_destinos,
+)
 from app.municipios import render_municipios_tab
 from app.rankings import render_rankings_tab
 from app.summary import compute_summary_stats, restriction_counts_dataframe
@@ -185,13 +192,14 @@ def page_mapa() -> None:
     if map_municipio != "Todos":
         st.caption(f"🔍 Filtrando por municipio: **{map_municipio}**")
 
-    map_col, detail_col = st.columns([3, 2])
+    if show_hexagons:
+        st.caption(f"Leyenda — {metric_key}")
+        st.markdown(legend_html(metric_key, filtered_gdf), unsafe_allow_html=True)
 
-    with map_col:
-        deck = build_deck(filtered_gdf, metric_key, show_hexagons=show_hexagons, opacity=hex_opacity)
-        if show_isocronas and isocrona_destino:
-            deck.layers.append(build_isocronas_layer(isocronas, isocrona_destino))
-        st.pydeck_chart(deck, on_select="rerun", selection_mode="single-object", key="h3_map")
+    deck = build_deck(filtered_gdf, metric_key, show_hexagons=show_hexagons, opacity=hex_opacity)
+    if show_isocronas and isocrona_destino:
+        deck.layers.append(build_isocronas_layer(isocronas, isocrona_destino))
+    st.pydeck_chart(deck, on_select="rerun", selection_mode="single-object", key="h3_map", height=650)
 
     selected_h3_index = None
     event = st.session_state.get("h3_map")
@@ -200,8 +208,8 @@ def page_mapa() -> None:
         if picked:
             selected_h3_index = picked[0].get("h3_index")
 
-    with detail_col:
-        render_detail_panel(full_gdf, selected_h3_index)
+    st.divider()
+    render_detail_panel(full_gdf, selected_h3_index)
 
 
 def page_tabla() -> None:

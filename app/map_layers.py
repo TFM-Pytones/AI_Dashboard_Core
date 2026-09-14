@@ -6,6 +6,9 @@ import pydeck as pdk
 
 from app.color_scales import (
     DIVERGING_SENTIMENT_DOMAIN,
+    DIVERGING_SENTIMENT_HIGH,
+    DIVERGING_SENTIMENT_LOW,
+    DIVERGING_SENTIMENT_MID,
     RESTRICTION_ENP,
     RESTRICTION_SIN_RESTRICCION,
     RESTRICTION_ZONA_TURISTICA,
@@ -15,6 +18,7 @@ from app.color_scales import (
     diverging_color,
     sequential_color,
 )
+from app.ui_helpers import format_metric
 
 TENERIFE_VIEW_STATE = pdk.ViewState(latitude=28.29, longitude=-16.62, zoom=9, pitch=0)
 
@@ -98,12 +102,21 @@ def build_fill_color_column(gdf: pd.DataFrame, metric_key: str) -> pd.Series:
 DEFAULT_HEXAGON_OPACITY = 0.4
 
 
+def _tooltip_value_column(gdf: pd.DataFrame, config: dict) -> pd.Series:
+    values = gdf[config["column"]]
+    if config["scale"] == "categorical":
+        return values.apply(lambda v: "Sin datos" if pd.isna(v) else str(v))
+    return values.apply(lambda v: "Sin datos" if pd.isna(v) else format_metric(v, "decimal"))
+
+
 def build_layer(gdf: pd.DataFrame, metric_key: str, opacity: float = DEFAULT_HEXAGON_OPACITY) -> pdk.Layer:
+    config = METRICS[metric_key]
     gdf = gdf.copy()
     gdf["fill_color"] = build_fill_color_column(gdf, metric_key)
+    gdf["tooltip_value"] = _tooltip_value_column(gdf, config)
     return pdk.Layer(
         "H3HexagonLayer",
-        data=gdf[["h3_index", "fill_color"]],
+        data=gdf[["h3_index", "municipio", "tooltip_value", "fill_color"]],
         id="h3_index",
         pickable=True,
         stroked=True,
@@ -130,8 +143,46 @@ def build_deck(
         map_provider="mapbox",
         map_style="mapbox://styles/mapbox/satellite-streets-v9",
         api_keys={"mapbox": os.environ["MAPBOX_API_KEY"]},
-        tooltip={"text": "Hexágono: {h3_index}"},
+        tooltip={"text": f"{{municipio}}\n{metric_key}: {{tooltip_value}}"},
     )
+
+
+def _gradient_bar_html(gradient_css: str, min_label: str, max_label: str) -> str:
+    return (
+        '<div style="font-size:0.85rem;padding:4px 0 10px;">'
+        f'<div style="height:10px;border-radius:5px;background:{gradient_css};margin-bottom:4px;"></div>'
+        '<div style="display:flex;justify-content:space-between;color:#6b7280;">'
+        f"<span>{min_label}</span><span>{max_label}</span>"
+        "</div></div>"
+    )
+
+
+def legend_html(metric_key: str, gdf: pd.DataFrame) -> str:
+    config = METRICS[metric_key]
+
+    if config["scale"] == "categorical":
+        chips = "".join(
+            '<span style="display:inline-flex;align-items:center;gap:6px;margin-right:16px;">'
+            f'<span style="width:12px;height:12px;border-radius:3px;background:rgb({r},{g},{b});'
+            f'display:inline-block;"></span>{label}</span>'
+            for label, (r, g, b) in config["categories"].items()
+        )
+        return f'<div style="font-size:0.85rem;padding:4px 0 10px;">{chips}</div>'
+
+    if config["scale"] == "diverging":
+        vmin, _vmid, vmax = config["domain"]
+        gradient = (
+            f"linear-gradient(to right, {DIVERGING_SENTIMENT_LOW}, "
+            f"{DIVERGING_SENTIMENT_MID}, {DIVERGING_SENTIMENT_HIGH})"
+        )
+        return _gradient_bar_html(gradient, format_metric(vmin, "decimal"), format_metric(vmax, "decimal"))
+
+    light_hex, dark_hex = config["ramp"]
+    values = gdf[config["column"]].dropna()
+    vmin = float(values.min()) if not values.empty else 0.0
+    vmax = float(values.max()) if not values.empty else 1.0
+    gradient = f"linear-gradient(to right, {light_hex}, {dark_hex})"
+    return _gradient_bar_html(gradient, format_metric(vmin, "decimal"), format_metric(vmax, "decimal"))
 
 
 # Isócronas (gold.isocronas_visuales): un polígono por (destino, rango_min).
