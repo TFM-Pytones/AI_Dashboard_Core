@@ -19,8 +19,8 @@ SENTIMIENTO_QUERY = "SELECT * FROM gold.gold_sentimiento_h3"
 ACCESIBILIDAD_QUERY = "SELECT * FROM gold.gold_h3_accesibilidad"
 ISOCRONAS_QUERY = "SELECT * FROM gold.gold_isocronas_visuales"
 MUNICIPIO_MASTER_QUERY = "SELECT * FROM gold.gold_municipio_master"
-ISTAC_ANUAL_QUERY = "SELECT * FROM silver.silver_istac_anual"
-ISTAC_MENSUAL_QUERY = "SELECT * FROM silver.silver_istac_mensual"
+MUNICIPIO_ANUAL_QUERY = "SELECT * FROM gold.gold_municipio_anual"
+MUNICIPIO_EMPLEO_QUERY = "SELECT * FROM gold.gold_municipio_empleo"
 TOPICOS_MUNICIPIO_QUERY = "SELECT * FROM gold.gold_topicos_municipio"
 NLP_CHUNKS_QUERY = """
     SELECT chunk_id, source, source_id, chunk_index, text, topic_id, topic_label,
@@ -107,13 +107,13 @@ def load_municipio_master(_engine: Engine) -> pd.DataFrame:
 
 
 @st.cache_data
-def load_istac_anual(_engine: Engine) -> pd.DataFrame:
-    return pd.read_sql(ISTAC_ANUAL_QUERY, _engine)
+def load_municipio_anual(_engine: Engine) -> pd.DataFrame:
+    return pd.read_sql(MUNICIPIO_ANUAL_QUERY, _engine)
 
 
 @st.cache_data
-def load_istac_mensual(_engine: Engine) -> pd.DataFrame:
-    return pd.read_sql(ISTAC_MENSUAL_QUERY, _engine)
+def load_municipio_empleo(_engine: Engine) -> pd.DataFrame:
+    return pd.read_sql(MUNICIPIO_EMPLEO_QUERY, _engine)
 
 
 @st.cache_data
