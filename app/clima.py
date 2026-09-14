@@ -2,7 +2,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from app.ui_helpers import render_footer
+from app.ui_helpers import add_chart_motion, render_footer
 
 # prefix: column prefix in gold_h3_master (suffixed _q1.._q4 per trimestre).
 # unidad/help: shown next to the chart so the numbers aren't left unexplained.
@@ -57,6 +57,7 @@ def render_clima_tab(gdf: pd.DataFrame) -> None:
         labels={"trimestre": "Trimestre", "valor": f"{variable_label} ({unidad})"},
     )
     fig.update_traces(line_color="#1e3a8a")
+    add_chart_motion(fig)
     st.plotly_chart(fig, use_container_width=True)
 
     render_footer("silver_clima_agrocabildo (agregado a hexágono H3)")

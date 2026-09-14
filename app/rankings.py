@@ -2,7 +2,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from app.ui_helpers import format_metric, render_footer
+from app.ui_helpers import add_chart_motion, format_metric, render_footer
 
 # "agg" controls how each metric is rolled up from hexagon-level rows to one
 # value per municipio -- "mean" for rates/scores, "sum" for counts.
@@ -45,6 +45,7 @@ def render_rankings_tab(gdf: pd.DataFrame) -> None:
             title=ranking_key,
         )
         fig.update_traces(marker_color="#1e3a8a")
+        add_chart_motion(fig)
         st.plotly_chart(fig, use_container_width=True)
 
         display = result.copy()

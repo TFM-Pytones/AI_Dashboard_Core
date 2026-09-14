@@ -4,7 +4,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from app.ui_helpers import format_metric, latest_value, render_footer
+from app.ui_helpers import add_chart_motion, format_metric, latest_value, render_footer
 
 # (column, label, kind, help) -- kind drives number formatting (see format_metric).
 HEX_KPI_COLUMNS = [
@@ -210,6 +210,7 @@ def render_municipios_tab(
         serie, x="anio", y="valor", markers=True, title=f"{metrica_label} por año — {municipio}"
     )
     fig.update_traces(line_color="#1e3a8a")
+    add_chart_motion(fig)
     st.plotly_chart(fig, use_container_width=True)
 
     st.subheader("Evolución mensual")
@@ -226,6 +227,7 @@ def render_municipios_tab(
             serie_mensual, x="periodo", y="valor", title=f"{metrica_mensual_label} por mes — {municipio}"
         )
         fig_mensual.update_traces(line_color="#1e3a8a")
+        add_chart_motion(fig_mensual)
         st.plotly_chart(fig_mensual, use_container_width=True)
 
     st.subheader("Empleo: asalariados vs. autónomos")
@@ -242,6 +244,7 @@ def render_municipios_tab(
             title="Reparto de empleo",
             color_discrete_sequence=["#1e3a8a", "#eb6834"],
         )
+        add_chart_motion(fig_empleo)
         st.plotly_chart(fig_empleo, use_container_width=True)
 
     render_footer(

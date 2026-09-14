@@ -4,7 +4,7 @@ import streamlit as st
 
 from app.topic_labels_es import topic_label_es
 from app.translation import translate_to_spanish
-from app.ui_helpers import format_metric, latest_value, render_footer
+from app.ui_helpers import add_chart_motion, format_metric, latest_value, render_footer
 
 SOURCE_LABELS = {
     "booking_review": "Booking",
@@ -159,6 +159,7 @@ def render_temas_tab(topicos_municipio_df: pd.DataFrame, chunks_df: pd.DataFrame
             title="Origen de las opiniones",
             color_discrete_sequence=["#1e3a8a", "#eb6834", "#6b7280", "#f3f4f6"],
         )
+        add_chart_motion(fig_fuentes)
         st.plotly_chart(fig_fuentes, use_container_width=True)
     with col_topicos:
         fig_topicos = px.bar(
@@ -169,6 +170,7 @@ def render_temas_tab(topicos_municipio_df: pd.DataFrame, chunks_df: pd.DataFrame
             title="Temas más mencionados",
         )
         fig_topicos.update_traces(marker_color="#1e3a8a")
+        add_chart_motion(fig_topicos)
         st.plotly_chart(
             fig_topicos,
             use_container_width=True,

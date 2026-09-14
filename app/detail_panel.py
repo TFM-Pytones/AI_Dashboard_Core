@@ -2,7 +2,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from app.ui_helpers import format_metric, render_footer
+from app.ui_helpers import add_chart_motion, format_metric, render_footer
 
 # (column, label, kind, help) -- kind drives number formatting (see
 # format_metric); help is shown as an (i) tooltip on the metric tile so the
@@ -151,6 +151,7 @@ def render_detail_panel(gdf: pd.DataFrame, selected_h3_index: str | None) -> Non
             title="Destinos más cercanos (min. en coche)",
         )
         fig_dest.update_traces(marker_color="#1e3a8a")
+        add_chart_motion(fig_dest)
         st.plotly_chart(fig_dest, width="stretch")
 
     comparison = municipio_aspect_comparison(gdf, selected_h3_index)
@@ -165,6 +166,7 @@ def render_detail_panel(gdf: pd.DataFrame, selected_h3_index: str | None) -> Non
             color_discrete_map={True: "#1e3a8a", False: "#d1d5db"},
             title=f"Aspectos más mencionados en {row['municipio']}",
         )
+        add_chart_motion(fig)
         st.plotly_chart(fig, width="stretch")
 
     render_footer("gold.gold_h3_master, gold.gold_h3_accesibilidad, gold.gold_sentimiento_h3")

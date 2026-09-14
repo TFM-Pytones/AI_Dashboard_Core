@@ -41,29 +41,28 @@ from app.summary import compute_summary_stats, restriction_counts_dataframe
 from app.table_view import build_table_column_config, filter_table, prepare_table_view
 from app.temas import render_temas_tab
 from app.turismo import render_turismo_tab
-from app.ui_helpers import format_metric, render_footer
+from app.ui_helpers import add_chart_motion, format_metric, render_footer
 
 st.set_page_config(page_title="AI-Dashboard Tenerife", page_icon="🌋", layout="wide")
 
-HERO_IMAGE_B64 = base64.b64encode(
-    (Path(__file__).parent / "assets" / "hero_puerto_cruz.jpg").read_bytes()
-).decode("utf-8")
-
 st.markdown(
-    f"""
+    """
     <style>
-    .block-container {{
+    .block-container {
         padding-top: 1rem;
         max-width: 100%;
-    }}
-    .hero-banner {{
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(14px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-banner {
         position: relative;
-        height: 420px;
+        height: 260px;
         margin: -1rem -1rem 1.5rem -1rem;
         width: calc(100% + 2rem);
-        background-image:
-            linear-gradient(100deg, rgba(10,10,8,0.55) 0%, rgba(10,10,8,0.20) 50%, rgba(10,10,8,0.0) 80%),
-            url(data:image/jpeg;base64,{HERO_IMAGE_B64});
         background-size: cover;
         background-position: center 50%;
         display: flex;
@@ -71,28 +70,66 @@ st.markdown(
         justify-content: center;
         padding: 0 clamp(1.5rem, 5vw, 4rem);
         border-bottom: 5px solid #1e3a8a;
-    }}
-    .hero-banner h1 {{
+        animation: fadeInUp 0.6s ease-out;
+    }
+    .hero-banner--main {
+        height: 420px;
+    }
+    .hero-banner h1 {
         color: white;
-        font-size: clamp(1.8rem, 3.2vw, 2.9rem);
-        margin: 0 0 0.5rem 0;
+        font-size: clamp(1.6rem, 3vw, 2.6rem);
+        margin: 0 0 0.4rem 0;
         text-shadow: 0 2px 12px rgba(0,0,0,0.35);
-    }}
-    .hero-banner p {{
+    }
+    .hero-banner--main h1 {
+        font-size: clamp(1.8rem, 3.2vw, 2.9rem);
+    }
+    .hero-banner p {
         color: #e8eefc;
-        font-size: clamp(1rem, 1.4vw, 1.3rem);
+        font-size: clamp(0.95rem, 1.3vw, 1.2rem);
         margin: 0;
         max-width: 46ch;
         text-shadow: 0 1px 8px rgba(0,0,0,0.35);
-    }}
+    }
+
+    /* KPI cards (st.container(border=True) wrapping a st.metric): fade in on
+       render, subtle resting shadow for depth, lift further on hover. */
+    [data-testid="stVerticalBlock"]:has(> [data-testid="stElementContainer"] [data-testid="stMetric"]) {
+        animation: fadeInUp 0.5s ease-out;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    [data-testid="stVerticalBlock"]:has(> [data-testid="stElementContainer"] [data-testid="stMetric"]):hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 24px rgba(30, 58, 138, 0.16);
+    }
+
+    /* Very subtle gradient instead of flat white, for a bit of depth. */
+    [data-testid="stMain"] {
+        background: linear-gradient(180deg, #fefefe 0%, #f4f6fb 100%);
+    }
     </style>
-    <div class="hero-banner">
-        <h1>AI-Dashboard — Oferta turística de Tenerife</h1>
-        <p>Analítica geoespacial por hexágono H3: alojamiento, clima, satélite y economía municipal</p>
-    </div>
     """,
     unsafe_allow_html=True,
 )
+
+
+def render_page_banner(image_filename: str, title: str, subtitle: str, main: bool = False) -> None:
+    image_b64 = base64.b64encode((Path(__file__).parent / "assets" / image_filename).read_bytes()).decode(
+        "utf-8"
+    )
+    css_class = "hero-banner hero-banner--main" if main else "hero-banner"
+    st.markdown(
+        f"""
+        <div class="{css_class}" style="background-image:
+            linear-gradient(100deg, rgba(10,10,8,0.55) 0%, rgba(10,10,8,0.20) 50%, rgba(10,10,8,0.0) 80%),
+            url(data:image/jpeg;base64,{image_b64});">
+            <h1>{title}</h1>
+            <p>{subtitle}</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 with st.spinner("Cargando datos del dashboard..."):
     engine = get_engine()
@@ -115,6 +152,12 @@ with st.spinner("Cargando datos del dashboard..."):
 
 
 def page_resumen() -> None:
+    render_page_banner(
+        "hero_puerto_cruz.jpg",
+        "AI-Dashboard — Oferta turística de Tenerife",
+        "Analítica geoespacial por hexágono H3: alojamiento, clima, satélite y economía municipal",
+        main=True,
+    )
     stats = compute_summary_stats(full_gdf)
 
     col1, col2, col3, col4 = st.columns(4)
@@ -148,6 +191,7 @@ def page_resumen() -> None:
     fig_restriction = px.bar(restriction_df, x="restriction_category", y="n_hexagonos")
     fig_restriction.update_traces(marker_color="#1e3a8a")
     fig_restriction.update_layout(xaxis_title=None, yaxis_title="Nº de hexágonos")
+    add_chart_motion(fig_restriction)
     st.plotly_chart(fig_restriction, use_container_width=True)
 
     col5, col6 = st.columns(2)
@@ -259,6 +303,9 @@ def page_rankings() -> None:
 
 
 def page_clima() -> None:
+    render_page_banner(
+        "clima_montana.jpg", "Clima", "Temperatura, lluvia, viento y humedad por municipio"
+    )
     clima_municipio = st.selectbox(
         "Municipio", ["Todos"] + list_municipios(full_gdf), key="clima_municipio"
     )
@@ -272,6 +319,11 @@ def page_municipios() -> None:
 
 
 def page_alojamiento() -> None:
+    render_page_banner(
+        "alojamiento_hotel.jpg",
+        "Alojamiento",
+        "Reputación y distribución de la oferta de alojamiento turístico",
+    )
     alojamiento_municipio = st.selectbox(
         "Municipio", ["Todos"] + list_municipios(full_gdf), key="alojamiento_municipio"
     )
@@ -281,10 +333,20 @@ def page_alojamiento() -> None:
 
 
 def page_temas() -> None:
+    render_page_banner(
+        "temas_cafe.jpg",
+        "Temas y Opinión",
+        "Qué dicen realmente los visitantes, extraído con NLP de miles de reseñas",
+    )
     render_temas_tab(topicos_municipio, nlp_chunks)
 
 
 def page_turismo() -> None:
+    render_page_banner(
+        "turismo_playa.jpg",
+        "Turismo",
+        "Ocupación hotelera, tráfico aéreo y estacionalidad por polo turístico",
+    )
     render_turismo_tab(turismo_hotelero_anual, turismo_hotelero_mensual, aena_pasajeros)
 
 

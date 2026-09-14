@@ -1,6 +1,7 @@
 import pandas as pd
+import plotly.express as px
 
-from app.ui_helpers import format_as_of, format_metric, latest_value
+from app.ui_helpers import add_chart_motion, format_as_of, format_metric, latest_value
 
 
 def test_format_metric_none_returns_dash():
@@ -77,3 +78,10 @@ def test_latest_value_drops_none_before_comparing_mixed_object_dtype():
 def test_latest_value_all_none_returns_none():
     series = pd.Series([None, None], dtype=object)
     assert latest_value(series) is None
+
+
+def test_add_chart_motion_sets_a_transition_and_returns_the_figure():
+    fig = px.bar(pd.DataFrame({"x": ["a", "b"], "y": [1, 2]}), x="x", y="y")
+    result = add_chart_motion(fig)
+    assert result is fig
+    assert fig.layout.transition.duration == 400

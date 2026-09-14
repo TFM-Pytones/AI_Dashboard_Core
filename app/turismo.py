@@ -4,7 +4,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from app.ui_helpers import format_metric, latest_value, render_footer
+from app.ui_helpers import add_chart_motion, format_metric, latest_value, render_footer
 
 # (value_column, yoy_delta_column | None, label, kind, help)
 HOTELERO_KPI_COLUMNS = [
@@ -138,6 +138,7 @@ def render_turismo_tab(
         title=f"{metrica_label} media por mes — {municipio}",
     )
     fig.update_traces(marker_color="#1e3a8a")
+    add_chart_motion(fig)
     st.plotly_chart(fig, use_container_width=True)
 
     st.subheader("Tráfico aéreo")
@@ -158,6 +159,7 @@ def render_turismo_tab(
         serie_aena, x="periodo", y="pasajeros", title=f"Pasajeros mensuales — {aeropuerto_nombre}"
     )
     fig_aena.update_traces(line_color="#eb6834")
+    add_chart_motion(fig_aena)
     st.plotly_chart(fig_aena, use_container_width=True)
 
     render_footer(

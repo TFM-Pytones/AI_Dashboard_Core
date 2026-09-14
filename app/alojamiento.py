@@ -2,7 +2,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from app.ui_helpers import format_metric, render_footer
+from app.ui_helpers import add_chart_motion, format_metric, render_footer
 
 ACCOMMODATION_TYPES = [
     ("n_hoteles", "Hoteles"),
@@ -55,6 +55,7 @@ def render_alojamiento_tab(gdf: pd.DataFrame) -> None:
         title="Distribución del tipo de alojamiento",
         color_discrete_sequence=["#1e3a8a", "#eb6834", "#6b7280"],
     )
+    add_chart_motion(fig)
     st.plotly_chart(fig, use_container_width=True)
 
     render_footer("gold.gold_h3_master (alojamiento oficial y reputación)")

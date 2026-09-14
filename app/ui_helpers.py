@@ -53,3 +53,11 @@ def render_footer(source: str, as_of: str | None = None) -> None:
     if as_of:
         text += f" · Datos hasta: {as_of}"
     st.caption(text)
+
+
+def add_chart_motion(fig):
+    # Streamlit's plotly component updates the existing chart in place (not a
+    # full remount) when its data changes, e.g. via a filter -- this makes
+    # that redraw animate instead of jumping straight to the new values.
+    fig.update_layout(transition={"duration": 400, "easing": "cubic-in-out"})
+    return fig
