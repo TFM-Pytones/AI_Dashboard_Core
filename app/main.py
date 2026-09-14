@@ -10,6 +10,7 @@ from app.data import (
     get_engine,
     list_municipios,
     load_accesibilidad,
+    load_aena_pasajeros,
     load_h3_master,
     load_isocronas,
     load_municipio_anual,
@@ -18,6 +19,8 @@ from app.data import (
     load_nlp_chunks,
     load_sentimiento,
     load_topicos_municipio,
+    load_turismo_hotelero_anual,
+    load_turismo_hotelero_mensual,
     merge_accesibilidad,
     merge_h3_data,
 )
@@ -28,6 +31,7 @@ from app.rankings import render_rankings_tab
 from app.summary import compute_summary_stats
 from app.table_view import filter_table, prepare_table_view
 from app.temas import render_temas_tab
+from app.turismo import render_turismo_tab
 
 st.set_page_config(page_title="AI-Dashboard Tenerife", page_icon="🌋", layout="wide")
 
@@ -111,6 +115,9 @@ municipio_anual = load_municipio_anual(engine)
 municipio_empleo = load_municipio_empleo(engine)
 topicos_municipio = load_topicos_municipio(engine)
 nlp_chunks = load_nlp_chunks(engine)
+turismo_hotelero_anual = load_turismo_hotelero_anual(engine)
+turismo_hotelero_mensual = load_turismo_hotelero_mensual(engine)
+aena_pasajeros = load_aena_pasajeros(engine)
 
 full_gdf = merge_h3_data(h3_master, sentimiento)
 full_gdf = merge_accesibilidad(full_gdf, accesibilidad)
@@ -134,7 +141,7 @@ with st.sidebar:
     if show_isocronas:
         isocrona_destino = st.selectbox("Destino de referencia", list_destinos(isocronas))
 
-tab_resumen, tab_mapa, tab_tabla, tab_rankings, tab_clima, tab_municipios, tab_alojamiento, tab_temas = st.tabs(
+tab_resumen, tab_mapa, tab_tabla, tab_rankings, tab_clima, tab_municipios, tab_alojamiento, tab_temas, tab_turismo = st.tabs(
     [
         "📊 Resumen",
         "🗺️ Mapa",
@@ -144,6 +151,7 @@ tab_resumen, tab_mapa, tab_tabla, tab_rankings, tab_clima, tab_municipios, tab_a
         "🏛️ Municipios",
         "🏨 Alojamiento",
         "💬 Temas",
+        "✈️ Turismo",
     ]
 )
 
@@ -226,3 +234,6 @@ with tab_alojamiento:
 
 with tab_temas:
     render_temas_tab(topicos_municipio, nlp_chunks)
+
+with tab_turismo:
+    render_turismo_tab(turismo_hotelero_anual, turismo_hotelero_mensual, aena_pasajeros)
