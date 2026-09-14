@@ -27,15 +27,18 @@ def render_alojamiento_tab(gdf: pd.DataFrame) -> None:
     summary = reputation_summary(gdf)
 
     col1, col2, col3 = st.columns(3)
-    col1.metric("Rating medio Booking", summary["rating_booking_medio"])
-    col2.metric("Rating medio TripAdvisor", summary["rating_tripadvisor_medio"])
-    col3.metric("Reseñas Booking totales", summary["total_reviews_booking"])
+    with col1.container(border=True):
+        st.metric("Rating medio Booking", summary["rating_booking_medio"])
+    with col2.container(border=True):
+        st.metric("Rating medio TripAdvisor", summary["rating_tripadvisor_medio"])
+    with col3.container(border=True):
+        st.metric("Reseñas Booking totales", summary["total_reviews_booking"])
 
     fig = px.pie(
         breakdown,
         names="tipo",
         values="cantidad",
         title="Distribución del tipo de alojamiento",
-        color_discrete_sequence=["#2a78d6", "#eb6834", "#898781"],
+        color_discrete_sequence=["#1e3a8a", "#eb6834", "#6b7280"],
     )
     st.plotly_chart(fig, use_container_width=True)

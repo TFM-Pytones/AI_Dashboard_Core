@@ -57,8 +57,10 @@ def render_temas_tab(topicos_municipio_df: pd.DataFrame, chunks_df: pd.DataFrame
         return
 
     col1, col2 = st.columns(2)
-    col1.metric("Opiniones analizadas", int(row["n_opiniones"]))
-    col2.metric("Temas distintos detectados", int(row["n_topicos_distintos"]))
+    with col1.container(border=True):
+        st.metric("Opiniones analizadas", int(row["n_opiniones"]))
+    with col2.container(border=True):
+        st.metric("Temas distintos detectados", int(row["n_topicos_distintos"]))
 
     fuentes_df = fuentes_breakdown(row)
     topicos_df = top_topicos_dataframe(row)
@@ -70,7 +72,7 @@ def render_temas_tab(topicos_municipio_df: pd.DataFrame, chunks_df: pd.DataFrame
             names="fuente",
             values="cantidad",
             title="Origen de las opiniones",
-            color_discrete_sequence=["#2a78d6", "#eb6834", "#898781", "#f0efec"],
+            color_discrete_sequence=["#1e3a8a", "#eb6834", "#6b7280", "#f3f4f6"],
         )
         st.plotly_chart(fig_fuentes, use_container_width=True)
     with col_topicos:
@@ -81,7 +83,7 @@ def render_temas_tab(topicos_municipio_df: pd.DataFrame, chunks_df: pd.DataFrame
             orientation="h",
             title="Temas más mencionados",
         )
-        fig_topicos.update_traces(marker_color="#2a78d6")
+        fig_topicos.update_traces(marker_color="#1e3a8a")
         st.plotly_chart(fig_topicos, use_container_width=True)
 
     st.subheader("Ver opiniones reales de un tema")

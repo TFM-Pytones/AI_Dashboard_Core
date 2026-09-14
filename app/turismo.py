@@ -88,7 +88,8 @@ def render_turismo_tab(
         cols = st.columns(4)
         for i, (column, delta_column, label) in enumerate(HOTELERO_KPI_COLUMNS):
             delta = format_yoy_delta(anual_row.get(delta_column)) if delta_column else None
-            cols[i % 4].metric(label, format_kpi_value(anual_row.get(column)), delta=delta)
+            with cols[i % 4].container(border=True):
+                st.metric(label, format_kpi_value(anual_row.get(column)), delta=delta)
 
     st.subheader("Estacionalidad")
     metrica_label = st.selectbox(
@@ -102,7 +103,7 @@ def render_turismo_tab(
         category_orders={"mes_label": MES_ORDER},
         title=f"{metrica_label} media por mes — {municipio}",
     )
-    fig.update_traces(marker_color="#2a78d6")
+    fig.update_traces(marker_color="#1e3a8a")
     st.plotly_chart(fig, use_container_width=True)
 
     st.subheader("Tráfico aéreo")
@@ -115,7 +116,8 @@ def render_turismo_tab(
         st.caption(f"Último dato: {latest_row['periodo']}")
         cols = st.columns(3)
         for i, (column, label) in enumerate(AENA_KPI_COLUMNS):
-            cols[i].metric(label, format_kpi_value(latest_row.get(column)))
+            with cols[i].container(border=True):
+                st.metric(label, format_kpi_value(latest_row.get(column)))
 
     serie_aena = aena_series(aena_df, codigo)
     fig_aena = px.line(

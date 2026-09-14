@@ -104,7 +104,8 @@ def render_municipios_tab(
     st.subheader("Oferta turística (hexágonos)")
     cols = st.columns(3)
     for i, (column, label) in enumerate(HEX_KPI_COLUMNS):
-        cols[i % 3].metric(label, format_kpi_value(hex_row.get(column)))
+        with cols[i % 3].container(border=True):
+            st.metric(label, format_kpi_value(hex_row.get(column)))
 
     anual_row = get_anual_row(municipio_anual_df, municipio, anio)
 
@@ -117,13 +118,15 @@ def render_municipios_tab(
         cols = st.columns(4)
         for i, (column, delta_column, label) in enumerate(ECONOMIA_KPI_COLUMNS):
             delta = format_yoy_delta(anual_row.get(delta_column)) if delta_column else None
-            cols[i % 4].metric(label, format_kpi_value(anual_row.get(column)), delta=delta)
+            with cols[i % 4].container(border=True):
+                st.metric(label, format_kpi_value(anual_row.get(column)), delta=delta)
 
         st.subheader("Turismo: vivienda vacacional")
         cols = st.columns(4)
         for i, (column, delta_column, label) in enumerate(TURISMO_VV_KPI_COLUMNS):
             delta = format_yoy_delta(anual_row.get(delta_column)) if delta_column else None
-            cols[i % 4].metric(label, format_kpi_value(anual_row.get(column)), delta=delta)
+            with cols[i % 4].container(border=True):
+                st.metric(label, format_kpi_value(anual_row.get(column)), delta=delta)
 
     st.subheader("Evolución")
     metrica_label = st.selectbox(
@@ -133,7 +136,7 @@ def render_municipios_tab(
     fig = px.line(
         serie, x="anio", y="valor", markers=True, title=f"{metrica_label} por año — {municipio}"
     )
-    fig.update_traces(line_color="#2a78d6")
+    fig.update_traces(line_color="#1e3a8a")
     st.plotly_chart(fig, use_container_width=True)
 
     st.subheader("Empleo: asalariados vs. autónomos")
@@ -148,6 +151,6 @@ def render_municipios_tab(
         names="tipo",
         values="cantidad",
         title="Reparto de empleo",
-        color_discrete_sequence=["#2a78d6", "#eb6834"],
+        color_discrete_sequence=["#1e3a8a", "#eb6834"],
     )
     st.plotly_chart(fig_empleo, use_container_width=True)

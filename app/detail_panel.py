@@ -69,7 +69,8 @@ def render_detail_panel(gdf: pd.DataFrame, selected_h3_index: str | None) -> Non
         st.caption(badge)
     cols = st.columns(3)
     for i, (column, label) in enumerate(KPI_COLUMNS):
-        cols[i % 3].metric(label, format_kpi_value(row.get(column)))
+        with cols[i % 3].container(border=True):
+            st.metric(label, format_kpi_value(row.get(column)))
     comparison = municipio_aspect_comparison(gdf, selected_h3_index)
     if comparison is None or comparison.empty:
         st.caption("Sin aspectos NLP registrados para este municipio.")
@@ -79,7 +80,7 @@ def render_detail_panel(gdf: pd.DataFrame, selected_h3_index: str | None) -> Non
         x="aspecto",
         y="n_hexagonos",
         color="es_seleccionado",
-        color_discrete_map={True: "#2a78d6", False: "#c3c2b7"},
+        color_discrete_map={True: "#1e3a8a", False: "#d1d5db"},
         title=f"Aspectos más mencionados en {row['municipio']}",
     )
     st.plotly_chart(fig, width="stretch")

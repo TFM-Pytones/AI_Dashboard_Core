@@ -32,5 +32,5 @@ def render_clima_tab(gdf: pd.DataFrame) -> None:
         markers=True,
         title=f"{variable_label} media por trimestre",
     )
-    fig.update_traces(line_color="#2a78d6")
+    fig.update_traces(line_color="#1e3a8a")
     st.plotly_chart(fig, use_container_width=True)

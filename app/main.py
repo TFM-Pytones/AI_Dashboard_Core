@@ -48,12 +48,12 @@ st.markdown(
     }}
     .stTabs [data-baseweb="tab-list"] {{ gap: 4px; }}
     .stTabs [data-baseweb="tab"] {{
-        background-color: #f0efe8;
+        background-color: #f3f4f6;
         border-radius: 8px 8px 0 0;
         padding: 8px 16px;
     }}
     .stTabs [aria-selected="true"] {{
-        background-color: #2a78d6;
+        background-color: #1e3a8a;
         color: white;
     }}
     .hero-banner {{
@@ -70,7 +70,7 @@ st.markdown(
         flex-direction: column;
         justify-content: center;
         padding: 0 clamp(1.5rem, 5vw, 4rem);
-        border-bottom: 5px solid #2a78d6;
+        border-bottom: 5px solid #1e3a8a;
     }}
     .hero-banner h1 {{
         color: white;
@@ -159,17 +159,23 @@ with tab_resumen:
     stats = compute_summary_stats(full_gdf)
 
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Hexágonos analizados", stats["total_hexagonos"])
-    col2.metric("Sin restricción legal", f"{stats['pct_sin_restriccion']}%")
-    col3.metric("Con datos de sentimiento", f"{stats['pct_con_sentimiento']}%")
-    col4.metric("Municipios", stats["n_municipios"])
+    with col1.container(border=True):
+        st.metric("Hexágonos analizados", stats["total_hexagonos"])
+    with col2.container(border=True):
+        st.metric("Sin restricción legal", f"{stats['pct_sin_restriccion']}%")
+    with col3.container(border=True):
+        st.metric("Con datos de sentimiento", f"{stats['pct_con_sentimiento']}%")
+    with col4.container(border=True):
+        st.metric("Municipios", stats["n_municipios"])
 
     st.subheader("Reparto de restricciones legales")
     st.bar_chart(stats["restriction_counts"])
 
     col5, col6 = st.columns(2)
-    col5.metric("Municipio con más oferta registrada", stats["municipio_mas_oferta"])
-    col6.metric("Municipio con menos oferta registrada", stats["municipio_menos_oferta"])
+    with col5.container(border=True):
+        st.metric("Municipio con más oferta registrada", stats["municipio_mas_oferta"])
+    with col6.container(border=True):
+        st.metric("Municipio con menos oferta registrada", stats["municipio_menos_oferta"])
 
 with tab_mapa:
     filtered_gdf = filter_by_municipio(full_gdf, map_municipio)
