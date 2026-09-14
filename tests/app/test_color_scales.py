@@ -44,11 +44,11 @@ def test_diverging_color_at_min_returns_low_pole():
 
 
 def test_diverging_color_at_mid_returns_neutral_gray():
-    assert diverging_color(3.0, 1.0, 3.0, 5.0) == [240, 239, 236]
+    assert diverging_color(3.0, 1.0, 3.0, 5.0) == [243, 244, 246]
 
 
 def test_diverging_color_at_max_returns_high_pole():
-    assert diverging_color(5.0, 1.0, 3.0, 5.0) == [42, 120, 214]
+    assert diverging_color(5.0, 1.0, 3.0, 5.0) == [30, 58, 138]
 
 
 def test_diverging_color_none_returns_no_data():

@@ -1,4 +1,4 @@
-NO_DATA_COLOR = [137, 135, 129]  # #898781 -- muted ink (dataviz skill palette)
+NO_DATA_COLOR = [107, 114, 128]  # #6b7280 -- cool muted gray (Financial Professional theme)
 
 # Sequential ramps: (light_hex, dark_hex). Blue = dataviz skill's default
 # sequential hue (ramp steps 100 -> 700). NDVI reuses the next categorical
@@ -9,15 +9,15 @@ SEQUENTIAL_NDVI = ("#f9e6dd", "#eb6834")
 # Diverging pair: blue <-> red poles, neutral gray midpoint (dataviz skill).
 # Domain matches the 1-5 star scale of the nlptown multilingual BERT model.
 DIVERGING_SENTIMENT_LOW = "#e34948"
-DIVERGING_SENTIMENT_MID = "#f0efec"
-DIVERGING_SENTIMENT_HIGH = "#2a78d6"
+DIVERGING_SENTIMENT_MID = "#f3f4f6"
+DIVERGING_SENTIMENT_HIGH = "#1e3a8a"
 DIVERGING_SENTIMENT_DOMAIN = (1.0, 3.0, 5.0)
 
 # Restriction categories (site-selection view): a legal blocker (ENP) vs. a
 # clear hexagon uses the reserved status pair (critical/good); the official
 # touristic zone is pure identity, so it gets a categorical slot (blue).
 RESTRICTION_ENP = [208, 59, 59]  # #d03b3b -- status critical
-RESTRICTION_ZONA_TURISTICA = [42, 120, 214]  # #2a78d6 -- categorical slot 1 (blue)
+RESTRICTION_ZONA_TURISTICA = [30, 58, 138]  # #1e3a8a -- categorical slot 1 (navy)
 RESTRICTION_SIN_RESTRICCION = [12, 163, 12]  # #0ca30c -- status good
 
 

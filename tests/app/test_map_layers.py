@@ -36,12 +36,12 @@ def test_build_fill_color_column_sequential_scales_min_to_max():
 
 def test_build_fill_color_column_diverging_uses_fixed_domain():
     colors = build_fill_color_column(_gdf(), "Sentimiento")
-    assert colors.tolist() == [[227, 73, 72], [240, 239, 236], [42, 120, 214]]
+    assert colors.tolist() == [[227, 73, 72], [243, 244, 246], [30, 58, 138]]
 
 
 def test_build_fill_color_column_handles_null_values():
     colors = build_fill_color_column(_gdf(), "Naturaleza (NDVI)")
-    assert colors.iloc[0] == [137, 135, 129]  # NO_DATA_COLOR
+    assert colors.iloc[0] == [107, 114, 128]  # NO_DATA_COLOR
 
 
 def test_build_fill_color_column_new_sequential_layers_scale_min_to_max():
@@ -59,7 +59,7 @@ def test_build_fill_color_column_categorical_maps_known_categories():
     colors = build_fill_color_column(_gdf(), "Restricciones legales")
     assert colors.tolist() == [
         [208, 59, 59],  # ENP
-        [42, 120, 214],  # Zona turística oficial
+        [30, 58, 138],  # Zona turística oficial
         [12, 163, 12],  # Sin restricción
     ]
 
@@ -68,7 +68,7 @@ def test_build_fill_color_column_categorical_handles_unknown_as_no_data():
     gdf = _gdf()
     gdf.loc[0, "restriction_category"] = "Categoría desconocida"
     colors = build_fill_color_column(gdf, "Restricciones legales")
-    assert colors.iloc[0] == [137, 135, 129]  # NO_DATA_COLOR
+    assert colors.iloc[0] == [107, 114, 128]  # NO_DATA_COLOR
 
 
 def test_build_fill_color_column_accesibilidad_layers_scale_min_to_max():
