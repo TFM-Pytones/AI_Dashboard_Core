@@ -142,14 +142,24 @@ def render_temas_tab(topicos_municipio_df: pd.DataFrame, chunks_df: pd.DataFrame
         )
 
     st.subheader("Ver opiniones reales de un tema")
-    st.caption("Haz clic en una barra del gráfico de arriba para ver las opiniones de ese tema.")
+    st.caption("Elige un tema en el desplegable, o haz clic directamente en una barra del gráfico.")
 
+    topic_options = topicos_df.sort_values("n", ascending=False)["label_es"].tolist()
+
+    # A chart click pushes its label into the selectbox's own state *before*
+    # the widget is created, so it wins this rerun without fighting the
+    # selectbox's normal key-based state on later reruns.
     event = st.session_state.get("temas_topicos_chart")
-    topic_id_elegido = selected_topic_from_event(event, topicos_df)
-    if topic_id_elegido is None:
-        topic_id_elegido = int(topicos_df.sort_values("n", ascending=False)["topic_id"].iloc[0])
-    topico_elegido = topicos_df.loc[topicos_df["topic_id"] == topic_id_elegido, "label_es"].iloc[0]
-    st.markdown(f"**Tema seleccionado:** {topico_elegido}")
+    clicked_topic_id = selected_topic_from_event(event, topicos_df)
+    if clicked_topic_id is not None:
+        clicked_label = topicos_df.loc[topicos_df["topic_id"] == clicked_topic_id, "label_es"].iloc[0]
+        st.session_state["temas_topico_elegido"] = clicked_label
+
+    if st.session_state.get("temas_topico_elegido") not in topic_options:
+        st.session_state["temas_topico_elegido"] = topic_options[0]
+
+    topico_elegido = st.selectbox("Tema", topic_options, key="temas_topico_elegido")
+    topic_id_elegido = int(topicos_df.loc[topicos_df["label_es"] == topico_elegido, "topic_id"].iloc[0])
 
     muestra = sample_chunks(chunks_df, municipio, topic_id_elegido, n=15)
     if muestra.empty:
