@@ -22,19 +22,24 @@ def format_kpi_value(value, decimals: int = 1) -> str:
     return str(value)
 
 
-def _is_true(value) -> bool:
+def _has_overlap(value) -> bool:
     if value is None:
         return False
     if isinstance(value, float) and math.isnan(value):
         return False
-    return bool(value)
+    return value > 0
 
 
+# gold_h3_master dropped its old boolean es_enp/es_zona_turistica_oficial
+# columns (confirmed by direct schema audit 2026-09-14) in favor of
+# pct_area_enp/pct_area_zona_turistica -- the fraction of the hexagon's area
+# overlapping that polygon type. Any overlap at all (> 0) reproduces the old
+# boolean's semantics.
 def restriction_badges(row) -> list[str]:
     badges = []
-    if _is_true(row.get("es_enp")):
+    if _has_overlap(row.get("pct_area_enp")):
         badges.append("⚠️ Espacio Natural Protegido")
-    if _is_true(row.get("es_zona_turistica_oficial")):
+    if _has_overlap(row.get("pct_area_zona_turistica")):
         badges.append("🏖️ Zona turística oficial")
     return badges
 

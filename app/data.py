@@ -134,13 +134,17 @@ def compute_density_metric(gdf: pd.DataFrame) -> pd.DataFrame:
     return gdf
 
 
+# gold_h3_master dropped its old boolean es_zona_turistica_oficial/es_enp
+# columns at some point after this dashboard was last verified against the
+# live DB (confirmed by direct schema audit 2026-09-14 -- gold_h3_master now
+# has pct_area_zona_turistica/pct_area_enp, the fraction of the hexagon's
+# area overlapping that polygon type, instead of a plain boolean). Any
+# overlap at all (> 0) reproduces the old boolean's semantics.
 def compute_restriction_category(gdf: pd.DataFrame) -> pd.DataFrame:
     gdf = gdf.copy()
     gdf["restriction_category"] = "Sin restricción"
-    gdf.loc[gdf["es_zona_turistica_oficial"] == True, "restriction_category"] = (  # noqa: E712
-        "Zona turística oficial"
-    )
-    gdf.loc[gdf["es_enp"] == True, "restriction_category"] = "ENP"  # noqa: E712
+    gdf.loc[gdf["pct_area_zona_turistica"] > 0, "restriction_category"] = "Zona turística oficial"
+    gdf.loc[gdf["pct_area_enp"] > 0, "restriction_category"] = "ENP"
     return gdf
 
 

@@ -21,8 +21,8 @@ def _h3_gdf():
             "municipio": ["Adeje", "Arona", None],
             "n_plazas_registro": [100, 0, 0],
             "n_establecimientos_registro": [5, 3, 0],
-            "es_enp": [False, True, False],
-            "es_zona_turistica_oficial": [True, True, False],
+            "pct_area_enp": [0.0, 1.0, 0.0],
+            "pct_area_zona_turistica": [0.5, 0.2, 0.0],
         },
         geometry=[Point(0, 0), Point(1, 1), Point(2, 2)],
     )

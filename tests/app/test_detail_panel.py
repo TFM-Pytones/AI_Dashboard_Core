@@ -54,25 +54,25 @@ def test_municipio_aspect_comparison_drops_null_quejas():
 
 
 def test_restriction_badges_shows_enp_badge():
-    row = pd.Series({"es_enp": True, "es_zona_turistica_oficial": False})
+    row = pd.Series({"pct_area_enp": 1.0, "pct_area_zona_turistica": 0.0})
     assert restriction_badges(row) == ["⚠️ Espacio Natural Protegido"]
 
 
 def test_restriction_badges_shows_zona_turistica_badge():
-    row = pd.Series({"es_enp": False, "es_zona_turistica_oficial": True})
+    row = pd.Series({"pct_area_enp": 0.0, "pct_area_zona_turistica": 0.435})
     assert restriction_badges(row) == ["🏖️ Zona turística oficial"]
 
 
-def test_restriction_badges_shows_both_when_both_true():
-    row = pd.Series({"es_enp": True, "es_zona_turistica_oficial": True})
+def test_restriction_badges_shows_both_when_both_overlap():
+    row = pd.Series({"pct_area_enp": 0.09, "pct_area_zona_turistica": 0.26})
     assert restriction_badges(row) == ["⚠️ Espacio Natural Protegido", "🏖️ Zona turística oficial"]
 
 
-def test_restriction_badges_empty_when_neither_flag_set():
-    row = pd.Series({"es_enp": False, "es_zona_turistica_oficial": False})
+def test_restriction_badges_empty_when_neither_overlaps():
+    row = pd.Series({"pct_area_enp": 0.0, "pct_area_zona_turistica": 0.0})
     assert restriction_badges(row) == []
 
 
-def test_restriction_badges_treats_missing_flags_as_false():
-    row = pd.Series({"es_enp": float("nan"), "es_zona_turistica_oficial": None})
+def test_restriction_badges_treats_missing_values_as_no_overlap():
+    row = pd.Series({"pct_area_enp": float("nan"), "pct_area_zona_turistica": None})
     assert restriction_badges(row) == []
