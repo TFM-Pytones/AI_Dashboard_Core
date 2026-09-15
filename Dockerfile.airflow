@@ -1,0 +1,44 @@
+# Dockerfile.airflow
+# ─────────────────────────────────────────────────────────────────────────────
+# Extiende la imagen oficial de Airflow 2.9 añadiendo:
+#   - dbt-postgres (para ejecutar modelos silver/gold desde BashOperator)
+#   - Dependencias del proyecto (psycopg2, azure-storage-blob, geopandas, etc.)
+#   - Chromium + ChromeDriver (para el DAG de social_refresh con Selenium)
+#
+# Nota: torch/transformers NO se instalan en la imagen — son muy pesados y los
+# tasks de ML (sentiment, aspects) se ejecutan en el entorno virtual del repo
+# montado en /opt/airflow/repo, invocados vía BashOperator con el python del venv.
+# ─────────────────────────────────────────────────────────────────────────────
+
+FROM apache/airflow:2.9.2
+
+# Cambiar a root para instalar paquetes del sistema
+USER root
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # Geospatial
+    libgdal-dev \
+    gdal-bin \
+    libgeos-dev \
+    libproj-dev \
+    # Para psycopg2
+    libpq-dev \
+    # Chromium para Selenium (dag_social_refresh)
+    chromium \
+    chromium-driver \
+    # Utilidades
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Volver al usuario airflow para instalar paquetes Python
+USER airflow
+
+# Copiar el requirements del proyecto y el requirements específico de Airflow
+COPY requirements-airflow.txt /requirements-airflow.txt
+
+RUN pip install --no-cache-dir --prefer-binary -r /requirements-airflow.txt -c "https://raw.githubusercontent.com/apache/airflow/constraints-2.9.2/constraints-3.12.txt"
+
+# Variables de entorno para Chromium headless (Selenium)
+ENV CHROME_BIN=/usr/bin/chromium
+ENV CHROMEDRIVER_PATH=/usr/bin/chromedriver

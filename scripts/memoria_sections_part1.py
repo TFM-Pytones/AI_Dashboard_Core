@@ -165,10 +165,35 @@ def get_chapter_3():
 
 ## 3.1. Arquitectura Medallón con dbt Core
 
-El almacén analítico sigue el patrón **Medallion Lakehouse** (Armbrust et al., 2021) implementado con dbt Core 1.8 sobre Azure PostgreSQL Flexible Server v16 + PostGIS 3.4. La orquestación actual se realiza mediante `cron jobs` en la VM Ubuntu de Azure; la migración a Apache Airflow —para linaje de datos completo, reintentos automáticos y observabilidad de DAGs— está planificada como línea de trabajo futura. Las tres capas del *lakehouse* son:
+El almacén analítico sigue el patrón **Medallion Lakehouse** (Armbrust et al., 2021) implementado con dbt Core 1.8 sobre Azure PostgreSQL Flexible Server v16 + PostGIS 3.4. La orquestación del pipeline se realiza con **Apache Airflow 2.x**, desplegado en contenedores Docker (`Dockerfile.airflow` + `docker-compose.yml`) sobre la VM Ubuntu de Azure. El proyecto define **tres DAGs** que cubren los distintos ciclos de vida del dato:
 
-* **Bronze (Raw):** **48 tablas fuente** declaradas en `sources.yml`, organizadas en doce áreas temáticas (alojamiento, Booking, clima, espacial, ISTAC, LosViajeros, movilidad, TripAdvisor y YouTube entre otras). Preserva el estado original con marca temporal de ingesta; ningún dato se modifica ni elimina en esta capa.
-* **Silver (Limpieza y Conformance):** **9 grupos de modelos** SQL —`alojamiento`, `booking`, `clima`, `espacial`, `istac`, `losviajeros`, `movilidad`, `tripadvisor` y `youtube`— que limpian nulos, deduплican registros mediante `ROW_NUMBER() OVER (PARTITION BY id ORDER BY fecha DESC)`, tipifican columnas y proyectan geometrías a EPSG:4326 y EPSG:32628.
+* **`historical_full_pipeline`** (trigger manual, una única vez): Carga histórica completa en cinco fases secuenciales con máxima paralelización interna. Un `ShortCircuitOperator` controlado por la Variable de Airflow `run_heavy_ml` activa o desactiva las tasks de inferencia NLP pesadas (sentimiento, aspectos) sin bloquear el resto del flujo. Las fuentes semimanuales (Booking scraper, satélite con autenticación GEE) se declaran con `TriggerRule.NONE_FAILED_MIN_ONE_SUCCESS` para que el pipeline continúe aunque fallen.
+* **`incremental_monthly_pipeline`** (cron `0 6 1 * *`, primer día de cada mes): Refresca únicamente las fuentes que cambian mensualmente —satélite, ISTAC, clima, alojamientos y AENA (esta última con ShortCircuit que lee la Variable `aena_upload_ready`)— y regenera únicamente los dominios Silver y Gold afectados.
+* **`social_refresh`** (trigger manual): Reingesta controlada de fuentes sociales (Booking, TripAdvisor, YouTube, LosViajeros) y relanza el pipeline NLP cuando se dispone de nuevas reseñas.
+
+Las cinco fases del DAG histórico son:
+
+```
+FASE 1 — Ingesta a Azure Blob Storage (paralelo):
+  ingest_aena │ ingest_alojamientos │ ingest_clima │ ingest_gtfs
+  ingest_istac (2 tasks) │ ingest_espacial (4 tasks secuenciales)
+  ingest_tripadvisor ⚠️ │ ingest_youtube ⚠️ │ ingest_satelite ⚠️
+  ingest_booking ⚠️ │ ingest_losviajeros ⚠️
+  join (none_failed_min_one_success)
+FASE 2 — Carga a PostgreSQL (secuencial 01→07):
+  pg_01_vector → pg_02_mdt → pg_03_satelite → pg_04_booking
+  → pg_05_tabular → pg_06_geocode_booking → pg_07_alojamientos_geocode
+FASE 3 — dbt Silver (paralelo por dominio: 9 dominios)
+FASE 4 — Analytics (paralelo + ShortCircuit GPU):
+  check_ml_enabled → sentiment_batch │ aspects_batch │ geo_toponyms │ clustering
+  accesibilidad_h3 (siempre, sin GPU)
+FASE 5 — dbt Gold (paralelo: 9 modelos)
+```
+
+Las tres capas del *lakehouse* que gestiona dbt son:
+
+* **Bronze (Raw):** **48 tablas fuente** declaradas en `sources.yml`, organizadas en doce áreas temáticas. Preserva el estado original con marca temporal de ingesta; ningún dato se modifica ni elimina en esta capa.
+* **Silver (Limpieza y Conformance):** **9 dominios de modelos** SQL —`alojamiento`, `booking`, `clima`, `espacial`, `istac`, `losviajeros`, `movilidad`, `tripadvisor` y `youtube`— que limpian nulos, deduplican registros mediante `ROW_NUMBER() OVER (PARTITION BY id ORDER BY fecha DESC)`, tipifican columnas y proyectan geometrías a EPSG:4326 y EPSG:32628.
 * **Gold (Analítica Multidimensional):** **11 modelos materializados** listos para ML, visualización y RAG *(catálogo detallado en la sección 4.4)*:
 
 | Modelo Gold | Granularidad | Contenido principal |

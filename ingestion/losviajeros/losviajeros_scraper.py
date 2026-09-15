@@ -26,7 +26,7 @@ BUENAS PRÁCTICAS QUE ESTE SCRIPT RESPETA (no las quites):
   para tu análisis de KPIs, y es una buena práctica ética estándar en estudios
   con contenido de foros).
 
-⚠️ ANTES DE LANZARLO A LOS 248 TEMAS:
+ANTES DE LANZARLO A LOS 248 TEMAS:
 No tengo el HTML crudo de la página (solo pude leerla ya convertida a texto),
 así que los selectores de parse_post() son mi mejor estimación para este tipo
 de foro (parece un phpBB clásico). Prueba primero con UN solo hilo (ver
@@ -235,4 +235,4 @@ def main(max_temas: int | None = None):
 
 
 if __name__ == "__main__":
-    main()
+    main()

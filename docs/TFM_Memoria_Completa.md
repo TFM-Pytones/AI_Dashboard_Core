@@ -152,10 +152,35 @@ Todo el proceso de adquisición se rigió por un marco estricto de diligencia de
 
 ## 3.1. Arquitectura Medallón con dbt Core
 
-El almacén analítico sigue el patrón **Medallion Lakehouse** (Armbrust et al., 2021) implementado con dbt Core 1.8 sobre Azure PostgreSQL Flexible Server v16 + PostGIS 3.4. La orquestación actual se realiza mediante `cron jobs` en la VM Ubuntu de Azure; la migración a Apache Airflow —para linaje de datos completo, reintentos automáticos y observabilidad de DAGs— está planificada como línea de trabajo futura. Las tres capas del *lakehouse* son:
+El almacén analítico sigue el patrón **Medallion Lakehouse** (Armbrust et al., 2021) implementado con dbt Core 1.8 sobre Azure PostgreSQL Flexible Server v16 + PostGIS 3.4. La orquestación del pipeline se realiza con **Apache Airflow 2.x**, desplegado en contenedores Docker (`Dockerfile.airflow` + `docker-compose.yml`) sobre la VM Ubuntu de Azure. El proyecto define **tres DAGs** que cubren los distintos ciclos de vida del dato:
 
-* **Bronze (Raw):** **48 tablas fuente** declaradas en `sources.yml`, organizadas en doce áreas temáticas (alojamiento, Booking, clima, espacial, ISTAC, LosViajeros, movilidad, TripAdvisor y YouTube entre otras). Preserva el estado original con marca temporal de ingesta; ningún dato se modifica ni elimina en esta capa.
-* **Silver (Limpieza y Conformance):** **9 grupos de modelos** SQL —`alojamiento`, `booking`, `clima`, `espacial`, `istac`, `losviajeros`, `movilidad`, `tripadvisor` y `youtube`— que limpian nulos, deduплican registros mediante `ROW_NUMBER() OVER (PARTITION BY id ORDER BY fecha DESC)`, tipifican columnas y proyectan geometrías a EPSG:4326 y EPSG:32628.
+* **`historical_full_pipeline`** (trigger manual, una única vez): Carga histórica completa en cinco fases secuenciales con máxima paralelización interna. Un `ShortCircuitOperator` controlado por la Variable de Airflow `run_heavy_ml` activa o desactiva las tasks de inferencia NLP pesadas (sentimiento, aspectos) sin bloquear el resto del flujo. Las fuentes semimanuales (Booking scraper, satélite con autenticación GEE) se declaran con `TriggerRule.NONE_FAILED_MIN_ONE_SUCCESS` para que el pipeline continúe aunque fallen.
+* **`incremental_monthly_pipeline`** (cron `0 6 1 * *`, primer día de cada mes): Refresca únicamente las fuentes que cambian mensualmente —satélite, ISTAC, clima, alojamientos y AENA (esta última con ShortCircuit que lee la Variable `aena_upload_ready`)— y regenera únicamente los dominios Silver y Gold afectados.
+* **`social_refresh`** (trigger manual): Reingesta controlada de fuentes sociales (Booking, TripAdvisor, YouTube, LosViajeros) y relanza el pipeline NLP cuando se dispone de nuevas reseñas.
+
+Las cinco fases del DAG histórico son:
+
+```
+FASE 1 — Ingesta a Azure Blob Storage (paralelo):
+  ingest_aena │ ingest_alojamientos │ ingest_clima │ ingest_gtfs
+  ingest_istac (2 tasks) │ ingest_espacial (4 tasks secuenciales)
+  ingest_tripadvisor ⚠️ │ ingest_youtube ⚠️ │ ingest_satelite ⚠️
+  ingest_booking ⚠️ │ ingest_losviajeros ⚠️
+  join (none_failed_min_one_success)
+FASE 2 — Carga a PostgreSQL (secuencial 01→07):
+  pg_01_vector → pg_02_mdt → pg_03_satelite → pg_04_booking
+  → pg_05_tabular → pg_06_geocode_booking → pg_07_alojamientos_geocode
+FASE 3 — dbt Silver (paralelo por dominio: 9 dominios)
+FASE 4 — Analytics (paralelo + ShortCircuit GPU):
+  check_ml_enabled → sentiment_batch │ aspects_batch │ geo_toponyms │ clustering
+  accesibilidad_h3 (siempre, sin GPU)
+FASE 5 — dbt Gold (paralelo: 9 modelos)
+```
+
+Las tres capas del *lakehouse* que gestiona dbt son:
+
+* **Bronze (Raw):** **48 tablas fuente** declaradas en `sources.yml`, organizadas en doce áreas temáticas. Preserva el estado original con marca temporal de ingesta; ningún dato se modifica ni elimina en esta capa.
+* **Silver (Limpieza y Conformance):** **9 dominios de modelos** SQL —`alojamiento`, `booking`, `clima`, `espacial`, `istac`, `losviajeros`, `movilidad`, `tripadvisor` y `youtube`— que limpian nulos, deduplican registros mediante `ROW_NUMBER() OVER (PARTITION BY id ORDER BY fecha DESC)`, tipifican columnas y proyectan geometrías a EPSG:4326 y EPSG:32628.
 * **Gold (Analítica Multidimensional):** **11 modelos materializados** listos para ML, visualización y RAG *(catálogo detallado en la sección 4.4)*:
 
 | Modelo Gold | Granularidad | Contenido principal |
@@ -379,28 +404,39 @@ Para capturar la experiencia cualitativa del visitante, el proyecto estructuró 
 | LosViajeros (foros) | 2.650 mensajes | Rutas, tráfico y masificación (textos extensos) |
 | YouTube Data API v3 | 1.890 comentarios | Vídeos de viajes y experiencias en Tenerife |
 
-El pipeline de preprocesamiento aplicó detección de idioma (`langdetect`), eliminación de HTML y URLs, filtrado de stopwords y normalización de términos locales canarios (`"guagua"`, `"guachinche"`, `"barranco"`).
+El pipeline de preprocesamiento (`batch_inference.py`) aplica limpieza de URLs, normalización de espacios y filtrado por longitud mínima de texto (mínimo 3 caracteres).
 
 ## 5.2. Inferencia de Sentimiento Multilingüe (XLM-RoBERTa)
 
-Se empleó el transformador **`cardiffnlp/twitter-xlm-roberta-base-sentiment-multilingual`** (Barbieri et al., 2022), preentrenado en 30 idiomas. La inferencia por lotes de 64 documentos (máx. 256 tokens) produce una puntuación continua de polaridad en [-1, +1]:
+El pipeline de sentimiento opera en dos etapas secuenciales integradas en el DAG de Airflow (Fase 4, tasks `sentiment_batch_inference` y `sentiment_backfill_relevance`):
+
+**Etapa 1 — Filtro de Relevancia Zero-Shot:** Antes de clasificar el sentimiento, un clasificador zero-shot `MoritzLaurer/mDeBERTa-v3-base-mnli-xnli` evalúa cada texto contra cuatro hipótesis: *"comentario sobre turismo en Canarias"*, *"comentario sobre el canal de YouTube"*, *"conversación personal no relacionada"* y *"spam o publicidad"*. Un texto se descarta si la hipótesis off-topic gana por un margen de confianza superior a 0,25, reduciendo el ruido del corpus sin descartar críticas válidas aunque sean negativas. El lote de clasificación zero-shot se procesa en grupos de 8 textos (la evaluación de 4 hipótesis simultáneas es intensiva en GPU).
+
+**Etapa 2 — Clasificación de Sentimiento:** Se empleó el transformador **`cardiffnlp/twitter-xlm-roberta-base-sentiment`** (Barbieri et al., 2022). La inferencia por lotes de 32 documentos (máx. 256 tokens) produce tres probabilidades (positivo, neutro, negativo), de las que se deriva la puntuación continua:
 
 `Score = (+1 · P_positivo) + (0 · P_neutro) + (-1 · P_negativo)`
 
-Contrastado frente a 1.000 opiniones anotadas manualmente, el modelo alcanzó un **F1-score macro de 0,874** y una **exactitud global del 88,2 %**, superando ampliamente a clasificadores Naive Bayes y VADER (<72 %). El script completo `batch_inference.py` se detalla en el Anexo D.1.
+Los resultados se persisten en `bronze.ml_sentiment_results` con la columna `is_relevant` (filtro zero-shot), `label`, `score`, `model_name` y `processed_at`. El diseño es **incremental**: en cada ejecución solo se procesan los textos cuyo `source_id` no existe aún en la tabla, sin reprocesar lo ya clasificado. La tabla es genérica (`source TEXT`) para absorber cualquier fuente futura sin cambiar el esquema.
 
-Antes de clasificar el sentimiento, un filtro **zero-shot** basado en `mDeBERTa-v3-base-mnli-xnli` descarta los textos no relacionados con turismo o el impacto del turismo en Canarias (umbral de confianza > 0,25), reduciendo el ruido del corpus.
+Contrastado frente a 1.000 opiniones anotadas manualmente, el modelo alcanzó un **F1-score macro de 0,874** y una **exactitud global del 88,2 %**, superando ampliamente a clasificadores Naive Bayes y VADER (<72 %) *(métricas completas en Anexo F)*.
 
-## 5.3. Modelado de Tópicos No Supervisado (BERTopic) y Minería de Aspectos (PyABSA)
+## 5.3. Minería de Aspectos (PyABSA-ATEPC)
 
-Para descubrir los temas latentes sin categorías preconcebidas, se articuló un pipeline con **BERTopic** (Grootendorst, 2022): embeddings semánticos de 768 dimensiones con `paraphrase-multilingual-mpnet-base-v2`, reducción UMAP a 5 dimensiones y clustering HDBSCAN con representación c-TF-IDF. Se implementaron dos modelos especializados:
+La tarea de análisis de aspectos (*Aspect-Based Sentiment Analysis*, ABSA) se realiza con **PyABSA** (Yang y Li, 2023) en su modalidad ATEPC (*Aspect-Term Extraction and Polarity Classification* en un solo paso), orchestrada en la Fase 4 del DAG de Airflow (task `aspects_batch_inference`, `analytics/aspects/batch_inference.py`). El checkpoint empleado es `pyabsa-multilingual-ATEPC`, que detecta simultáneamente los términos de aspecto presentes en el texto y su polaridad.
 
-* **Modelo A (Macro Insular):** Entrenado sobre YouTube y LosViajeros (3.245 documentos). Identifica debates generales: atascos en TF-1/TF-5 (polaridad -0,62), masificación en playas del sur (-0,48), senderismo en Teide y Anaga (+0,81) y gastronomía en guachinches (+0,86).
-* **Modelo B (Micro Geolocalizado):** Entrenado en Google Colab con GPU sobre más de 50.000 reseñas de Booking y TripAdvisor vinculadas a celdas H3. Mapea qué temáticas emergen en cada zona: ruido nocturno y colas en piscinas en Adeje/Arona vs. sosiego, paisaje y vistas al mar en medianías del norte.
+Los resultados se persisten en `silver.aspect_results`. Mediante la tabla de traducción `gold.aspecto_traducciones`, más de 1.200 variantes lingüísticas detectadas en cinco idiomas se normalizan a **seis dimensiones canónicas**: *Limpieza*, *Servicio*, *Relación Calidad-Precio*, *Ubicación*, *Confort y Ruido*, y *Saturación e Instalaciones*.
 
-En paralelo, **PyABSA** (Yang y Li, 2023) realiza minería de aspectos (ATE) y clasificación de polaridad por aspecto (APC). Mediante la tabla `gold.aspecto_traducciones`, más de 1.200 variantes lingüísticas se normalizan en seis dimensiones: *Limpieza*, *Servicio*, *Relación Calidad-Precio*, *Ubicación*, *Confort y Ruido*, y *Saturación e Instalaciones*.
+El análisis exploratorio en el notebook `analytics/tarea2/nlp_aspectos_tarea_2_2.ipynb` y la normalización de términos en `traducir_aspectos.ipynb` precedieron a la implementación del pipeline de producción, garantizando la solidez del vocabulario canónico antes del procesamiento masivo.
 
-## 5.4. Integración del Sentimiento en la Malla H3
+## 5.4. Modelado de Tópicos No Supervisado (BERTopic)
+
+Para descubrir los temas latentes sin categorías preconcebidas se articuló un pipeline con **BERTopic** (Grootendorst, 2022): embeddings semánticos de 768 dimensiones con `paraphrase-multilingual-mpnet-base-v2`, reducción UMAP a 5 dimensiones y clustering HDBSCAN con representación c-TF-IDF. Se implementaron **dos modelos especializados** con partición del corpus por disponibilidad de geolocalización:
+
+* **Modelo A — Macro Insular** (`analytics/topics/topic_modeling.py`, ejecutable en CPU): Entrenado sobre YouTube (reseñas ya filtradas por relevancia en `silver.sentiment_results`) y mensajes de LosViajeros **sin ubicación detectada** (el 54 % del corpus de 1.590 mensajes sin coordenadas en `gold.geo_mentions`). Los tópicos identificados incluyen: atascos en TF-1/TF-5 (polaridad -0,62), masificación en playas del sur (-0,48), senderismo en Teide y Anaga (+0,81) y gastronomía en guachinches (+0,86). El modelo se persiste en `analytics/topics/bertopic_model/` para ejecuciones incrementales: en ejecuciones sucesivas solo se clasifican los documentos nuevos (`topic_model.transform`), sin reentrenar desde cero. Parámetros: `min_topic_size = 15`, `min_corpus_size_check = 500`.
+
+* **Modelo B — Micro Geolocalizado** (`topic_modeling_geo_colab.ipynb`, requiere GPU): Entrenado en Google Colab sobre el corpus geolocalizados de Booking (38.412 reseñas) + TripAdvisor (12.840) + LosViajeros con coordenada detectada (46 % del corpus, ~730 mensajes). El corpus se exporta mediante `analytics/topics/export_geo_corpus.py`, se procesa en Colab y los resultados se reimportan a PostgreSQL con `import_geo_results.py`. Vincula cada tópico a su hexágono H3, permitiendo mapear: ruido nocturno y colas en piscinas en Adeje/Arona frente a sosiego, paisaje y vistas al mar en medianías del norte.
+
+## 5.5. Integración del Sentimiento en la Malla H3
 
 El modelo dbt `gold_sentimiento_h3.sql` computa por hexágono el `sentimiento_medio`, el volumen muestral por fuente y la **queja dominante** mediante `MODE() WITHIN GROUP (ORDER BY aspecto_normalizado)`. Los hallazgos estratégicos son:
 
