@@ -25,8 +25,14 @@ Responde solo con SQL o RAG, sin explicación."""
 
 def clasificar(pregunta: str, llm: LLMClient | None = None) -> Literal["sql", "rag"]:
     cliente = llm or LLMClient()
+    # max_tokens=150, no 5: openai/gpt-oss-120b (el modelo de LLMClient) es un
+    # modelo con razonamiento interno -- con max_tokens=5 gasta todo el
+    # presupuesto en tokens de razonamiento ocultos y devuelve "" siempre,
+    # lo que hacia caer cualquier pregunta al fallback RAG. Confirmado
+    # empiricamente contra la API real de Groq (ver
+    # docs/superpowers/plans/2026-09-15-asistente-ia-chatbot.md, Tarea 6).
     respuesta = cliente.complete(
-        PROMPT_CLASIFICACION.format(pregunta=pregunta), temperature=0.0, max_tokens=5
+        PROMPT_CLASIFICACION.format(pregunta=pregunta), temperature=0.0, max_tokens=150
     )
     if respuesta.strip().upper().startswith("SQL"):
         return "sql"
