@@ -117,18 +117,21 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Calcula ptna_score y produce el dataset final del Bloque 5")
     parser.add_argument(
         "--model",
-        default=str(DATA_INTERIM_DIR / "ptna_mgwr_model.pkl"),
-        help="Pickle del modelo (default: analytics/mgwr/data/interim/ptna_mgwr_model.pkl)",
+        default=str(DATA_INTERIM_DIR / "ptna_mgwr_model_v2.pkl"),
+        help="Pickle del modelo (default: analytics/mgwr/data/interim/ptna_mgwr_model_v2.pkl -- "
+             "sufijo _v2 a proposito, para no pisar el ptna_mgwr_model.pkl del v1)",
     )
     parser.add_argument(
         "--dataset",
-        default=str(DATA_INTERIM_DIR / "ptna_dataset_filtered.parquet"),
-        help="Dataset filtrado (default: analytics/mgwr/data/interim/ptna_dataset_filtered.parquet)",
+        default=str(DATA_INTERIM_DIR / "ptna_dataset_filtered_v2.parquet"),
+        help="Dataset filtrado (default: analytics/mgwr/data/interim/ptna_dataset_filtered_v2.parquet -- "
+             "sufijo _v2 a proposito, para no pisar el ptna_dataset_filtered.parquet del v1)",
     )
     parser.add_argument(
         "--output",
-        default=str(DATA_PROCESSED_DIR / "gold_h3_ptna_v1.parquet"),
-        help="Parquet final de salida (default: analytics/mgwr/data/processed/gold_h3_ptna_v1.parquet)",
+        default=str(DATA_PROCESSED_DIR / "gold_h3_ptna_v2.parquet"),
+        help="Parquet final de salida (default: analytics/mgwr/data/processed/gold_h3_ptna_v2.parquet -- "
+             "sufijo _v2 a proposito, para no pisar el gold_h3_ptna_v1.parquet del v1)",
     )
     return parser.parse_args()
 

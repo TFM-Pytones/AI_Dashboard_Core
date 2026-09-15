@@ -33,20 +33,52 @@ LOGS_DIR = BASE_DIR / "logs"
 REQUIRED_ENV_VARS = ["AZURE_DB_HOST", "AZURE_DB_USER", "AZURE_DB_PASSWORD", "AZURE_DB_NAME"]
 DB_PORT = 5432
 
-# Las 9 variables X de referencia del filtro de calidad y del modelo MGWR
-# (ver docs/contexto_maestro_proyecto_ptna.md, seccion 3). Compartidas entre
-# 02_filter_nan.py y 04_run_model.py para no repetir la lista dos veces.
+# Las 14 variables X del dataset v3 (ver docs/contexto_maestro_proyecto_ptna.md,
+# seccion 3, y plan_final_mejorado.md Bloque 5 Subtarea 5.1). El v2 tenia 16 --
+# ver Hallazgo 10: tiempo_teide_min y tiempo_polo_turistico_min se sacaron del
+# modelo por multicolinealidad severa con tiempo_aeropuerto_min (VIF 199.4 y
+# 345.8 respectivamente, r=0.99 entre las 3) -- las 3 miden esencialmente lo
+# mismo ("que tan lejos del interior/costa esta este hexagono") en una isla de
+# este tamanio. Se conserva solo tiempo_aeropuerto_min (columna precalculada,
+# continuidad con el v1, interpretable para TUI). Las otras dos siguen
+# disponibles en el parquet de 01_build_dataset.py para reporting/exploracion,
+# pero no entran a esta lista ni al array X que se le pasa a Sel_BW/MGWR.
+# Usada por 04_run_model.py (imputacion, escalado, ajuste del modelo) y, salvo
+# sentimiento_medio, por 02_filter_nan.py (ver PTNA_NAN_FILTER_COLUMNS abajo).
 PTNA_QUALITY_COLUMNS = [
     "ndvi_medio",
-    "ndbi_medio",
-    "viirs_medio",
     "altitud_media_m",
     "slope_mean",
-    "n_pois_turisticos",
-    "tiempo_tfs_min",
-    "n_paradas_bus_500m",
+    "n_restaurantes",
+    "n_naturaleza",
+    "n_cultura",
+    "dist_hospital_km",
+    "pct_area_enp",
+    "temp_media_anual",
+    "lluvia_mm_anual",
+    "dist_parada_cercana_m",
+    "tiempo_aeropuerto_min",
     "dist_costa_km",
+    "sentimiento_medio",
 ]
+
+# Variables usadas para el filtro de >50% NaN de 02_filter_nan.py -- igual a
+# PTNA_QUALITY_COLUMNS pero SIN sentimiento_medio. Motivo (ver Hallazgo 5):
+# gold.gold_h3_sentimiento solo cubre 410/2579 hexagonos (15.9%) -- el 84.1%
+# restante no tiene ninguna reseña geolocalizada ahi (zonas sin alojamiento
+# turistico cercano), no porque el hexagono sea de mala calidad en el resto de
+# sus variables. Contar sentimiento_medio en el filtro de calidad excluiria de
+# forma incorrecta la mayoria del dataset. sentimiento_medio SI se imputa con
+# la mediana en 04_run_model.py como las demas, solo queda afuera de esta
+# decision de exclusion.
+PTNA_NAN_FILTER_COLUMNS = [c for c in PTNA_QUALITY_COLUMNS if c != "sentimiento_medio"]
+
+# Subconjunto de PTNA_QUALITY_COLUMNS para el chequeo de VIF (Variance
+# Inflation Factor) en 04_run_model.py -- no las 14 variables completas (esas
+# ya se chequean todas con el VIF completo del Hallazgo 10), solo estas 3 por
+# ser las mas obviamente correlacionadas entre si de origen (densidad de POIs
+# turisticos, antes sumadas en una sola n_pois_turisticos hasta el v2).
+PTNA_VIF_CHECK_COLUMNS = ["n_restaurantes", "n_naturaleza", "n_cultura"]
 
 
 def get_engine() -> Engine:
