@@ -5,6 +5,7 @@ import plotly.express as px
 import streamlit as st
 
 from app.alojamiento import render_alojamiento_tab
+from app.asistente import page_asistente
 from app.clima import render_clima_tab
 from app.color_scales import RESTRICTION_COLOR_MAP_HEX
 from app.data import (
@@ -31,10 +32,13 @@ from app.detail_panel import render_detail_panel
 from app.map_layers import (
     DEFAULT_HEXAGON_OPACITY,
     METRICS,
+    MUNICIPIO_METRICS,
     build_deck,
     build_isocronas_layer,
+    build_municipio_layer,
     legend_html,
     list_destinos,
+    municipio_legend_html,
 )
 from app.municipios import render_municipios_tab
 from app.rankings import RANKINGS, render_rankings_tab
@@ -298,6 +302,10 @@ def page_mapa() -> None:
             disabled=not show_hexagons,
             help="Más bajo = se ve más el satélite de fondo. Más alto = se ve más el color de los hexágonos.",
         )
+        show_municipios = st.checkbox("Mostrar capa municipal", value=False)
+        municipio_metric_key = st.selectbox(
+            "Métrica municipal", list(MUNICIPIO_METRICS.keys()), disabled=not show_municipios
+        )
         map_municipio = st.selectbox("Municipio", ["Todos"] + list_municipios(full_gdf), key="map_municipio")
         show_isocronas = st.checkbox("Mostrar isócronas")
         isocrona_destino = None
@@ -313,7 +321,13 @@ def page_mapa() -> None:
         st.caption(f"Leyenda — {metric_key}")
         st.markdown(legend_html(metric_key, filtered_gdf), unsafe_allow_html=True)
 
+    if show_municipios:
+        st.caption(f"Leyenda — {municipio_metric_key} (municipios)")
+        st.markdown(municipio_legend_html(municipio_metric_key, municipio_master), unsafe_allow_html=True)
+
     deck = build_deck(filtered_gdf, metric_key, show_hexagons=show_hexagons, opacity=hex_opacity)
+    if show_municipios:
+        deck.layers.append(build_municipio_layer(municipio_master, municipio_metric_key))
     if show_isocronas and isocrona_destino:
         deck.layers.append(build_isocronas_layer(isocronas, isocrona_destino))
     st.pydeck_chart(deck, on_select="rerun", selection_mode="single-object", key="h3_map", height=650)
@@ -321,9 +335,9 @@ def page_mapa() -> None:
     selected_h3_index = None
     event = st.session_state.get("h3_map")
     if event is not None:
-        picked = event.get("selection", {}).get("objects", {}).get("h3_index", [])
-        if picked:
-            selected_h3_index = picked[0].get("h3_index")
+        picked_hex = event.get("selection", {}).get("objects", {}).get("h3_index", [])
+        if picked_hex:
+            selected_h3_index = picked_hex[0].get("h3_index")
 
     st.divider()
     render_detail_panel(full_gdf, selected_h3_index)
@@ -425,6 +439,7 @@ def page_turismo() -> None:
 
 nav_resumen = st.Page(page_resumen, title="Resumen", icon="📊", default=True)
 nav_mapa = st.Page(page_mapa, title="Mapa", icon="🗺️")
+nav_asistente = st.Page(page_asistente, title="Asistente IA", icon="🤖")
 nav_tabla = st.Page(page_tabla, title="Tabla", icon="📋")
 nav_rankings = st.Page(page_rankings, title="Rankings", icon="🏆")
 nav_clima = st.Page(page_clima, title="Clima", icon="🌡️")
@@ -436,6 +451,7 @@ nav_turismo = st.Page(page_turismo, title="Turismo", icon="✈️")
 pages = [
     nav_resumen,
     nav_mapa,
+    nav_asistente,
     nav_tabla,
     nav_rankings,
     nav_clima,
