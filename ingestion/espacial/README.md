@@ -21,6 +21,18 @@ Crea la cuadrícula espacial hexagonal base de Uber H3 para la isla de Tenerife 
   2. *Filtro de integridad física (MDT y NDVI):* Descarta **4 celdas residuales de acantilados/roques marinos** (1 en Tacoronte sin cota de elevación y 3 en los Roques de Anaga sin cobertura satelital de Sentinel-2).
 - **Resultado:** Quedan consolidadas exactamente **2.579 celdas hexagonales limpias** 100% libres de nulos en topografía y teledetección, con centroides geométricos canónicos puros, que vertebran toda la capa Gold (`gold_h3_master`).
 
+#### Estándares de Sistemas de Coordenadas (CRS)
+* **`EPSG:4326` (WGS84 — Coordenadas Geográficas / Angulares):** Estándar de almacenamiento nativo en Azure PostgreSQL/PostGIS, utilizado para la indexación Uber H3, capas GeoJSON y renderizado web en el frontend (Deck.gl, Folium, Streamlit).
+* **`EPSG:32628` (REGCAN95 / UTM Zona 28N — Proyección Cartográfica Oficial de Canarias):** Empleado internamente cuando se requieren cálculos métricos de alta precisión (cálculo de distancias euclidianas a la costa, áreas en km² y buffers de proximidad), proyectando al vuelo vía `ST_Transform(geom, 32628)`.
+
+#### Resolución del Problema de la Unidad de Área Modificable (MAUP)
+Las divisiones administrativas tradicionales (como los 31 términos municipales) provocan un severo efecto **MAUP** (*Modifiable Areal Unit Problem*): agregar datos en municipios muy extensos (ej. La Orotava, que abarca desde la costa norte hasta la cumbre del Teide a 3.718 m) distorsiona los patrones reales de demanda turística y clima. 
+
+La adopción de la malla hexagonal regular **Uber H3 Resolución 8** resuelve este problema al proporcionar:
+1. **Unidades espaciales uniformes e isotrópicas** (~0,737 km² de área por celda).
+2. **Equidistancia a vecinos**: A diferencia de las cuadrículas cuadradas, cada hexágono tiene 6 vecinos exactamente a la misma distancia de centroide a centroide.
+3. **Centroides Canónicos Puros**: Las coordenadas de cada celda se calculan matemáticamente a partir del centro geométrico puro (`ST_Centroid(geometry)`), evitando cualquier sesgo de desplazamiento espacial derivado de la densidad de puntos de interés (POIs).
+
 ---
 
 ### 2. `enp_zonas_upload_blob.py`

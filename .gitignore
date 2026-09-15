@@ -77,3 +77,8 @@ next-env.d.ts
 
 # 11. Scripts temporales / scratch
 scratch/
+main
+
+# 12. Volcados auxiliares
+extracted_*.txt
+

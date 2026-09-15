@@ -160,7 +160,7 @@ def process_and_geocode():
                 
             # 2. Si falla la dirección, usar fallback con Nombre Comercial en Nominatim
             if not location and fallback_query:
-                logger.info(f"🔄 {table} | Intento Fallback Nominatim (Nombre Comercial): {fallback_query}")
+                logger.info(f"{table} | Intento Fallback Nominatim (Nombre Comercial): {fallback_query}")
                 time.sleep(1.1)
                 location = geolocator.geocode(fallback_query, timeout=10)
                 if location: query_used = fallback_query
@@ -171,14 +171,14 @@ def process_and_geocode():
                 geolocator_arcgis = ArcGIS(user_agent="TFM_Tenerife_Geocoding_Booking_App")
                 
                 if clean_str:
-                    logger.info(f"🚀 {table} | Intento PLAN C (ArcGIS Calle) para: {clean_str}")
+                    logger.info(f"{table} | Intento PLAN C (ArcGIS Calle) para: {clean_str}")
                     try:
                         location = geolocator_arcgis.geocode(clean_str, timeout=10)
                         if location: query_used = clean_str + " (ArcGIS)"
                     except Exception: pass
                         
                 if not location and fallback_query:
-                    logger.info(f"🚀 {table} | Intento PLAN C (ArcGIS Comercial) para: {fallback_query}")
+                    logger.info(f"{table} | Intento PLAN C (ArcGIS Comercial) para: {fallback_query}")
                     try:
                         location = geolocator_arcgis.geocode(fallback_query, timeout=10)
                         if location: query_used = fallback_query + " (ArcGIS)"
@@ -198,7 +198,7 @@ def process_and_geocode():
                 cache[id_registro] = {'lat': None, 'lon': None, 'query': clean_str if clean_str else query_used}
                 
         except (GeocoderTimedOut, GeocoderUnavailable) as e:
-            logger.error(f"⚠️ Error de API geocodificando {id_registro}: {e}")
+            logger.error(f"Error de API geocodificando {id_registro}: {e}")
             break
         except Exception as e:
             logger.error(f"Error inesperado con {id_registro}: {e}")

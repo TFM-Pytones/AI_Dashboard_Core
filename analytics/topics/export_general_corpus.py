@@ -66,7 +66,7 @@ def fetch_youtube(conn) -> list[tuple[str, str, str]]:
         cur.execute(
             """
             SELECT source_id, text
-            FROM silver.sentiment_results
+            FROM silver.silver_sentiment_results
             WHERE source = %s AND is_relevant = true AND length(text) > %s
             """,
             (SOURCE_YOUTUBE, MIN_TEXT_LENGTH),
@@ -79,7 +79,7 @@ def fetch_losviajeros_sin_ubicacion(conn) -> list[tuple[str, str, str]]:
     hash del texto limpio (calculado aqui, no leido de la BD) -- no por id_mensaje,
     ver docstring del modulo."""
     with conn.cursor() as cur:
-        cur.execute("SELECT texto_mensaje_limpio FROM silver.stg_losviajeros_mensajes")
+        cur.execute("SELECT texto FROM silver.silver_losviajeros_mensajes")
         raw_texts = [r[0] for r in cur.fetchall()]
         cur.execute("SELECT source_id FROM gold.geo_mentions WHERE source = %s", (SOURCE_LOSVIAJEROS,))
         geo_ids = {r[0] for r in cur.fetchall()}

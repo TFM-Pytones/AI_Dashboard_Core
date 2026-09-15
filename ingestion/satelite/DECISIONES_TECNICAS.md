@@ -1,4 +1,4 @@
-# 📋 Decisiones Técnicas — Ingesta de Datos Satelitales
+# Decisiones Técnicas — Ingesta de Datos Satelitales
 ## `ingestion/copernicus/` — Issue #10
 
 > **Fecha de implementación**: 30 de julio de 2026  
@@ -80,7 +80,7 @@ La técnica es estándar en teledetección para regiones tropicales y subtropica
 | **Máximo** de NDVI | Coge el valor más verde de la serie | Sesgado por errores atmosféricos residuales (píxeles brillantes anómalos) |
 | **Mínimo** de NDVI | Coge el valor más seco | Sesgado hacia píxeles con nubes residuales o calima severa |
 | **Media** | Promedio de todos los píxeles válidos | Sensible a valores extremos |
-| **Mediana** ✅ | Valor central de la distribución | Robusta frente a outliers; representa bien la condición típica del trimestre |
+| **Mediana** | Valor central de la distribución | Robusta frente a outliers; representa bien la condición típica del trimestre |
 
 ### Por qué GEE y no Copernicus Data Space
 
@@ -92,14 +92,14 @@ La técnica es estándar en teledetección para regiones tropicales y subtropica
 | Volumen de escenas fuente a procesar | ~500-1000 escenas Sentinel-2 para Tenerife 2019-2026 | Ídem |
 | Cuota gratuita | Generosa para investigación | Más restrictiva |
 | Colección disponible | `COPERNICUS/S2_SR_HARMONIZED` (armonizada entre procesadores) | `SENTINEL2_L2A` |
-| CLI/Python API | ✅ Madura (`earthengine-api`) | ✅ (`openeo`) |
-| **Decisión** | **✅ Elegida** | Alternativa documentada en `download_sentinel2_gee.py` (Opción B) |
+| CLI/Python API | Madura (`earthengine-api`) | (`openeo`) |
+| **Decisión** | **Elegida** | Alternativa documentada en `download_sentinel2_gee.py` (Opción B) |
 
 ### Por qué trimestral (y no mensual o anual)
 
 - **Mensual**: con la panza de burro, muchos meses del norte de Tenerife no tendrían píxeles válidos suficientes. Además, la granularidad mensual no aporta ventaja al modelo MGWR que tiene pernoctaciones ISTAC **anuales o como máximo mensuales** por municipio.
 - **Anual**: pierde la **estacionalidad** — un objetivo clave del TFM es detectar la diferencia entre Q3 (verano, máxima presión turística) y Q1 (invierno, menor afluencia).
-- **Trimestral ✅**: capta los 4 patrones estacionales canarios, tiene suficientes píxeles válidos incluso en el norte, y se alinea con los análisis de pernoctaciones trimestrales.
+- **Trimestral **: capta los 4 patrones estacionales canarios, tiene suficientes píxeles válidos incluso en el norte, y se alinea con los análisis de pernoctaciones trimestrales.
 
 ---
 
@@ -164,7 +164,7 @@ Los valores **conservados** incluyen vegetación (4), suelo desnudo (5), agua (6
 | Fuente preferida | GEE (`NOAA/VIIRS/DNB/MONTHLY_V1/VCMSLCFG`) | No requiere cuenta NASA, más rápido |
 | Fuente alternativa | NASA LAADS DAAC VNP46A2 | Para validación cruzada o si GEE no tiene el dato |
 | Resolución | ~500m (~GEE scale 500) | Resolución nativa del producto VIIRS |
-| Metadato COVID | `periodo_covid=1` para 2020-2021 | Caída artificial de ~60-70% por COVID; excluir de regresión MGWR (#31) |
+| Filtrado temporal | Serie completa en Bronze (2019+), Silver filtra `>= 2022` | Mantiene trazabilidad cruda y calibra modelos en ventana post-pandemia homogénea |
 
 ---
 
@@ -180,7 +180,7 @@ Los valores **conservados** incluyen vegetación (4), suelo desnudo (5), agua (6
 | Tamaño de descarga | ~200-400 MB/composite (NDVI+NDBI+B02) | ~600 MB-1.2 GB/composite (3 bandas crudas) |
 | Procesamiento local | Mínimo | `rasterio` + álgebra de bandas |
 | Flexibilidad | Fija el índice en GEE | Permite recalcular índices sin re-descargar |
-| Para el TFM | ✅ Suficiente — índices ya validados | Sobredimensionado |
+| Para el TFM | Suficiente — índices ya validados | Sobredimensionado |
 
 **Banda B02 azul** se incluye igualmente en el export para:
 1. Control de calidad visual (identificar si el composite tiene calima residual)

@@ -5,10 +5,8 @@ Pipeline de Descarga VIIRS Night Lights (NASA) para la Capa Bronce.
 Issue #10 — Extracción Satelital (Copernicus / Sentinel) — componente VIIRS.
 
 Arquitectura Medallón - Capa Bronce (Raw):
-- Descarga composites mensuales VIIRS VNP46A2 (Black Marble) de NASA LAADS DAAC.
-- Recorta al extent de Tenerife y guarda en formato GeoTIFF.
-- Añade metadato `periodo_covid` (TRUE para años 2020-2021) para filtrado posterior.
-- Sube los GeoTIFFs a Azure Blob Storage (bronce-raw/satelite/viirs/).
+- Recorta al extent de Tenerife y sube los GeoTIFFs a Azure Blob Storage (bronce-raw/satelite/viirs/).
+- Ingesta la serie histórica completa desde 2019 (Bronze). El filtrado para modelos se realiza en Silver (>= 2022).
 
 Producto NASA: VNP46A2 — VIIRS/NPP Gap-Filled Lunar BRDF-Adjusted Nighttime Lights
   - Resolución: ~500m (15 arc-seconds)
@@ -89,7 +87,6 @@ TENERIFE_BBOX = {
 }
 
 START_YEAR = 2019
-COVID_YEARS = {2020, 2021}
 
 # GEE: colección VIIRS mensual
 GEE_VIIRS_COLLECTION = "NOAA/VIIRS/DNB/MONTHLY_V1/VCMSLCFG"
@@ -196,16 +193,14 @@ class VIIRSGEEExporter:
             date_start = f"{year}-{month:02d}-01"
             date_end   = f"{year}-{month:02d}-{last_day}"
             desc       = f"tenerife_viirs_{year}_{month:02d}"
-            covid_flag = " [COVID]" if year in COVID_YEARS else ""
 
-            logger.info(f"\n  → {year}/{month:02d}{covid_flag}")
+            logger.info(f"\n  → {year}/{month:02d}")
 
             if self.dry_run:
                 logger.info(f"    [DRY RUN] Se omitiría: {desc}")
                 continue
 
             try:
-                # Composite mensual VIIRS (ya es mensual en GEE → tomar el primero disponible)
                 collection = (
                     ee.ImageCollection(GEE_VIIRS_COLLECTION)
                     .filterBounds(aoi)
@@ -215,19 +210,15 @@ class VIIRSGEEExporter:
 
                 n = collection.size().getInfo()
                 if n == 0:
-                    logger.warning(f"    ⚠️  Sin imágenes para {year}/{month:02d} en GEE.")
+                    logger.warning(f"    Sin imágenes para {year}/{month:02d} en GEE.")
                     continue
 
-                # Para VIIRS mensual: tomar la imagen del mes (ya es un composite)
                 monthly_img = collection.first().clip(aoi)
 
-                # Añadir metadatos como propiedades de la imagen
                 monthly_img = monthly_img.set({
                     "year":          year,
                     "month":         month,
                     "date_start":    date_start,
-                    "periodo_covid": 1 if year in COVID_YEARS else 0,
-                    "incluir_en_modelo": 0 if year in COVID_YEARS else 1,
                     "source":        GEE_VIIRS_COLLECTION,
                     "band":          GEE_VIIRS_BAND,
                     "units":         "nW/cm²/sr",
@@ -277,7 +268,7 @@ class VIIRSNASADownloader:
         self.token   = os.getenv("EARTHDATA_TOKEN", "")
         if not self.token:
             logger.warning(
-                "⚠️ EARTHDATA_TOKEN no configurado en .env\n"
+                "EARTHDATA_TOKEN no configurado en .env\n"
                 "   Regístrate en https://urs.earthdata.nasa.gov/ y genera un token Bearer."
             )
         os.makedirs(LOCAL_VIIRS_DIR, exist_ok=True)
@@ -401,12 +392,11 @@ class VIIRSNASADownloader:
 
         ok_count = 0
         for year, month in months:
-            covid_flag = " [COVID]" if year in COVID_YEARS else ""
             out_fname  = f"tenerife_viirs_{year}_{month:02d}.tif"
             out_path   = os.path.join(LOCAL_VIIRS_DIR, out_fname)
             h5_tmp     = out_path.replace(".tif", "_raw.h5")
 
-            logger.info(f"\n  → {year}/{month:02d}{covid_flag}")
+            logger.info(f"\n  → {year}/{month:02d}")
 
             if os.path.exists(out_path):
                 logger.info(f"  Ya existe: {out_fname}")
@@ -420,12 +410,12 @@ class VIIRSNASADownloader:
             # Buscar URL del HDF5 en LAADS
             url = self._find_hdf5_for_month(year, month)
             if not url:
-                logger.warning(f"    ⚠️ No se encontró HDF5 para {year}/{month:02d} en LAADS.")
+                logger.warning(f"    No se encontró HDF5 para {year}/{month:02d} en LAADS.")
                 continue
 
             # Descargar HDF5
             try:
-                logger.info(f"    📥 Descargando: {url.split('/')[-1]}")
+                logger.info(f"    Descargando: {url.split('/')[-1]}")
                 resp = requests.get(url, headers=self._get_auth_headers(), stream=True, timeout=120)
                 resp.raise_for_status()
                 with open(h5_tmp, "wb") as f:
@@ -467,9 +457,9 @@ class VIIRSAzureUploader:
                 self.blob_client = BlobServiceClient.from_connection_string(conn_str)
                 logger.info("Conectado a Azure Blob Storage.")
             except Exception as exc:
-                logger.warning(f"⚠️ No se pudo conectar a Azure: {exc}")
+                logger.warning(f"No se pudo conectar a Azure: {exc}")
         else:
-            logger.warning("⚠️ AZURE_STORAGE_CONNECTION_STRING no configurada.")
+            logger.warning("AZURE_STORAGE_CONNECTION_STRING no configurada.")
 
     def upload_all(self, local_dir: str = LOCAL_VIIRS_DIR):
         """Sube todos los GeoTIFFs VIIRS a Azure Blob."""
@@ -479,7 +469,7 @@ class VIIRSAzureUploader:
 
         geotiffs = sorted(f for f in os.listdir(local_dir) if f.endswith(".tif"))
         if not geotiffs:
-            logger.warning(f"⚠️ No hay GeoTIFFs en: {local_dir}")
+            logger.warning(f"No hay GeoTIFFs en: {local_dir}")
             return
 
         logger.info(f"\n{'='*55}")
@@ -505,7 +495,7 @@ class VIIRSAzureUploader:
                     blob.upload_blob(f, overwrite=True)
                 size_mb = os.path.getsize(local_path) / 1024 / 1024
                 covid_flag = " [COVID]" if year in {"2020", "2021"} else ""
-                logger.info(f"  ☁️  {blob_name} ({size_mb:.1f} MB){covid_flag}")
+                logger.info(f"    {blob_name} ({size_mb:.1f} MB){covid_flag}")
                 ok_count += 1
             except Exception as exc:
                 logger.error(f"Error subiendo {fname}: {exc}")
@@ -536,17 +526,15 @@ def list_local_viirs(local_dir: str = LOCAL_VIIRS_DIR):
             year   = int(parts[-2])
             month  = int(parts[-1])
             downloaded.add((year, month))
-            covid  = " [COVID — excluir modelo]" if year in COVID_YEARS else ""
-            logger.info(f"{year}/{month:02d}{covid} — {fname}")
+            logger.info(f"{year}/{month:02d} — {fname}")
         except (IndexError, ValueError):
-            logger.info(f"  ❓ {fname}")
+            logger.info(f"    ? {fname}")
 
     missing = [(y, m) for y, m in expected if (y, m) not in downloaded]
     if missing:
-        logger.warning(f"\n  ⚠️  Meses faltantes ({len(missing)}):")
+        logger.warning(f"\n  Meses faltantes ({len(missing)}):")
         for y, m in missing:
-            covid = " [COVID]" if y in COVID_YEARS else ""
-            logger.warning(f"    - {y}/{m:02d}{covid}")
+            logger.warning(f"    - {y}/{m:02d}")
 
 
 # ─── CLI ─────────────────────────────────────────────────────────────────────

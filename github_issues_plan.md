@@ -1,4 +1,4 @@
-# 📋 GitHub Issues — AI Dashboard TFM Tenerife
+# GitHub Issues — AI Dashboard TFM Tenerife
 
 > **Proyecto**: AI-Dashboard para la Gestión de la Oferta Turística Georreferenciada de Tenerife  
 > **Repositorio**: https://github.com/TFM-Pytones/AI_Dashboard_Core  
@@ -7,7 +7,7 @@
 
 ---
 
-## 🗓️ Calendario de Semanas
+## Calendario de Semanas
 
 | Semana | Fechas | Fase |
 |--------|--------|------|
@@ -24,9 +24,9 @@
 
 ---
 
-## 📌 Decisión Metodológica Global: Periodo Temporal del Modelo
+## Decisión Metodológica Global: Periodo Temporal del Modelo
 
-> ⚠️ **Esta decisión afecta a múltiples issues. Todos los miembros del equipo deben conocerla antes de comenzar cualquier ingesta histórica.**
+> **Esta decisión afecta a múltiples issues. Todos los miembros del equipo deben conocerla antes de comenzar cualquier ingesta histórica.**
 
 ### Periodo de análisis: **2019 + 2022 – 2025**
 
@@ -34,14 +34,14 @@ El modelo cubre el periodo **enero 2019 – diciembre 2025**, con las siguientes
 
 | Año | Estado | Incluir en modelo | Razón |
 |-----|--------|-------------------|--------|
-| 2019 | Pre-COVID — año de referencia (~19M pernoctaciones) | ✅ Sí | Línea base normal |
+| 2019 | Pre-COVID — año de referencia (~19M pernoctaciones) | Sí | Línea base normal |
 | 2020 | COVID — colapso total (-75% pernoctaciones) | **Excluir** | Outlier exógeno |
 | 2021 | Restricciones parciales (-45%) | **Excluir** | Outlier exógeno |
-| 2022 | Recuperación fuerte | ✅ Sí | Normalización |
-| 2023 | Normalización completa | ✅ Sí | Año representativo |
-| 2024 | Post-COVID estabilizado | ✅ Sí | Año representativo |
-| 2025 | Tendencia actual | ✅ Sí | Año representativo |
-| 2026 (ene–jun) | Año incompleto | ⚠️ Solo descriptivo | No usar en regresión |
+| 2022 | Recuperación fuerte | Sí | Normalización |
+| 2023 | Normalización completa | Sí | Año representativo |
+| 2024 | Post-COVID estabilizado | Sí | Año representativo |
+| 2025 | Tendencia actual | Sí | Año representativo |
+| 2026 (ene–jun) | Año incompleto | Solo descriptivo | No usar en regresión |
 
 **Justificación académica** (para el TFM): *“Se excluyen los años 2020-2021 por constituir un período de disrupción exógena (pandemia COVID-19) que distorsionaría los coeficientes estructurales del modelo espacial MGWR. Las relaciones entre accesibilidad, entorno natural y demanda turística son patrones estructurales que no cambian con shocks temporales externos.”*
 
@@ -60,7 +60,7 @@ El modelo cubre el periodo **enero 2019 – diciembre 2025**, con las siguientes
 
 ---
 
-## 🔵 FASE 1 — Aprovisionamiento e Ingesta de Datos (Capa Bronce)
+## FASE 1 — Aprovisionamiento e Ingesta de Datos (Capa Bronce)
 
 > **Objetivo**: Levantar la infraestructura cloud, orquestar los pipelines ETL y volcar todos los datos externos a la capa Bronce (Azure Blob Storage) en formato particionado. Sin esta fase, ninguna otra puede avanzar.
 
@@ -68,7 +68,7 @@ El modelo cubre el periodo **enero 2019 – diciembre 2025**, con las siguientes
 
 ### Issue #1 — Aprovisionamiento de la Base de Datos (Azure Blob Storage + PostgreSQL Flexible)
 
-**Dificultad**: 🔴 Alta | **Importancia/Bloqueo**: 🔴 Alta | **Semana**: S1
+**Dificultad**: Alta | **Importancia/Bloqueo**: Alta | **Semana**: S1
 
 #### Descripción
 Este issue cubre el aprovisionamiento completo del backend de datos del proyecto sobre Microsoft Azure. Es la tarea más crítica del TFM: sin la infraestructura de almacenamiento operativa, ningún pipeline de ingesta puede ejecutarse.
@@ -97,7 +97,7 @@ Este issue cubre el aprovisionamiento completo del backend de datos del proyecto
 
 ### Issue #3 — Despliegue de la Máquina Virtual Azure
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🔴 Alta | **Semana**: S1
+**Dificultad**: Media | **Importancia/Bloqueo**: Alta | **Semana**: S1
 
 #### Descripción
 La Máquina Virtual (VM) es el nodo de ejecución central del proyecto: aloja Apache Airflow, ejecuta los DAGs de ingesta programados, los scripts de scraping y eventualmente servirá el dashboard de Streamlit. Debe estar operativa antes de semana 2.
@@ -125,7 +125,7 @@ La Máquina Virtual (VM) es el nodo de ejecución central del proyecto: aloja Ap
 
 ### Issue #4 — Orquestación Inicial Apache Airflow / dbt
 
-**Dificultad**: 🔴 Alta | **Importancia/Bloqueo**: 🔴 Alta | **Semana**: S1–S2
+**Dificultad**: Alta | **Importancia/Bloqueo**: Alta | **Semana**: S1–S2
 
 #### Descripción
 Configurar Apache Airflow como orquestador de todos los pipelines ETL del proyecto. Airflow gestionará los DAGs de ingesta (Fase 1), transformación dbt (Fase 2) y modelos de IA (Fase 3). dbt se integrará como operador dentro de Airflow para gestionar las transformaciones de capa plata/oro.
@@ -152,7 +152,7 @@ Configurar Apache Airflow como orquestador de todos los pipelines ETL del proyec
 
 ### Issue #5 — Extracción Microdatos Oficiales (Cabildo / ISTAC)
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🟡 Media | **Semana**: S2
+**Dificultad**: Media | **Importancia/Bloqueo**: Media | **Semana**: S2
 
 #### Descripción
 Descargar y almacenar los microdatos estadísticos oficiales de Tenerife publicados por el Instituto Canario de Estadística (ISTAC) y el Cabildo de Tenerife. Estos datos aportan el contexto demográfico y de oferta alojativa que alimentará los modelos analíticos.
@@ -181,7 +181,7 @@ Descargar y almacenar los microdatos estadísticos oficiales de Tenerife publica
 
 ### Issue #43 — Extracción Microdatos Tabulares Oficiales 2
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🟢 Baja | **Semana**: S2–S3
+**Dificultad**: Media | **Importancia/Bloqueo**: Baja | **Semana**: S2–S3
 
 #### Descripción
 Complemento del Issue #5. Cubre la extracción de microdatos tabulares adicionales no incluidos en la primera entrega, especialmente aquellos con formatos no estándar (Excel, ficheros zip, portales WMS/WFS).
@@ -203,7 +203,7 @@ Complemento del Issue #5. Cubre la extracción de microdatos tabulares adicional
 
 ### Issue #6 — Estandarización de Coordenadas a EPSG:32628
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🔴 Alta | **Semana**: S2
+**Dificultad**: Media | **Importancia/Bloqueo**: Alta | **Semana**: S2
 
 #### Descripción
 Todos los datos geoespaciales del proyecto deben estar en el mismo sistema de coordenadas proyectado para que los análisis espaciales sean correctos. La proyección oficial para Canarias es **EPSG:32628 (WGS 84 / UTM Zone 28N)**. Esta tarea establece la función de transformación estándar que todos los pipelines deben usar.
@@ -226,7 +226,7 @@ Todos los datos geoespaciales del proyecto deben estar en el mismo sistema de co
 
 ### Issue #7 — Ingesta de Red de Transporte (Ficheros GTFS — TITSA)
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🟡 Media | **Semana**: S2–S3
+**Dificultad**: Media | **Importancia/Bloqueo**: Media | **Semana**: S2–S3
 
 #### Descripción
 Los ficheros GTFS (General Transit Feed Specification) de TITSA (Transportes Interurbanos de Tenerife) y el Metropolitano de Tenerife contienen la topología completa de la red de transporte público: rutas, paradas con coordenadas, horarios y calendarios de servicio. Son esenciales para el análisis de accesibilidad.
@@ -250,7 +250,7 @@ Los ficheros GTFS (General Transit Feed Specification) de TITSA (Transportes Int
 
 ### Issue #44 — Ingesta Espacial Espacios Naturales Protegidos (IDECanarias)
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🟡 Media | **Semana**: S2–S3
+**Dificultad**: Media | **Importancia/Bloqueo**: Media | **Semana**: S2–S3
 
 #### Descripción
 Los Espacios Naturales Protegidos de Tenerife (Parque Nacional del Teide, Parque Rural Anaga, etc.) son capas espaciales clave para el análisis de capacidad de carga y redistribución turística. Se obtienen del geoportal **IDECanarias** via servicios WFS o descarga de Shapefiles.
@@ -272,7 +272,7 @@ Los Espacios Naturales Protegidos de Tenerife (Parque Nacional del Teide, Parque
 
 ### Issue #42 — Ingesta Topográfica (MDT — Modelo Digital del Terreno)
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🟡 Media | **Semana**: S3
+**Dificultad**: Media | **Importancia/Bloqueo**: Media | **Semana**: S3
 
 #### Descripción
 El Modelo Digital del Terreno (MDT) de Tenerife en formato raster `.tif` permite calcular altitud, pendiente (slope) y orientación (aspect) para cada punto de la isla. Estos datos topoclimáticos son críticos para el análisis de distribución de temperaturas y la Calibración Topoclimática de la Fase 5.
@@ -295,7 +295,7 @@ El Modelo Digital del Terreno (MDT) de Tenerife en formato raster `.tif` permite
 
 ### Issue #8 — Parseo de GTFS a Tablas
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🟡 Media | **Semana**: S3
+**Dificultad**: Media | **Importancia/Bloqueo**: Media | **Semana**: S3
 
 #### Descripción
 Transformar los ficheros GTFS planos (`.txt` en CSV) a tablas estructuradas en la base de datos PostgreSQL (esquema `bronce`). Esto permite consultas SQL eficientes sobre la red de transporte y sienta las bases para el análisis de accesibilidad.
@@ -317,12 +317,12 @@ Transformar los ficheros GTFS planos (`.txt` en CSV) a tablas estructuradas en l
 
 ### Issue #9 — Recopilación Datos Meteo Agrocabildo y Open-Meteo
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🟡 Media | **Semana**: S3
+**Dificultad**: Media | **Importancia/Bloqueo**: Media | **Semana**: S3
 
 #### Descripción
 Ingesta de datos climáticos históricos y en tiempo real desde dos fuentes complementarias: la red de estaciones de **Agrocabildo** (red oficial de Tenerife) y la **Open-Meteo API** (reanálisis ERA5-Land y predicciones). Estos datos alimentarán el modelo de Calibración Topoclimática y la validación cruzada.
 
-> 📌 **Periodo temporal**: Los datos meteorológicos **no se ven afectados por el COVID** (la atmósfera no para). Descargar el **periodo completo 2019 – junio 2026** sin exclusiones.
+> **Periodo temporal**: Los datos meteorológicos **no se ven afectados por el COVID** (la atmósfera no para). Descargar el **periodo completo 2019 – junio 2026** sin exclusiones.
 
 #### Datos de Agrocabildo
 - Temperatura, humedad relativa, precipitación, velocidad del viento, radiación solar.
@@ -350,12 +350,12 @@ Ingesta de datos climáticos históricos y en tiempo real desde dos fuentes comp
 
 ---
 
-### Issue #10 — Extracción Satelital (Copernicus / Sentinel) ✅ IMPLEMENTADO
+### Issue #10 — Extracción Satelital (Copernicus / Sentinel) IMPLEMENTADO
 
-**Dificultad**: 🔴 Alta | **Importancia/Bloqueo**: 🟡 Media | **Semana**: S3
+**Dificultad**: Alta | **Importancia/Bloqueo**: Media | **Semana**: S3
 
-> ✅ **Estado**: Scripts implementados. Pendiente lanzar exports en GEE y descargar resultados.
-> 📄 **Decisiones técnicas**: Ver `ingestion/copernicus/DECISIONES_TECNICAS.md`
+> **Estado**: Scripts implementados. Pendiente lanzar exports en GEE y descargar resultados.
+> **Decisiones técnicas**: Ver `ingestion/copernicus/DECISIONES_TECNICAS.md`
 
 #### Descripción
 Generación de composites satelitales multiespectrales para Tenerife usando **Google Earth Engine (GEE)** como motor de procesamiento. Los composites alimentan el cálculo de NDVI (vegetación), NDBI (urbanización) y luces nocturnas VIIRS en la Fase 3.
@@ -366,7 +366,7 @@ Se abandonó el enfoque original de descarga de escenas individuales (una por me
 
 La solución adoptada es el **composite de mediana trimestral** en GEE, que combina todos los píxeles válidos del trimestre eliminando nubes, sombras y calima.
 
-> 📌 **Periodo temporal**:
+> **Periodo temporal**:
 > - **Sentinel-2 (NDVI, NDBI)**: **2019-01 → último Q completo disponible** (auto-calculado en el script). La vegetación no se ve afectada por el COVID — incluir todos los años.
 > - **VIIRS Night Lights**: **2019-01 → último mes completo disponible** (~2 meses de latencia NASA). Los años 2020-2021 se etiquetan `periodo_covid=1` e `incluir_en_modelo=0` — caída artificial por COVID excluida del modelo MGWR.
 
@@ -460,7 +460,7 @@ bronce-raw/
 
 ### Issue #12 — Scraping Plataformas de Reservas (TripAdvisor / Booking)
 
-**Dificultad**: 🔴 Alta | **Importancia/Bloqueo**: 🟡 Media | **Semana**: S3
+**Dificultad**: Alta | **Importancia/Bloqueo**: Media | **Semana**: S3
 
 #### Descripción
 Extracción automatizada de reseñas de alojamientos turísticos en Tenerife desde plataformas de opinión. Las reseñas son el corpus de texto que alimentará los modelos de Análisis de Sentimiento (Fase 3). Es importante respetar los Terms of Service y usar técnicas de scraping responsable (rate limiting, User-Agent real).
@@ -479,13 +479,13 @@ Extracción automatizada de reseñas de alojamientos turísticos en Tenerife des
 - [ ] Implementar backoff exponencial y respetar `robots.txt`.
 - [ ] Crear DAG `dag_scraping.py` con trigger mensual.
 
-> ⚠️ **Nota legal**: Revisar Terms of Service de cada plataforma. Considerar alternativas como datasets de reseñas públicos de Kaggle o Google Maps API.
+> **Nota legal**: Revisar Terms of Service de cada plataforma. Considerar alternativas como datasets de reseñas públicos de Kaggle o Google Maps API.
 
 ---
 
 ### Issue #13 — Integración APIs de Google y YouTube
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🟢 Baja | **Semana**: S3
+**Dificultad**: Media | **Importancia/Bloqueo**: Baja | **Semana**: S3
 
 #### Descripción
 Extracción de comentarios de YouTube sobre turismo en Tenerife y datos de Google Maps (valoraciones de lugares turísticos). Los datos de YouTube complementan las reseñas de plataformas de alojamiento con opiniones más informales y en vídeo.
@@ -510,7 +510,7 @@ Extracción de comentarios de YouTube sobre turismo en Tenerife y datos de Googl
 
 ### Issue #14 — Extracción de Foros (Los Viajeros y Google Maps)
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🟢 Baja | **Semana**: S3
+**Dificultad**: Media | **Importancia/Bloqueo**: Baja | **Semana**: S3
 
 #### Descripción
 Complemento textual al scraping de plataformas hoteleras. Los foros de viajeros (losviajeros.com) contienen opiniones más detalladas y no estructuradas sobre experiencias turísticas en Tenerife.
@@ -526,7 +526,7 @@ Complemento textual al scraping de plataformas hoteleras. Los foros de viajeros 
 
 ### Issue #15 — Redacción TFM Fase 1
 
-**Dificultad**: 🟢 Baja | **Importancia/Bloqueo**: 🟢 Baja | **Semana**: S2–S3
+**Dificultad**: Baja | **Importancia/Bloqueo**: Baja | **Semana**: S2–S3
 
 #### Descripción
 Redacción de los capítulos del TFM correspondientes a la Fase 1: Introducción, Contexto de Negocio, Descripción de la Arquitectura y Fuentes de Datos.
@@ -547,7 +547,7 @@ Redacción de los capítulos del TFM correspondientes a la Fase 1: Introducción
 
 ---
 
-## 🟡 FASE 2 — Limpieza, Transformación y Carga a Capa Plata
+## FASE 2 — Limpieza, Transformación y Carga a Capa Plata
 
 > **Objetivo**: Tomar los datos crudos de la Capa Bronce, limpiarlos, estructurarlos y subirlos a la Capa Plata (esquema `plata` en PostgreSQL). Cada miembro del equipo es responsable de limpiar y cargar su propia fuente de datos. Se procesan los datos geoespaciales del MDT, se normalizan las fuentes y se indexa la base de datos para análisis eficiente.
 
@@ -555,7 +555,7 @@ Redacción de los capítulos del TFM correspondientes a la Fase 1: Introducción
 
 ### Issue #2 — Habilitación y Modelado en PostGIS
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🔴 Alta | **Semana**: S4
+**Dificultad**: Media | **Importancia/Bloqueo**: Alta | **Semana**: S4
 
 #### Descripción
 Diseñar y crear el Data Warehouse espacial en PostgreSQL con PostGIS. Define el esquema relacional completo de las capas Plata y Oro: tablas limpias con tipos espaciales, relaciones foreign key y la convención de nomenclatura del proyecto. **Primera tarea de la Fase 2: debe completarse antes que todas las ETLs.**
@@ -593,7 +593,7 @@ Diseñar y crear el Data Warehouse espacial en PostgreSQL con PostGIS. Define el
 
 ### Issue #45 — Geoprocesamiento MDT: Altitud, Pendiente y Orientación
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🟡 Media | **Semana**: S4
+**Dificultad**: Media | **Importancia/Bloqueo**: Media | **Semana**: S4
 
 #### Descripción
 Procesar el raster MDT descargado en Fase 1 (Issue #42) para extraer las tres variables topográficas clave: **altitud**, **pendiente** (slope en grados) y **orientación** (aspect en grados desde el norte). Se muestrean sobre la rejilla H3 para alimentar la Calibración Topoclimática y el modelo MGWR.
@@ -619,7 +619,7 @@ Procesar el raster MDT descargado en Fase 1 (Issue #42) para extraer las tres va
 
 ### Issue #46 — ETL de Datos Climáticos (Agrocabildo + Open-Meteo → Plata)
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🟡 Media | **Semana**: S4
+**Dificultad**: Media | **Importancia/Bloqueo**: Media | **Semana**: S4
 
 #### Descripción
 Limpiar y consolidar en la capa Plata los datos meteorológicos ingeridos en Bronce (Issue #9): estaciones **Agrocabildo** y **Open-Meteo ERA5**. El resultado es `plata.meteo_horaria`: una tabla limpia, sin gaps críticos, con metadatos de estación, lista para la Calibración Topoclimática.
@@ -640,7 +640,7 @@ Limpiar y consolidar en la capa Plata los datos meteorológicos ingeridos en Bro
 
 ### Issue #47 — ETL de Redes de Transporte (GTFS → Plata)
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🟡 Media | **Semana**: S4
+**Dificultad**: Media | **Importancia/Bloqueo**: Media | **Semana**: S4
 
 #### Descripción
 Transformar los datos GTFS de TITSA ya parseados en `bronce` (Issue #8) a la capa Plata con geometrías limpias, validadas y en EPSG:32628. Las paradas y rutas deben quedar como entidades geoespaciales consultables para el análisis de accesibilidad.
@@ -665,7 +665,7 @@ Transformar los datos GTFS de TITSA ya parseados en `bronce` (Issue #8) a la cap
 
 ### Issue #48 — Preprocesamiento de Texto (Scraping → Plata)
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🟡 Media | **Semana**: S4–S5
+**Dificultad**: Media | **Importancia/Bloqueo**: Media | **Semana**: S4–S5
 
 #### Descripción
 Limpiar y normalizar el corpus de texto extraído en Fase 1 (reseñas TripAdvisor, Booking, YouTube, foros) para prepararlo para los modelos NLP de Fase 3. Un texto sucio degrada la calidad del análisis de sentimiento y el modelado de tópicos.
@@ -679,7 +679,7 @@ Limpiar y normalizar el corpus de texto extraído en Fase 1 (reseñas TripAdviso
     - Eliminar HTML tags (`<br>`, `&amp;`) con `BeautifulSoup`.
     - Normalizar espacios y saltos de línea.
     - Convertir a Unicode NFC.
-    - ⚠️ NO aplicar stemming ni eliminar stopwords (los transformers lo manejan internamente).
+    - NO aplicar stemming ni eliminar stopwords (los transformers lo manejan internamente).
   - **Detección de idioma**: usar `langdetect` para asignar `idioma` (`es`, `en`, `de`, `fr`…). Si confianza < 0.8 → `idioma_incierto = TRUE`.
   - **Asociación geográfica**: vincular cada reseña a `municipio_cod` via lookup del nombre del establecimiento. Si no se puede asociar → `municipio_cod = NULL`.
   - **Etiquetado periodo COVID**: añadir campo `periodo_covid BOOLEAN = TRUE` para todas las reseñas con `fecha_reseña` entre `2020-01-01` y `2021-12-31`. Estos registros se incluyen en Plata pero los modelos NLP de Fase 3 los procesarán por separado para no contaminar el corpus de entrenamiento principal.
@@ -690,7 +690,7 @@ Limpiar y normalizar el corpus de texto extraído en Fase 1 (reseñas TripAdviso
 
 ### Issue #49 — ETL de Cartografía Base (IDECanarias → Plata)
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🔴 Alta | **Semana**: S4
+**Dificultad**: Media | **Importancia/Bloqueo**: Alta | **Semana**: S4
 
 #### Descripción
 Transformar las capas espaciales de IDECanarias (Issue #44) y los microdatos de oferta alojativa (Issue #5) a tablas limpias en la capa Plata. Estas capas son la **base geográfica de referencia** de todos los demás análisis: sin ellas no hay joins espaciales posibles.
@@ -720,7 +720,7 @@ Transformar las capas espaciales de IDECanarias (Issue #44) y los microdatos de 
 
 ### Issue (NUEVO) — ETL Estadísticas Turísticas ISTAC → Plata
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🔴 Alta | **Semana**: S4
+**Dificultad**: Media | **Importancia/Bloqueo**: Alta | **Semana**: S4
 
 #### Descripción
 Los Issues #5 y #43 ingieren los microdatos del ISTAC a la Capa Bronce, y el Issue #49 sube la oferta alojativa a Plata. Pero **nadie tiene asignado llevar las series estadísticas de demanda turística** (pernoctaciones, viajeros, tasa de ocupación por municipio y mes) a una tabla de Plata estructurada. Sin esta tabla, el Issue #31 (Dataset de Regresión) no tiene variable dependiente `Y` y la MGWR (#32) no puede ejecutarse. Este ETL es crítico para el núcleo analítico del TFM.
@@ -732,7 +732,7 @@ Los Issues #5 y #43 ingieren los microdatos del ISTAC a la Capa Bronce, y el Iss
 - **Periodo a descargar**: 2019 – junio 2026 (completo, incluyendo años COVID).
 - **Periodo para el modelo de regresión**: **2019 + 2022–2025** (excluir 2020, 2021 y 2026 del campo `incluir_en_modelo`).
 
-> 📌 **Decisión de periodo**: se descargan todos los años (2019–2026) para análisis descriptivo completo, pero se añade el campo `incluir_en_modelo BOOLEAN` que vale `FALSE` para 2020, 2021 y 2026 (año incompleto). El Issue #31 filtrará por este campo al construir el dataset de regresión.
+> **Decisión de periodo**: se descargan todos los años (2019–2026) para análisis descriptivo completo, pero se añade el campo `incluir_en_modelo BOOLEAN` que vale `FALSE` para 2020, 2021 y 2026 (año incompleto). El Issue #31 filtrará por este campo al construir el dataset de regresión.
 
 #### Subtareas
 - [ ] Implementar `ingestion/etl/etl_estadisticas_istac.py`:
@@ -767,7 +767,7 @@ Los Issues #5 y #43 ingieren los microdatos del ISTAC a la Capa Bronce, y el Iss
 - [ ] Documentar en `docs/data_sources.md` las variables disponibles, su periodicidad y las limitaciones de confidencialidad.
 
 #### Por qué es crítico
-> ⚠️ Sin `plata.estadisticas_turismo`, los siguientes issues **no tienen datos**:
+> Sin `plata.estadisticas_turismo`, los siguientes issues **no tienen datos**:
 > - **#31** (Dataset de Regresión): no tiene variable `Y` (pernoctaciones por hexágono).
 > - **#32** (MGWR): el modelo no puede calibrarse.
 > - **#27** (Brechas de Mercado): el PTNA necesita la demanda real como denominador.
@@ -777,7 +777,7 @@ Los Issues #5 y #43 ingieren los microdatos del ISTAC a la Capa Bronce, y el Iss
 
 ### Issue #50 — Cuadrícula Espacial Base (H3 / Hexágonos sobre Tenerife)
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🔴 Alta | **Semana**: S4
+**Dificultad**: Media | **Importancia/Bloqueo**: Alta | **Semana**: S4
 
 #### Descripción
 Generar la rejilla de hexágonos H3 de Uber que cubre todo el territorio de Tenerife. Es la **unidad espacial de agregación universal** del proyecto: todos los análisis de Fase 3 (NDVI, sentimiento, clustering, accesibilidad, MGWR) almacenarán sus resultados por `h3_index`. **Sin esta tabla la Fase 3 no puede comenzar.**
@@ -805,7 +805,7 @@ La **resolución 8** genera hexágonos de ~0.74 km², produciendo entre 2.000 y 
 - [ ] Generar variante de **resolución 9** (opcional) para zonas costeras.
 
 #### Dependencias bloqueadas
-> ⚠️ Los siguientes issues **no pueden comenzar** hasta que este esté completado:
+> Los siguientes issues **no pueden comenzar** hasta que este esté completado:
 > #45, #20, #22, #23, #24, #25, #26, #27, #29, #30, #31, #32 y Calibración Topoclimática.
 
 #### Dependencias previas
@@ -815,7 +815,7 @@ La **resolución 8** genera hexágonos de ~0.74 km², produciendo entre 2.000 y 
 
 ### Issue #51 — Indexación y Optimización de la Base de Datos
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🟡 Media | **Semana**: S5
+**Dificultad**: Media | **Importancia/Bloqueo**: Media | **Semana**: S5
 
 #### Descripción
 Una vez cargadas todas las tablas de la capa Plata, optimizar la base de datos para que las consultas de Fase 3 (joins espaciales, series temporales, agregaciones por H3) sean eficientes. Sin esta optimización, los joins geoespaciales complejos sobre tablas grandes pueden tardar minutos en lugar de segundos.
@@ -848,7 +848,7 @@ Una vez cargadas todas las tablas de la capa Plata, optimizar la base de datos p
 
 ---
 
-## 🔴 FASE 3 — NLP, Inteligencia Artificial y Clustering (Capa Oro)
+## FASE 3 — NLP, Inteligencia Artificial y Clustering (Capa Oro)
 
 > **Objetivo**: Aplicar modelos de Machine Learning y Deep Learning sobre los datos de la Capa Plata para generar inteligencia: análisis de sentimiento, tópicos, índices ambientales y clustering espacial. Los resultados van a la Capa Oro.
 
@@ -856,7 +856,7 @@ Una vez cargadas todas las tablas de la capa Plata, optimizar la base de datos p
 
 ### Issue #16 — Setup Entorno Hugging Face y Modelos
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🔴 Alta | **Semana**: S6
+**Dificultad**: Media | **Importancia/Bloqueo**: Alta | **Semana**: S6
 
 #### Descripción
 Configurar el entorno Python en la VM Azure para ejecutar modelos de Hugging Face. Los modelos transformers requieren dependencias específicas (`transformers`, `torch`, `datasets`) y suficiente RAM/GPU para inferencia por lotes sobre el corpus de reseñas.
@@ -880,7 +880,7 @@ Configurar el entorno Python en la VM Azure para ejecutar modelos de Hugging Fac
 
 ### Issue #17 — Inferencia de Sentimiento por Lotes
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🟡 Media | **Semana**: S6
+**Dificultad**: Media | **Importancia/Bloqueo**: Media | **Semana**: S6
 
 #### Descripción
 Ejecutar el modelo de análisis de sentimiento multilingüe sobre todo el corpus de reseñas (TripAdvisor, Booking, YouTube, foros). La inferencia debe ser eficiente (por lotes) y almacenar los resultados en la Capa Oro.
@@ -898,7 +898,7 @@ Ejecutar el modelo de análisis de sentimiento multilingüe sobre todo el corpus
 
 ### Issue #18 — Configuración de Extracción de Aspectos (pyabsa)
 
-**Dificultad**: 🔴 Alta | **Importancia/Bloqueo**: 🟡 Media | **Semana**: S6
+**Dificultad**: Alta | **Importancia/Bloqueo**: Media | **Semana**: S6
 
 #### Descripción
 Aplicar Aspect-Based Sentiment Analysis (ABSA) con `pyabsa` para identificar qué aspectos específicos del turismo (limpieza, ubicación, precio, transporte, naturaleza) mencionan los usuarios y con qué sentimiento.
@@ -914,7 +914,7 @@ Aplicar Aspect-Based Sentiment Analysis (ABSA) con `pyabsa` para identificar qu�
 
 ### Issue #19 — Modelado de Tópicos (BERTopic)
 
-**Dificultad**: 🔴 Alta | **Importancia/Bloqueo**: 🟡 Media | **Semana**: S6
+**Dificultad**: Alta | **Importancia/Bloqueo**: Media | **Semana**: S6
 
 #### Descripción
 Aplicar `BERTopic` para descubrir los temas latentes en el corpus de reseñas turísticas. BERTopic combina embeddings de sentence-transformers con UMAP + HDBSCAN para clustering de textos.
@@ -932,7 +932,7 @@ Aplicar `BERTopic` para descubrir los temas latentes en el corpus de reseñas tu
 
 ### Issue #20 — Georreferenciación de Tópicos y Sentimientos
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🟡 Media | **Semana**: S7
+**Dificultad**: Media | **Importancia/Bloqueo**: Media | **Semana**: S7
 
 #### Descripción
 Vincular los resultados de NLP (sentimiento, tópicos, aspectos) a la dimensión espacial mediante el municipio del alojamiento reseñado. Genera mapas de calor de sentimiento y distribución de tópicos por territorio.
@@ -948,7 +948,7 @@ Vincular los resultados de NLP (sentimiento, tópicos, aspectos) a la dimensión
 
 ### Issue #21 — Preprocesamiento de Imágenes Sentinel
 
-**Dificultad**: 🔴 Alta | **Importancia/Bloqueo**: 🔴 Alta | **Semana**: S6–S7
+**Dificultad**: Alta | **Importancia/Bloqueo**: Alta | **Semana**: S6–S7
 
 #### Descripción
 Preprocesar las imágenes Sentinel-2 descargadas en Bronce para obtener reflectancias de superficie limpias y recortar al extent de Tenerife. Este paso es obligatorio antes de calcular los índices NDVI y NDBI.
@@ -966,7 +966,7 @@ Preprocesar las imágenes Sentinel-2 descargadas en Bronce para obtener reflecta
 
 ### Issue #22 — Cálculo del Índice NDVI (Vegetación)
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🟡 Media | **Semana**: S7
+**Dificultad**: Media | **Importancia/Bloqueo**: Media | **Semana**: S7
 
 #### Descripción
 Calcular el índice NDVI (Normalized Difference Vegetation Index) para monitorizar la cobertura vegetal de Tenerife a lo largo del tiempo. El NDVI es un indicador clave de la presión turística sobre espacios naturales.
@@ -984,7 +984,7 @@ Calcular el índice NDVI (Normalized Difference Vegetation Index) para monitoriz
 
 ### Issue #23 — Cálculo del Índice NDBI (Urbanización)
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🟡 Media | **Semana**: S7
+**Dificultad**: Media | **Importancia/Bloqueo**: Media | **Semana**: S7
 
 #### Descripción
 Calcular el índice NDBI (Normalized Difference Built-up Index) para cuantificar la densidad de superficie construida/urbanizada en Tenerife, indicador de presión turística e infraestructura alojativa.
@@ -1001,12 +1001,12 @@ Calcular el índice NDBI (Normalized Difference Built-up Index) para cuantificar
 
 ### Issue #24 — Procesamiento de Noches VIIRS (Luces Nocturnas)
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🟡 Media | **Semana**: S7
+**Dificultad**: Media | **Importancia/Bloqueo**: Media | **Semana**: S7
 
 #### Descripción
 Procesar el producto de luces nocturnas **VIIRS VNP46** de NASA para estimar la actividad económica y la intensidad de ocupación turística nocturna en distintas zonas de Tenerife.
 
-> ⚠️ **Decisión de periodo**: Los años 2020 y 2021 muestran una caída artificial de radianza de ~60-70% por el COVID (cierre de hoteles, toque de queda). **Incluir esos años en el modelo de regresión haría que el VIIRS parezca un indicador negativo de turismo.** Solución: etiquetar pero **NO usar en el modelo de regresión** (#31).
+> **Decisión de periodo**: Los años 2020 y 2021 muestran una caída artificial de radianza de ~60-70% por el COVID (cierre de hoteles, toque de queda). **Incluir esos años en el modelo de regresión haría que el VIIRS parezca un indicador negativo de turismo.** Solución: etiquetar pero **NO usar en el modelo de regresión** (#31).
 
 #### Subtareas
 - [ ] Implementar `analytics/satellite/process_viirs.py` con `rasterio` y `h5py` (formato HDF5 de NASA).
@@ -1020,7 +1020,7 @@ Procesar el producto de luces nocturnas **VIIRS VNP46** de NASA para estimar la 
 
 ### Issue #25 — Preparación de Datos Geométricos (Features para Clustering)
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🔴 Alta | **Semana**: S7
+**Dificultad**: Media | **Importancia/Bloqueo**: Alta | **Semana**: S7
 
 #### Descripción
 Construir la tabla de features geoespaciales consolidadas por hexágono H3 que servirá como input al clustering HDBSCAN. Esta tabla agrega todos los indicadores calculados hasta este punto.
@@ -1042,7 +1042,7 @@ Construir la tabla de features geoespaciales consolidadas por hexágono H3 que s
 
 ### Issue #26 — Clustering Espacial de Densidad (HDBSCAN)
 
-**Dificultad**: 🔴 Alta | **Importancia/Bloqueo**: 🟡 Media | **Semana**: S7
+**Dificultad**: Alta | **Importancia/Bloqueo**: Media | **Semana**: S7
 
 #### Descripción
 Aplicar el algoritmo **HDBSCAN** (Hierarchical Density-Based Spatial Clustering of Applications with Noise) sobre las features geoespaciales para identificar aglomeraciones de actividad turística, zonas saturadas y áreas de bajo aprovechamiento.
@@ -1060,7 +1060,7 @@ Aplicar el algoritmo **HDBSCAN** (Hierarchical Density-Based Spatial Clustering 
 
 ### Issue #27 — Detección de Brechas de Mercado
 
-**Dificultad**: 🔴 Alta | **Importancia/Bloqueo**: 🟡 Media | **Semana**: S7
+**Dificultad**: Alta | **Importancia/Bloqueo**: Media | **Semana**: S7
 
 #### Descripción
 Identificar zonas del interior de Tenerife con alta capacidad turística potencial (buenos indicadores naturales, bajo NDBI, buena accesibilidad) pero baja oferta alojativa actual. Esto constituye el núcleo analítico del caso TUI.
@@ -1076,7 +1076,7 @@ Identificar zonas del interior de Tenerife con alta capacidad turística potenci
 
 ---
 
-## 🟠 FASE 4 — Integración de IA Generativa (LLM)
+## FASE 4 — Integración de IA Generativa (LLM)
 
 > **Objetivo**: Conectar los resultados analíticos con un modelo de lenguaje grande (LLM) para generar narrativas automáticas, informes ejecutivos e insights en lenguaje natural, o implementar un agente Text-to-SQL.
 
@@ -1084,7 +1084,7 @@ Identificar zonas del interior de Tenerife con alta capacidad turística potenci
 
 ### Issue #34 — Redacción Pasos Fase 2 (y planificación Fase 4)
 
-**Dificultad**: 🟢 Baja | **Importancia/Bloqueo**: 🟢 Baja | **Semana**: S5–S6
+**Dificultad**: Baja | **Importancia/Bloqueo**: Baja | **Semana**: S5–S6
 
 #### Descripción
 Redacción de la documentación del TFM correspondiente a la Fase 2 (Estructuración y Data Warehouse) y planificación técnica de la Fase 4 (LLM). Incluye la decisión entre Opción 1 (Generative Summarization) y Opción 2 (Text-to-SQL Agent).
@@ -1100,7 +1100,7 @@ Redacción de la documentación del TFM correspondiente a la Fase 2 (Estructurac
 
 ### Issue (NUEVO) — Setup LLM: Configuración de Azure OpenAI / Groq / Ollama
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🔴 Alta | **Semana**: S8
+**Dificultad**: Media | **Importancia/Bloqueo**: Alta | **Semana**: S8
 
 #### Descripción
 Configurar el acceso al modelo de lenguaje (LLM) que se usará en la Fase 4. El proyecto contempla dos opciones de backend LLM: Azure OpenAI (API comercial) o modelos open source via Groq (cloud) u Ollama (local). Se recomienda Groq por latencia y coste.
@@ -1116,7 +1116,7 @@ Configurar el acceso al modelo de lenguaje (LLM) que se usará en la Fase 4. El 
 
 ### Issue (NUEVO) — Text-to-SQL Agent (LangChain + PostgreSQL)
 
-**Dificultad**: 🔴 Alta | **Importancia/Bloqueo**: 🟡 Media | **Semana**: S8
+**Dificultad**: Alta | **Importancia/Bloqueo**: Media | **Semana**: S8
 
 #### Descripción
 Implementar un agente conversacional que transforme preguntas en lenguaje natural en consultas SQL contra la base de datos PostgreSQL con PostGIS. Permitirá a los usuarios de TUI consultar el dashboard con preguntas como "¿Qué municipios tienen mayor sentimiento negativo sobre transporte?" o "¿Qué zonas del interior tienen potencial turístico no aprovechado?".
@@ -1136,7 +1136,7 @@ Implementar un agente conversacional que transforme preguntas en lenguaje natura
 
 ### Issue (NUEVO) — Generación de Informes Narrativos Automáticos
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🟢 Baja | **Semana**: S8
+**Dificultad**: Media | **Importancia/Bloqueo**: Baja | **Semana**: S8
 
 #### Descripción
 Generar informes ejecutivos en lenguaje natural a partir de los KPIs calculados, usando el LLM como motor de narrativas. Estos informes se integrarán en el dashboard de Streamlit como sección "Informe Automático".
@@ -1151,7 +1151,7 @@ Generar informes ejecutivos en lenguaje natural a partir de los KPIs calculados,
 
 ---
 
-## 🟢 FASE 5 — Topoclima, Accesibilidad y Presentación Final
+## FASE 5 — Topoclima, Accesibilidad y Presentación Final
 
 > **Objetivo**: Completar los análisis de accesibilidad y calibración topoclimática, construir el dashboard final de Streamlit e integrar todos los resultados. Redacción y entrega del TFM.
 
@@ -1159,7 +1159,7 @@ Generar informes ejecutivos en lenguaje natural a partir de los KPIs calculados,
 
 ### Issue #28 — Setup del Motor de Rutas (pgRouting / OpenRouteService)
 
-**Dificultad**: 🔴 Alta | **Importancia/Bloqueo**: 🔴 Alta | **Semana**: S9
+**Dificultad**: Alta | **Importancia/Bloqueo**: Alta | **Semana**: S9
 
 #### Descripción
 Configurar el motor de enrutamiento que calculará isócronas de accesibilidad y rutas óptimas. Se contemplan dos opciones: **pgRouting** (in-database, usa la red GTFS/OSM en PostgreSQL) y **OpenRouteService** (servicio externo via API o instancia propia).
@@ -1178,7 +1178,7 @@ Configurar el motor de enrutamiento que calculará isócronas de accesibilidad y
 
 ### Issue #29 — Generación de Isócronas de Accesibilidad
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🟡 Media | **Semana**: S9
+**Dificultad**: Media | **Importancia/Bloqueo**: Media | **Semana**: S9
 
 #### Descripción
 Calcular isócronas (polígonos de alcance temporal) desde los principales atractivos turísticos y paradas de transporte para cuantificar la accesibilidad desde cada zona de Tenerife. Las isócronas se generan para 15, 30 y 60 minutos en coche y/o transporte público.
@@ -1194,7 +1194,7 @@ Calcular isócronas (polígonos de alcance temporal) desde los principales atrac
 
 ### Issue #30 — Integración de Métricas de Accesibilidad
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🟡 Media | **Semana**: S9
+**Dificultad**: Media | **Importancia/Bloqueo**: Media | **Semana**: S9
 
 #### Descripción
 Integrar los datos de isócronas con la tabla de features por hexágono H3 para obtener un índice de accesibilidad cuantitativo por zona. Este índice enriquece el análisis de brechas de mercado.
@@ -1212,12 +1212,12 @@ Integrar los datos de isócronas con la tabla de features por hexágono H3 para 
 
 ### Issue #31 — Construcción del Dataset de Regresión
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🔴 Alta | **Semana**: S9
+**Dificultad**: Media | **Importancia/Bloqueo**: Alta | **Semana**: S9
 
 #### Descripción
 Preparar el dataset final para la regresión MGWR. La variable dependiente es el nivel de actividad turística (pernoctaciones, VIIRS) por hexágono y las variables independientes son todos los indicadores calculados.
 
-> 📌 **Periodo del modelo**: **2019 + 2022–2025** (6 años de datos limpios). Excluir 2020-2021 (COVID) y 2026 (año incompleto). Justificación en la Decisión Metodológica Global al inicio del documento.
+> **Periodo del modelo**: **2019 + 2022–2025** (6 años de datos limpios). Excluir 2020-2021 (COVID) y 2026 (año incompleto). Justificación en la Decisión Metodológica Global al inicio del documento.
 
 #### Subtareas
 - [ ] **Filtrar por periodo**: en todos los joins, aplicar `WHERE incluir_en_modelo = TRUE` sobre las tablas `plata.estadisticas_turismo` y `oro.viirs_h3`.
@@ -1240,12 +1240,12 @@ Preparar el dataset final para la regresión MGWR. La variable dependiente es el
 
 ### Issue #32 — Evaluación MGWR (Regresión Geográficamente Ponderada)
 
-**Dificultad**: 🔴 Alta | **Importancia/Bloqueo**: 🟡 Media | **Semana**: S9
+**Dificultad**: Alta | **Importancia/Bloqueo**: Media | **Semana**: S9
 
 #### Descripción
 Aplicar **MGWR (Multiscale Geographically Weighted Regression)** para modelar cómo los factores de éxito turístico varían espacialmente en Tenerife. La MGWR permite que cada variable tenga su propio ancho de banda, capturando la heterogeneidad espacial del turismo.
 
-> 📌 **Periodo del modelo**: el dataset de entrada (`oro.regression_dataset`) ya viene filtrado con el periodo **2019 + 2022–2025**. La MGWR modela patrones estructurales espaciales, no series temporales, por lo que el dataset se usará con valores medios por hexágono sobre ese periodo.
+> **Periodo del modelo**: el dataset de entrada (`oro.regression_dataset`) ya viene filtrado con el periodo **2019 + 2022–2025**. La MGWR modela patrones estructurales espaciales, no series temporales, por lo que el dataset se usará con valores medios por hexágono sobre ese periodo.
 
 #### Subtareas
 - [ ] Instalar `mgwr` Python package: `pip install mgwr`.
@@ -1263,7 +1263,7 @@ Aplicar **MGWR (Multiscale Geographically Weighted Regression)** para modelar c�
 
 ### Issue #33 — Extracción e Interpretación de Coeficientes Locales MGWR
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🟡 Media | **Semana**: S9
+**Dificultad**: Media | **Importancia/Bloqueo**: Media | **Semana**: S9
 
 #### Descripción
 Interpretar los coeficientes locales de la MGWR para generar recomendaciones estratégicas diferenciadas por zona. Cada coeficiente indica cuánto influye cada factor (accesibilidad, naturaleza, precio) en el éxito turístico de cada hexágono específico.
@@ -1280,7 +1280,7 @@ Interpretar los coeficientes locales de la MGWR para generar recomendaciones est
 
 ### Issue (NUEVO) — Dashboard Streamlit: Desarrollo y Despliegue
 
-**Dificultad**: 🔴 Alta | **Importancia/Bloqueo**: 🔴 Alta | **Semana**: S9–S10
+**Dificultad**: Alta | **Importancia/Bloqueo**: Alta | **Semana**: S9–S10
 
 #### Descripción
 Desarrollar el dashboard interactivo final en Streamlit que integre todos los resultados del proyecto. El dashboard es el producto final entregable para TUI y debe ser visualmente impactante y navegable.
@@ -1306,7 +1306,7 @@ Desarrollar el dashboard interactivo final en Streamlit que integre todos los re
 
 ### Issue (NUEVO) — Redacción Final y Entrega del TFM
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🟢 Baja | **Semana**: S10
+**Dificultad**: Media | **Importancia/Bloqueo**: Baja | **Semana**: S10
 
 #### Descripción
 Completar la redacción del TFM con todos los capítulos, resultados, conclusiones y referencias. Revisar el documento completo, generar el PDF y preparar la defensa oral.
@@ -1321,57 +1321,57 @@ Completar la redacción del TFM con todos los capítulos, resultados, conclusion
 
 ---
 
-## 📊 Resumen de Issues por Fase y Semana
+## Resumen de Issues por Fase y Semana
 
 | Issue | Título | Fase | Dificultad | Bloqueo | Semana |
 |-------|--------|------|-----------|---------|--------|
-| #1 | Aprovisionamiento BD (Blob + PostgreSQL) | 1 | 🔴 Alta | 🔴 Alta | S1 |
-| #3 | Despliegue VM Azure | 1 | 🟡 Media | 🔴 Alta | S1 |
-| #4 | Orquestación Airflow/dbt | 1 | 🔴 Alta | 🔴 Alta | S1-S2 |
-| #5 | Extracción Microdatos ISTAC/Cabildo | 1 | 🟡 Media | 🟡 Media | S2 |
-| #43 | Microdatos Tabulares 2 | 1 | 🟡 Media | 🟢 Baja | S2-S3 |
-| #6 | Estandarización EPSG:32628 | 1 | 🟡 Media | 🔴 Alta | S2 |
-| #7 | Ingesta GTFS TITSA | 1 | 🟡 Media | 🟡 Media | S2-S3 |
-| #44 | Ingesta Espacios Naturales IDECanarias | 1 | 🟡 Media | 🟡 Media | S2-S3 |
-| #42 | Ingesta Topográfica MDT | 1 | 🟡 Media | 🟡 Media | S3 |
-| #8 | Parseo GTFS a Tablas | 1 | 🟡 Media | 🟡 Media | S3 |
-| #9 | Datos Meteo Agrocabildo + Open-Meteo | 1 | 🟡 Media | 🟡 Media | S3 |
-| #10 | Extracción Satelital Copernicus | 1 | 🔴 Alta | 🟡 Media | S3 |
-| #12 | Scraping Plataformas Reservas | 1 | 🔴 Alta | 🟡 Media | S3 |
-| #13 | APIs Google y YouTube | 1 | 🟡 Media | 🟢 Baja | S3 |
-| #14 | Extracción Foros | 1 | 🟡 Media | 🟢 Baja | S3 |
-| #15 | Redacción TFM Fase 1 | 1 | 🟢 Baja | 🟢 Baja | S2-S3 |
-| #2 | Modelado PostGIS Capa Plata | 2 | 🟡 Media | 🔴 Alta | S4 |
-| NUEVO | Modelos dbt Capa Plata | 2 | 🔴 Alta | 🔴 Alta | S4-S5 |
-| NUEVO | Geoprocesamiento MDT (Slope/Aspect) | 2 | 🟡 Media | 🟡 Media | S4-S5 |
-| #16 | Setup Hugging Face + Modelos | 3 | 🟡 Media | 🔴 Alta | S6 |
-| #17 | Inferencia Sentimiento por Lotes | 3 | 🟡 Media | 🟡 Media | S6 |
-| #18 | Extracción Aspectos (pyabsa) | 3 | 🔴 Alta | 🟡 Media | S6 |
-| #19 | Modelado Tópicos BERTopic | 3 | 🔴 Alta | 🟡 Media | S6 |
-| #20 | Georreferenciación NLP | 3 | 🟡 Media | 🟡 Media | S7 |
-| #21 | Preprocesamiento Sentinel | 3 | 🔴 Alta | 🔴 Alta | S6-S7 |
-| #22 | Índice NDVI | 3 | 🟡 Media | 🟡 Media | S7 |
-| #23 | Índice NDBI | 3 | 🟡 Media | 🟡 Media | S7 |
-| #24 | Luces Nocturnas VIIRS | 3 | 🟡 Media | 🟡 Media | S7 |
-| #25 | Preparación Features Geométricas | 3 | 🟡 Media | 🔴 Alta | S7 |
-| #26 | Clustering HDBSCAN | 3 | 🔴 Alta | 🟡 Media | S7 |
-| #27 | Detección Brechas de Mercado | 3 | 🔴 Alta | 🟡 Media | S7 |
-| #34 | Redacción Fase 2 + Plan Fase 4 | 4 | 🟢 Baja | 🟢 Baja | S5-S6 |
-| NUEVO | Setup LLM (Azure OpenAI / Groq) | 4 | 🟡 Media | 🔴 Alta | S8 |
-| NUEVO | Text-to-SQL Agent LangChain | 4 | 🔴 Alta | 🟡 Media | S8 |
-| NUEVO | Generación Informes Narrativos | 4 | 🟡 Media | 🟢 Baja | S8 |
-| #28 | Setup Motor Rutas (pgRouting/ORS) | 5 | 🔴 Alta | 🔴 Alta | S9 |
-| #29 | Isócronas de Accesibilidad | 5 | 🟡 Media | 🟡 Media | S9 |
-| #30 | Métricas de Accesibilidad | 5 | 🟡 Media | 🟡 Media | S9 |
-| #31 | Dataset de Regresión | 5 | 🟡 Media | 🔴 Alta | S9 |
-| #32 | Evaluación MGWR | 5 | 🔴 Alta | 🟡 Media | S9 |
-| #33 | Coeficientes Locales MGWR | 5 | 🟡 Media | 🟡 Media | S9 |
-| NUEVO | Dashboard Streamlit | 5 | 🔴 Alta | 🔴 Alta | S9-S10 |
-| NUEVO | Redacción Final y Entrega TFM | 5 | 🟡 Media | 🟢 Baja | S10 |
+| #1 | Aprovisionamiento BD (Blob + PostgreSQL) | 1 | Alta | Alta | S1 |
+| #3 | Despliegue VM Azure | 1 | Media | Alta | S1 |
+| #4 | Orquestación Airflow/dbt | 1 | Alta | Alta | S1-S2 |
+| #5 | Extracción Microdatos ISTAC/Cabildo | 1 | Media | Media | S2 |
+| #43 | Microdatos Tabulares 2 | 1 | Media | Baja | S2-S3 |
+| #6 | Estandarización EPSG:32628 | 1 | Media | Alta | S2 |
+| #7 | Ingesta GTFS TITSA | 1 | Media | Media | S2-S3 |
+| #44 | Ingesta Espacios Naturales IDECanarias | 1 | Media | Media | S2-S3 |
+| #42 | Ingesta Topográfica MDT | 1 | Media | Media | S3 |
+| #8 | Parseo GTFS a Tablas | 1 | Media | Media | S3 |
+| #9 | Datos Meteo Agrocabildo + Open-Meteo | 1 | Media | Media | S3 |
+| #10 | Extracción Satelital Copernicus | 1 | Alta | Media | S3 |
+| #12 | Scraping Plataformas Reservas | 1 | Alta | Media | S3 |
+| #13 | APIs Google y YouTube | 1 | Media | Baja | S3 |
+| #14 | Extracción Foros | 1 | Media | Baja | S3 |
+| #15 | Redacción TFM Fase 1 | 1 | Baja | Baja | S2-S3 |
+| #2 | Modelado PostGIS Capa Plata | 2 | Media | Alta | S4 |
+| NUEVO | Modelos dbt Capa Plata | 2 | Alta | Alta | S4-S5 |
+| NUEVO | Geoprocesamiento MDT (Slope/Aspect) | 2 | Media | Media | S4-S5 |
+| #16 | Setup Hugging Face + Modelos | 3 | Media | Alta | S6 |
+| #17 | Inferencia Sentimiento por Lotes | 3 | Media | Media | S6 |
+| #18 | Extracción Aspectos (pyabsa) | 3 | Alta | Media | S6 |
+| #19 | Modelado Tópicos BERTopic | 3 | Alta | Media | S6 |
+| #20 | Georreferenciación NLP | 3 | Media | Media | S7 |
+| #21 | Preprocesamiento Sentinel | 3 | Alta | Alta | S6-S7 |
+| #22 | Índice NDVI | 3 | Media | Media | S7 |
+| #23 | Índice NDBI | 3 | Media | Media | S7 |
+| #24 | Luces Nocturnas VIIRS | 3 | Media | Media | S7 |
+| #25 | Preparación Features Geométricas | 3 | Media | Alta | S7 |
+| #26 | Clustering HDBSCAN | 3 | Alta | Media | S7 |
+| #27 | Detección Brechas de Mercado | 3 | Alta | Media | S7 |
+| #34 | Redacción Fase 2 + Plan Fase 4 | 4 | Baja | Baja | S5-S6 |
+| NUEVO | Setup LLM (Azure OpenAI / Groq) | 4 | Media | Alta | S8 |
+| NUEVO | Text-to-SQL Agent LangChain | 4 | Alta | Media | S8 |
+| NUEVO | Generación Informes Narrativos | 4 | Media | Baja | S8 |
+| #28 | Setup Motor Rutas (pgRouting/ORS) | 5 | Alta | Alta | S9 |
+| #29 | Isócronas de Accesibilidad | 5 | Media | Media | S9 |
+| #30 | Métricas de Accesibilidad | 5 | Media | Media | S9 |
+| #31 | Dataset de Regresión | 5 | Media | Alta | S9 |
+| #32 | Evaluación MGWR | 5 | Alta | Media | S9 |
+| #33 | Coeficientes Locales MGWR | 5 | Media | Media | S9 |
+| NUEVO | Dashboard Streamlit | 5 | Alta | Alta | S9-S10 |
+| NUEVO | Redacción Final y Entrega TFM | 5 | Media | Baja | S10 |
 
 ---
 
-## ⚙️ TAREAS TRANSVERSALES — Gestión del Equipo e Infraestructura de Proyecto
+## TAREAS TRANSVERSALES — Gestión del Equipo e Infraestructura de Proyecto
 
 > **Objetivo**: Garantizar que el equipo pueda trabajar en paralelo sin conflictos, con un entorno reproducible y con validaciones automáticas entre capas. Estas tareas son transversales a todas las fases.
 
@@ -1379,7 +1379,7 @@ Completar la redacción del TFM con todos los capítulos, resultados, conclusion
 
 ### Issue (NUEVO) — Backup Automático de la Base de Datos PostgreSQL
 
-**Dificultad**: 🟢 Baja | **Importancia/Bloqueo**: 🔴 Alta | **Semana**: S1
+**Dificultad**: Baja | **Importancia/Bloqueo**: Alta | **Semana**: S1
 
 #### Descripción
 En 10 semanas de trabajo se acumulan semanas de limpieza, transformaciones y modelos en las capas Plata y Oro. **Si el servidor PostgreSQL de Azure falla o se corrompe sin backup configurado, el proyecto muere.** Azure Database for PostgreSQL Flexible Server incluye backup automático activable desde el portal en menos de 5 minutos, pero alguien tiene que configurarlo conscientemente desde el inicio del proyecto (S1), no cuando ya hay datos.
@@ -1402,13 +1402,13 @@ En 10 semanas de trabajo se acumulan semanas de limpieza, transformaciones y mod
   -- 3. Ejecutar la operación
   ```
 
-> 💡 **Coste**: Los backups geo-redundantes de PostgreSQL Flexible tienen un coste de ~$0.10/GB/mes. Para el volumen esperado del proyecto (< 50 GB), el coste total es < $5/mes.
+> **Coste**: Los backups geo-redundantes de PostgreSQL Flexible tienen un coste de ~$0.10/GB/mes. Para el volumen esperado del proyecto (< 50 GB), el coste total es < $5/mes.
 
 ---
 
 ### Issue (NUEVO) — Monitorización y Alertas de los DAGs de Airflow
 
-**Dificultad**: 🟢 Baja | **Importancia/Bloqueo**: 🔴 Alta | **Semana**: S2
+**Dificultad**: Baja | **Importancia/Bloqueo**: Alta | **Semana**: S2
 
 #### Descripción
 Sin alertas configuradas en Airflow, un pipeline de ingesta puede fallar silenciosamente durante días o semanas. En un proyecto con 10+ DAGs ejecutándose en paralelo, lo descubres cuando llegas a la Fase 3 y el dato no está, o está desactualizado. Configurar alertas de fallo por email es trivial en Airflow (< 30 minutos) y evita semanas de re-ingesta.
@@ -1459,7 +1459,7 @@ Sin alertas configuradas en Airflow, un pipeline de ingesta puede fallar silenci
 - [ ] Configurar el **SLA de los DAGs críticos** en Airflow: si `dag_meteo_ingestion` no termina en 2h, enviar alerta.
 - [ ] Revisar la WebUI de Airflow (`http://<VM_IP>:8080`) al menos una vez al día durante la Fase 1 y 2.
 
-**Dificultad**: 🟢 Baja | **Importancia/Bloqueo**: 🔴 Alta | **Semana**: S1
+**Dificultad**: Baja | **Importancia/Bloqueo**: Alta | **Semana**: S1
 
 #### Descripción
 Sin una guía de onboarding clara, cada compañero perderá horas configurando su entorno local o la VM. Este issue crea el documento `CONTRIBUTING.md` y un script de setup que permita a cualquier miembro del equipo tener el proyecto funcionando en menos de 30 minutos desde cero.
@@ -1480,7 +1480,7 @@ Sin una guía de onboarding clara, cada compañero perderá horas configurando s
 
 ### Issue (NUEVO) — Política Git: Estrategia de Ramas y Code Review
 
-**Dificultad**: 🟢 Baja | **Importancia/Bloqueo**: 🔴 Alta | **Semana**: S1
+**Dificultad**: Baja | **Importancia/Bloqueo**: Alta | **Semana**: S1
 
 #### Descripción
 Con varios compañeros trabajando en paralelo sobre el mismo repositorio, sin una política de ramas clara se producirán conflictos en `main` y regresiones difíciles de rastrear. Este issue define y documenta la convención Git del equipo.
@@ -1505,7 +1505,7 @@ Con varios compañeros trabajando en paralelo sobre el mismo repositorio, sin un
 
 ### Issue (NUEVO) — Backfill Histórico de Datos
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🔴 Alta | **Semana**: S2–S3
+**Dificultad**: Media | **Importancia/Bloqueo**: Alta | **Semana**: S2–S3
 
 #### Descripción
 Para que los análisis temporales (estacionalidad, tendencias de NDVI, series meteo) sean estadísticamente robustos, se necesitan al menos 2 años de datos históricos. El repositorio ya incluye el script `run_backfill_sequence.sh`, que debe ejecutarse, validarse y documentarse como parte de la ingesta inicial.
@@ -1526,7 +1526,7 @@ Para que los análisis temporales (estacionalidad, tendencias de NDVI, series me
 
 ### Issue (NUEVO) — Validación de Calidad de Datos entre Capas (Great Expectations)
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🔴 Alta | **Semana**: S4–S5
+**Dificultad**: Media | **Importancia/Bloqueo**: Alta | **Semana**: S4–S5
 
 #### Descripción
 El directorio `validation/` existe en el repositorio pero no hay ningún issue que lo desarrolle. Se necesita un sistema de validación automática que compruebe la calidad de los datos antes de permitir que pasen de Bronce a Plata y de Plata a Oro. Sin esto, los modelos de ML pueden entrenarse con datos corruptos sin que nadie lo detecte.
@@ -1550,7 +1550,7 @@ El directorio `validation/` existe en el repositorio pero no hay ningún issue q
 
 ### Issue (NUEVO) — Creación de la Rejilla H3 sobre Tenerife
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🔴 Alta | **Semana**: S4
+**Dificultad**: Media | **Importancia/Bloqueo**: Alta | **Semana**: S4
 
 #### Descripción
 **Esta es la tarea más crítica de la transición Bronce→Plata.** Todos los análisis de la Fase 3 (NDVI, sentimiento, clustering HDBSCAN, luces VIIRS, accesibilidad) agregan sus resultados por **hexágono H3** de Uber. Sin la rejilla H3 generada y almacenada en PostgreSQL, ninguno de esos pipelines puede ejecutarse.
@@ -1576,12 +1576,12 @@ La **resolución 8** de H3 genera hexágonos de ~0.74 km² de área media, sufic
 - [ ] Añadir este paso como la **primera tarea** del DAG `dag_dbt_plata.py` (debe ejecutarse antes que cualquier agregación por hexágono).
 
 #### Dependencias bloqueadas por esta tarea
-> ⚠️ Los siguientes issues **no pueden empezar** hasta que este esté completado:
+> Los siguientes issues **no pueden empezar** hasta que este esté completado:
 > #20, #22, #23, #24, #25, #26, #27, #29, #30, #31, #32
 
 ---
 
-## ➕ TAREAS ADICIONALES IDENTIFICADAS (por Fase)
+## TAREAS ADICIONALES IDENTIFICADAS (por Fase)
 
 > Issues adicionales detectados al revisar el README completo que no estaban cubiertos.
 
@@ -1589,7 +1589,7 @@ La **resolución 8** de H3 genera hexágonos de ~0.74 km² de área media, sufic
 
 ### Issue (NUEVO) — Consolidación de KPIs Estratégicos (Capa Oro)
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🔴 Alta | **Semana**: S9
+**Dificultad**: Media | **Importancia/Bloqueo**: Alta | **Semana**: S9
 
 #### Descripción
 El README (sección 6.1) menciona explícitamente: *"Consolidación de métricas de negocio para la toma de decisiones traducido del modelo matemático implementado en Python."* Los KPIs son la capa de abstracción final entre los análisis técnicos y las decisiones de negocio de TUI. Sin ellos, el dashboard no tiene qué mostrar más allá de datos crudos.
@@ -1614,7 +1614,7 @@ El README (sección 6.1) menciona explícitamente: *"Consolidación de métricas
 
 ### Issue (NUEVO) — Calibración Topoclimática de Tenerife
 
-**Dificultad**: 🔴 Alta | **Importancia/Bloqueo**: 🟡 Media | **Semana**: S9
+**Dificultad**: Alta | **Importancia/Bloqueo**: Media | **Semana**: S9
 
 #### Descripción
 El README (sección 4.6) menciona explícitamente: *"Calibración Topoclimática: Ajuste dinámico térmico basado en gradientes de altitud, vientos alisios (orientación) y sombras proyectadas."* Este análisis diferencia el TFM de cualquier estudio turístico convencional: modela cómo las condiciones climáticas reales varían por zona de Tenerife en función de la topografía, lo que impacta directamente en la experiencia turística.
@@ -1639,7 +1639,7 @@ Tenerife tiene una variabilidad climática excepcional en poco espacio: desde el
 
 ### Issue (NUEVO) — Simulador de Redistribución de Flujos Turísticos (Modelo Gravitatorio)
 
-**Dificultad**: 🔴 Alta | **Importancia/Bloqueo**: 🟢 Baja | **Semana**: S9–S10
+**Dificultad**: Alta | **Importancia/Bloqueo**: Baja | **Semana**: S9–S10
 
 #### Descripción
 El README (sección 6.4) describe: *"Algoritmos gravitatorios para modelar el impacto de trasladar demanda turística a zonas rurales del interior."* Este simulador es el producto más diferencial del proyecto: permite a TUI responder preguntas del tipo *"Si mejoramos el transporte al municipio de Vilaflor, ¿cuánta demanda turística se desviaría desde el sur saturado?"*
@@ -1670,7 +1670,7 @@ Donde:
 
 ### Issue (NUEVO) — Análisis Territorial Final de Tenerife (Informe de Resultados)
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🟢 Baja | **Semana**: S10
+**Dificultad**: Media | **Importancia/Bloqueo**: Baja | **Semana**: S10
 
 #### Descripción
 El README (sección 7.2) incluye: *"Análisis Territorial de Tenerife: Informes de resultados."* Este issue cubre la elaboración del informe analítico territorial que sintetiza todos los hallazgos del proyecto en un documento ejecutivo dirigido a TUI. Es el entregable analítico final, distinto de la memoria académica del TFM.
@@ -1691,7 +1691,7 @@ El README (sección 7.2) incluye: *"Análisis Territorial de Tenerife: Informes 
 
 ### Issue (NUEVO) — Pruebas de Estrés del Dashboard y Validación Final
 
-**Dificultad**: 🟡 Media | **Importancia/Bloqueo**: 🟢 Baja | **Semana**: S10
+**Dificultad**: Media | **Importancia/Bloqueo**: Baja | **Semana**: S10
 
 #### Descripción
 El README (sección 7.1) incluye explícitamente: *"Depuración y Pruebas de Estrés: Control de concurrencia y optimización de rendimiento de carga."* Antes de la entrega final, el dashboard debe someterse a pruebas de carga para asegurar que responde con fluidez ante múltiples usuarios simultáneos (simulando una demo ante el tribunal o ante TUI).
@@ -1712,72 +1712,72 @@ El README (sección 7.1) incluye explícitamente: *"Depuración y Pruebas de Est
 
 ---
 
-## 📊 Resumen Completo de Issues (Actualizado)
+## Resumen Completo de Issues (Actualizado)
 
 | Issue | Título | Fase | Dificultad | Bloqueo | Semana |
 |-------|--------|------|-----------|---------|--------|
-| #1 | Aprovisionamiento BD (Blob + PostgreSQL) | 1 | 🔴 Alta | 🔴 Alta | S1 |
-| #3 | Despliegue VM Azure | 1 | 🟡 Media | 🔴 Alta | S1 |
-| #4 | Orquestación Airflow/dbt | 1 | 🔴 Alta | 🔴 Alta | S1-S2 |
-| NUEVO | Onboarding del Equipo (CONTRIBUTING.md) | 1 | 🟢 Baja | 🔴 Alta | S1 |
-| NUEVO | Política Git y Code Review | 1 | 🟢 Baja | 🔴 Alta | S1 |
-| #5 | Extracción Microdatos ISTAC/Cabildo | 1 | 🟡 Media | 🟡 Media | S2 |
-| #43 | Microdatos Tabulares 2 | 1 | 🟡 Media | 🟢 Baja | S2-S3 |
-| #6 | Estandarización EPSG:32628 | 1 | 🟡 Media | 🔴 Alta | S2 |
-| #7 | Ingesta GTFS TITSA | 1 | 🟡 Media | 🟡 Media | S2-S3 |
-| #44 | Ingesta Espacios Naturales IDECanarias | 1 | 🟡 Media | 🟡 Media | S2-S3 |
-| NUEVO | Backfill Histórico de Datos | 1 | 🟡 Media | 🔴 Alta | S2-S3 |
-| #42 | Ingesta Topográfica MDT | 1 | 🟡 Media | 🟡 Media | S3 |
-| #8 | Parseo GTFS a Tablas | 1 | 🟡 Media | 🟡 Media | S3 |
-| #9 | Datos Meteo Agrocabildo + Open-Meteo | 1 | 🟡 Media | 🟡 Media | S3 |
-| #10 | Extracción Satelital Copernicus | 1 | 🔴 Alta | 🟡 Media | S3 |
-| #12 | Scraping Plataformas Reservas | 1 | 🔴 Alta | 🟡 Media | S3 |
-| #13 | APIs Google y YouTube | 1 | 🟡 Media | 🟢 Baja | S3 |
-| #14 | Extracción Foros | 1 | 🟡 Media | 🟢 Baja | S3 |
-| #15 | Redacción TFM Fase 1 | 1 | 🟢 Baja | 🟢 Baja | S2-S3 |
-| #2 | Modelado PostGIS Capa Plata | 2 | 🟡 Media | 🔴 Alta | S4 |
-| #45 | Geoprocesamiento MDT (Altitud/Pendiente/Orientación) | 2 | 🟡 Media | 🟡 Media | S4 |
-| #46 | ETL Datos Climáticos (Agrocabildo + Open-Meteo) | 2 | 🟡 Media | 🟡 Media | S4 |
-| #47 | ETL Redes de Transporte (GTFS) | 2 | 🟡 Media | 🟡 Media | S4 |
-| #48 | Preprocesamiento de Texto (Scraping) | 2 | 🟡 Media | 🟡 Media | S4-S5 |
-| #49 | ETL Cartografía Base (IDECanarias) | 2 | 🟡 Media | 🔴 Alta | S4 |
-| NUEVO | ETL Estadísticas Turísticas ISTAC → Plata | 2 | 🟡 Media | 🔴 Alta | S4 |
-| #50 | Cuadrícula Espacial H3 / Hexágonos | 2 | 🟡 Media | 🔴 Alta | S4 |
-| #51 | Indexación y Optimización Base de Datos | 2 | 🟡 Media | 🟡 Media | S5 |
-| NUEVO | Validación Calidad Datos (Great Expectations) | 2 | 🟡 Media | 🔴 Alta | S4-S5 |
-| NUEVO | Backup Automático PostgreSQL | Trans. | 🟢 Baja | 🔴 Alta | S1 |
-| NUEVO | Monitorización y Alertas Airflow | Trans. | 🟢 Baja | 🔴 Alta | S2 |
-| #16 | Setup Hugging Face + Modelos | 3 | 🟡 Media | 🔴 Alta | S6 |
-| #17 | Inferencia Sentimiento por Lotes | 3 | 🟡 Media | 🟡 Media | S6 |
-| #18 | Extracción Aspectos (pyabsa) | 3 | 🔴 Alta | 🟡 Media | S6 |
-| #19 | Modelado Tópicos BERTopic | 3 | 🔴 Alta | 🟡 Media | S6 |
-| #20 | Georreferenciación NLP | 3 | 🟡 Media | 🟡 Media | S7 |
-| #21 | Preprocesamiento Sentinel | 3 | 🔴 Alta | 🔴 Alta | S6-S7 |
-| #22 | Índice NDVI | 3 | 🟡 Media | 🟡 Media | S7 |
-| #23 | Índice NDBI | 3 | 🟡 Media | 🟡 Media | S7 |
-| #24 | Luces Nocturnas VIIRS | 3 | 🟡 Media | 🟡 Media | S7 |
-| #25 | Preparación Features Geométricas | 3 | 🟡 Media | 🔴 Alta | S7 |
-| #26 | Clustering HDBSCAN | 3 | 🔴 Alta | 🟡 Media | S7 |
-| #27 | Detección Brechas de Mercado | 3 | 🔴 Alta | 🟡 Media | S7 |
-| #34 | Redacción Fase 2 + Plan Fase 4 | 4 | 🟢 Baja | 🟢 Baja | S5-S6 |
-| NUEVO | Setup LLM (Azure OpenAI / Groq) | 4 | 🟡 Media | 🔴 Alta | S8 |
-| NUEVO | Text-to-SQL Agent LangChain | 4 | 🔴 Alta | 🟡 Media | S8 |
-| NUEVO | Generación Informes Narrativos | 4 | 🟡 Media | 🟢 Baja | S8 |
-| #28 | Setup Motor Rutas (pgRouting/ORS) | 5 | 🔴 Alta | 🔴 Alta | S9 |
-| #29 | Isócronas de Accesibilidad | 5 | 🟡 Media | 🟡 Media | S9 |
-| #30 | Métricas de Accesibilidad | 5 | 🟡 Media | 🟡 Media | S9 |
-| #31 | Dataset de Regresión | 5 | 🟡 Media | 🔴 Alta | S9 |
-| #32 | Evaluación MGWR | 5 | 🔴 Alta | 🟡 Media | S9 |
-| #33 | Coeficientes Locales MGWR | 5 | 🟡 Media | 🟡 Media | S9 |
-| NUEVO | Consolidación KPIs Estratégicos | 5 | 🟡 Media | 🔴 Alta | S9 |
-| NUEVO | Calibración Topoclimática | 5 | 🔴 Alta | 🟡 Media | S9 |
-| NUEVO | Dashboard Streamlit | 5 | 🔴 Alta | 🔴 Alta | S9-S10 |
-| NUEVO | Simulador de Flujos Gravitatorio | 5 | 🔴 Alta | 🟢 Baja | S9-S10 |
-| NUEVO | Análisis Territorial Final (Informe) | 5 | 🟡 Media | 🟢 Baja | S10 |
-| NUEVO | Pruebas de Estrés del Dashboard | 5 | 🟡 Media | 🟢 Baja | S10 |
-| NUEVO | Redacción Final y Entrega TFM | 5 | 🟡 Media | 🟢 Baja | S10 |
+| #1 | Aprovisionamiento BD (Blob + PostgreSQL) | 1 | Alta | Alta | S1 |
+| #3 | Despliegue VM Azure | 1 | Media | Alta | S1 |
+| #4 | Orquestación Airflow/dbt | 1 | Alta | Alta | S1-S2 |
+| NUEVO | Onboarding del Equipo (CONTRIBUTING.md) | 1 | Baja | Alta | S1 |
+| NUEVO | Política Git y Code Review | 1 | Baja | Alta | S1 |
+| #5 | Extracción Microdatos ISTAC/Cabildo | 1 | Media | Media | S2 |
+| #43 | Microdatos Tabulares 2 | 1 | Media | Baja | S2-S3 |
+| #6 | Estandarización EPSG:32628 | 1 | Media | Alta | S2 |
+| #7 | Ingesta GTFS TITSA | 1 | Media | Media | S2-S3 |
+| #44 | Ingesta Espacios Naturales IDECanarias | 1 | Media | Media | S2-S3 |
+| NUEVO | Backfill Histórico de Datos | 1 | Media | Alta | S2-S3 |
+| #42 | Ingesta Topográfica MDT | 1 | Media | Media | S3 |
+| #8 | Parseo GTFS a Tablas | 1 | Media | Media | S3 |
+| #9 | Datos Meteo Agrocabildo + Open-Meteo | 1 | Media | Media | S3 |
+| #10 | Extracción Satelital Copernicus | 1 | Alta | Media | S3 |
+| #12 | Scraping Plataformas Reservas | 1 | Alta | Media | S3 |
+| #13 | APIs Google y YouTube | 1 | Media | Baja | S3 |
+| #14 | Extracción Foros | 1 | Media | Baja | S3 |
+| #15 | Redacción TFM Fase 1 | 1 | Baja | Baja | S2-S3 |
+| #2 | Modelado PostGIS Capa Plata | 2 | Media | Alta | S4 |
+| #45 | Geoprocesamiento MDT (Altitud/Pendiente/Orientación) | 2 | Media | Media | S4 |
+| #46 | ETL Datos Climáticos (Agrocabildo + Open-Meteo) | 2 | Media | Media | S4 |
+| #47 | ETL Redes de Transporte (GTFS) | 2 | Media | Media | S4 |
+| #48 | Preprocesamiento de Texto (Scraping) | 2 | Media | Media | S4-S5 |
+| #49 | ETL Cartografía Base (IDECanarias) | 2 | Media | Alta | S4 |
+| NUEVO | ETL Estadísticas Turísticas ISTAC → Plata | 2 | Media | Alta | S4 |
+| #50 | Cuadrícula Espacial H3 / Hexágonos | 2 | Media | Alta | S4 |
+| #51 | Indexación y Optimización Base de Datos | 2 | Media | Media | S5 |
+| NUEVO | Validación Calidad Datos (Great Expectations) | 2 | Media | Alta | S4-S5 |
+| NUEVO | Backup Automático PostgreSQL | Trans. | Baja | Alta | S1 |
+| NUEVO | Monitorización y Alertas Airflow | Trans. | Baja | Alta | S2 |
+| #16 | Setup Hugging Face + Modelos | 3 | Media | Alta | S6 |
+| #17 | Inferencia Sentimiento por Lotes | 3 | Media | Media | S6 |
+| #18 | Extracción Aspectos (pyabsa) | 3 | Alta | Media | S6 |
+| #19 | Modelado Tópicos BERTopic | 3 | Alta | Media | S6 |
+| #20 | Georreferenciación NLP | 3 | Media | Media | S7 |
+| #21 | Preprocesamiento Sentinel | 3 | Alta | Alta | S6-S7 |
+| #22 | Índice NDVI | 3 | Media | Media | S7 |
+| #23 | Índice NDBI | 3 | Media | Media | S7 |
+| #24 | Luces Nocturnas VIIRS | 3 | Media | Media | S7 |
+| #25 | Preparación Features Geométricas | 3 | Media | Alta | S7 |
+| #26 | Clustering HDBSCAN | 3 | Alta | Media | S7 |
+| #27 | Detección Brechas de Mercado | 3 | Alta | Media | S7 |
+| #34 | Redacción Fase 2 + Plan Fase 4 | 4 | Baja | Baja | S5-S6 |
+| NUEVO | Setup LLM (Azure OpenAI / Groq) | 4 | Media | Alta | S8 |
+| NUEVO | Text-to-SQL Agent LangChain | 4 | Alta | Media | S8 |
+| NUEVO | Generación Informes Narrativos | 4 | Media | Baja | S8 |
+| #28 | Setup Motor Rutas (pgRouting/ORS) | 5 | Alta | Alta | S9 |
+| #29 | Isócronas de Accesibilidad | 5 | Media | Media | S9 |
+| #30 | Métricas de Accesibilidad | 5 | Media | Media | S9 |
+| #31 | Dataset de Regresión | 5 | Media | Alta | S9 |
+| #32 | Evaluación MGWR | 5 | Alta | Media | S9 |
+| #33 | Coeficientes Locales MGWR | 5 | Media | Media | S9 |
+| NUEVO | Consolidación KPIs Estratégicos | 5 | Media | Alta | S9 |
+| NUEVO | Calibración Topoclimática | 5 | Alta | Media | S9 |
+| NUEVO | Dashboard Streamlit | 5 | Alta | Alta | S9-S10 |
+| NUEVO | Simulador de Flujos Gravitatorio | 5 | Alta | Baja | S9-S10 |
+| NUEVO | Análisis Territorial Final (Informe) | 5 | Media | Baja | S10 |
+| NUEVO | Pruebas de Estrés del Dashboard | 5 | Media | Baja | S10 |
+| NUEVO | Redacción Final y Entrega TFM | 5 | Media | Baja | S10 |
 
-**Total: 58 issues** | 🔴 Alta dificultad: 15 | 🟡 Media: 33 | 🟢 Baja: 10
+**Total: 58 issues** | Alta dificultad: 15 | Media: 33 | Baja: 10
 
 ---
 

@@ -41,7 +41,7 @@ class AgrocabildoIngestionPipeline:
             self.blob_service_client = BlobServiceClient.from_connection_string(conn_str)
         else:
             self.blob_service_client = None
-            logger.warning("⚠️ AZURE_STORAGE_CONNECTION_STRING no configurado. Solo se guardará en local.")
+            logger.warning("AZURE_STORAGE_CONNECTION_STRING no configurado. Solo se guardará en local.")
 
     def read_parquet_from_blob(self, blob_name: str) -> pd.DataFrame:
         """Lee un archivo Parquet existente del contenedor bronce-raw."""
@@ -290,7 +290,7 @@ class AgrocabildoIngestionPipeline:
             logger.info(f"Ingesta en tiempo real enviada a Azure: {len(df_result)} registros procesados.")
             return df_result
         else:
-            logger.warning("⚠️ No se obtuvieron registros en esta ingesta.")
+            logger.warning("No se obtuvieron registros en esta ingesta.")
             return pd.DataFrame()
 
 if __name__ == "__main__":

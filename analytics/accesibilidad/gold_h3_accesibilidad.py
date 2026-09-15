@@ -135,7 +135,7 @@ def calcular_tiempos_ors(df_h3: pd.DataFrame, ors_api_key: str) -> pd.DataFrame:
         )
         val = test["durations"][0][0]
         tiempo_test = round(val / 60, 1) if val is not None else 999.0
-        logging.info(f"  ✓ Test OK → Hexágono[0] → {primer_nombre}: {tiempo_test} min")
+        logging.info(f"  [OK] Test OK → Hexágono[0] → {primer_nombre}: {tiempo_test} min")
     except Exception as e:
         raise RuntimeError(
             f"Error en el test de conectividad ORS: {e}\n"
@@ -177,7 +177,7 @@ def calcular_tiempos_ors(df_h3: pd.DataFrame, ors_api_key: str) -> pd.DataFrame:
         resultados[f"tiempo_{nombre}_min"] = tiempos
         validos = [t for t in tiempos if t < 999]
         media   = round(sum(validos) / len(validos), 1) if validos else 0
-        logging.info(f"    ✓ {nombre}: media={media} min | inaccesibles={n - len(validos)}")
+        logging.info(f"    [OK] {nombre}: media={media} min | inaccesibles={n - len(validos)}")
 
         time.sleep(1.5)  # Pausa cortés entre peticiones
 
