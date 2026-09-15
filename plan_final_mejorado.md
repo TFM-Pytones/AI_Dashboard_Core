@@ -537,6 +537,8 @@ GROUP BY h.h3_index
 ```
 - **Output Final:** Columnas `sentimiento_medio`, `n_resenas`, `queja_principal` incorporadas a `gold.h3_master`.
 
+> **Nota de ejecución (post-implementación, 16-sep-2026):** `gold.gold_h3_sentimiento` se construyó como tabla real independiente, no incorporada a `gold.h3_master` como dice el "Output Final" de arriba. El plan es inconsistente consigo mismo sobre dónde debía vivir este resultado: esta subtarea (Bloque 2) asume que las columnas terminan fusionadas en `gold.h3_master`, mientras que el Bloque 5 (Subtarea 5.1) asume una tabla separada, unida vía `LEFT JOIN`. Se siguió el criterio del Bloque 5. Además, el SQL exacto de arriba no se pudo ejecutar tal cual: las tablas realmente pobladas (`gold.nlp_sentimiento_resenas`, `gold.nlp_aspectos_resenas`) no coinciden en esquema con lo que asumía — la clave real es `resena_id` (no `review_id`) y `h3_index` ya viene precalculado en `gold.nlp_sentimiento_resenas` (no hace falta el `ST_Contains` contra `silver.h3_grid` ni el join intermedio por establecimiento). Ver `analytics/mgwr/scripts/00_create_sentimiento_table.py` para el SQL real usado.
+
 ---
 
 ## BLOQUE 3: NLP CUALITATIVO Y SIN COORDENADAS — Percepción Global, Tópicos y Base de Conocimiento RAG (YouTube + LosViajeros)
@@ -982,6 +984,8 @@ pip install mgwr libpysal scikit-learn numpy pandas matplotlib
   | 15 Destinos secundarios ORS | `gold_h3_accesibilidad` | **EXCLUIR** (Los tiempos a Garachico, Buenavista, Güímar, etc. saturan el modelo de colinealidad. Solo se usan los 3 polos estratégicos). |
   | `walkability_index` | Teórico (pgRouting) | **EXCLUIR** (Sustituido con éxito por `dist_parada_cercana_m` + `n_restaurantes`). |
 
+> **Nota de ejecución (post-implementación, 16-sep-2026):** De las 3 variables de tiempo listadas arriba (`tiempo_aeropuerto_min`, `tiempo_polo_turistico_min`, `tiempo_teide_min`), 2 (`tiempo_teide_min` y `tiempo_polo_turistico_min`) tuvieron que excluirse del modelo final por multicolinealidad severa: VIF 185.9–345.8 entre las 3 (muy por encima del umbral 10) y correlación >0.98 en los tres pares (r=0.9877 a r=0.9970) — en una isla de este tamaño, las 3 miden esencialmente lo mismo ("qué tan lejos del interior/costa está el hexágono"). Solo `tiempo_aeropuerto_min` quedó en el modelo MGWR final (v3). Detalle completo con la evidencia (matriz de correlación, VIF por variable) en `analytics/mgwr/docs/contexto_maestro_proyecto_ptna.md`, Hallazgo 10.
+
 ---
 
 ### Subtarea 5.2 — Ejecutar el modelo MGWR e Índice PTNA
@@ -1056,6 +1060,8 @@ df['ptna_score'] = modelo.predy.flatten() - y.flatten()  # Esperado - Observado
   - Columna `esg_territorial_score` en `gold.gold_h3_ptna` y `gold.gold_h3_master`.
   - Columna `esg_municipal_score` en `gold.gold_municipio_master`.
 - **Interpretabilidad para TUI:** Permite implementar el filtro de inversión sostenible de TUI: seleccionar hexágonos con alto potencial no aprovechado ($PTNA > 0$) y excelente desempeño ESG ($Score_{ESG} > 75$), garantizando un retorno financiero compatible con la sostenibilidad social y ecológica de Tenerife.
+
+> **Nota de ejecución (post-implementación, 16-sep-2026):** De las 6 variables mesomunicipales requeridas arriba, 2 (`pob_turistica_equiv` y las 4 columnas EOH de ocupación mensual) se resolvieron con tablas satélite propias del Bloque 5 (`gold.gold_bloque5_municipio_anual_extra`, `gold.gold_bloque5_municipio_mensual_extra`) en lugar de modificar `gold_municipio_master`/`gold_municipio_mensual` directamente, para no tocar sin coordinar los modelos dbt de otros bloques. Las otras 4 variables (`renta_bruta_irpf`, `poblacion_extranjera`, `empresas_ss`, `parque_vehiculos_1000hab`) siguen sin ingesta real — gap confirmado por grep en todo el repo, no hay ninguna tabla silver/gold que las contenga.
 
 ---
 
