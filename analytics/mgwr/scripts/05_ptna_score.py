@@ -12,19 +12,38 @@ ptna_score > 0 -> el hexagono "deberia" tener mas plazas hoteleras segun sus
 ptna_score < 0 -> zona sobre-explotada -> riesgo de overtourism.
 
 NOTA SOBRE `confianza_ptna` (diagnostico de estabilidad de coeficientes,
-sesion aparte sobre el .pkl ya generado): con kernel adaptativo, un
-bandwidth chico + ubicacion geografica periferica (pocos vecinos reales,
-todos concentrados de un lado) puede producir coeficientes locales
-extremos e inestables. Se diagnosticaron los 4 coeficientes con rangos
-min/max mas amplios; de esos, 2 (`dist_costa_km`, `n_paradas_bus_500m`)
-mostraron sus extremos (percentil 1/99) concentrados en zonas
-geograficamente perifericas (borde 5% del rango lon/lat del dataset) --
-las otras 2 (`n_pois_turisticos`, `viirs_medio`) mostraron sus extremos en
-zonas de alta actividad real (Puerto de la Cruz/La Orotava), no
-inestabilidad, y se descartaron de este criterio a proposito. `ptna_score`
-NO cambia por esto -- `confianza_ptna` es puramente informativa, para que
-quien lea el top-10 sepa si algun "mejor candidato" tiene esta salvedad
-antes de reportarlo como hallazgo solido sin más contexto.
+union de 2 criterios distintos, cada uno de una sesion de diagnostico
+aparte sobre el .pkl ya generado): `ptna_score` NO cambia por ninguno de
+los dos -- `confianza_ptna` es puramente informativa, para que quien lea
+el top-10 sepa si algun "mejor candidato" tiene esta salvedad antes de
+reportarlo como hallazgo solido sin mas contexto.
+
+- **Criterio periferia (Hallazgo 4, dataset v1; variables actualizadas para
+  v3 en la misma sesion del Hallazgo 11)**: con kernel adaptativo, un
+  bandwidth chico + ubicacion geografica periferica (pocos vecinos reales,
+  todos concentrados de un lado) puede producir coeficientes locales
+  extremos e inestables. Se diagnosticaron los 4 coeficientes con rangos
+  min/max mas amplios en el v1; de esos, 2 (`dist_costa_km`,
+  `n_paradas_bus_500m`) mostraron sus extremos (percentil 1/99)
+  concentrados en zonas geograficamente perifericas (borde 5% del rango
+  lon/lat del dataset) -- las otras 2 (`n_pois_turisticos`, `viirs_medio`)
+  mostraron sus extremos en zonas de alta actividad real (Puerto de la
+  Cruz/La Orotava), no inestabilidad, y se descartaron de este criterio a
+  proposito. `n_paradas_bus_500m` no existe desde el v2 (reemplazada por
+  `dist_parada_cercana_m`) -- rediagnosticado contra el checkpoint v3 real
+  (ver Hallazgo 11): el patron de periferia se sostiene para ambas
+  variables (51 y 25 hexagonos respectivamente, union 55/2579 = 2.13%,
+  comparable al 1.3%-2.0% del v1/v2), asi que se reemplaza
+  `n_paradas_bus_500m` por `dist_parada_cercana_m` en la lista. Ver
+  `calcular_h3_confianza_baja`.
+- **Criterio cluster (Hallazgo 11, dataset v3)**: `altitud_media_m` quedo
+  con VIF moderado (13.4) por correlacion con 4-5 variables geograficas
+  relacionadas (costa/ENP/clima/accesibilidad) -- sus coeficientes
+  extremos aparecen en 2 clusters geograficos COMPACTOS y bien poblados
+  (136-137 de 138 vecinos posibles), no en el borde del mapa con pocos
+  vecinos como el caso de arriba. Mismo percentil extremo, pero SIN el
+  filtro de periferia (no aplica -- estos hexagonos dieron
+  periferico=False). Ver `calcular_h3_confianza_baja_cluster`.
 
 Uso:
     python 05_ptna_score.py
@@ -49,10 +68,28 @@ TOP_N = 10
 # zona periferica, marcan el hexagono como confianza_ptna='baja'. Ver nota
 # extensa arriba -- n_pois_turisticos y viirs_medio quedaron fuera a
 # proposito (sus extremos son zonas de alta actividad real, no inestabilidad
-# numerica).
-CONFIANZA_BAJA_VARIABLES = ["dist_costa_km", "n_paradas_bus_500m"]
+# numerica). n_paradas_bus_500m (v1) -> dist_parada_cercana_m (desde v2,
+# rediagnosticada contra el v3 en la sesion del Hallazgo 11: patron de
+# periferia sostenido, 51 dist_costa_km + 25 dist_parada_cercana_m).
+CONFIANZA_BAJA_VARIABLES = ["dist_costa_km", "dist_parada_cercana_m"]
 CONFIANZA_BAJA_PERCENTILES = (1, 99)
 CONFIANZA_BAJA_MARGEN_PERIFERICO = 0.05  # 5% del rango lon/lat del dataset
+
+# Hallazgo 11 (dataset v3): altitud_media_m quedo con VIF moderado (13.4, no
+# severo -- no se saca del modelo, a diferencia del Hallazgo 10) por
+# correlacion con 4-5 variables geograficas relacionadas (dist_costa_km r=0.90,
+# pct_area_enp r=0.74, temp_media_anual r=-0.68, dist_parada_cercana_m r=0.64,
+# dist_hospital_km r=0.63) -- en Tenerife, altitud actua como proxy compuesto
+# de costa/ENP/clima/accesibilidad a la vez. Sus coeficientes extremos
+# (percentil 1/99) aparecen en 2 CLUSTERS GEOGRAFICOS COMPACTOS y bien
+# poblados (136-137 de 138 vecinos posibles con peso > 0) -- NO en el borde
+# del mapa con pocos vecinos reales como el Hallazgo 4. Por eso este criterio
+# es DISTINTO al de CONFIANZA_BAJA_VARIABLES de arriba: mismo percentil
+# extremo, pero SIN el filtro de periferia (_es_periferico no aplica aca --
+# los hexagonos extremos de altitud_media_m dieron periferico=False en el
+# diagnostico real). Ver calcular_h3_confianza_baja_cluster.
+CONFIANZA_BAJA_VARIABLES_CLUSTER = ["altitud_media_m"]
+CONFIANZA_BAJA_CLUSTER_PERCENTILES = (1, 99)
 
 
 def _es_periferico(lon, lat, lon_min, lon_max, lat_min, lat_max, margen_pct):
@@ -113,25 +150,75 @@ def calcular_h3_confianza_baja(df, model):
     return h3_confianza_baja, detalle_por_variable
 
 
+def calcular_h3_confianza_baja_cluster(model):
+    """
+    Hallazgo 11 (dataset v3): union, sobre CONFIANZA_BAJA_VARIABLES_CLUSTER, de
+    los hexagonos cuyo coeficiente local esta en percentil 1 o 99 -- SIN filtro
+    de periferia, a diferencia de calcular_h3_confianza_baja (Hallazgo 4).
+
+    Motivo del criterio distinto: los extremos de altitud_media_m no estan en
+    el borde del mapa con pocos vecinos reales (eso es lo que buscaba el
+    filtro de periferia) -- estan en 2 clusters geograficos compactos con
+    ventanas locales bien pobladas (136-137 de 138 vecinos posibles).
+    La inestabilidad viene de colinealidad global moderada (VIF=13.4 contra
+    4-5 variables geograficas relacionadas, ver Hallazgo 11), no de escasez
+    de datos reales cerca. Exigir periferia aca descartaria estos clusters por
+    el motivo equivocado -- por eso se omite ese filtro a proposito.
+
+    Recalcula solo (no hardcodea por h3_index) -- si el modelo cambia, este
+    calculo se rehace solo.
+    """
+    feature_names = model["feature_names"]
+    params = model["params"]
+    h3_model = model["h3_index"]
+
+    faltantes = [v for v in CONFIANZA_BAJA_VARIABLES_CLUSTER if v not in feature_names]
+    if faltantes:
+        raise RuntimeError(
+            f"Las variables {faltantes} (usadas para confianza_ptna, criterio cluster/Hallazgo 11) "
+            f"no estan en feature_names del modelo: {feature_names}."
+        )
+
+    coef_df = pd.DataFrame(params, columns=feature_names)
+    coef_df["h3_index"] = h3_model
+
+    p_bajo, p_alto = CONFIANZA_BAJA_CLUSTER_PERCENTILES
+    h3_confianza_baja = set()
+    detalle_por_variable = {}
+    for var in CONFIANZA_BAJA_VARIABLES_CLUSTER:
+        coef = coef_df[var].values
+        p1 = np.percentile(coef, p_bajo)
+        p99 = np.percentile(coef, p_alto)
+        extremos = coef_df.loc[(coef <= p1) | (coef >= p99), "h3_index"]
+        detalle_por_variable[var] = len(extremos)
+        h3_confianza_baja.update(extremos)
+
+    return h3_confianza_baja, detalle_por_variable
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Calcula ptna_score y produce el dataset final del Bloque 5")
     parser.add_argument(
         "--model",
-        default=str(DATA_INTERIM_DIR / "ptna_mgwr_model_v2.pkl"),
-        help="Pickle del modelo (default: analytics/mgwr/data/interim/ptna_mgwr_model_v2.pkl -- "
-             "sufijo _v2 a proposito, para no pisar el ptna_mgwr_model.pkl del v1)",
+        default=str(DATA_INTERIM_DIR / "ptna_mgwr_model_v3.pkl"),
+        help="Pickle del modelo (default: analytics/mgwr/data/interim/ptna_mgwr_model_v3.pkl -- "
+             "sufijo _v3 a proposito (Hallazgo 10), para no pisar el ptna_mgwr_model_v2.pkl -- ese "
+             "primer intento sigue siendo el que se uso para diagnosticar la multicolinealidad, no "
+             "se borra -- ni el ptna_mgwr_model.pkl del v1)",
     )
     parser.add_argument(
         "--dataset",
-        default=str(DATA_INTERIM_DIR / "ptna_dataset_filtered_v2.parquet"),
-        help="Dataset filtrado (default: analytics/mgwr/data/interim/ptna_dataset_filtered_v2.parquet -- "
-             "sufijo _v2 a proposito, para no pisar el ptna_dataset_filtered.parquet del v1)",
+        default=str(DATA_INTERIM_DIR / "ptna_dataset_filtered_v3.parquet"),
+        help="Dataset filtrado (default: analytics/mgwr/data/interim/ptna_dataset_filtered_v3.parquet -- "
+             "sufijo _v3 a proposito (Hallazgo 10), para no pisar el ptna_dataset_filtered_v2.parquet "
+             "ni el del v1)",
     )
     parser.add_argument(
         "--output",
-        default=str(DATA_PROCESSED_DIR / "gold_h3_ptna_v2.parquet"),
-        help="Parquet final de salida (default: analytics/mgwr/data/processed/gold_h3_ptna_v2.parquet -- "
-             "sufijo _v2 a proposito, para no pisar el gold_h3_ptna_v1.parquet del v1)",
+        default=str(DATA_PROCESSED_DIR / "gold_h3_ptna_v3.parquet"),
+        help="Parquet final de salida (default: analytics/mgwr/data/processed/gold_h3_ptna_v3.parquet -- "
+             "sufijo _v3 a proposito (Hallazgo 10), para no pisar el gold_h3_ptna_v1.parquet del v1 "
+             "(el v2 nunca llego a correr 05 -- no existe gold_h3_ptna_v2.parquet)",
     )
     return parser.parse_args()
 
@@ -169,14 +256,27 @@ def main():
             )
 
         logger.info(
-            "Calculando confianza_ptna (variables=%s, percentiles=%s, margen periferico=%.0f%%)...",
+            "Calculando confianza_ptna, criterio periferia/Hallazgo 4 (variables=%s, percentiles=%s, "
+            "margen periferico=%.0f%%)...",
             CONFIANZA_BAJA_VARIABLES, CONFIANZA_BAJA_PERCENTILES, CONFIANZA_BAJA_MARGEN_PERIFERICO * 100,
         )
-        h3_confianza_baja, detalle_confianza = calcular_h3_confianza_baja(df, model)
-        for var, n in detalle_confianza.items():
+        h3_confianza_baja_periferia, detalle_confianza_periferia = calcular_h3_confianza_baja(df, model)
+        for var, n in detalle_confianza_periferia.items():
             logger.info("  %s: %d hexagonos extremos (p1/p99) Y perifericos", var, n)
+
         logger.info(
-            "Total hexagonos marcados confianza_ptna='baja' (union, sin doble conteo): %d",
+            "Calculando confianza_ptna, criterio cluster/Hallazgo 11 (variables=%s, percentiles=%s, "
+            "SIN filtro de periferia)...",
+            CONFIANZA_BAJA_VARIABLES_CLUSTER, CONFIANZA_BAJA_CLUSTER_PERCENTILES,
+        )
+        h3_confianza_baja_cluster, detalle_confianza_cluster = calcular_h3_confianza_baja_cluster(model)
+        for var, n in detalle_confianza_cluster.items():
+            logger.info("  %s: %d hexagonos extremos (p1/p99), colinealidad global moderada (VIF>10)", var, n)
+
+        h3_confianza_baja = h3_confianza_baja_periferia | h3_confianza_baja_cluster
+        detalle_confianza = {**detalle_confianza_periferia, **detalle_confianza_cluster}
+        logger.info(
+            "Total hexagonos marcados confianza_ptna='baja' (union de ambos criterios, sin doble conteo): %d",
             len(h3_confianza_baja),
         )
 
@@ -246,12 +346,15 @@ def main():
     print(f"Hexagonos con ptna_score > 0 (oportunidad): {n_positive}")
     print(f"Hexagonos con ptna_score < 0 (sobre-explotado): {n_negative}")
     print(
-        f"Hexagonos con confianza_ptna='baja' (bandwidth chico + zona periferica en "
-        f"dist_costa_km y/o n_paradas_bus_500m): {n_confianza_baja} / {len(result_df)} "
-        f"({n_confianza_baja / len(result_df) * 100:.1f}%)"
+        f"Hexagonos con confianza_ptna='baja' (union de 2 criterios distintos, sin doble conteo): "
+        f"{n_confianza_baja} / {len(result_df)} ({n_confianza_baja / len(result_df) * 100:.1f}%)"
     )
-    for var, n in detalle_confianza.items():
-        print(f"  - {var}: {n} hexagonos")
+    print(f"  Criterio periferia (Hallazgo 4: bandwidth chico + zona periferica del mapa):")
+    for var, n in detalle_confianza_periferia.items():
+        print(f"    - {var}: {n} hexagonos")
+    print(f"  Criterio cluster (Hallazgo 11: colinealidad global moderada, VIF>10, sin filtro de periferia):")
+    for var, n in detalle_confianza_cluster.items():
+        print(f"    - {var}: {n} hexagonos")
     if n_missing_score:
         print(f"AVISO: {n_missing_score} filas sin match de h3_index entre dataset y modelo.")
     print("Percentiles de ptna_score:")

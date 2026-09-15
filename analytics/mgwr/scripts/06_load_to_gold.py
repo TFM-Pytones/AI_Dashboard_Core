@@ -4,8 +4,8 @@
 Bloque 5 (MGWR/PTNA) -- sube el resultado final de 05_ptna_score.py a
 Postgres, ademas del parquet que ya se guarda localmente.
 
-Lee analytics/mgwr/data/processed/gold_h3_ptna_v1.parquet y lo escribe como
-gold.gold_h3_ptna_v1_sin_sentimiento.
+Lee analytics/mgwr/data/processed/gold_h3_ptna_v3.parquet y lo escribe como
+gold.gold_h3_ptna_v3.
 
 Uso:
     python 06_load_to_gold.py
@@ -25,15 +25,15 @@ from _db import DATA_PROCESSED_DIR, get_engine, setup_logging
 
 SCRIPT_NAME = "06_load_to_gold"
 SCHEMA = "gold"
-TABLE_NAME = "gold_h3_ptna_v1_sin_sentimiento"
+TABLE_NAME = "gold_h3_ptna_v3"
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Sube el resultado final del Bloque 5 (MGWR/PTNA) a Postgres")
     parser.add_argument(
         "--input",
-        default=str(DATA_PROCESSED_DIR / "gold_h3_ptna_v1.parquet"),
-        help="Parquet de entrada (default: analytics/mgwr/data/processed/gold_h3_ptna_v1.parquet)",
+        default=str(DATA_PROCESSED_DIR / "gold_h3_ptna_v3.parquet"),
+        help="Parquet de entrada (default: analytics/mgwr/data/processed/gold_h3_ptna_v3.parquet)",
     )
     parser.add_argument(
         "--table",
@@ -67,13 +67,15 @@ def main():
 
         engine = get_engine()
 
-        # if_exists="replace" es intencional aca: esta es la v1 EXPLORATORIA del
-        # modelo (ver docs/contexto_maestro_proyecto_ptna.md, seccion 6 -- falta
-        # sentimiento_medio, bloqueante activo), y esta tabla completa se va a
-        # descartar y recrear entera el dia que esa variable este disponible y
-        # se corra 04_run_model.py de nuevo. No copiar este patron a un script
-        # que suba una tabla gold "definitiva" -- ahi corresponde versionar o
-        # hacer upsert, no reemplazar la tabla completa en cada corrida.
+        # if_exists="replace" es intencional aca: mientras el dataset de PTNA
+        # siga en iteracion (variables del modelo, criterios de confianza_ptna,
+        # etc. todavia sujetos a cambio -- ver docs/contexto_maestro_proyecto_ptna.md),
+        # esta tabla completa se va a descartar y recrear entera cada vez que
+        # se vuelva a correr 04_run_model.py / 05_ptna_score.py con ajustes.
+        # No copiar este patron a un script que suba una tabla gold ya
+        # "definitiva" y estable -- ahi corresponde versionar o hacer upsert,
+        # no reemplazar la tabla completa
+        # en cada corrida.
         logger.info("Subiendo a %s.%s (if_exists='replace')...", SCHEMA, args.table)
         df.to_sql(args.table, engine, schema=SCHEMA, if_exists="replace", index=False)
         logger.info("Subida completada.")
