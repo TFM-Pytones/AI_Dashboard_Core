@@ -56,9 +56,11 @@ def test_validar_sql_rechaza_multiples_sentencias():
 
 
 def test_validar_sql_rechaza_tablas_fuera_de_la_lista_curada():
-    es_valido, motivo = validar_sql("SELECT * FROM gold.gold_h3_master")
+    # gold.nlp_chunks es la tabla del corpus del RAG -- nunca debe ser
+    # alcanzable por el agente SQL, esas preguntas van al RAG.
+    es_valido, motivo = validar_sql("SELECT * FROM gold.nlp_chunks")
     assert es_valido is False
-    assert "gold.gold_h3_master" in motivo
+    assert "gold.nlp_chunks" in motivo
 
 
 def test_validar_sql_acepta_join_entre_tablas_permitidas():
@@ -81,12 +83,29 @@ def test_asegurar_limit_respeta_limit_explicito_menor():
     assert "LIMIT 5" in resultado
 
 
-def test_esquema_gold_solo_incluye_tablas_curadas_a_nivel_municipio():
-    # gold_h3_master (nivel hexágono, ~80 columnas técnicas) se excluye a
-    # propósito -- ver decisión 3 de la spec.
-    assert "gold.gold_h3_master" not in ESQUEMA_GOLD
+def test_esquema_gold_incluye_las_tablas_curadas():
+    # gold_h3_master se incluye con una selección curada de ~24 columnas (no
+    # las ~80 originales) -- amplía la cobertura a nivel hexágono (relieve,
+    # restricciones legales, distancia a costa) sin arrastrar las columnas
+    # técnicas de satélite/clima por año y trimestre que no aportan a
+    # preguntas en lenguaje natural.
+    assert "gold.gold_h3_master" in ESQUEMA_GOLD
     assert "gold.gold_municipio_master" in ESQUEMA_GOLD
     assert "gold.gold_aena_pasajeros" in ESQUEMA_GOLD
+    # Las tablas del propio RAG nunca deben ser alcanzables por el agente SQL.
+    assert "gold.nlp_chunks" not in ESQUEMA_GOLD
+    assert "gold.nlp_sentimiento_resenas" not in ESQUEMA_GOLD
+
+
+def test_esquema_gold_h3_master_incluye_columnas_de_restricciones_y_costa():
+    columnas_h3 = dict(ESQUEMA_GOLD["gold.gold_h3_master"])
+    assert "pct_area_enp" in columnas_h3
+    assert "pct_area_zona_turistica" in columnas_h3
+    assert "dist_costa_km" in columnas_h3
+    # La semántica de "sin restricción" (ambos en 0) tiene que quedar clara
+    # en la propia descripción -- si no, el LLM no sabe cómo escribir el
+    # WHERE para "municipios sin restricciones".
+    assert "0" in columnas_h3["pct_area_enp"]
 
 
 def test_describir_esquema_incluye_todas_las_tablas_y_columnas():

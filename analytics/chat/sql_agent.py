@@ -138,6 +138,48 @@ ESQUEMA_GOLD: dict[str, list[tuple[str, str]]] = {
         ("operaciones", "operaciones (despegues + aterrizajes) ese mes"),
         ("pasajeros_por_operacion", "pasajeros medios por operación ese mes"),
     ],
+    # Nivel hexágono H3 (2.579 celdas), no municipio -- selección curada de
+    # ~24 columnas de las ~80 originales de gold_h3_master. Cubre
+    # restricciones legales, distancia a costa, relieve y satélite; se
+    # excluyen a propósito los desgloses por año/trimestre de NDVI/NDBI/VIIRS
+    # y clima (>40 columnas técnicas) que no aportan a preguntas en lenguaje
+    # natural y solo añadirían ruido al esquema.
+    "gold.gold_h3_master": [
+        ("h3_index", "identificador del hexágono H3"),
+        ("cod_municipio", "código INE del municipio al que pertenece el hexágono"),
+        ("municipio", "nombre del municipio al que pertenece el hexágono"),
+        ("area_km2", "superficie del hexágono en km2"),
+        ("n_establecimientos_registro", "alojamientos turísticos con registro oficial en el hexágono"),
+        ("n_plazas_registro", "plazas turísticas registradas en el hexágono"),
+        ("n_hoteles", "número de hoteles en el hexágono"),
+        ("n_vv", "número de viviendas vacacionales en el hexágono"),
+        ("rating_booking_medio", "valoración media en Booking en el hexágono, escala 0-10"),
+        ("rating_tripadvisor_medio", "valoración media en TripAdvisor en el hexágono, escala 0-5"),
+        ("n_pois_total", "puntos de interés turístico en el hexágono"),
+        ("n_restaurantes", "restaurantes/bares en el hexágono"),
+        ("n_naturaleza", "puntos de interés de naturaleza/deporte en el hexágono"),
+        ("n_paradas_bus", "paradas de autobús en el hexágono"),
+        ("altitud_media_m", "altitud media del hexágono en metros"),
+        ("slope_mean", "pendiente media del terreno en el hexágono"),
+        ("ndvi_medio", "índice de vegetación medio por satélite, de 0 (sin vegetación) a 1 (vegetación densa)"),
+        ("ndbi_medio", "índice de densidad urbana medio por satélite"),
+        ("temp_media_anual", "temperatura media anual del hexágono en grados"),
+        ("lluvia_mm_anual", "lluvia media anual del hexágono en mm"),
+        ("dist_costa_km", "distancia en línea recta a la costa en km"),
+        (
+            "pct_area_enp",
+            "fracción (0 a 1) del área del hexágono dentro de un Espacio Natural Protegido; "
+            "0 significa que no hay solape",
+        ),
+        ("nombre_enp", "nombre del Espacio Natural Protegido, si pct_area_enp > 0"),
+        (
+            "pct_area_zona_turistica",
+            "fracción (0 a 1) del área del hexágono dentro de una zona turística oficial; "
+            "0 significa que no hay solape. Un hexágono 'sin restricción' tiene pct_area_enp = 0 "
+            "Y pct_area_zona_turistica = 0 a la vez",
+        ),
+        ("nombre_zona_turistica", "nombre de la zona turística oficial, si pct_area_zona_turistica > 0"),
+    ],
 }
 
 TABLAS_PERMITIDAS: set[str] = set(ESQUEMA_GOLD.keys())
@@ -215,7 +257,12 @@ class RespuestaSQL:
 
 def _generar_sql(pregunta: str, llm: LLMClient, motivo_reintento: str = "") -> str:
     prompt = PROMPT_SQL.format(esquema=describir_esquema(), pregunta=pregunta, motivo_reintento=motivo_reintento)
-    respuesta = llm.complete(prompt, temperature=0.0, max_tokens=300)
+    # max_tokens=1000, no 300: mismo motivo que en router.py -- el modelo
+    # (openai/gpt-oss-120b) gasta presupuesto en tokens de razonamiento
+    # ocultos antes del SQL en sí. Con un esquema grande (gold_h3_master +
+    # las tablas de municipio) 300 no bastaba y devolvia "" siempre.
+    # Confirmado empiricamente contra la API real de Groq.
+    respuesta = llm.complete(prompt, temperature=0.0, max_tokens=1000)
     return respuesta.strip().strip("`").strip()
 
 
@@ -267,5 +314,8 @@ def responder_sql(pregunta: str, engine, llm: LLMClient | None = None) -> Respue
 
     filas = df.to_dict("records")
     prompt_narracion = PROMPT_NARRACION.format(pregunta=pregunta, filas=filas)
-    texto = cliente.complete(prompt_narracion, temperature=0.3, max_tokens=200)
+    # max_tokens=600, no 200: mismo motivo que en _generar_sql -- con muchas
+    # filas (ej. los 31 municipios agrupados) el modelo necesita mas
+    # presupuesto de razonamiento antes de poder redactar la respuesta.
+    texto = cliente.complete(prompt_narracion, temperature=0.3, max_tokens=600)
     return RespuestaSQL(texto=texto.strip(), sql=sql_final, filas=filas)
