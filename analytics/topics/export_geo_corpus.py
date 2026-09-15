@@ -73,7 +73,7 @@ def fetch_booking(conn) -> list[tuple[str, str, str]]:
 def fetch_tripadvisor(conn) -> list[tuple[str, str, str]]:
     with conn.cursor() as cur:
         cur.execute(
-            "SELECT review_id, texto FROM silver.tripadvisor_resenas "
+            "SELECT review_id, texto FROM silver.silver_tripadvisor_resenas "
             "WHERE texto IS NOT NULL AND length(texto) > %s",
             (MIN_TEXT_LENGTH,),
         )
@@ -85,7 +85,7 @@ def fetch_losviajeros_geo(conn) -> list[tuple[str, str, str]]:
     hash del texto limpio (calculado aqui, no leido de la BD) -- no por id_mensaje,
     ver docstring del modulo."""
     with conn.cursor() as cur:
-        cur.execute("SELECT texto_mensaje_limpio FROM silver.stg_losviajeros_mensajes")
+        cur.execute("SELECT texto FROM silver.silver_losviajeros_mensajes")
         raw_texts = [r[0] for r in cur.fetchall()]
         cur.execute("SELECT source_id FROM gold.geo_mentions WHERE source = 'losviajeros_message'")
         geo_ids = {r[0] for r in cur.fetchall()}

@@ -77,8 +77,8 @@ Adquiere y calibra imágenes de radianza nocturna para evaluar la intensidad eco
 * **Fuentes Compatibles**:
   * **Google Earth Engine (Recomendada)**: Colección `NOAA/VIIRS/DNB/MONTHLY_V1/VCMSLCFG`.
   * **NASA LAADS DAAC**: Producto `VNP46A2` (Black Marble), tile `h17v05`.
-* **Tratamiento del Período Pandémico (COVID-19)**:
-  Durante los años 2020 y 2021 se produjo un desplome artificial de la radianza nocturna (~60-70%) debido a los toques de queda y cierres hoteleros. El script añade automáticamente el atributo `periodo_covid=1` e `incluir_en_modelo=0` para no sesgar las calibraciones espaciales en modelos como MGWR.
+* **Tratamiento del Período Temporal**:
+  Se ingesta la serie histórica completa desde 2019 en la capa Bronze para mantener la trazabilidad inmutable. Posteriormente, en la capa Silver (`silver_satelite_stats`) se estandariza y filtra a partir de 2022 (`WHERE year >= 2022`), asegurando que los modelos de Machine Learning espacial (MGWR, HDBSCAN) se calibren sobre la serie post-pandemia sin distorsiones.
 
 #### Comandos de ejecución:
 ```bash

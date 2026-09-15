@@ -4,8 +4,9 @@ import subprocess
 from dotenv import load_dotenv
 
 def main():
-    # Cargar variables de entorno del archivo .env
-    load_dotenv('.env')
+    # Cargar variables de entorno del archivo .env (busqueda automatica hacia
+    # arriba: el .env real vive un nivel por encima de AI_Dashboard_Core)
+    load_dotenv()
     
     # Asegurarnos de que estamos pasando comandos a dbt
     if len(sys.argv) < 2:

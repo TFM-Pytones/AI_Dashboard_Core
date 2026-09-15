@@ -33,18 +33,6 @@ dbt-postgres==1.10.2
 azure-storage-blob>=12.19.0
 geoalchemy2>=0.14.0
 
-# NLP / Hugging Face (analytics/sentiment)
-transformers==4.57.1
-torch==2.9.0
-sentencepiece==0.2.1
-
-# NLP / Extraccion de aspectos (analytics/aspects)
-pyabsa==2.4.2
-update-checker==0.18.0  # pin necesario: la 1.0.0 rompe metric_visualizer (dependencia de pyabsa)
-
-# NLP / Modelado de topicos (analytics/topics) - Issue #19
-bertopic>=0.16.0
-sentence-transformers>=3.0.0
 
 # LLM / Informe narrativo (analytics/llm) - Setup LLM + Subtarea 3.2
 groq>=0.9.0
@@ -61,6 +49,12 @@ matplotlib>=3.8.0              # Gráficos base
 # Ingesta Satelital — Issue #10 (Sentinel-2 + VIIRS)
 earthengine-api>=0.1.390       # Google Earth Engine Python API (compositing Sentinel-2 + VIIRS)
 h5py>=3.10.0                   # Lectura de HDF5 (NASA LAADS DAAC VNP46A2 — VIIRS alternativo)
+
+# Dashboard (app/) — Bloque 8 v1: mapa H3 + KPIs
+streamlit>=1.42  # st.pydeck_chart(on_select=..., selection_mode=...) requires >=1.42
+pydeck==0.9.1
+plotly==5.24.1
+pytest==8.3.4  # ya estaba instalado en el venv; se declara para reproducibilidad
 
 # Bloque 4 — Accesibilidad y Routing
 openrouteservice>=2.3.3        # Cliente oficial para la API de OpenRouteService (isócronas y routing)

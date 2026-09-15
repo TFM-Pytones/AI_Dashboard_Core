@@ -164,7 +164,7 @@ Los valores **conservados** incluyen vegetación (4), suelo desnudo (5), agua (6
 | Fuente preferida | GEE (`NOAA/VIIRS/DNB/MONTHLY_V1/VCMSLCFG`) | No requiere cuenta NASA, más rápido |
 | Fuente alternativa | NASA LAADS DAAC VNP46A2 | Para validación cruzada o si GEE no tiene el dato |
 | Resolución | ~500m (~GEE scale 500) | Resolución nativa del producto VIIRS |
-| Metadato COVID | `periodo_covid=1` para 2020-2021 | Caída artificial de ~60-70% por COVID; excluir de regresión MGWR (#31) |
+| Filtrado temporal | Serie completa en Bronze (2019+), Silver filtra `>= 2022` | Mantiene trazabilidad cruda y calibra modelos en ventana post-pandemia homogénea |
 
 ---
 

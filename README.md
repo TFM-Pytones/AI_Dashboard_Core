@@ -34,6 +34,7 @@ Este repositorio contiene el código fuente y la documentación para el Trabajo 
 * **3.1. Diseño del Data Warehouse Espacial**: Modelado relacional en Azure Database for PostgreSQL habilitando PostGIS para soportar tipos espaciales (`GEOMETRY` / `GEOGRAPHY`).
 * **3.2. Estandarización de Sistemas de Coordenadas**: Normalización global al sistema de proyección proyectado oficial de Canarias **EPSG:32628 (WGS 84 / UTM zone 28N)** y generación de índices espaciales **GIST** para consultas geográficas veloces.
 * **3.3. Orquestación ETL (dbt / Apache Airflow) y Geoprocesamiento**:
+  - Orquestación automatizada de pipelines con **Apache Airflow 2.9 (Docker)**: DAG histórico completo, incremental mensual y refresco de redes sociales (guía de despliegue en [dags/README.md](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/dags/README.md)).
   - Modelos dbt para transformación, calidad de datos y linaje.
   - Geoprocesamiento programático con `rasterio` para la extracción de Altitud, Orientación (Aspect) y Pendiente (Slope) a partir de ficheros raster (.tif) del MDT hacia la Capa Plata.
 

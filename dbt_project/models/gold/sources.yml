@@ -14,3 +14,9 @@ sources:
         description: "Aspectos extraidos por reseña via PyABSA, en el idioma original (analytics/tarea2/nlp_aspectos_tarea_2_2.ipynb)."
       - name: aspecto_traducciones
         description: "Mapeo aspecto_original -> aspecto_traducido/normalizado (analytics/tarea2/traducir_aspectos.ipynb)."
+      - name: nlp_topics
+        description: "Topico de BERTopic por opinion, Modelos A y B (analytics/topics/import_geo_results.py). Sin h3_index: la georreferenciacion vive en nlp_chunks."
+      - name: nlp_chunks
+        description: "Corpus fragmentado y enriquecido con municipio/zona/h3_index/fecha para el RAG (analytics/rag/build_chunks.py, ver plan_rag.md)."
+      - name: geo_mentions
+        description: "Lugar detectado en cada mensaje de LosViajeros por coincidencia con gazetteer (analytics/geo/extract_toponyms.py). Da nombre de lugar, no coordenadas."

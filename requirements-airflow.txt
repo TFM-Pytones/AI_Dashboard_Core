@@ -1,0 +1,76 @@
+# requirements-airflow.txt
+# Dependencias que se instalan DENTRO de la imagen de Airflow.
+#
+# ─── Exclusiones intencionadas (tasks con ShortCircuit run_heavy_ml) ───────────
+# torch, transformers    → analytics/sentiment/batch_inference.py
+# pyabsa                 → analytics/aspects/batch_inference.py
+# bertopic, sentence-transformers → analytics/topics/topic_modeling.py
+# seaborn, matplotlib    → solo validación/visualización, no en pipeline
+#
+# Esos tasks corren con el venv del repo montado en /opt/airflow/repo,
+# invocados desde BashOperator con el python del venv si se necesitan.
+# ──────────────────────────────────────────────────────────────────────────────
+
+# Conexión a PostgreSQL (la imagen base ya incluye psycopg2-binary)
+# Variables de entorno
+python-dotenv>=1.0.0
+
+# Data (Airflow 2.9 ya incluye numpy 1.26.4 y pandas 2.1.4 compatibles)
+numpy<2.0.0
+pandas<2.2.0
+pyarrow>=14.0.0
+
+# Azure
+# azure-storage-blob → casi todos los scripts de ingesta (upload al blob)
+# azure-core         → ResourceNotFoundError (youtube, tripadvisor, booking)
+azure-storage-blob>=12.19.0
+azure-core>=1.30.0
+
+# Geospatial (necesario para los scripts de ingesta y postgres)
+# geopandas       → 01_ingest_vector, 03_ingest_satelite, tripadvisor_upload_blob
+# shapely          → tripadvisor_upload_blob (filtrado geográfico)
+# rasterio         → 03_ingest_satelite (lectura GeoTIFF)
+# rasterstats      → 03_ingest_satelite (zonal_stats)
+# geoalchemy2      → 01_ingest_vector (PostGIS)
+# h3               → ingestion/espacial/h3_grid_upload_blob.py
+geopandas<1.1.0
+shapely>=2.0.0
+rasterio<1.5.0
+rasterstats>=0.19.0
+geoalchemy2>=0.14.0
+h3>=3.7.0
+
+# Web / APIs (requests ya viene preinstalado en Airflow)
+beautifulsoup4>=4.12.0
+selenium>=4.20.0
+webdriver-manager>=4.0.0
+geopy>=2.4.0
+
+# dbt
+dbt-postgres>=1.8.0
+
+# Routing / Accesibilidad
+openrouteservice>=2.3.3
+
+# GTFS
+partridge
+
+# Clima
+openmeteo-requests>=0.3.0
+requests-cache>=1.2.0
+retry-requests>=2.0.0
+
+# Earth Engine (satélite)
+earthengine-api>=0.1.390
+h5py>=3.10.0
+
+# LLM reports (ligero — solo cliente Groq)
+# groq → analytics/llm/report_generator.py, report_generator_alojamiento.py
+groq>=0.9.0
+
+# Validación / clustering
+# scikit-learn → analytics/clustering/build_features.py (StandardScaler)
+scikit-learn<1.5.0
+scipy<1.14.0
+
+# setuptools ya viene instalado en la imagen base (66.1.1)

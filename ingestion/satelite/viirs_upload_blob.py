@@ -5,10 +5,8 @@ Pipeline de Descarga VIIRS Night Lights (NASA) para la Capa Bronce.
 Issue #10 — Extracción Satelital (Copernicus / Sentinel) — componente VIIRS.
 
 Arquitectura Medallón - Capa Bronce (Raw):
-- Descarga composites mensuales VIIRS VNP46A2 (Black Marble) de NASA LAADS DAAC.
-- Recorta al extent de Tenerife y guarda en formato GeoTIFF.
-- Añade metadato `periodo_covid` (TRUE para años 2020-2021) para filtrado posterior.
-- Sube los GeoTIFFs a Azure Blob Storage (bronce-raw/satelite/viirs/).
+- Recorta al extent de Tenerife y sube los GeoTIFFs a Azure Blob Storage (bronce-raw/satelite/viirs/).
+- Ingesta la serie histórica completa desde 2019 (Bronze). El filtrado para modelos se realiza en Silver (>= 2022).
 
 Producto NASA: VNP46A2 — VIIRS/NPP Gap-Filled Lunar BRDF-Adjusted Nighttime Lights
   - Resolución: ~500m (15 arc-seconds)
@@ -89,7 +87,6 @@ TENERIFE_BBOX = {
 }
 
 START_YEAR = 2019
-COVID_YEARS = {2020, 2021}
 
 # GEE: colección VIIRS mensual
 GEE_VIIRS_COLLECTION = "NOAA/VIIRS/DNB/MONTHLY_V1/VCMSLCFG"
@@ -196,16 +193,14 @@ class VIIRSGEEExporter:
             date_start = f"{year}-{month:02d}-01"
             date_end   = f"{year}-{month:02d}-{last_day}"
             desc       = f"tenerife_viirs_{year}_{month:02d}"
-            covid_flag = " [COVID]" if year in COVID_YEARS else ""
 
-            logger.info(f"\n  → {year}/{month:02d}{covid_flag}")
+            logger.info(f"\n  → {year}/{month:02d}")
 
             if self.dry_run:
                 logger.info(f"    [DRY RUN] Se omitiría: {desc}")
                 continue
 
             try:
-                # Composite mensual VIIRS (ya es mensual en GEE → tomar el primero disponible)
                 collection = (
                     ee.ImageCollection(GEE_VIIRS_COLLECTION)
                     .filterBounds(aoi)
@@ -218,16 +213,12 @@ class VIIRSGEEExporter:
                     logger.warning(f"    Sin imágenes para {year}/{month:02d} en GEE.")
                     continue
 
-                # Para VIIRS mensual: tomar la imagen del mes (ya es un composite)
                 monthly_img = collection.first().clip(aoi)
 
-                # Añadir metadatos como propiedades de la imagen
                 monthly_img = monthly_img.set({
                     "year":          year,
                     "month":         month,
                     "date_start":    date_start,
-                    "periodo_covid": 1 if year in COVID_YEARS else 0,
-                    "incluir_en_modelo": 0 if year in COVID_YEARS else 1,
                     "source":        GEE_VIIRS_COLLECTION,
                     "band":          GEE_VIIRS_BAND,
                     "units":         "nW/cm²/sr",
@@ -401,12 +392,11 @@ class VIIRSNASADownloader:
 
         ok_count = 0
         for year, month in months:
-            covid_flag = " [COVID]" if year in COVID_YEARS else ""
             out_fname  = f"tenerife_viirs_{year}_{month:02d}.tif"
             out_path   = os.path.join(LOCAL_VIIRS_DIR, out_fname)
             h5_tmp     = out_path.replace(".tif", "_raw.h5")
 
-            logger.info(f"\n  → {year}/{month:02d}{covid_flag}")
+            logger.info(f"\n  → {year}/{month:02d}")
 
             if os.path.exists(out_path):
                 logger.info(f"  Ya existe: {out_fname}")
@@ -536,8 +526,7 @@ def list_local_viirs(local_dir: str = LOCAL_VIIRS_DIR):
             year   = int(parts[-2])
             month  = int(parts[-1])
             downloaded.add((year, month))
-            covid  = " [COVID — excluir modelo]" if year in COVID_YEARS else ""
-            logger.info(f"{year}/{month:02d}{covid} — {fname}")
+            logger.info(f"{year}/{month:02d} — {fname}")
         except (IndexError, ValueError):
             logger.info(f"    ? {fname}")
 
@@ -545,8 +534,7 @@ def list_local_viirs(local_dir: str = LOCAL_VIIRS_DIR):
     if missing:
         logger.warning(f"\n  Meses faltantes ({len(missing)}):")
         for y, m in missing:
-            covid = " [COVID]" if y in COVID_YEARS else ""
-            logger.warning(f"    - {y}/{m:02d}{covid}")
+            logger.warning(f"    - {y}/{m:02d}")
 
 
 # ─── CLI ─────────────────────────────────────────────────────────────────────
