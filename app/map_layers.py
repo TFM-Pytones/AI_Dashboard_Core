@@ -3,6 +3,7 @@ import os
 
 import pandas as pd
 import pydeck as pdk
+from shapely.geometry import MultiPolygon
 
 from app.color_scales import (
     DIVERGING_SENTIMENT_DOMAIN,
@@ -186,6 +187,70 @@ def legend_html(metric_key: str, gdf: pd.DataFrame) -> str:
 
     light_hex, dark_hex = config["ramp"]
     values = gdf[config["column"]].dropna()
+    vmin = float(values.min()) if not values.empty else 0.0
+    vmax = float(values.max()) if not values.empty else 1.0
+    gradient = f"linear-gradient(to right, {light_hex}, {dark_hex})"
+    return _gradient_bar_html(gradient, format_metric(vmin, "decimal"), format_metric(vmax, "decimal"))
+
+
+# Capa coroplética municipal (gold_municipio_master): un polígono por
+# municipio, coloreado con la misma rampa secuencial genérica que ya usan las
+# métricas de sitio (dist_costa_km, n_pois_total, etc.) en vez de inventar un
+# esquema de color nuevo.
+MUNICIPIO_METRICS = {
+    "Presión residencial": "plazas_por_1000_hab",
+    "Densidad turística": "densidad_plazas_km2",
+    "Evolución de oferta VV": "crec_plazas_vv_pct",
+}
+
+
+def build_municipio_fill_color_column(gdf: pd.DataFrame, metric_key: str) -> pd.Series:
+    column = MUNICIPIO_METRICS[metric_key]
+    light_hex, dark_hex = SEQUENTIAL_DENSITY
+    values = gdf[column]
+    non_null = values.dropna()
+    vmin = float(non_null.min()) if not non_null.empty else 0.0
+    vmax = float(non_null.max()) if not non_null.empty else 1.0
+    return values.apply(lambda v: sequential_color(v, vmin, vmax, light_hex, dark_hex))
+
+
+def _as_multipolygon(geometry):
+    if geometry is not None and geometry.geom_type == "Polygon":
+        return MultiPolygon([geometry])
+    return geometry
+
+
+def build_municipio_layer(gdf: pd.DataFrame, metric_key: str, opacity: float = 0.45) -> pdk.Layer:
+    column = MUNICIPIO_METRICS[metric_key]
+    gdf = gdf.copy()
+    gdf["fill_color"] = build_municipio_fill_color_column(gdf, metric_key)
+    gdf["tooltip_value"] = gdf[column].apply(
+        lambda v: "Sin datos" if pd.isna(v) else format_metric(v, "decimal")
+    )
+    # deck.gl's GeoJsonLayer throws inside its SolidPolygonLayer sub-layer
+    # when a FeatureCollection mixes Polygon and MultiPolygon features --
+    # gold_municipio_master has both, so every geometry is normalized to
+    # MultiPolygon before serializing.
+    gdf["geometry"] = gdf["geometry"].apply(_as_multipolygon)
+    geojson = json.loads(gdf[["municipio", "tooltip_value", "fill_color", "geometry"]].to_json())
+    return pdk.Layer(
+        "GeoJsonLayer",
+        id="municipio",
+        data=geojson,
+        pickable=True,
+        stroked=True,
+        filled=True,
+        get_fill_color="properties.fill_color",
+        get_line_color=[255, 255, 255],
+        line_width_min_pixels=2,
+        opacity=opacity,
+    )
+
+
+def municipio_legend_html(metric_key: str, gdf: pd.DataFrame) -> str:
+    column = MUNICIPIO_METRICS[metric_key]
+    light_hex, dark_hex = SEQUENTIAL_DENSITY
+    values = gdf[column].dropna()
     vmin = float(values.min()) if not values.empty else 0.0
     vmax = float(values.max()) if not values.empty else 1.0
     gradient = f"linear-gradient(to right, {light_hex}, {dark_hex})"

@@ -106,8 +106,8 @@ def load_isocronas(_engine: Engine) -> gpd.GeoDataFrame:
 
 
 @st.cache_data
-def load_municipio_master(_engine: Engine) -> pd.DataFrame:
-    return pd.read_sql(MUNICIPIO_MASTER_QUERY, _engine)
+def load_municipio_master(_engine: Engine) -> gpd.GeoDataFrame:
+    return gpd.read_postgis(MUNICIPIO_MASTER_QUERY, _engine, geom_col="geometry")
 
 
 @st.cache_data

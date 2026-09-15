@@ -90,6 +90,13 @@ def estacionalidad_by_mes(df: pd.DataFrame, municipio: str, column: str) -> pd.D
     return result
 
 
+def aena_estacionalidad_comparativa(df: pd.DataFrame, column: str = "pasajeros") -> pd.DataFrame:
+    grouped = df.groupby(["aeropuerto_nombre", "mes"], as_index=False)[column].mean()
+    grouped = grouped.rename(columns={column: "valor"}).sort_values(["aeropuerto_nombre", "mes"])
+    grouped["mes_label"] = grouped["mes"].map(MES_LABELS)
+    return grouped.reset_index(drop=True)
+
+
 def get_latest_aena_row(df: pd.DataFrame, aeropuerto_codigo: str) -> pd.Series | None:
     matches = df.loc[df["aeropuerto_codigo"] == aeropuerto_codigo]
     if matches.empty:
@@ -164,6 +171,28 @@ def render_turismo_tab(
     )
     add_chart_motion(fig_aena)
     st.plotly_chart(fig_aena, use_container_width=True)
+
+    st.subheader("Estacionalidad comparada: TFS vs. TFN")
+    st.caption(
+        "Tenerife Sur (tráfico internacional predominante, pico en invierno) frente a "
+        "Tenerife Norte (tráfico nacional e interinsular, pico en verano)."
+    )
+    serie_comparativa = aena_estacionalidad_comparativa(aena_df, "pasajeros")
+    fig_comparativa = px.line(
+        serie_comparativa,
+        x="mes_label",
+        y="valor",
+        color="aeropuerto_nombre",
+        category_orders={"mes_label": MES_ORDER},
+        markers=True,
+        color_discrete_map={
+            "Tenerife Sur - Reina Sofía": ACCENT_TURISMO,
+            "Tenerife Norte - Ciudad de La Laguna": ACCENT_TURISMO_AEREO,
+        },
+        title="Pasajeros medios por mes — TFS vs. TFN",
+    )
+    add_chart_motion(fig_comparativa)
+    st.plotly_chart(fig_comparativa, use_container_width=True)
 
     render_footer(
         "gold.gold_turismo_hotelero_anual, gold.gold_turismo_hotelero_mensual, gold.gold_aena_pasajeros",
