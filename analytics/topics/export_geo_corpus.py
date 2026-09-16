@@ -1,6 +1,9 @@
-"""Exporta el corpus del MODELO B ("por ubicacion") a un CSV para entrenar
-BERTopic en Google Colab con GPU -- 55.787 reseñas de Booking hacen inviable
-entrenar en CPU local en un tiempo razonable (ver analytics/contexto.md).
+"""Exporta el corpus del MODELO B ("por ubicacion") a un CSV.
+
+El CSV lo carga despues cargar_corpus.py en gold.nlp_topics, y de ahi lo lee
+entrenar_topicos.py. La version vieja entrenaba BERTopic en Google Colab con GPU
+porque las decenas de miles de reseñas de Booking hacian inviable HDBSCAN en CPU
+local (ver analytics/contexto.md); con k-means y embeddings cacheados ya no.
 
 Fuentes, las tres CON ubicacion real:
 - Booking: silver.silver_booking_reviews (review_text). Ubicacion via
@@ -19,7 +22,8 @@ Uso:
     python analytics/topics/export_geo_corpus.py
     -> analytics/topics/export/geo_corpus.csv (source,source_id,text)
 
-Sube ese CSV a Colab (o a Drive) y usa topic_modeling_geo_colab.ipynb.
+Despues:
+    python analytics/topics/cargar_corpus.py --modelo B
 """
 
 import csv
@@ -135,7 +139,7 @@ def main():
         writer.writerows(todos)
 
     print(f"\nExportado a {OUT_PATH}")
-    print("Sube este CSV a Colab y usa topic_modeling_geo_colab.ipynb.")
+    print("Ahora cargalo: python analytics/topics/cargar_corpus.py --modelo B")
 
 
 if __name__ == "__main__":

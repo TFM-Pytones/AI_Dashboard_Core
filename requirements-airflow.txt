@@ -4,7 +4,7 @@
 # ─── Exclusiones intencionadas (tasks con ShortCircuit run_heavy_ml) ───────────
 # torch, transformers    → analytics/sentiment/batch_inference.py
 # pyabsa                 → analytics/aspects/batch_inference.py
-# bertopic, sentence-transformers → analytics/topics/topic_modeling.py
+# bertopic, sentence-transformers → analytics/topics/entrenar_topicos.py
 # seaborn, matplotlib    → solo validación/visualización, no en pipeline
 #
 # Esos tasks corren con el venv del repo montado en /opt/airflow/repo,
@@ -65,7 +65,7 @@ earthengine-api>=0.1.390
 h5py>=3.10.0
 
 # LLM reports (ligero — solo cliente Groq)
-# groq → analytics/llm/report_generator.py, report_generator_alojamiento.py
+# groq → analytics/llm/report_generator.py (--ambito general|alojamiento), analytics/chat/
 groq>=0.9.0
 
 # Validación / clustering

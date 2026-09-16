@@ -14,7 +14,7 @@ Fuentes:
 Downstream:
   - Postgres: booking + tabular
   - dbt Silver: tripadvisor, youtube, booking, losviajeros
-  - Analytics NLP: sentiment + aspects (si run_heavy_ml=true)
+  - Analytics NLP: sentiment + aspects, YouTube y reseñas (si run_heavy_ml=true)
   - Analytics geo: toponyms extraction
   - dbt Gold: h3_master, sentimiento_h3, municipio_master
 
@@ -193,12 +193,24 @@ with DAG(
             ignore_downstream_trigger_rules=False,
         )
 
+        # --source explicito: el script unificado procesa todas las fuentes por
+        # defecto, y aqui interesa separar YouTube (rapido) de las reseñas
+        # (decenas de miles, horas de inferencia) en tasks distintas.
         analytics_sentiment = BashOperator(
             task_id="sentiment_batch_inference",
             bash_command=(
-                f"{PYTHON} {REPO_ROOT}/analytics/sentiment/batch_inference.py"
+                f"{PYTHON} {REPO_ROOT}/analytics/sentiment/batch_inference.py --source youtube"
             ),
             execution_timeout=timedelta(hours=4),
+        )
+        # Este DAG refresca Booking y TripAdvisor y luego corre gold_sentimiento_h3:
+        # sin esta task, las reseñas nuevas llegarian a Gold sin sentimiento.
+        analytics_sentiment_resenas = BashOperator(
+            task_id="sentiment_batch_inference_resenas",
+            bash_command=(
+                f"{PYTHON} {REPO_ROOT}/analytics/sentiment/batch_inference.py --source resenas"
+            ),
+            execution_timeout=timedelta(hours=8),
         )
         analytics_sentiment_backfill = BashOperator(
             task_id="sentiment_backfill_relevance",
@@ -210,9 +222,16 @@ with DAG(
         analytics_aspects = BashOperator(
             task_id="aspects_batch_inference",
             bash_command=(
-                f"{PYTHON} {REPO_ROOT}/analytics/aspects/batch_inference.py"
+                f"{PYTHON} {REPO_ROOT}/analytics/aspects/batch_inference.py --source youtube"
             ),
             execution_timeout=timedelta(hours=4),
+        )
+        analytics_aspects_resenas = BashOperator(
+            task_id="aspects_batch_inference_resenas",
+            bash_command=(
+                f"{PYTHON} {REPO_ROOT}/analytics/aspects/batch_inference.py --source resenas"
+            ),
+            execution_timeout=timedelta(hours=8),
         )
 
         # Extracción de topónimos — ligero, no requiere GPU
@@ -224,7 +243,13 @@ with DAG(
             execution_timeout=timedelta(hours=1),
         )
 
-        check_ml >> [analytics_sentiment, analytics_sentiment_backfill, analytics_aspects]
+        check_ml >> [
+            analytics_sentiment,
+            analytics_sentiment_resenas,
+            analytics_sentiment_backfill,
+            analytics_aspects,
+            analytics_aspects_resenas,
+        ]
 
     join_fase4 = EmptyOperator(
         task_id="join_fase4",

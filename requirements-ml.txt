@@ -3,7 +3,7 @@
 # Instalar esto solo si se necesita ejecutar:
 # - analytics/sentiment/batch_inference.py
 # - analytics/aspects/batch_inference.py
-# - analytics/topics/topic_modeling.py
+# - analytics/topics/entrenar_topicos.py
 #
 # Uso: pip install -r requirements-ml.txt
 
