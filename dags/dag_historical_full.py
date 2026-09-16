@@ -334,12 +334,22 @@ with DAG(
         )
 
         # Tasks que requieren GPU / mucho tiempo (controladas por ShortCircuit)
+        # --source explicito: el script unificado procesa todas las fuentes por
+        # defecto, y aqui interesa separar YouTube (rapido) de las reseñas
+        # (decenas de miles, horas de inferencia) en tasks distintas.
         analytics_sentiment = BashOperator(
             task_id="sentiment_batch_inference",
             bash_command=(
-                f"{PYTHON} {REPO_ROOT}/analytics/sentiment/batch_inference.py"
+                f"{PYTHON} {REPO_ROOT}/analytics/sentiment/batch_inference.py --source youtube"
             ),
             execution_timeout=timedelta(hours=4),
+        )
+        analytics_sentiment_resenas = BashOperator(
+            task_id="sentiment_batch_inference_resenas",
+            bash_command=(
+                f"{PYTHON} {REPO_ROOT}/analytics/sentiment/batch_inference.py --source resenas"
+            ),
+            execution_timeout=timedelta(hours=8),
         )
         analytics_sentiment_backfill = BashOperator(
             task_id="sentiment_backfill_relevance",
@@ -351,9 +361,16 @@ with DAG(
         analytics_aspects = BashOperator(
             task_id="aspects_batch_inference",
             bash_command=(
-                f"{PYTHON} {REPO_ROOT}/analytics/aspects/batch_inference.py"
+                f"{PYTHON} {REPO_ROOT}/analytics/aspects/batch_inference.py --source youtube"
             ),
             execution_timeout=timedelta(hours=4),
+        )
+        analytics_aspects_resenas = BashOperator(
+            task_id="aspects_batch_inference_resenas",
+            bash_command=(
+                f"{PYTHON} {REPO_ROOT}/analytics/aspects/batch_inference.py --source resenas"
+            ),
+            execution_timeout=timedelta(hours=8),
         )
         analytics_geo = BashOperator(
             task_id="geo_extract_toponyms",
@@ -381,8 +398,10 @@ with DAG(
         # Dependencias dentro del grupo
         check_ml >> [
             analytics_sentiment,
+            analytics_sentiment_resenas,
             analytics_sentiment_backfill,
             analytics_aspects,
+            analytics_aspects_resenas,
             analytics_geo,
             analytics_clustering,
         ]
@@ -484,8 +503,10 @@ with DAG(
     # Los tasks ML (controlados por ShortCircuit) y accesibilidad convergen en join
     [
         analytics_sentiment,
+        analytics_sentiment_resenas,
         analytics_sentiment_backfill,
         analytics_aspects,
+        analytics_aspects_resenas,
         analytics_geo,
         analytics_clustering,
         analytics_accesibilidad,

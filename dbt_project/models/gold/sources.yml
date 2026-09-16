@@ -15,7 +15,7 @@ sources:
       - name: aspecto_traducciones
         description: "Mapeo aspecto_original -> aspecto_traducido/normalizado (analytics/tarea2/traducir_aspectos.ipynb)."
       - name: nlp_topics
-        description: "Topico de BERTopic por opinion, Modelos A y B (analytics/topics/import_geo_results.py). Sin h3_index: la georreferenciacion vive en nlp_chunks."
+        description: "Topico de BERTopic por opinion, Modelos A y B (analytics/topics/cargar_corpus.py carga el corpus; entrenar_topicos.py + volcar_topicos.py ponen el tema). Sin h3_index: la georreferenciacion vive en nlp_chunks."
       - name: nlp_chunks
         description: "Corpus fragmentado y enriquecido con municipio/zona/h3_index/fecha para el RAG (analytics/rag/build_chunks.py, ver plan_rag.md)."
       - name: geo_mentions

@@ -1,7 +1,10 @@
-"""Exporta el corpus del MODELO A ("vision general") a CSV para entrenar en
-Colab -- necesario porque hdbscan no se puede importar en local en esta
-maquina (Windows Smart App Control bloquea su libreria nativa, ver
-analytics/contexto.md).
+"""Exporta el corpus del MODELO A ("vision general") a CSV.
+
+El CSV lo carga despues cargar_corpus.py en gold.nlp_topics, y de ahi lo lee
+entrenar_topicos.py (k-means en local). El rodeo por Google Colab de la version
+vieja ya no hace falta: era por hdbscan, que no se puede importar en local en
+esta maquina (Windows Smart App Control bloquea su libreria nativa, ver
+analytics/contexto.md), y k-means no lo usa.
 
 Dos fuentes:
 - YouTube: silver.sentiment_results (source='youtube_comment', is_relevant=true).
@@ -19,6 +22,9 @@ detalle verificado contra la BD real).
 Uso:
     python analytics/topics/export_general_corpus.py
     -> analytics/topics/export/general_corpus.csv (source,source_id,text)
+
+Despues:
+    python analytics/topics/cargar_corpus.py --modelo A
 """
 
 import csv
@@ -116,7 +122,7 @@ def main():
         writer.writerows(rows)
 
     print(f"\nExportado a {OUT_PATH}")
-    print("Sube este CSV a Colab y usa topic_modeling_A_general_colab.ipynb.")
+    print("Ahora cargalo: python analytics/topics/cargar_corpus.py --modelo A")
 
 
 if __name__ == "__main__":
