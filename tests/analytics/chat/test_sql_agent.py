@@ -23,8 +23,10 @@ class _LLMSecuencial:
     def __init__(self, respuestas: list[str]):
         self.respuestas = respuestas
         self.llamadas = 0
+        self.prompts_recibidos = []
 
     def complete(self, prompt: str, temperature: float = 0.4, max_tokens: int = 1200) -> str:
+        self.prompts_recibidos.append(prompt)
         respuesta = self.respuestas[min(self.llamadas, len(self.respuestas) - 1)]
         self.llamadas += 1
         return respuesta
@@ -259,3 +261,31 @@ def test_narrar_resultado_da_mensaje_de_fallback_si_sigue_vacio_tras_reintentar(
     assert texto != ""
     assert "tabla" in texto.lower()
     assert llm.llamadas == 2
+
+
+def test_narrar_resultado_incluye_el_aviso_de_cobertura_parcial_en_el_prompt():
+    # Bug real: "cuantos hexagonos han sido analizados" generaba SQL contra
+    # gold_h3_sentimiento (410 filas) y la narracion respondia "Se han
+    # analizado 410 hexagonos" sin avisar de que son solo 410 de 2.579 --
+    # aunque GRANULARIDAD_TABLA ya tiene esa nota, _narrar_resultado nunca
+    # recibia que tabla se habia consultado para poder usarla.
+    llm = _LLMSecuencial(["Se han analizado 410 hexágonos (cobertura parcial)."])
+    _narrar_resultado(
+        "cuantos hexagonos han sido analizados",
+        [{"total_hexagonos": 410}],
+        llm,
+        sql="SELECT COUNT(*) AS total_hexagonos FROM gold.gold_h3_sentimiento LIMIT 200",
+    )
+    assert "410" in llm.prompts_recibidos[0]
+    assert "2.579" in llm.prompts_recibidos[0]
+
+
+def test_narrar_resultado_no_incluye_aviso_para_tablas_sin_nota_de_cobertura():
+    llm = _LLMSecuencial(["Adeje tiene 134 hexágonos."])
+    _narrar_resultado(
+        "cuantos hexagonos tiene adeje",
+        [{"n": 134}],
+        llm,
+        sql="SELECT COUNT(*) AS n FROM gold.gold_h3_master WHERE municipio = 'Adeje'",
+    )
+    assert "cobertura parcial" not in llm.prompts_recibidos[0].lower()

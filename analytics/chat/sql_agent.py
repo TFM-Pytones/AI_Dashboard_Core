@@ -312,6 +312,7 @@ PREGUNTA: {pregunta}
 SQL:"""
 
 PROMPT_NARRACION = """Eres un analista de turismo. Redacta una respuesta breve (1-2 frases) en español a la pregunta del usuario, basándote UNICAMENTE en estas filas de resultado de una consulta SQL. No inventes datos que no estén en las filas.
+{aviso_cobertura}
 
 Si las filas incluyen tanto `cod_municipio` como `municipio`, identifica siempre
 cada municipio por su nombre (`municipio`), nunca el código INE (`cod_municipio`)
@@ -397,12 +398,30 @@ def responder_sql(pregunta: str, engine, llm: LLMClient | None = None) -> Respue
         return RespuestaSQL(texto="La consulta no devolvió resultados.", sql=sql_final, filas=[])
 
     filas = df.to_dict("records")
-    texto = _narrar_resultado(pregunta, filas, cliente)
+    texto = _narrar_resultado(pregunta, filas, cliente, sql=sql_final)
     return RespuestaSQL(texto=texto, sql=sql_final, filas=filas)
 
 
-def _narrar_resultado(pregunta: str, filas: list[dict], llm: LLMClient) -> str:
-    prompt_narracion = PROMPT_NARRACION.format(pregunta=pregunta, filas=filas)
+def _avisos_cobertura(sql: str) -> list[str]:
+    # Solo las notas de GRANULARIDAD_TABLA que piden explicitamente avisar en
+    # la respuesta (ej. cobertura parcial) -- las demas son para que el LLM
+    # genere el SQL bien (evitar JOINs que duplican filas), no para narrar.
+    return [
+        nota
+        for tabla in _tablas_referenciadas(sql)
+        if (nota := GRANULARIDAD_TABLA.get(tabla)) and "avisa" in nota
+    ]
+
+
+def _narrar_resultado(pregunta: str, filas: list[dict], llm: LLMClient, sql: str = "") -> str:
+    avisos = _avisos_cobertura(sql)
+    # Bug real: "cuantos hexagonos han sido analizados" generaba SQL contra
+    # gold_h3_sentimiento (410 de 2.579 hexagonos) y la narracion respondia
+    # "Se han analizado 410 hexagonos" sin avisar de la cobertura parcial,
+    # aunque GRANULARIDAD_TABLA ya tenia la nota -- _narrar_resultado nunca
+    # sabia que tabla se habia consultado para poder usarla.
+    aviso_cobertura = f"\nTEN EN CUENTA Y MENCIONA EN TU RESPUESTA: {' '.join(avisos)}\n" if avisos else ""
+    prompt_narracion = PROMPT_NARRACION.format(pregunta=pregunta, filas=filas, aviso_cobertura=aviso_cobertura)
     # max_tokens=3000, no 600: reproducido contra la API real de Groq con el
     # caso de los 31 municipios agrupados -- el modelo (openai/gpt-oss-120b)
     # a veces gasta TODO el presupuesto en razonamiento interno antes de
