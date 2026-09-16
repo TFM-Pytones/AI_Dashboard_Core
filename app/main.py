@@ -16,7 +16,7 @@ import plotly.express as px
 import streamlit as st
 
 from app.alojamiento import render_alojamiento_tab
-from app.asistente import page_asistente
+from app.asistente import render_floating_assistant
 from app.clima import render_clima_tab
 from app.color_scales import RESTRICTION_COLOR_MAP_HEX
 from app.data import (
@@ -453,7 +453,6 @@ def page_turismo() -> None:
 
 nav_resumen = st.Page(page_resumen, title="Resumen", icon="📊", default=True)
 nav_mapa = st.Page(page_mapa, title="Mapa", icon="🗺️")
-nav_asistente = st.Page(page_asistente, title="Asistente IA", icon="🤖")
 nav_tabla = st.Page(page_tabla, title="Tabla", icon="📋")
 nav_rankings = st.Page(page_rankings, title="Rankings", icon="🏆")
 nav_clima = st.Page(page_clima, title="Clima", icon="🌡️")
@@ -464,7 +463,6 @@ nav_turismo = st.Page(page_turismo, title="Turismo", icon="✈️")
 pages = [
     nav_resumen,
     nav_mapa,
-    nav_asistente,
     nav_tabla,
     nav_rankings,
     nav_clima,
@@ -475,3 +473,8 @@ pages = [
 
 pg = st.navigation(pages)
 pg.run()
+
+# Fuera de pg.run() a propósito: se ejecuta una vez por rerun sin importar
+# qué página esté activa, así el botón flotante sale en todas -- ver
+# app/asistente.py para el porqué del CSS (position: fixed sobre stPopover).
+render_floating_assistant()

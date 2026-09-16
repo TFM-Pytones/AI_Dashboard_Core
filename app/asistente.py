@@ -87,31 +87,68 @@ def _render_mensaje(mensaje: dict) -> None:
             st.dataframe(mensaje["filas"], hide_index=True)
 
 
-def page_asistente() -> None:
-    st.title("🤖 Asistente IA")
-    st.info(AVISO)
+# Solo hay un st.popover en toda la app, así que basta con dirigirse a
+# stPopover a secas -- no hace falta una clase/key propia para no chocar con
+# otros popovers.
+#
+# Streamlit pone width:100% al contenedor del popover por defecto (para que
+# ocupe la columna donde vive) -- con position:fixed eso lo estira por toda
+# la pantalla en vez de dejarlo como un botón pequeño en la esquina.
+# width:fit-content lo reduce al tamaño real del botón. El selector del
+# botón es descendiente (no hijo directo) porque Streamlit anida el botón
+# dentro de un wrapper del tooltip del `help=`.
+_FLOATING_CSS = """
+<style>
+div[data-testid="stPopover"] {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    width: fit-content !important;
+}
+div[data-testid="stPopover"] button[data-testid="stPopoverButton"] {
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    font-size: 1.6rem;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+div[data-testid="stPopoverBody"] {
+    width: 420px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+</style>
+"""
 
-    contexto_hexagono = None
-    selected_h3_index = get_selected_h3_index()
-    if selected_h3_index:
-        fila = _cargar_fila_hexagono(selected_h3_index)
-        if fila is not None:
-            contexto_hexagono = resumen_contexto_hexagono(fila)
-            st.caption(
-                f"📍 Contexto activo: hexágono en **{fila.get('municipio') or 'municipio desconocido'}** "
-                "(el seleccionado en la página Mapa) -- tus preguntas se responderán teniendo esto en cuenta."
-            )
 
-    if "chat_historial" not in st.session_state:
-        st.session_state["chat_historial"] = []
+def render_floating_assistant() -> None:
+    st.markdown(_FLOATING_CSS, unsafe_allow_html=True)
 
-    for mensaje in st.session_state["chat_historial"]:
-        _render_mensaje(mensaje)
+    with st.popover("🤖", help="Asistente IA -- pregunta sobre el turismo en Tenerife"):
+        st.info(AVISO)
 
-    pregunta = st.chat_input("Pregunta algo sobre el turismo en Tenerife...")
-    if pregunta:
-        pregunta_con_contexto = _construir_pregunta_con_contexto(pregunta, contexto_hexagono)
-        st.session_state["chat_historial"].append({"role": "user", "content": pregunta})
-        with st.spinner("Pensando..."):
-            st.session_state["chat_historial"].append(_generar_respuesta(pregunta_con_contexto))
-        st.rerun()
+        contexto_hexagono = None
+        selected_h3_index = get_selected_h3_index()
+        if selected_h3_index:
+            fila = _cargar_fila_hexagono(selected_h3_index)
+            if fila is not None:
+                contexto_hexagono = resumen_contexto_hexagono(fila)
+                st.caption(
+                    f"📍 Contexto activo: hexágono en **{fila.get('municipio') or 'municipio desconocido'}** "
+                    "(el seleccionado en la página Mapa) -- tus preguntas se responderán teniendo esto en cuenta."
+                )
+
+        if "chat_historial" not in st.session_state:
+            st.session_state["chat_historial"] = []
+
+        for mensaje in st.session_state["chat_historial"]:
+            _render_mensaje(mensaje)
+
+        pregunta = st.chat_input("Pregunta algo sobre el turismo en Tenerife...", key="asistente_chat_input")
+        if pregunta:
+            pregunta_con_contexto = _construir_pregunta_con_contexto(pregunta, contexto_hexagono)
+            st.session_state["chat_historial"].append({"role": "user", "content": pregunta})
+            with st.spinner("Pensando..."):
+                st.session_state["chat_historial"].append(_generar_respuesta(pregunta_con_contexto))
+            st.rerun()
