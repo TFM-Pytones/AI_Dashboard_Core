@@ -5,7 +5,7 @@ import plotly.express as px
 import streamlit as st
 
 from app.color_scales import ACCENT_TURISMO, ACCENT_TURISMO_AEREO, hex_to_rgba
-from app.ui_helpers import add_chart_motion, format_metric, latest_value, render_footer
+from app.ui_helpers import add_chart_motion, format_metric
 
 # (value_column, yoy_delta_column | None, label, kind, help)
 HOTELERO_KPI_COLUMNS = [
@@ -39,11 +39,25 @@ HOTELERO_KPI_COLUMNS = [
     ),
 ]
 
+# (column, help) -- se muestra un caption con la explicacion encima de la
+# grafica de estacionalidad, igual que en la pagina de Clima.
 ESTACIONALIDAD_METRICS = {
-    "Pernoctaciones": "pernoctaciones",
-    "Viajeros entrados": "viajeros_entrados",
-    "Ocupación plazas (%)": "tasa_ocupacion_plazas",
-    "Estancia media (días)": "estancia_media_hotel_dias",
+    "Pernoctaciones": (
+        "pernoctaciones",
+        "Noches pernoctadas en establecimientos hoteleros, promediadas por mes a lo largo de los años.",
+    ),
+    "Viajeros entrados": (
+        "viajeros_entrados",
+        "Viajeros alojados en establecimientos hoteleros, promediados por mes a lo largo de los años.",
+    ),
+    "Ocupación plazas (%)": (
+        "tasa_ocupacion_plazas",
+        "Porcentaje medio de plazas hoteleras ocupadas ese mes.",
+    ),
+    "Estancia media (días)": (
+        "estancia_media_hotel_dias",
+        "Duración media de la estancia en establecimientos hoteleros, en días.",
+    ),
 }
 
 MES_LABELS = {
@@ -53,19 +67,7 @@ MES_LABELS = {
 MES_ORDER = [MES_LABELS[m] for m in range(1, 13)]
 
 AENA_KPI_COLUMNS = [
-    ("pasajeros", "✈️ Pasajeros", "entero", "Pasajeros totales del aeropuerto en el mes."),
-    (
-        "operaciones",
-        "🛫 Operaciones",
-        "entero",
-        "Operaciones (despegues + aterrizajes) del aeropuerto en el mes.",
-    ),
-    (
-        "pasajeros_por_operacion",
-        "👥 Pasajeros por operación",
-        "decimal",
-        "Pasajeros medios transportados por cada operación.",
-    ),
+    ("pasajeros", "✈️ Pasajeros (último mes)", "entero", "Pasajeros en el mes (aeropuerto seleccionado o total insular)."),
 ]
 
 
@@ -90,15 +92,91 @@ def estacionalidad_by_mes(df: pd.DataFrame, municipio: str, column: str) -> pd.D
     return result
 
 
+AENA_TOTAL_CODIGO = "TOTAL"
+AENA_TOTAL_NOMBRE = "Total (Tenerife)"
+
+
+def aena_series(df: pd.DataFrame, aeropuerto_codigo: str) -> pd.DataFrame:
+    if df.empty:
+        return df
+    if str(aeropuerto_codigo).upper() in ("TOTAL", "TODOS"):
+        grouped = (
+            df.groupby("periodo", as_index=False)[["pasajeros", "operaciones"]]
+            .sum()
+            .sort_values("periodo")
+        )
+        grouped["aeropuerto_codigo"] = AENA_TOTAL_CODIGO
+        grouped["aeropuerto_nombre"] = AENA_TOTAL_NOMBRE
+        grouped["pasajeros_por_operacion"] = (
+            grouped["pasajeros"] / grouped["operaciones"].replace(0, float("nan"))
+        ).round(1)
+        return grouped
+    return df.loc[df["aeropuerto_codigo"] == aeropuerto_codigo].sort_values("periodo")
+
+
+def aena_estacionalidad_comparativa(df: pd.DataFrame, column: str = "pasajeros") -> pd.DataFrame:
+    grouped = df.groupby(["aeropuerto_nombre", "mes"], as_index=False)[column].mean()
+    grouped = grouped.rename(columns={column: "valor"}).sort_values(["aeropuerto_nombre", "mes"])
+    grouped["mes_label"] = grouped["mes"].map(MES_LABELS)
+    return grouped.reset_index(drop=True)
+
+
 def get_latest_aena_row(df: pd.DataFrame, aeropuerto_codigo: str) -> pd.Series | None:
+    if df.empty:
+        return None
+    if str(aeropuerto_codigo).upper() in ("TOTAL", "TODOS"):
+        serie = aena_series(df, AENA_TOTAL_CODIGO)
+        if serie.empty:
+            return None
+        return serie.iloc[-1]
     matches = df.loc[df["aeropuerto_codigo"] == aeropuerto_codigo]
     if matches.empty:
         return None
     return matches.sort_values("periodo").iloc[-1]
 
 
-def aena_series(df: pd.DataFrame, aeropuerto_codigo: str) -> pd.DataFrame:
-    return df.loc[df["aeropuerto_codigo"] == aeropuerto_codigo].sort_values("periodo")
+def compute_aena_kpis(serie_aena: pd.DataFrame) -> list[dict]:
+    if serie_aena.empty:
+        return []
+    latest = serie_aena.iloc[-1]
+    last_period = str(latest["periodo"])
+
+    # YoY delta vs mismo mes del año anterior
+    prev_year_period = f"{int(last_period[:4]) - 1}{last_period[4:]}"
+    prev_match = serie_aena.loc[serie_aena["periodo"] == prev_year_period]
+    yoy_pct = None
+    if not prev_match.empty and prev_match["pasajeros"].iloc[0] > 0:
+        yoy_pct = ((latest["pasajeros"] - prev_match["pasajeros"].iloc[0]) / prev_match["pasajeros"].iloc[0]) * 100
+
+    # Acumulado últimos 12 meses (año móvil)
+    pax_12m = float(serie_aena.tail(12)["pasajeros"].sum())
+
+    # Media mensual de pasajeros en toda la serie histórica
+    pax_mean = float(serie_aena["pasajeros"].mean())
+
+    return [
+        {
+            "label": "✈️ Pasajeros (último mes)",
+            "value": latest["pasajeros"],
+            "delta": format_yoy_delta(yoy_pct),
+            "kind": "entero",
+            "help": f"Pasajeros transportados en {last_period} y variación frente al mismo mes del año anterior.",
+        },
+        {
+            "label": "📅 Acumulado anual (12 meses)",
+            "value": pax_12m,
+            "delta": None,
+            "kind": "entero",
+            "help": "Total de pasajeros comerciales transportados en los últimos 12 meses móviles.",
+        },
+        {
+            "label": "📊 Media mensual histórica",
+            "value": pax_mean,
+            "delta": None,
+            "kind": "entero",
+            "help": "Promedio mensual de pasajeros a lo largo de toda la serie registrada.",
+        },
+    ]
 
 
 def render_turismo_tab(
@@ -130,32 +208,45 @@ def render_turismo_tab(
     metrica_label = st.selectbox(
         "Métrica", list(ESTACIONALIDAD_METRICS.keys()), key="turismo_estacionalidad_metrica"
     )
-    serie = estacionalidad_by_mes(hotelero_mensual_df, municipio, ESTACIONALIDAD_METRICS[metrica_label])
+    metrica_columna, metrica_help = ESTACIONALIDAD_METRICS[metrica_label]
+    st.caption(f"ℹ️ {metrica_help}")
+    serie = estacionalidad_by_mes(hotelero_mensual_df, municipio, metrica_columna)
     fig = px.bar(
         serie,
         x="mes_label",
         y="valor",
         category_orders={"mes_label": MES_ORDER},
         title=f"{metrica_label} media por mes — {municipio}",
+        labels={"mes_label": "Mes", "valor": metrica_label},
     )
     fig.update_traces(marker_color=ACCENT_TURISMO)
     add_chart_motion(fig)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     st.subheader("Tráfico aéreo")
     aeropuertos = sorted(aena_df["aeropuerto_nombre"].dropna().unique().tolist())
-    aeropuerto_nombre = st.selectbox("Aeropuerto", aeropuertos, key="turismo_aeropuerto")
-    codigo = aena_df.loc[aena_df["aeropuerto_nombre"] == aeropuerto_nombre, "aeropuerto_codigo"].iloc[0]
-
-    latest_row = get_latest_aena_row(aena_df, codigo)
-    if latest_row is not None:
-        st.caption(f"Último dato: {latest_row['periodo']}")
-        cols = st.columns(3)
-        for i, (column, label, kind, help_text) in enumerate(AENA_KPI_COLUMNS):
-            with cols[i].container(border=True):
-                st.metric(label, format_metric(latest_row.get(column), kind), help=help_text)
+    opciones_aeropuerto = [AENA_TOTAL_NOMBRE] + aeropuertos
+    aeropuerto_nombre = st.selectbox("Aeropuerto", opciones_aeropuerto, key="turismo_aeropuerto")
+    if aeropuerto_nombre == AENA_TOTAL_NOMBRE or str(aeropuerto_nombre).upper().startswith("TOTAL"):
+        codigo = AENA_TOTAL_CODIGO
+    else:
+        codigo = aena_df.loc[aena_df["aeropuerto_nombre"] == aeropuerto_nombre, "aeropuerto_codigo"].iloc[0]
 
     serie_aena = aena_series(aena_df, codigo)
+    kpis = compute_aena_kpis(serie_aena)
+    if kpis:
+        latest_period = serie_aena.iloc[-1]["periodo"]
+        st.caption(f"Último dato: {latest_period}")
+        cols = st.columns(len(kpis))
+        for i, kpi in enumerate(kpis):
+            with cols[i].container(border=True):
+                st.metric(
+                    kpi["label"],
+                    format_metric(kpi["value"], kpi["kind"]),
+                    delta=kpi["delta"],
+                    help=kpi["help"],
+                )
+
     fig_aena = px.area(
         serie_aena, x="periodo", y="pasajeros", title=f"Pasajeros mensuales — {aeropuerto_nombre}"
     )
@@ -163,9 +254,27 @@ def render_turismo_tab(
         line_color=ACCENT_TURISMO_AEREO, line_shape="spline", fillcolor=hex_to_rgba(ACCENT_TURISMO_AEREO, 0.15)
     )
     add_chart_motion(fig_aena)
-    st.plotly_chart(fig_aena, use_container_width=True)
+    st.plotly_chart(fig_aena, width="stretch")
 
-    render_footer(
-        "gold.gold_turismo_hotelero_anual, gold.gold_turismo_hotelero_mensual, gold.gold_aena_pasajeros",
-        as_of=latest_value(hotelero_anual_df["anio"]),
+    st.subheader("Estacionalidad comparada: TFS vs. TFN")
+    st.caption(
+        "Tenerife Sur (tráfico internacional predominante, pico en invierno) frente a "
+        "Tenerife Norte (tráfico nacional e interinsular, pico en verano)."
     )
+    serie_comparativa = aena_estacionalidad_comparativa(aena_df, "pasajeros")
+    fig_comparativa = px.line(
+        serie_comparativa,
+        x="mes_label",
+        y="valor",
+        color="aeropuerto_nombre",
+        category_orders={"mes_label": MES_ORDER},
+        markers=True,
+        color_discrete_map={
+            "Tenerife Sur - Reina Sofía": ACCENT_TURISMO,
+            "Tenerife Norte - Ciudad de La Laguna": ACCENT_TURISMO_AEREO,
+        },
+        title="Pasajeros medios por mes — TFS vs. TFN",
+        labels={"mes_label": "Mes", "valor": "Pasajeros medios", "aeropuerto_nombre": "Aeropuerto"},
+    )
+    add_chart_motion(fig_comparativa)
+    st.plotly_chart(fig_comparativa, use_container_width=True)

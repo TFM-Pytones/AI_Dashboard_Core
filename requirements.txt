@@ -33,7 +33,6 @@ dbt-postgres==1.10.2
 azure-storage-blob>=12.19.0
 geoalchemy2>=0.14.0
 
-
 # LLM / Informe narrativo (analytics/llm) - Setup LLM + Subtarea 3.2
 groq>=0.9.0
 

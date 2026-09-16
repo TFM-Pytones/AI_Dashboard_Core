@@ -1,7 +1,7 @@
 import geopandas as gpd
 import pandas as pd
 import pydeck as pdk
-from shapely.geometry import box
+from shapely.geometry import MultiPolygon, box
 
 from app.map_layers import (
     build_deck,
@@ -9,8 +9,11 @@ from app.map_layers import (
     build_isocronas_fill_color,
     build_isocronas_layer,
     build_layer,
+    build_municipio_fill_color_column,
+    build_municipio_layer,
     legend_html,
     list_destinos,
+    municipio_legend_html,
 )
 
 
@@ -123,19 +126,22 @@ def test_build_layer_returns_pickable_h3_layer():
 
 def test_build_layer_includes_municipio_and_formatted_tooltip_value():
     layer = build_layer(_gdf(), "Densidad hotelera")
-    assert list(layer.data.columns) == ["h3_index", "municipio", "tooltip_value", "fill_color"]
-    assert layer.data["municipio"].tolist() == ["Adeje", "Arona", "Adeje"]
-    assert layer.data["tooltip_value"].tolist() == ["0,0", "10,0", "20,0"]
+    data_df = pd.DataFrame(layer.data) if isinstance(layer.data, list) else layer.data
+    assert list(data_df.columns) == ["h3_index", "municipio", "tooltip_value", "fill_color"]
+    assert data_df["municipio"].tolist() == ["Adeje", "Arona", "Adeje"]
+    assert data_df["tooltip_value"].tolist() == ["0,0", "10,0", "20,0"]
 
 
 def test_build_layer_tooltip_value_shows_sin_datos_for_missing():
     layer = build_layer(_gdf(), "Naturaleza (NDVI)")
-    assert layer.data["tooltip_value"].iloc[0] == "Sin datos"
+    data_df = pd.DataFrame(layer.data) if isinstance(layer.data, list) else layer.data
+    assert data_df["tooltip_value"].iloc[0] == "Sin datos"
 
 
 def test_build_layer_tooltip_value_passes_through_categories_as_is():
     layer = build_layer(_gdf(), "Restricciones legales")
-    assert layer.data["tooltip_value"].tolist() == ["ENP", "Zona turística oficial", "Sin restricción"]
+    data_df = pd.DataFrame(layer.data) if isinstance(layer.data, list) else layer.data
+    assert data_df["tooltip_value"].tolist() == ["ENP", "Zona turística oficial", "Sin restricción"]
 
 
 def test_build_layer_is_semi_transparent_by_default_so_the_basemap_shows_through():
@@ -202,6 +208,34 @@ def test_build_deck_tooltip_shows_municipio_and_metric_name(monkeypatch):
     assert "{tooltip_value}" in deck._tooltip["text"]
 
 
+def test_build_layer_3d_extrudes_and_includes_altitud():
+    gdf = _gdf().copy()
+    gdf["altitud_media_m"] = [100.0, 500.0, 1500.0]
+    layer = build_layer(gdf, "Densidad hotelera", is_3d=True, elevation_scale=1.5)
+    assert layer.extruded is True
+    assert layer.elevation_scale == 1.5
+    data_df = pd.DataFrame(layer.data) if isinstance(layer.data, list) else layer.data
+    assert "altitud_m" in data_df.columns
+    assert data_df["altitud_m"].tolist() == [100.0, 500.0, 1500.0]
+
+
+def test_build_deck_3d_sets_pitch_and_altitude_tooltip(monkeypatch):
+    monkeypatch.setenv("MAPBOX_API_KEY", "pk.test_token")
+    gdf = _gdf().copy()
+    gdf["altitud_media_m"] = [100.0, 500.0, 1500.0]
+    deck = build_deck(gdf, "Densidad hotelera", is_3d=True, elevation_scale=1.2, pitch=55)
+    assert deck.initial_view_state.pitch == 55
+    assert deck.layers[0].extruded is True
+    assert "Altitud MDT" in deck._tooltip["text"]
+
+
+def test_build_deck_falls_back_to_carto_when_no_mapbox_token(monkeypatch):
+    monkeypatch.delenv("MAPBOX_API_KEY", raising=False)
+    deck = build_deck(_gdf(), "Sentimiento")
+    assert deck.map_provider == "carto"
+    assert deck.map_style == pdk.map_styles.CARTO_DARK
+
+
 def test_legend_html_sequential_shows_gradient_with_min_max_labels():
     html = legend_html("Densidad hotelera", _gdf())
     assert "linear-gradient" in html
@@ -220,3 +254,71 @@ def test_legend_html_categorical_shows_a_chip_per_category():
     assert "Zona turística oficial" in html
     assert "Sin restricción" in html
     assert html.count("border-radius:3px") == 3
+
+
+def _municipio_gdf():
+    return gpd.GeoDataFrame(
+        {
+            "municipio": ["Adeje", "Arona", "Santa Cruz de Tenerife"],
+            "plazas_por_1000_hab": [0.0, 50.0, 100.0],
+            "densidad_plazas_km2": [10.0, 20.0, 30.0],
+            "crec_plazas_vv_pct": [-5.0, 0.0, 15.0],
+        },
+        geometry=[box(0, 0, 1, 1), box(1, 0, 2, 1), box(2, 0, 3, 1)],
+    )
+
+
+def test_build_municipio_fill_color_column_scales_min_to_max():
+    colors = build_municipio_fill_color_column(_municipio_gdf(), "Presión residencial")
+    assert colors.iloc[0] == [205, 226, 251]  # light end of the blue ramp
+    assert colors.iloc[2] == [13, 54, 107]  # dark end of the blue ramp
+
+
+def test_build_municipio_fill_color_column_handles_null_values():
+    gdf = _municipio_gdf()
+    gdf.loc[0, "densidad_plazas_km2"] = None
+    colors = build_municipio_fill_color_column(gdf, "Densidad turística")
+    assert colors.iloc[0] == [107, 114, 128]  # NO_DATA_COLOR
+
+
+def test_build_municipio_layer_returns_pickable_geojson_layer():
+    layer = build_municipio_layer(_municipio_gdf(), "Densidad turística")
+    assert isinstance(layer, pdk.Layer)
+    assert layer.id == "municipio"
+    assert layer.pickable is True
+    assert layer.get_fill_color == "@@=properties.fill_color"
+    assert len(layer.data["features"]) == 3
+
+
+def test_build_municipio_layer_includes_municipio_and_formatted_tooltip_value():
+    layer = build_municipio_layer(_municipio_gdf(), "Evolución de oferta VV")
+    properties = [f["properties"] for f in layer.data["features"]]
+    assert [p["municipio"] for p in properties] == ["Adeje", "Arona", "Santa Cruz de Tenerife"]
+    assert properties[0]["tooltip_value"] == "-5,0"
+
+
+def test_municipio_legend_html_shows_gradient_with_min_max_labels():
+    html = municipio_legend_html("Densidad turística", _municipio_gdf())
+    assert "linear-gradient" in html
+    assert "10" in html and "30" in html
+
+
+def test_build_municipio_layer_normalizes_mixed_geometry_types_to_multipolygon():
+    # deck.gl's GeoJsonLayer throws inside its SolidPolygonLayer sub-layer
+    # (TypeError: Cannot read properties of undefined (reading 'fill_color'))
+    # when a FeatureCollection mixes Polygon and MultiPolygon features --
+    # confirmed against gold_municipio_master, which has 29 Polygon + 2
+    # MultiPolygon rows. Every feature must come out as MultiPolygon so the
+    # layer (and therefore click-to-select) doesn't break.
+    gdf = gpd.GeoDataFrame(
+        {
+            "municipio": ["Adeje", "San Sebastián de La Gomera"],
+            "plazas_por_1000_hab": [10.0, 20.0],
+            "densidad_plazas_km2": [1.0, 2.0],
+            "crec_plazas_vv_pct": [0.0, 0.0],
+        },
+        geometry=[box(0, 0, 1, 1), MultiPolygon([box(2, 0, 3, 1), box(4, 0, 5, 1)])],
+    )
+    layer = build_municipio_layer(gdf, "Densidad turística")
+    geometry_types = {f["geometry"]["type"] for f in layer.data["features"]}
+    assert geometry_types == {"MultiPolygon"}

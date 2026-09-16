@@ -1,29 +1,40 @@
 # Ingesta Meteorológica: Red Agrocabildo (Capa Bronze)
 
-Módulo encargado de la adquisición, estandarización y carga de series meteorológicas en tiempo real e históricas procedentes de la red de **67 estaciones automáticas** del **Cabildo de Tenerife (Agrocabildo)**.
+Módulo encargado de la adquisición, estandarización y carga de series meteorológicas diezminutales e inventario físico de la red de **68 estaciones automáticas** y **378 sensores** del **Cabildo de Tenerife (Agrocabildo)**.
 
 ---
 
-## 1. Arquitectura y Flujo de Datos
+## 1. Evolución de la Arquitectura: Transición a CKAN Abierto
+
+En versiones iniciales, el pipeline consumía la API REST heredada (`/api/meteo/latest`). Debido al control estricto de tasa (*rate limit* de 6.5s por petición y límite de 10 peticiones/minuto impuesta por el servidor), la extracción del histórico completo demoraba entre 7 y 10 días y el proceso incremental diario consumía varias horas.
+
+**Nueva Arquitectura (CKAN Open Data Portal)**:
+El pipeline ha sido completamente migrado al catálogo oficial de datos abiertos del Cabildo de Tenerife (**CKAN** en `datos.tenerife.es`):
+* **Carga Masiva Histórica**: Descarga directa de volcados anuales completos normalizados en JSON por estación. El backfill completo de 136.4M de lecturas (2019-2026) se completa en minutos en vez de días.
+* **Ingesta Incremental / Tiempo Real**: Descarga concurrente multi-hilo de los volcados del año en curso (2026, actualizado semanalmente por el Cabildo), fusionando y deduplicando automáticamente en Azure Blob Storage en **~30-50 segundos**.
+* **Metadatos de Estaciones y Sensores**: Descarga directa de los datasets canónicos de CKAN (`estaciones-meteorologicas-de-tenerife` y `sensores-de-las-estaciones-meteorologicas-de-tenerife`), garantizando datos geográficos e inventario físico en menos de 2 segundos.
+* **Carga de Alta Velocidad en PostgreSQL**: Migración del bucle lento de inserciones Pandas a la arquitectura streaming de **PyArrow + `COPY` nativo** (~118.000 filas/segundo).
 
 ```
-API Oficial de Datos Meteorológicos (https://datos.tenerife.es/api/meteo/latest)
+Catálogo de Datos Abiertos de Tenerife (CKAN - datos.tenerife.es)
        │
        ├─► clima_metadatos_upload_blob.py ──► bronce-raw/clima/estaciones/ y sensores/
+       │                                       (68 estaciones, 378 sensores físicos)
        │
-       ├─► clima_realtime_upload_blob.py   ──► Ingesta incremental (últimas 24h)
+       ├─► clima_realtime_upload_blob.py   ──► Ingesta incremental concurrente (año en curso)
+       │                                       (Deduplicación e idempotencia en ~30-50s)
        │
-       └─► clima_historical_upload_blob.py ──► Backfill histórico continuo (2019-2026)
-                                               (Con checkpointing en backfill_progress.json)
+       └─► clima_ckan_bulk_upload_blob.py  ──► Ingesta masiva histórica (2019-2026)
+                                               (5.655 particiones Parquet, 136.4M registros)
        │
        ▼  Almacenamiento particionado en Azure Blob Storage
 Contenedor: bronce-raw/clima/mediciones/año=YYYY/mes=MM/estacion_{id}.parquet
        │
        ▼  Carga por lotes / incremental (ingestion/postgres/05_ingest_tabular_to_postgres.py)
-PostgreSQL: bronze.bronze_clima_horario_agrocabildo
+PostgreSQL: bronze.bronze_clima_horario_agrocabildo (Streaming COPY nativo)
        │
        ▼  Transformación y agregación espacial con dbt
-PostgreSQL: silver.silver_clima_estaciones / silver_clima_diario_h3
+PostgreSQL: silver.silver_estaciones_agrocabildo / silver.silver_clima_agrocabildo
 ```
 
 ---
@@ -35,43 +46,55 @@ Para evitar saturar la memoria RAM en entornos locales y posibilitar descargas e
 `clima/mediciones/año=YYYY/mes=MM/estacion_{id_estacion}.parquet`
 
 * **Consumo Eficiente de Memoria**: Cada partición mensual por estación pesa entre 50 KB y 500 KB, permitiendo que scripts y pipelines procesen solo la ventana temporal necesaria sin cargar Gigabytes de golpe.
-* **Escrituras Idempotentes**: Permite reintentos aislados por estación y mes sin afectar al resto del histórico.
-* **Optimización de Particiones Existentes**: El script [`repartition_clima_azure.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/clima/repartition_clima_azure.py) analiza y migra automáticamente cualquier blob no particionado antiguo al esquema `año=YYYY/mes=MM/`.
+* **Escrituras Idempotentes y Deduplicadas**: Permite reintentos aislados por estación y mes sin afectar al resto del histórico. La deduplicación se garantiza sobre la clave primaria `(id_estacion, id_sensor, timestamp)`.
+* **Optimización y Mantenimiento**: Las 5.655 particiones históricas (2019 a 2026) se encuentran consolidadas en `bronce-raw/clima/mediciones/`.
 
 ---
 
 ## 3. Descripción de los Scripts
 
-### 1. [`clima_client.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/clima/clima_client.py) (Cliente API Base)
-Librería cliente que encapsula las peticiones HTTP contra la API v2.0.0 de datos meteorológicos:
-* **Control Estricto de Tasa (*Rate Limiting*)**: Aplica un intervalo mínimo obligatorio de **6.5 segundos** entre llamadas consecutivas para respetar la cuota del Cabildo de **máximo 10 peticiones/minuto**.
-* **Gestión de Errores y Reintentos**: Manejo automatizado de respuestas `HTTP 429` (Too Many Requests) con esperas progresivas exponenciales (20s, 40s, 60s...) y capturas de excepciones de red con timeout de 60 segundos.
+### 1. [`clima_metadatos_upload_blob.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/clima/clima_metadatos_upload_blob.py) (Metadatos de Red vía CKAN)
+Descarga el censo de estaciones e inventario físico de sensores directamente desde CKAN:
+* **Estaciones (`estaciones-meteorologicas-de-tenerife`)**: Extrae `estacion_id`, `estacion_nombre`, `municipio_nombre`, `latitud`, `longitud`, `altitud` y `fecha_instalacion`. Destino: `clima/estaciones/estaciones_agrocabildo.parquet`.
+  > [!NOTE]
+  > **Filtro de Madurez en Capa Silver**: En la capa de transformación (`silver_estaciones_agrocabildo` y `silver_clima_agrocabildo`), se filtran únicamente las estaciones con `fecha_instalacion <= '2022-01-01'` (57 estaciones maduras de las 68 totales). Esto previene que estaciones instaladas entre 2022 y 2026 introduzcan discontinuidades o valores nulos en el cálculo de series históricas y modelos espaciales (como `gold_h3_master`).
+* **Sensores (`sensores-de-las-estaciones-meteorologicas-de-tenerife`)**:
+  - `clima/sensores/sensores_meteorologicos.parquet`: Catálogo canónico compatible con dbt (`id_weatherdatatype`, `alias`, `name`, `unit`).
+  - `clima/sensores/sensores_inventario.parquet`: Censo físico detallado de los 378 sensores instalados con fabricante, modelo y tipo de instalación.
 
-### 2. [`clima_metadatos_upload_blob.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/clima/clima_metadatos_upload_blob.py) (Metadatos de Red)
-Descarga el inventario de la red y lo serializa a Parquet:
-* **Estaciones (`/stations`)**: Identificador (`estacion_id`), nombre, municipio, latitud, longitud, altitud y fecha de instalación. Destino: `clima/estaciones/estaciones_agrocabildo.parquet`.
-* **Sensores (`/measures`)**: Catálogo de magnitudes medidas (temperatura, humedad, precipitación, radiación solar, velocidad y dirección del viento, presión atmosférica). Destino: `clima/sensores/sensores_meteorologicos.parquet`.
+### 2. [`clima_realtime_upload_blob.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/clima/clima_realtime_upload_blob.py) (Ingesta en Tiempo Real / Incremental)
+* Descarga de forma concurrente multi-hilo (ThreadPoolExecutor) los volcados de 2026 para las 68 estaciones.
+* Admite detección automática del último dato (`--auto`) o filtrado por ventana de días (`--days-back N`).
+* Fusiona las nuevas lecturas con la partición existente en Azure Blob, deduplica por `(id_estacion, id_sensor, timestamp)` y sube el Parquet actualizado. Tiempo total: **~30-50 segundos**.
 
-### 3. [`clima_realtime_upload_blob.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/clima/clima_realtime_upload_blob.py) (Ingesta en Tiempo Real)
-* Descarga las lecturas de las últimas 24 horas para las 67 estaciones activas.
-* Fusiona las nuevas lecturas con el archivo de la partición actual en Azure, deduplica por clave primaria `(estacion_id, sensor_id, timestamp)` y vuelve a subir el Parquet actualizado.
+### 3. [`clima_ckan_bulk_upload_blob.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/clima/clima_ckan_bulk_upload_blob.py) (Ingesta Masiva Histórica)
+* Descarga sistemática de los volcados anuales completos desde 2019 hasta 2026 directamente de CKAN.
+* Normaliza series diezminutales, genera particiones mensuales por estación y las almacena en Azure Blob Storage.
+* Incorpora control de progreso y tolerancia a interrupciones en `clima_ckan_progress.json`.
 
-### 4. [`clima_historical_upload_blob.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/clima/clima_historical_upload_blob.py) (Backfill Histórico)
-* Descarga sistemática del histórico completo desde el 1 de enero de 2019.
-* **Tolerancia a Fallos y Checkpointing**: Persiste el progreso en `backfill_progress.json` guardando la tupla `[estacion_id]_[sensor_id]_[año]`. Al reiniciar una corrida interrumpida, retoma exactamente donde se detuvo.
-* Permite filtrado por rango de estaciones mediante argumentos `--station-range` o `--max-stations`.
+### 4. [`promote_clima_to_production.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/clima/promote_clima_to_production.py) (Promoción y Optimización a Producción)
+* Sincroniza blobs masivamente lado servidor (`start_copy_from_url` con SAS token) a más de 300 blobs/segundo.
+* Promueve y asegura la tabla de producción `bronze.bronze_clima_horario_agrocabildo` en Azure PostgreSQL.
+* Genera los índices de alta velocidad:
+  - `idx_clima_horario_ts` en `(timestamp)`
+  - `idx_clima_horario_st_sensor_ts` en `(id_estacion, id_sensor, timestamp)`
+* Ejecuta `ANALYZE` sobre la relación.
 
-### 5. [`repartition_clima_azure.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/clima/repartition_clima_azure.py) (Mantenimiento del Data Lake)
-* Script de utilidad que descarga blobs de mediciones antiguos sin particionar, extrae año y mes de la columna `timestamp`, y los re-sube bajo la estructura `año=YYYY/mes=MM/`, eliminando el blob monolítico original.
+### 5. [`05_ingest_tabular_to_postgres.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/postgres/05_ingest_tabular_to_postgres.py) (Cargador Tabular a PostgreSQL)
+* Carga tanto los metadatos de estaciones y sensores como las lecturas particionadas usando streaming con `PyArrow` y comando `COPY` de PostgreSQL, reduciendo tiempos de ingesta a segundos.
 
 ---
 
 ## 4. Instrucciones de Ejecución
 
 ### Requisitos previos:
-Asegúrate de definir en `.env` la cadena de conexión de Azure:
+Configurar en el archivo `.env` las variables de Azure Blob Storage y Azure PostgreSQL:
 ```bash
 AZURE_STORAGE_CONNECTION_STRING="DefaultEndpointsProtocol=https;AccountName=...;AccountKey=..."
+AZURE_DB_HOST="servidor-postgres.postgres.database.azure.com"
+AZURE_DB_USER="usuario"
+AZURE_DB_PASSWORD="password"
+AZURE_DB_NAME="database"
 ```
 
 ### 1. Ingesta de metadatos de la red:
@@ -79,18 +102,26 @@ AZURE_STORAGE_CONNECTION_STRING="DefaultEndpointsProtocol=https;AccountName=...;
 python ingestion/clima/clima_metadatos_upload_blob.py
 ```
 
-### 2. Ingesta en tiempo real (últimas 24 horas):
+### 2. Ingesta incremental / tiempo real (ej. últimos 7 días o modo auto):
 ```bash
-python ingestion/clima/clima_realtime_upload_blob.py
+# Modo automático (detecta el último registro en Azure y rellena el hueco):
+python ingestion/clima/clima_realtime_upload_blob.py --auto
+
+# O especificando días hacia atrás:
+python ingestion/clima/clima_realtime_upload_blob.py --days-back 7
 ```
 
-### 3. Backfill histórico (ejemplo para estaciones 1 a 10):
+### 3. Descarga histórica completa de la red (2019-2026):
 ```bash
-python ingestion/clima/clima_historical_upload_blob.py --start-year 2019 --station-range 1-10
+python ingestion/clima/clima_ckan_bulk_upload_blob.py --years 2019-2026 --upload-blob --no-local
 ```
 
-### 4. Cargar a Azure PostgreSQL (Capa Bronze):
-Para volcar las mediciones y metadatos a las tablas `bronze_clima_horario_agrocabildo`, `bronze_estaciones_agrocabildo` y `bronze_sensores_meteorologicos`:
+### 4. Sincronización y Promoción a Producción:
+```bash
+python ingestion/clima/promote_clima_to_production.py
+```
+
+### 5. Carga a Azure PostgreSQL (Capa Bronze):
 ```bash
 python ingestion/postgres/05_ingest_tabular_to_postgres.py
 ```

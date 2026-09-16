@@ -3,7 +3,7 @@ import plotly.express as px
 import streamlit as st
 
 from app.color_scales import SEQUENTIAL_TEAL
-from app.ui_helpers import add_chart_motion, format_metric, render_footer
+from app.ui_helpers import add_chart_motion, format_metric
 
 # (column, label, kind, help) -- kind drives number formatting (see
 # format_metric); help is shown as an (i) tooltip on the metric tile so the
@@ -26,7 +26,7 @@ KPI_COLUMNS = [
         "sentimiento_medio",
         "😊 Sentimiento medio",
         "decimal2",
-        "Sentimiento medio de las reseñas analizadas por NLP, de -1 (muy negativo) a 1 (muy positivo).",
+        "Sentimiento medio de las reseñas analizadas por NLP, escala 1 (muy negativo) a 5 (muy positivo).",
     ),
     ("rating_booking_medio", "⭐ Rating Booking", "decimal", "Valoración media en Booking, escala 0-10."),
     (
@@ -55,7 +55,12 @@ ACCESIBILIDAD_KPI_COLUMNS = [
         "Minutos estimados en coche hasta el aeropuerto más cercano.",
     ),
     ("dist_hospital_km", "🏥 Km al hospital", "decimal", "Distancia en línea recta al hospital más cercano."),
-    ("dist_costa_km", "🌊 Km a la costa", "decimal", "Distancia en línea recta a la costa."),
+    (
+        "dist_costa_km",
+        "🌊 Km a la costa",
+        "decimal",
+        "Distancia en línea recta a la costa (0,0 km indica primera línea / litoral).",
+    ),
     (
         "n_paradas_bus_500m",
         "🚌 Paradas de bus (500 m)",
@@ -171,5 +176,3 @@ def render_detail_panel(gdf: pd.DataFrame, selected_h3_index: str | None) -> Non
         )
         add_chart_motion(fig)
         st.plotly_chart(fig, width="stretch")
-
-    render_footer("gold.gold_h3_master, gold.gold_h3_accesibilidad, gold.gold_sentimiento_h3")

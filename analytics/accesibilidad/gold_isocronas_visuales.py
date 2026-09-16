@@ -133,13 +133,16 @@ def calcular_isocronas(ors_api_key: str):
         response = None
         for intento in range(3):
             try:
-                response = client.isochrones(
-                    locations=[coords],
-                    profile="driving-car",
-                    range=rangos_s,
-                    range_type="time",
-                    smoothing=0.25,  # Suavizado leve para mejor aspecto visual
-                )
+                # Usamos client.request directamente para soportar avoid_features: ferries (rutas de barco)
+                params = {
+                    "locations": [coords],
+                    "profile": "driving-car",
+                    "range": rangos_s,
+                    "range_type": "time",
+                    "smoothing": 0.25,  # Suavizado leve para mejor aspecto visual
+                    "options": {"avoid_features": ["ferries"]},
+                }
+                response = client.request("/v2/isochrones/driving-car", {}, post_json=params)
                 break
             except Exception as e:
                 if intento < 2:
@@ -212,7 +215,21 @@ def main():
     logging.info(f"Calculando isócronas para {len(DESTINOS)} destinos × {len(RANGOS_MIN)} rangos...")
     gdf = calcular_isocronas(ors_api_key)
 
-    # ── Subir a gold.isocronas_visuales ──────────────────────────────────────
+    # ── Recortar con el contorno insular (elimina rutas marítimas y salientes al mar) ──
+    logging.info("Recortando isócronas contra el contorno insular (silver.silver_limites_municipales)...")
+    try:
+        isla_gdf = gpd.read_postgis(
+            "SELECT ST_Union(geometry) AS geometry FROM silver.silver_limites_municipales",
+            con=engine,
+            geom_col="geometry"
+        )
+        if not isla_gdf.empty and isla_gdf.geometry.iloc[0] is not None:
+            gdf = gpd.overlay(gdf, isla_gdf, how="intersection")
+            logging.info(f"Isócronas recortadas a la isla con éxito: {len(gdf)} registros.")
+    except Exception as e:
+        logging.warning(f"No se pudo recortar con silver.silver_limites_municipales: {e}")
+
+    # ── Subir a gold.gold_isocronas_visuales ──────────────────────────────────
     logging.info(f"Subiendo {len(gdf)} polígonos a gold.gold_isocronas_visuales...")
     gdf.to_postgis(
         name="gold_isocronas_visuales",
@@ -226,11 +243,11 @@ def main():
     with engine.connect() as conn:
         conn.execute(text(
             "CREATE INDEX IF NOT EXISTS idx_isocronas_geom "
-            "ON gold.isocronas_visuales USING GIST (geometry);"
+            "ON gold.gold_isocronas_visuales USING GIST (geometry);"
         ))
         conn.execute(text(
             "CREATE INDEX IF NOT EXISTS idx_isocronas_destino "
-            "ON gold.isocronas_visuales (destino);"
+            "ON gold.gold_isocronas_visuales (destino);"
         ))
         conn.commit()
 

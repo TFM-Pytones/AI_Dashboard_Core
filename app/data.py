@@ -15,7 +15,11 @@ from sqlalchemy.engine import Engine
 load_dotenv(override=True)
 
 H3_MASTER_QUERY = "SELECT * FROM gold.gold_h3_master"
-SENTIMIENTO_QUERY = "SELECT * FROM gold.gold_sentimiento_h3"
+SENTIMIENTO_QUERY = """
+    SELECT h3_index, sentimiento_medio, n_resenas_sentimiento AS n_resenas,
+           n_resenas_booking, n_resenas_tripadvisor, queja_principal
+    FROM gold.gold_h3_sentimiento
+"""
 ACCESIBILIDAD_QUERY = "SELECT * FROM gold.gold_h3_accesibilidad"
 ISOCRONAS_QUERY = "SELECT * FROM gold.gold_isocronas_visuales"
 MUNICIPIO_MASTER_QUERY = "SELECT * FROM gold.gold_municipio_master"
@@ -37,15 +41,18 @@ NLP_CHUNKS_QUERY = """
 # de la tabla) -- sin esto, un hexágono remoto parecería estar a 999 min.
 TIEMPO_SENTINEL = 999.0
 
-# gold.gold_sentimiento_h3 depende de tablas gold_nlp.* (nlp_sentimiento_resenas,
-# nlp_aspectos_resenas, aspecto_traducciones) escritas a mano por notebooks
-# (analytics/tarea2/*.ipynb) que todavia no se han corrido/migrado a la
-# cuenta nueva de Azure -- confirmado por auditoria directa del esquema
-# `gold` (solo tiene gold_h3_master, gold_h3_accesibilidad, isocronas_visuales).
-# Mientras tanto, load_sentimiento() devuelve un DataFrame vacio con las
-# columnas esperadas en vez de reventar la app entera: las capas/paneles que
-# lo consumen ya tratan NULL/ausente como "sin datos", asi que esto solo
-# apaga esa una capa, no el resto del dashboard.
+# El modelo dbt original (dbt_project/models/gold/gold_sentimiento_h3.sql,
+# Issue #20) nunca se materializo -- lee de un esquema `gold_nlp` que no
+# existe en la BD real (auditoria directa: 0 tablas). Por separado, en la
+# rama feature/gold-h3-ptna (Bloque 5/PTNA, sin mergear a main) se creo
+# gold.gold_h3_sentimiento a mano via script (00_create_sentimiento_table.py)
+# con el nombre al reves y una columna distinta (n_resenas_sentimiento en vez
+# de n_resenas) -- esa si esta poblada de verdad (410 hexagonos, confirmado
+# por auditoria directa 2026-09-16) porque las reseñas no siempre tienen
+# coordenadas para geolocalizar al hexagono. load_sentimiento() sigue
+# devolviendo un DataFrame vacio si la tabla no existe, por si esa rama
+# renombra/quita gold_h3_sentimiento antes de mergear -- las capas/paneles
+# que lo consumen ya tratan NULL/ausente como "sin datos".
 SENTIMIENTO_COLUMNS = [
     "h3_index",
     "sentimiento_medio",
@@ -78,19 +85,47 @@ def drop_municipio_alias_rows(df: pd.DataFrame) -> pd.DataFrame:
     return df.loc[~df["municipio"].isin(MUNICIPIO_ALIAS_DROP)].reset_index(drop=True)
 
 
+# Longitud aproximada de la arista para celdas H3 Res 8 (~461 m / 0.461 km).
+# Al calcularse dist_costa_km desde el centroide del hexágono hacia la costa,
+# los hexágonos que tocan físicamente el mar presentaban una distancia artificial
+# de entre 0.01 y 0.46 km. Restando la arista y acotando a 0.0 km, las celdas
+# de primera línea / litoral muestran 0.0 km en el Dashboard sin alterar la
+# pureza continua de gold.gold_h3_master en PostgreSQL para el modelo MGWR.
+H3_RES8_EDGE_KM = 0.461
+
+
+def adjust_coastal_distance(gdf: pd.DataFrame, edge_km: float = H3_RES8_EDGE_KM) -> pd.DataFrame:
+    gdf = gdf.copy()
+    if "dist_costa_km" in gdf.columns:
+        gdf["dist_costa_km"] = (gdf["dist_costa_km"] - edge_km).clip(lower=0.0).round(2)
+    return gdf
+
+
 @st.cache_resource
 def get_engine() -> Engine:
-    return create_engine(os.environ["AZURE_DB_URL"])
+    return create_engine(
+        os.environ["AZURE_DB_URL"],
+        pool_pre_ping=True,
+        pool_recycle=300,
+        connect_args={
+            "connect_timeout": 15,
+            "keepalives": 1,
+            "keepalives_idle": 30,
+            "keepalives_interval": 10,
+            "keepalives_count": 5,
+        },
+    )
 
 
 @st.cache_data
 def load_h3_master(_engine: Engine) -> gpd.GeoDataFrame:
-    return gpd.read_postgis(H3_MASTER_QUERY, _engine, geom_col="geometry")
+    gdf = gpd.read_postgis(H3_MASTER_QUERY, _engine, geom_col="geometry")
+    return adjust_coastal_distance(gdf)
 
 
 @st.cache_data
 def load_sentimiento(_engine: Engine) -> pd.DataFrame:
-    if not inspect(_engine).has_table("gold_sentimiento_h3", schema="gold"):
+    if not inspect(_engine).has_table("gold_h3_sentimiento", schema="gold"):
         return pd.DataFrame(columns=SENTIMIENTO_COLUMNS)
     return pd.read_sql(SENTIMIENTO_QUERY, _engine)
 
@@ -106,8 +141,8 @@ def load_isocronas(_engine: Engine) -> gpd.GeoDataFrame:
 
 
 @st.cache_data
-def load_municipio_master(_engine: Engine) -> pd.DataFrame:
-    return pd.read_sql(MUNICIPIO_MASTER_QUERY, _engine)
+def load_municipio_master(_engine: Engine) -> gpd.GeoDataFrame:
+    return gpd.read_postgis(MUNICIPIO_MASTER_QUERY, _engine, geom_col="geometry")
 
 
 @st.cache_data

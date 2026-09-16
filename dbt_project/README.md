@@ -135,7 +135,7 @@ La capa Silver toma las tablas crudas de la capa `bronze.*`, descarta registros 
 ### `alojamiento/` & Plataformas OTAs
 * `silver_alojamientos_oficiales`: Registros oficiales de turismo (hoteles, extrahoteleros, viviendas vacacionales) georreferenciados con PostGIS.
 * `silver_booking_establishments`: Establecimientos de Booking.com con coordenadas validadas y tipología.
-* `silver_booking_reviews`: Reseñas limpias con puntuación normalizada y flag de filtrado pre/post-COVID.
+* `silver_booking_reviews`: Reseñas limpias con puntuación normalizada y fecha estructurada.
 * `silver_tripadvisor_ubicaciones`: Establecimientos turísticos de TripAdvisor georreferenciados.
 * `silver_tripadvisor_resenas`: Opiniones depuradas de TripAdvisor con ratings de viajeros.
 
@@ -150,8 +150,8 @@ La capa Silver toma las tablas crudas de la capa `bronze.*`, descarta registros 
 * `silver_satelite_stats`: Estadísticas zonales de Sentinel-2 (NDVI, NDBI) y radiancia nocturna VIIRS.
 
 ### `clima/`
-* `silver_clima_agrocabildo`: Lecturas horarias depuradas de 67 estaciones del Cabildo, filtrando códigos de error (-999, -9999).
-* `silver_estaciones_agrocabildo`: Metadatos y coordenadas de la red de estaciones meteorológicas.
+* `silver_clima_agrocabildo`: Lecturas horarias depuradas de 57 estaciones maduras del Cabildo (filtradas por fecha de instalación <= 01/01/2022 para evitar discontinuidades y nulos en el histórico), filtrando códigos de error (-999, -9999).
+* `silver_estaciones_agrocabildo`: Metadatos, coordenadas y geometría PostGIS de las 57 estaciones meteorológicas maduras (instaladas <= 2022-01-01).
 * `silver_era5land`: Reanálisis atmosférico ERA5-Land con conversión de unidades (temperatura a °C, precipitación a mm).
 
 ### `istac/`

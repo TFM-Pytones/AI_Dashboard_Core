@@ -61,7 +61,7 @@ booking AS (
         h.h3_index,
         COUNT(DISTINCT e.establishment_id) AS n_establecimientos_booking,
         ROUND(AVG(r.rating)::numeric, 2) AS rating_booking_medio,
-        COUNT(r.review_id) FILTER (WHERE NOT r.periodo_covid) AS n_reviews_booking
+        COUNT(r.review_id) AS n_reviews_booking
     FROM h3 h
     LEFT JOIN {{ ref('silver_booking_establishments') }} e ON ST_Contains(h.geometry, e.geometry)
     LEFT JOIN {{ ref('silver_booking_reviews') }} r ON r.establishment_id = e.establishment_id
@@ -73,7 +73,7 @@ tripadvisor AS (
         h.h3_index,
         COUNT(DISTINCT e.location_id) AS n_establecimientos_tripadvisor,
         ROUND(AVG(r.rating)::numeric, 2) AS rating_tripadvisor_medio,
-        COUNT(r.review_id) FILTER (WHERE NOT r.periodo_covid) AS n_reviews_tripadvisor
+        COUNT(r.review_id) AS n_reviews_tripadvisor
     FROM h3 h
     LEFT JOIN {{ ref('silver_tripadvisor_ubicaciones') }} e ON ST_Contains(h.geometry, e.geometry)
     LEFT JOIN {{ ref('silver_tripadvisor_resenas') }} r ON r.location_id = e.location_id
@@ -235,7 +235,7 @@ estaciones_con_topografia AS MATERIALIZED (
     JOIN {{ ref('silver_estaciones_agrocabildo') }} e ON c.id_estacion = e.id_estacion
     LEFT JOIN {{ ref('silver_h3_grid') }} h ON ST_Intersects(e.geometry, h.geometry)
     LEFT JOIN {{ source('bronze', 'bronze_mdt_stats') }} m ON h.h3_index = m.h3_index
-    LEFT JOIN gold.gold_h3_accesibilidad acc ON h.h3_index = acc.h3_index
+    LEFT JOIN {{ source('gold_accesibilidad', 'gold_h3_accesibilidad') }} acc ON h.h3_index = acc.h3_index
     ORDER BY c.id_estacion
 ),
 
@@ -248,7 +248,7 @@ h3_con_topografia AS MATERIALIZED (
         COALESCE(acc.dist_costa_km, 0) AS h3_dist_costa_km
     FROM h3 h
     LEFT JOIN {{ source('bronze', 'bronze_mdt_stats') }} m ON h.h3_index = m.h3_index
-    LEFT JOIN gold.gold_h3_accesibilidad acc ON h.h3_index = acc.h3_index
+    LEFT JOIN {{ source('gold_accesibilidad', 'gold_h3_accesibilidad') }} acc ON h.h3_index = acc.h3_index
 ),
 
 h3_vecinos_clima AS (
@@ -361,7 +361,7 @@ h3_clima AS (
 enp AS (
     SELECT
         h.h3_index,
-        ROUND((SUM(ST_Area(ST_Intersection(ST_Transform(h.geometry, 32628), ST_Transform(e.geometry, 32628)))) / ST_Area(ST_Transform(h.geometry, 32628)))::numeric, 4) AS pct_area_enp,
+        LEAST(1.0::numeric, ROUND((SUM(ST_Area(ST_Intersection(ST_Transform(h.geometry, 32628), ST_Transform(e.geometry, 32628)))) / ST_Area(ST_Transform(h.geometry, 32628)))::numeric, 4)) AS pct_area_enp,
         STRING_AGG(DISTINCT e.nombre_enp, ', ') AS nombre_enp
     FROM h3 h
     LEFT JOIN {{ ref('silver_enp') }} e ON ST_Intersects(h.geometry, e.geometry)
@@ -376,6 +376,38 @@ zonas_turisticas AS (
     FROM h3 h
     LEFT JOIN {{ ref('silver_zonas_turisticas') }} z ON ST_Intersects(h.geometry, z.geometry)
     GROUP BY h.h3_index, h.geometry
+),
+
+accesibilidad AS (
+    SELECT
+        h3_index,
+        tiempo_aeropuerto_min,
+        aeropuerto_mas_cercano,
+        tiempo_tfs_min,
+        tiempo_tfn_min,
+        tiempo_capital_min,
+        tiempo_extremo_sur_min,
+        tiempo_extremo_norte_min,
+        tiempo_teide_min,
+        tiempo_la_laguna_min,
+        tiempo_candelaria_min,
+        tiempo_los_gigantes_min,
+        tiempo_el_medano_min,
+        tiempo_garachico_min,
+        tiempo_anaga_min,
+        tiempo_masca_min,
+        tiempo_vilaflor_min,
+        tiempo_la_orotava_min,
+        tiempo_guimar_min,
+        tiempo_buenavista_min,
+        tiempo_arico_min,
+        n_paradas_bus_200m,
+        n_paradas_bus_500m,
+        n_paradas_bus_1000m,
+        dist_parada_cercana_m,
+        dist_hospital_km,
+        dist_costa_km
+    FROM {{ source('gold_accesibilidad', 'gold_h3_accesibilidad') }}
 )
 
 SELECT
@@ -480,8 +512,33 @@ SELECT
     hc.vel_viento_media_anual, hc.vel_viento_media_q1, hc.vel_viento_media_q2, hc.vel_viento_media_q3, hc.vel_viento_media_q4,
     hc.humedad_media_anual, hc.humedad_media_q1, hc.humedad_media_q2, hc.humedad_media_q3, hc.humedad_media_q4,
     
-    -- Litoralidad (Distancia Euclidiana a la Costa en km)
-    h_topo.h3_dist_costa_km AS dist_costa_km,
+    -- Litoralidad y Accesibilidad Vial (OpenRouteService y PostGIS)
+    COALESCE(acc.dist_costa_km, h_topo.h3_dist_costa_km) AS dist_costa_km,
+    acc.tiempo_aeropuerto_min,
+    acc.aeropuerto_mas_cercano,
+    acc.tiempo_tfs_min,
+    acc.tiempo_tfn_min,
+    acc.tiempo_capital_min,
+    acc.tiempo_extremo_sur_min,
+    acc.tiempo_extremo_norte_min,
+    acc.tiempo_teide_min,
+    acc.tiempo_la_laguna_min,
+    acc.tiempo_candelaria_min,
+    acc.tiempo_los_gigantes_min,
+    acc.tiempo_el_medano_min,
+    acc.tiempo_garachico_min,
+    acc.tiempo_anaga_min,
+    acc.tiempo_masca_min,
+    acc.tiempo_vilaflor_min,
+    acc.tiempo_la_orotava_min,
+    acc.tiempo_guimar_min,
+    acc.tiempo_buenavista_min,
+    acc.tiempo_arico_min,
+    acc.dist_hospital_km,
+    acc.dist_parada_cercana_m,
+    acc.n_paradas_bus_200m,
+    acc.n_paradas_bus_500m,
+    acc.n_paradas_bus_1000m,
     
     -- Restricciones Normativas y Zonas Turísticas
     COALESCE(enp.pct_area_enp, 0) AS pct_area_enp,
@@ -503,3 +560,4 @@ LEFT JOIN h3_con_topografia h_topo ON h.h3_index = h_topo.h3_index
 LEFT JOIN h3_clima hc ON h.h3_index = hc.h3_index
 LEFT JOIN enp ON h.h3_index = enp.h3_index
 LEFT JOIN zonas_turisticas zt ON h.h3_index = zt.h3_index
+LEFT JOIN accesibilidad acc ON h.h3_index = acc.h3_index

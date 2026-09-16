@@ -44,7 +44,9 @@ ACCENT_CLIMA_HUMEDAD = "#7c3aed"  # purple -- moisture
 # Rankings: each ranking type gets the hue that matches what it measures,
 # instead of every ranking looking identical in navy.
 ACCENT_RANKING_NDVI = "#15803d"  # green -- vegetation
-ACCENT_RANKING_TURISTICA = "#d97706"  # amber -- tourism volume
+ACCENT_RANKING_ALOJAMIENTOS = "#d97706"  # amber -- official establishments
+ACCENT_RANKING_PLAZAS = "#0284c7"  # sky blue -- bed capacity
+ACCENT_RANKING_TURISTICA = ACCENT_RANKING_ALOJAMIENTOS  # backwards-compatibility alias
 ACCENT_RANKING_VALORADAS = "#7c3aed"  # purple -- quality/rating
 ACCENT_RANKING_CALUROSAS = "#dc2626"  # red -- heat
 

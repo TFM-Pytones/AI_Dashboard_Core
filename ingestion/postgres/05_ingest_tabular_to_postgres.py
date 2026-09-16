@@ -169,6 +169,64 @@ def ingest_large_blob_to_postgres(blob_service_client, blob_name: str, table_nam
                 except OSError:
                     pass
 
+def ingest_clima_partitions_copy(blob_service_client, clima_blobs: list, engine, is_incremental: bool = False):
+    """Carga archivos Parquet de clima directamente en bronze_clima_horario_agrocabildo usando COPY nativo por streaming."""
+    import io
+    import pyarrow.parquet as pq
+
+    dbapi_conn = engine.raw_connection()
+    try:
+        with dbapi_conn.cursor() as cur:
+            if not is_incremental:
+                cur.execute(f'TRUNCATE TABLE "{TARGET_SCHEMA}"."bronze_clima_horario_agrocabildo";')
+                dbapi_conn.commit()
+
+            copy_sql = (
+                f'COPY "{TARGET_SCHEMA}"."bronze_clima_horario_agrocabildo" '
+                f'("id_estacion", "id_sensor", "timestamp", "valor_observado", "valor_validado", "es_validado", "año", "mes") '
+                f'FROM STDIN WITH (FORMAT csv, DELIMITER E\'\\t\', NULL \'\\\\N\')'
+            )
+
+            total_loaded = 0
+            container_client = blob_service_client.get_container_client(BLOB_CONTAINER_NAME)
+
+            for i, blob_name in enumerate(clima_blobs, 1):
+                try:
+                    blob_client = container_client.get_blob_client(blob_name)
+                    data = blob_client.download_blob().readall()
+                    table = pq.read_table(io.BytesIO(data))
+
+                    st_col = table["id_estacion"].to_pylist() if "id_estacion" in table.column_names else [None] * table.num_rows
+                    se_col = table["id_sensor"].to_pylist() if "id_sensor" in table.column_names else [None] * table.num_rows
+                    ts_col = table["timestamp"].to_pylist() if "timestamp" in table.column_names else [None] * table.num_rows
+                    vo_col = table["valor_observado"].to_pylist() if "valor_observado" in table.column_names else [None] * table.num_rows
+                    vv_col = table["valor_validado"].to_pylist() if "valor_validado" in table.column_names else [None] * table.num_rows
+                    ev_col = table["es_validado"].to_pylist() if "es_validado" in table.column_names else [None] * table.num_rows
+                    an_col = table["año"].to_pylist() if "año" in table.column_names else [None] * table.num_rows
+                    me_col = table["mes"].to_pylist() if "mes" in table.column_names else [None] * table.num_rows
+
+                    tsv_lines = []
+                    for st, se, ts, vo, vv, ev, an, me in zip(st_col, se_col, ts_col, vo_col, vv_col, ev_col, an_col, me_col):
+                        ts_str = ts.isoformat() if hasattr(ts, "isoformat") else (str(ts) if ts is not None else "\\N")
+                        vo_str = f"{vo:.4f}" if vo is not None else "\\N"
+                        vv_str = f"{vv:.4f}" if vv is not None else "\\N"
+                        ev_str = "t" if ev else "f"
+                        tsv_lines.append(f"{st}\t{se}\t{ts_str}\t{vo_str}\t{vv_str}\t{ev_str}\t{an}\t{me}\n")
+
+                    tsv_buf = io.StringIO("".join(tsv_lines))
+                    cur.copy_expert(copy_sql, tsv_buf)
+                    dbapi_conn.commit()
+                    total_loaded += table.num_rows
+                    if i % 50 == 0 or i == len(clima_blobs):
+                        print(f"  [{i}/{len(clima_blobs)}] Cargadas {total_loaded:,} filas de clima mediante COPY...")
+                except Exception as e:
+                    print(f"  [ERROR] Fallo cargando {blob_name}: {e}")
+                    dbapi_conn.rollback()
+
+            print(f"  [OK] Ingesta de clima finalizada: {total_loaded:,} filas cargadas en 'bronze_clima_horario_agrocabildo'.")
+    finally:
+        dbapi_conn.close()
+
 def main():
     if not AZURE_CONNECTION_STRING:
         print("[ERROR] AZURE_STORAGE_CONNECTION_STRING no esta definido en el archivo .env")
@@ -248,15 +306,7 @@ def main():
 
     if clima_blobs:
         print(f"Encontrados {len(clima_blobs)} archivos de particiones de clima.")
-        first = not INCREMENTAL_LOAD # Si es incremental, hacemos 'append' a la tabla existente. Si es full load, 'replace' la primera vez.
-        for blob_name in clima_blobs:
-            try:
-                df_st = download_blob_to_dataframe(blob_service_client, blob_name)
-                mode = "replace" if first else "append"
-                ingest_to_postgres(df_st, "bronze_clima_horario_agrocabildo", engine, if_exists=mode)
-                first = False
-            except Exception as e:
-                print(f"  [ERROR] Error al procesar lecturas de {blob_name}: {e}")
+        ingest_clima_partitions_copy(blob_service_client, clima_blobs, engine, is_incremental=INCREMENTAL_LOAD)
     else:
         print("  [Info] No se encontraron archivos particionados para ingestar.")
 

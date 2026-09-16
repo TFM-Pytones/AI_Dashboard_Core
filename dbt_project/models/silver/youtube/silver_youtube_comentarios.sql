@@ -11,14 +11,9 @@ WITH comentarios AS (
         comment_id,
         video_id,
         published_at::date  AS fecha_comentario,
-        author              AS autor,
         "text"              AS texto,
         like_count          AS likes_comentario,
-        LENGTH("text")      AS longitud_texto,
-        CASE
-            WHEN published_at::date BETWEEN '2020-03-14' AND '2021-12-31' THEN TRUE
-            ELSE FALSE
-        END AS periodo_covid
+        LENGTH("text")      AS longitud_texto
     FROM {{ source('bronze', 'bronze_youtube_comments') }}
     WHERE comment_id IS NOT NULL
       AND "text" IS NOT NULL

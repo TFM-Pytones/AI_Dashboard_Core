@@ -1,3 +1,17 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv(override=True)
+
+# Debe fijarse antes de que se importe torch (vía sentence-transformers en el
+# asistente): evita que torch._inductor compile y lance un subproceso de
+# prueba para detectar el juego de instrucciones de la CPU. Ese subproceso se
+# hace con fork() desde el hilo en segundo plano donde Streamlit ejecuta el
+# script, y choca con el manejador atfork de libproj (cargado por geopandas
+# en el Mapa), provocando un SIGSEGV. No usamos torch.compile, así que la
+# comprobación no aporta nada y se puede omitir con seguridad.
+os.environ.setdefault("TORCHINDUCTOR_VEC_ISA_OK", "1")
+
 import base64
 from pathlib import Path
 
@@ -5,6 +19,7 @@ import plotly.express as px
 import streamlit as st
 
 from app.alojamiento import render_alojamiento_tab
+from app.asistente import page_asistente
 from app.clima import render_clima_tab
 from app.color_scales import RESTRICTION_COLOR_MAP_HEX
 from app.data import (
@@ -31,18 +46,21 @@ from app.detail_panel import render_detail_panel
 from app.map_layers import (
     DEFAULT_HEXAGON_OPACITY,
     METRICS,
+    MUNICIPIO_METRICS,
     build_deck,
     build_isocronas_layer,
+    build_municipio_layer,
     legend_html,
     list_destinos,
+    municipio_legend_html,
 )
 from app.municipios import render_municipios_tab
 from app.rankings import RANKINGS, render_rankings_tab
 from app.summary import compute_summary_stats, restriction_counts_dataframe
-from app.table_view import build_table_column_config, filter_table, prepare_table_view
+from app.table_view import build_column_glossary, build_table_column_config, filter_table, prepare_table_view
 from app.temas import render_temas_tab
 from app.turismo import render_turismo_tab
-from app.ui_helpers import add_chart_motion, format_metric, render_footer
+from app.ui_helpers import add_chart_motion, format_metric
 
 st.set_page_config(page_title="AI-Dashboard Tenerife", page_icon="🌋", layout="wide")
 
@@ -108,6 +126,11 @@ st.markdown(
     /* Very subtle gradient instead of flat white, for a bit of depth. */
     [data-testid="stMain"] {
         background: linear-gradient(180deg, #fefefe 0%, #f4f6fb 100%);
+    }
+
+    /* Sliders: espacio superior suficiente para que el número flotante (stThumbValue) no se corte por arriba */
+    div[data-testid="stSlider"] {
+        padding-top: 0.75rem;
     }
     </style>
     """,
@@ -189,14 +212,19 @@ def page_resumen() -> None:
 
     st.subheader("Reparto de restricciones legales")
     restriction_df = restriction_counts_dataframe(stats["restriction_counts"])
-    fig_restriction = px.bar(
-        restriction_df,
-        x="restriction_category",
-        y="n_hexagonos",
-        color="restriction_category",
-        color_discrete_map=RESTRICTION_COLOR_MAP_HEX,
+    fig_restriction = px.bar(restriction_df, x="restriction_category", y="n_hexagonos")
+    # Un solo trace con color por barra via marker_color, en vez de
+    # color="restriction_category" (igual que x): con color=x, Plotly Express
+    # crea un trace distinto por categoria y las centra como si fueran a
+    # agruparse con las demas, dejando cada barra desplazada de su etiqueta
+    # del eje X en vez de centrada encima.
+    fig_restriction.update_traces(
+        marker_color=[RESTRICTION_COLOR_MAP_HEX[c] for c in restriction_df["restriction_category"]],
+        width=0.4,
     )
-    fig_restriction.update_layout(xaxis_title=None, yaxis_title="Nº de hexágonos", showlegend=False)
+    fig_restriction.update_layout(
+        xaxis_title=None, yaxis_title="Nº de hexágonos", showlegend=False, height=320
+    )
     add_chart_motion(fig_restriction)
     st.plotly_chart(fig_restriction, use_container_width=True)
 
@@ -281,28 +309,91 @@ def page_resumen() -> None:
             st.markdown(f"**{highlight}**")
             st.page_link(page_obj, label="Explorar →", use_container_width=True)
 
-    render_footer("gold.gold_h3_master, gold.gold_h3_accesibilidad, gold.gold_sentimiento_h3")
-
 
 def page_mapa() -> None:
+    st.markdown("<div style='margin-top: 1.5rem;'></div>", unsafe_allow_html=True)
     with st.sidebar:
-        st.subheader("Filtros del mapa")
-        show_hexagons = st.checkbox("Mostrar capa de hexágonos", value=False)
-        metric_key = st.selectbox("Capa del mapa", list(METRICS.keys()), disabled=not show_hexagons)
-        hex_opacity = st.slider(
-            "Opacidad de hexágonos",
-            min_value=0.05,
-            max_value=1.0,
-            value=DEFAULT_HEXAGON_OPACITY,
-            step=0.05,
-            disabled=not show_hexagons,
-            help="Más bajo = se ve más el satélite de fondo. Más alto = se ve más el color de los hexágonos.",
+        st.subheader("Capa activa")
+        capa_activa = st.radio(
+            "Selecciona una capa:",
+            options=[
+                "Malla de hexágonos H3",
+                "Capa municipal",
+                "Isócronas de transporte",
+                "Ninguna (solo mapa satélite)",
+            ],
+            index=0,
+            help="Solo puede haber una capa visible a la vez para evitar solapamientos.",
         )
+        show_hexagons = capa_activa == "Malla de hexágonos H3"
+        show_municipios = capa_activa == "Capa municipal"
+        show_isocronas = capa_activa == "Isócronas de transporte"
+
+        st.divider()
+        st.subheader("Opciones de capa")
         map_municipio = st.selectbox("Municipio", ["Todos"] + list_municipios(full_gdf), key="map_municipio")
-        show_isocronas = st.checkbox("Mostrar isócronas")
+
+        if show_hexagons:
+            metric_key = st.selectbox("Capa del mapa (H3)", list(METRICS.keys()))
+            hex_opacity = st.slider(
+                "Opacidad de hexágonos",
+                min_value=0.05,
+                max_value=1.0,
+                value=DEFAULT_HEXAGON_OPACITY,
+                step=0.05,
+                help="Más bajo = se ve más el satélite de fondo. Más alto = se ve más el color de los hexágonos.",
+            )
+        else:
+            metric_key = list(METRICS.keys())[0]
+            hex_opacity = DEFAULT_HEXAGON_OPACITY
+
+        if show_municipios:
+            municipio_metric_key = st.selectbox(
+                "Métrica municipal", list(MUNICIPIO_METRICS.keys())
+            )
+        else:
+            municipio_metric_key = list(MUNICIPIO_METRICS.keys())[0]
+
         isocrona_destino = None
         if show_isocronas:
             isocrona_destino = st.selectbox("Destino de referencia", list_destinos(isocronas))
+
+        st.divider()
+        st.subheader("Perspectiva 3D")
+        enable_3d = st.toggle(
+            "Relieve 3D (MDT)",
+            value=False,
+            disabled=not show_hexagons,
+            help="Modela la orografía real de Tenerife elevando cada hexágono desde el nivel del mar hasta su cota media según el MDT.",
+        )
+        if not show_hexagons:
+            st.caption("ℹ️ *El relieve 3D modela la orografía MDT sobre la malla de hexágonos H3.*")
+        if enable_3d and show_hexagons:
+            col_3d_1, col_3d_2 = st.columns(2)
+            elevation_scale = col_3d_1.slider(
+                "Exageración",
+                min_value=0.5,
+                max_value=3.0,
+                value=1.0,
+                step=0.1,
+                help="Factor multiplicador del relieve vertical.",
+            )
+            pitch = col_3d_2.slider(
+                "Inclinación (°)",
+                min_value=20,
+                max_value=70,
+                value=50,
+                step=5,
+                help="Ángulo de inclinación de la cámara (50° es el óptimo para apreciar el relieve).",
+            )
+        else:
+            elevation_scale = 1.0
+            pitch = 0
+
+        if not os.environ.get("MAPBOX_API_KEY", "").strip():
+            st.info(
+                "💡 **Mapa base CARTO activo:** Para visualizar la fotografía satelital de fondo de alta resolución, añade tu clave de Mapbox en tu archivo `.env` (`MAPBOX_API_KEY=pk...`)."
+            )
 
     filtered_gdf = filter_by_municipio(full_gdf, map_municipio)
 
@@ -312,8 +403,27 @@ def page_mapa() -> None:
     if show_hexagons:
         st.caption(f"Leyenda — {metric_key}")
         st.markdown(legend_html(metric_key, filtered_gdf), unsafe_allow_html=True)
+        if enable_3d:
+            st.caption(
+                "⛰️ **Relieve 3D activo:** Hexágonos extruidos desde cota 0 según el MDT. "
+                "💡 *Tip: Mantén presionado **Ctrl + arrastrar** (o botón derecho) para rotar la cámara libremente en 3D.*"
+            )
 
-    deck = build_deck(filtered_gdf, metric_key, show_hexagons=show_hexagons, opacity=hex_opacity)
+    if show_municipios:
+        st.caption(f"Leyenda — {municipio_metric_key} (municipios)")
+        st.markdown(municipio_legend_html(municipio_metric_key, municipio_master), unsafe_allow_html=True)
+
+    deck = build_deck(
+        filtered_gdf,
+        metric_key,
+        show_hexagons=show_hexagons,
+        opacity=hex_opacity,
+        is_3d=enable_3d and show_hexagons,
+        elevation_scale=elevation_scale,
+        pitch=pitch,
+    )
+    if show_municipios:
+        deck.layers.append(build_municipio_layer(municipio_master, municipio_metric_key))
     if show_isocronas and isocrona_destino:
         deck.layers.append(build_isocronas_layer(isocronas, isocrona_destino))
     st.pydeck_chart(deck, on_select="rerun", selection_mode="single-object", key="h3_map", height=650)
@@ -321,15 +431,16 @@ def page_mapa() -> None:
     selected_h3_index = None
     event = st.session_state.get("h3_map")
     if event is not None:
-        picked = event.get("selection", {}).get("objects", {}).get("h3_index", [])
-        if picked:
-            selected_h3_index = picked[0].get("h3_index")
+        picked_hex = event.get("selection", {}).get("objects", {}).get("h3_index", [])
+        if picked_hex:
+            selected_h3_index = picked_hex[0].get("h3_index")
 
     st.divider()
     render_detail_panel(full_gdf, selected_h3_index)
 
 
 def page_tabla() -> None:
+    st.markdown("<div style='margin-top: 1.5rem;'></div>", unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     tabla_municipio = col1.selectbox(
         "Municipio", ["Todos"] + list_municipios(full_gdf), key="tabla_municipio"
@@ -359,7 +470,7 @@ def page_tabla() -> None:
         tabla_mostrable,
         width="stretch",
         hide_index=True,
-        column_config=build_table_column_config(show_technical=show_technical),
+        column_config=build_table_column_config(show_technical=show_technical, gdf=tabla_filtrada),
     )
     st.download_button(
         "Descargar CSV",
@@ -368,7 +479,17 @@ def page_tabla() -> None:
         mime="text/csv",
     )
 
-    render_footer("gold.gold_h3_master, gold.gold_h3_accesibilidad, gold.gold_sentimiento_h3")
+    st.subheader("Leyenda de columnas")
+    glosario = build_column_glossary()
+    columna_buscada = st.selectbox(
+        "Busca una columna para ver qué significa",
+        list(glosario.keys()),
+        index=None,
+        placeholder="Escribe el nombre de una columna...",
+        key="tabla_glosario_busqueda",
+    )
+    if columna_buscada:
+        st.info(glosario[columna_buscada])
 
 
 def page_rankings() -> None:
@@ -425,6 +546,7 @@ def page_turismo() -> None:
 
 nav_resumen = st.Page(page_resumen, title="Resumen", icon="📊", default=True)
 nav_mapa = st.Page(page_mapa, title="Mapa", icon="🗺️")
+nav_asistente = st.Page(page_asistente, title="Asistente IA", icon="🤖")
 nav_tabla = st.Page(page_tabla, title="Tabla", icon="📋")
 nav_rankings = st.Page(page_rankings, title="Rankings", icon="🏆")
 nav_clima = st.Page(page_clima, title="Clima", icon="🌡️")
@@ -436,6 +558,7 @@ nav_turismo = st.Page(page_turismo, title="Turismo", icon="✈️")
 pages = [
     nav_resumen,
     nav_mapa,
+    nav_asistente,
     nav_tabla,
     nav_rankings,
     nav_clima,

@@ -25,11 +25,30 @@
   permite ver cuanto de cada celda viene de foro frente a reseñas.
 */
 
-WITH documentos AS (
-    SELECT DISTINCT source, source_id, topic_id, topic_label, municipio
+WITH normalizados AS (
+    SELECT
+        source,
+        source_id,
+        topic_id,
+        topic_label,
+        CASE
+            WHEN municipio IN ('Guía de Isora', 'Guia de Isora') THEN 'Guia de Isora'
+            WHEN municipio IN ('Güímar', 'Guímar', 'Guimar') THEN 'Guimar'
+            WHEN municipio IN ('San Cristobal de La Laguna', 'San Cristóbal de La Laguna', 'La Laguna') THEN 'La Laguna'
+            WHEN municipio IN ('Santa Úrsula', 'Santa Ursula') THEN 'Santa Ursula'
+            WHEN municipio IN ('Vilaflor de Chasna', 'Vilaflor') THEN 'Vilaflor'
+            ELSE municipio
+        END AS municipio
     FROM {{ source('gold_nlp', 'nlp_chunks') }}
     WHERE municipio IS NOT NULL
       AND topic_id <> -1
+),
+
+documentos AS (
+    -- DISTINCT porque nlp_chunks tiene varios fragmentos por documento largo;
+    -- tras normalizar alias ortográficos, consolidamos las opiniones por documento y municipio canónico.
+    SELECT DISTINCT source, source_id, topic_id, topic_label, municipio
+    FROM normalizados
 ),
 
 conteo AS (
