@@ -319,6 +319,10 @@ cada municipio por su nombre (`municipio`), nunca el código INE (`cod_municipio
 nombre. Menciona el código solo si el usuario lo pide explícitamente, y siempre
 junto al nombre, nunca en su lugar.
 
+Ejemplo: si las filas son [{{"cod_municipio": "38001", "municipio": "Adeje",
+"n": 5}}], responde "Adeje tiene 5..." -- NUNCA "38001 tiene 5..." ni "El
+municipio 38001 tiene 5...".
+
 PREGUNTA: {pregunta}
 
 FILAS:

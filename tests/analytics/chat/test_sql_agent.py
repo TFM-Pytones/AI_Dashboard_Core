@@ -225,6 +225,16 @@ def test_prompt_narracion_prefiere_nombre_de_municipio_sobre_codigo():
     assert "nunca el código" in texto_minusculas or "no el código" in texto_minusculas
 
 
+def test_prompt_narracion_incluye_ejemplo_concreto_nombre_vs_codigo():
+    # La instruccion abstracta (test anterior) no bastaba en la practica --
+    # confirmado en pruebas manuales: la pregunta "agrupa por codigo de
+    # municipio" seguia generando narracion con codigos (38026, 38005...)
+    # pese a la regla explicita. Un ejemplo concreto de entrada/salida es
+    # mas efectivo para fijar el formato que una regla abstracta.
+    assert "38001" in PROMPT_NARRACION
+    assert "Adeje" in PROMPT_NARRACION
+
+
 def test_narrar_resultado_devuelve_texto_si_el_llm_responde_a_la_primera():
     llm = _LLMSecuencial(["Los municipios son Adeje y Arona."])
     texto = _narrar_resultado("pregunta", [{"municipio": "Adeje"}], llm)
