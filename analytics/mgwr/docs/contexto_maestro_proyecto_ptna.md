@@ -91,8 +91,8 @@ Para el panorama general del repo (equipo, otras fuentes, infraestructura Azure)
 
 ### ⏳ Pendiente — en orden de urgencia
 
-1. **Subtarea 5.4 (elasticidades)**: sin empezar. Candidata a quedar fuera o como trabajo futuro
-   documentado si no alcanza el tiempo antes del jueves.
+1. **Subtarea 5.4 (elasticidades/análisis multiescala)**: descartada del alcance final del TFM
+   (16-sep-2026), no forma parte del entregable.
 2. **Redacción de metodología/limitaciones del TFM**: el documento técnico
    (`analytics/mgwr/docs/metodologia_bloque5_ptna.md`) ya cubre 5.1/5.2 y el ESG completo (H3 +
    mesomunicipal, sección 6/7) — pendiente solo la integración final en la memoria del TFM.
@@ -115,8 +115,8 @@ Para el panorama general del repo (equipo, otras fuentes, infraestructura Azure)
 
 ### 🔁 Cómo retomar
 
-Decir: *"Retomo el Bloque 5, ya cerré 5.1/5.2/5.3 (H3 y mesomunicipal), voy a empezar la Subtarea 5.4
-(elasticidades) — sección 0"*.
+Decir: *"Retomo el Bloque 5, ya cerré 5.1/5.2/5.3 (H3 y mesomunicipal); la Subtarea 5.4 quedó
+descartada del alcance del TFM — sección 0"*.
 
 ---
 
