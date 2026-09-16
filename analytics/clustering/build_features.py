@@ -80,27 +80,36 @@ def get_pg_engine():
     return create_engine(connection_string, connect_args={"sslmode": "require"})
 
 
+# Bug real (revision de codigo, punto 15): esta consulta usaba m.es_enp y
+# m.elevation_mean, columnas que no existen en gold_h3_master (son
+# pct_area_enp y altitud_media_m), y unia contra gold.gold_sentimiento_h3,
+# el modelo dbt que nunca se materializo -- la tabla real es
+# gold.gold_h3_sentimiento (ver app/data.py). Se mantienen los alias
+# is_protected_area/elevation_mean en la consulta para no cambiar el
+# esquema de gold.features_h3, ya en uso por Issues #26/#27/#32.
+QUERY_FEATURES_RAW = """
+    SELECT
+        m.h3_index,
+        m.centroide_lon AS centroid_lon,
+        m.centroide_lat AS centroid_lat,
+        (m.pct_area_enp > 0) AS is_protected_area,
+        m.altitud_media_m AS elevation_mean,
+        m.slope_mean,
+        m.aspect_mean,
+        m.hillshade_mean,
+        m.ndvi_medio     AS ndvi_mean,
+        m.ndbi_medio     AS ndbi_mean,
+        m.n_establecimientos_registro AS n_alojamientos,
+        m.n_paradas_bus  AS n_paradas_transporte,
+        s.sentimiento_medio,
+        m.viirs_medio    AS viirs_mean
+    FROM gold.gold_h3_master m
+    LEFT JOIN gold.gold_h3_sentimiento s ON s.h3_index = m.h3_index
+"""
+
+
 def load_raw_features(engine) -> pd.DataFrame:
-    query = """
-        SELECT
-            m.h3_index,
-            m.centroide_lon AS centroid_lon,
-            m.centroide_lat AS centroid_lat,
-            m.es_enp         AS is_protected_area,
-            m.elevation_mean,
-            m.slope_mean,
-            m.aspect_mean,
-            m.hillshade_mean,
-            m.ndvi_medio     AS ndvi_mean,
-            m.ndbi_medio     AS ndbi_mean,
-            m.n_establecimientos_registro AS n_alojamientos,
-            m.n_paradas_bus  AS n_paradas_transporte,
-            s.sentimiento_medio,
-            m.viirs_medio    AS viirs_mean
-        FROM gold.gold_h3_master m
-        LEFT JOIN gold.gold_sentimiento_h3 s ON s.h3_index = m.h3_index
-    """
-    return pd.read_sql(query, engine)
+    return pd.read_sql(QUERY_FEATURES_RAW, engine)
 
 
 def drop_sparse_hexagons(df: pd.DataFrame, feature_cols: list[str], max_nan_ratio: float) -> pd.Series:

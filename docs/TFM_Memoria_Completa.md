@@ -186,14 +186,17 @@ Las tres capas del *lakehouse* que gestiona dbt son:
 | Modelo Gold | Granularidad | Contenido principal |
 | :--- | :---: | :--- |
 | `gold_h3_master` | H3 (2.579 celdas) | >60 variables biofísicas, topoclimáticas, alojativas y NLP |
-| `gold_sentimiento_h3` | H3 | Polaridad media y queja modal por fuente |
+| `gold_h3_sentimiento` *(nota 1)* | H3 (410 de 2.579 celdas) | Sentimiento medio (escala 1–5) y queja modal por hexágono, solo donde hay reseñas geolocalizadas |
 | `gold_municipio_master` | Municipal (31) | KPIs ISTAC, AENA, empleo y alojamiento integrados |
 | `gold_municipio_anual / mensual` | Municipal | Series temporales de pernoctaciones y ocupación |
 | `gold_municipio_empleo` | Municipal | Afiliaciones SS por sector y ratio de monocultivo |
 | `gold_turismo_hotelero_anual / mensual` | Municipal | RevPAR, ADR y GOP hoteleros con referencia ARIMA |
 | `gold_aena_pasajeros` | Aeropuerto | Pasajeros TFS/TFN (2019–2026) |
-| `gold_h3_ptna` | H3 | Índice PTNA, coeficientes MGWR locales y score ESG *(pendiente)* |
-| `gold_h3_clusters` | H3 | Arquetipos HDBSCAN y probabilidad de pertenencia |
+| `gold_h3_ptna` | H3 | Índice PTNA, coeficientes MGWR locales y score ESG *(en desarrollo, rama `feature/gold-h3-ptna` sin fusionar a 16-sep-2026 — ver nota 2)* |
+| `gold_h3_clusters` | H3 | Arquetipos HDBSCAN y probabilidad de pertenencia *(no implementado a 16-sep-2026 — ver nota 2)* |
+
+> **Nota 1:** el modelo dbt `gold_sentimiento_h3.sql` original nunca llegó a materializarse (su `source()` apunta a un esquema `gold_nlp` inexistente). La tabla real que alimenta el dashboard y el agente SQL es `gold.gold_h3_sentimiento` (nombre en singular invertido), creada mediante script Python directo (no dbt) — detalle completo en la sección 5.5.
+> **Nota 2:** ver apartado "Estado de verificación" al final de la sección 4 para el detalle de qué resultados de esta tabla están confirmados y cuáles siguen en curso.
 
 dbt gestiona automáticamente el grafo de dependencias entre modelos (`ref()`, `source()`), los materializa como tablas físicas con índices GiST/BRIN, y aplica **tests de integridad** declarativos: unicidad de `h3_index`, rangos válidos de NDVI/NDBI, ausencia de nulos en geometría y referencial entre Silver y Gold.
 
@@ -276,7 +279,7 @@ El conjunto de modelos Gold materializa en PostgreSQL el resultado de toda la ca
 | Modelo Gold | Contenido | Escala |
 | :--- | :--- | :---: |
 | `gold_h3_master` | >60 variables biofísicas, topoclimáticas, alojativas, NLP y de accesibilidad | H3 (2.579 celdas) |
-| `gold_sentimiento_h3` | Sentimiento medio, volumen por fuente, queja modal | H3 |
+| `gold_h3_sentimiento` | Sentimiento medio (escala 1–5), volumen por fuente, queja modal — cobertura parcial (410/2.579 hexágonos) | H3 |
 | `gold_municipio_master` | Indicadores ISTAC, AENA, empleo y alojamiento | Municipal (31) |
 | `gold_municipio_anual` | Series anuales de pernoctaciones, plazas y ocupación | Municipal |
 | `gold_municipio_mensual` | Desestacionalización y estacionalidad mensual | Municipal |
@@ -284,8 +287,8 @@ El conjunto de modelos Gold materializa en PostgreSQL el resultado de toda la ca
 | `gold_turismo_hotelero_anual` | KPIs hoteleros anuales (RevPAR, ADR, GOP) | Municipal |
 | `gold_turismo_hotelero_mensual` | KPIs hoteleros mensuales con ARIMA de referencia | Municipal |
 | `gold_aena_pasajeros` | Serie de pasajeros TFS/TFN (2019–2026) | Aeropuerto |
-| `gold_h3_ptna` | Índice PTNA, coeficientes MGWR locales, `esg_territorial_score` *(pendiente)* | H3 |
-| `gold_h3_clusters` | Arquetipos HDBSCAN, probabilidad de pertenencia, etiqueta de negocio | H3 |
+| `gold_h3_ptna` | Índice PTNA, coeficientes MGWR locales, `esg_territorial_score` *(en desarrollo, sin fusionar — sección 4.6)* | H3 |
+| `gold_h3_clusters` | Arquetipos HDBSCAN, probabilidad de pertenencia, etiqueta de negocio *(no implementado — sección 4.5)* | H3 |
 
 `gold_h3_master` actúa como **tabla maestra** de la que derivan el simulador gravitatorio, el asistente RAG y todos los módulos del dashboard. Sus índices GiST en la geometría y su índice único en `h3_index` permiten resolver cruces espaciales complejos en 15–45 milisegundos.
 
@@ -389,6 +392,15 @@ Las celdas con PTNA superior a 70 sobre 100 representan los **microdestinos prio
 
 Como extensión directa del Índice PTNA, el proyecto tiene planificada la implementación del **Marco Multidimensional ESG Territorial** (`gold_h3_ptna.esg_territorial_score`, campo definido en esquema pero pendiente de materialización): una puntuación compuesta [0, 100] que evalúa cada hexágono en tres dimensiones —Medioambiental [E] (40 %): evolución temporal del NDVI, polución VIIRS, sellado NDBI y `dias_ola_calor_anual`; Social [S] (40 %): densidad alojativa, cobertura GTFS, distancia a hospital y quejas NLP de masificación; y Gobernanza [G] (20 %): ratio hotel/VV y presencia de BICs—. Esta métrica permitirá filtrar las oportunidades de inversión de TUI al cruce de alto PTNA y alto ESG, garantizando un retorno financiero compatible con la sostenibilidad ecológica y social de la isla.
 
+### Estado de verificación de las secciones 4.5 y 4.6 (16-sep-2026)
+
+> **Nota metodológica de esta revisión.** Al actualizar esta memoria se contrastó el estado descrito en 4.5 y 4.6 contra el código y la documentación de trabajo del equipo:
+>
+> - **4.6 (MGWR/PTNA) — CONFIRMADO por Juan Cabrera (16-sep-2026):** el registro de trabajo del bloque (`analytics/mgwr/docs/contexto_maestro_proyecto_ptna.md`) marcaba el ajuste como "en curso" a 15-sep-2026, pero según confirma directamente el autor del modelo, el ajuste terminó de correr esa misma madrugada (15→16-sep, ~01:30) y el resultado ya es definitivo — lo que quedó desactualizado fue ese documento de registro, no el modelo. Las cifras de R² (0,782), AICc (3.914,6) y los anchos de banda por variable que figuran arriba se mantienen como **resultado final validado**. Pendiente únicamente de fusionar la rama `feature/gold-h3-ptna` a `main` (la tabla resultante se llama `gold.gold_h3_ptna_v3`, no `gold_h3_ptna`) para que el dashboard pueda consumirla.
+> - **4.5 (HDBSCAN) — sigue sin confirmar:** no se ha encontrado en ninguna rama del repositorio (fusionada o no) una tabla `gold_h3_clusters` ni un script que ejecute HDBSCAN sobre las features. Lo único localizado es `analytics/clustering/build_features.py` (Issue #25), que únicamente construye y normaliza la matriz de features en `gold.features_h3` — su propio comentario en código remite explícitamente el clustering en sí al Issue #26, que sigue abierto. Los cuatro arquetipos y sus métricas (silueta 0,582, cobertura 14,2/22,6/31,5/28,4 %) no se han podido verificar contra ninguna ejecución real; se recomienda confirmar con quien redactó esta sección si proceden de un análisis exploratorio no incorporado aún al repositorio, antes de mantenerlos como resultado firme del TFM.
+>
+> Ninguna cifra de estas dos secciones se ha alterado en esta revisión.
+
 ---
 
 # 5. Procesamiento del Lenguaje Natural y Percepción de Marca Destino
@@ -438,37 +450,39 @@ Para descubrir los temas latentes sin categorías preconcebidas se articuló un 
 
 ## 5.5. Integración del Sentimiento en la Malla H3
 
-El modelo dbt `gold_sentimiento_h3.sql` computa por hexágono el `sentimiento_medio`, el volumen muestral por fuente y la **queja dominante** mediante `MODE() WITHIN GROUP (ORDER BY aspecto_normalizado)`. Los hallazgos estratégicos son:
+El modelo dbt original `gold_sentimiento_h3.sql` (fuente `gold.nlp_sentimiento_resenas`/`gold.nlp_aspectos_resenas` vía un `source()` a un esquema `gold_nlp` nunca creado) no llegó a materializarse. La tabla que efectivamente alimenta el dashboard y el agente Text-to-SQL, `gold.gold_h3_sentimiento`, se construye con un script Python directo (`analytics/mgwr/scripts/00_create_sentimiento_table.py`, fuera del grafo de dbt) que:
 
-* **Zona Sur (Adeje/Arona):** Nota global de Booking alta (8,2/10), pero queja principal `"ruido nocturno"` y `"masificación en piscina"`, con sentimiento medio penalizado (+0,48).
-* **Medianías y Norte:** Sentimiento neto sensiblemente superior (+0,74); queja residual limitada a `"acceso por curvas"`. El ecoturismo de interior genera mayor fidelización y satisfacción neta en el cliente internacional.
+1. Agrega `AVG(score)` como `sentimiento_medio` y cuenta reseñas por fuente (`n_resenas_booking`, `n_resenas_tripadvisor`) desde `gold.nlp_sentimiento_resenas`, que ya trae `h3_index` precalculado.
+2. Calcula `queja_principal` como la **moda del aspecto más frecuente filtrando únicamente reseñas con `sentimiento = 'Negative'`** (`MODE() WITHIN GROUP` sobre `gold.nlp_aspectos_resenas` cruzada por `resena_id` + `fuente`). Este filtro es una corrección deliberada: sin él, la columna reflejaría el aspecto *más mencionado* en general —casi siempre positivo—, contradiciendo su propio nombre. Los hexágonos sin ningún aspecto negativo detectado quedan con `queja_principal = NULL` intencionadamente.
 
-*(La consulta SQL completa de `gold_sentimiento_h3.sql` se incluye en el Anexo C.3.)*
+**Cobertura real:** solo **410 de los 2.579 hexágonos** (15,9 %) tienen al menos una reseña geolocalizada — el resto de la malla no tiene dato de sentimiento. Cualquier agregado (por ejemplo, un ranking de municipios por sentimiento medio) debe advertir explícitamente de esta cobertura parcial.
+
+**Escala:** `sentimiento_medio` se mueve empíricamente en una escala **1–5**, no en el rango [-1, +1] de la fórmula teórica de polaridad de la sección 5.2 — la columna `score` de origen en `gold.nlp_sentimiento_resenas` no corresponde directamente a esa fórmula. *(Pendiente de confirmar con el autor de esa tabla qué transformación exacta se aplicó entre la inferencia XLM-RoBERTa de 5.2 y el `score` 1–5 almacenado; ver "Estado de verificación" al cierre de la sección 4.)*
+
+*(La consulta SQL real de `00_create_sentimiento_table.py` se incluye en el Anexo C.3, en sustitución de la versión dbt anterior que nunca se ejecutó.)*
 
 ---
 
-# 6. Inteligencia Artificial Generativa y Asistente RAG
+# 6. Inteligencia Artificial Generativa y Asistente Híbrido (Text-to-SQL + RAG)
 
-## 6.1. Arquitectura RAG y Mitigación de Alucinaciones
+## 6.1. Arquitectura de Enrutamiento SQL/RAG y Mitigación de Alucinaciones
 
-Para salvar la brecha entre los datos numéricos de la plataforma y la toma de decisiones ejecutiva, se diseñó una arquitectura de **Generación Aumentada por Recuperación (RAG)**: el modelo de lenguaje no usa su conocimiento preentrenado, sino que recibe como contexto inyectado un resumen estructurado de las métricas de las celdas H3 consultadas.
+El asistente conversacional no es un motor RAG puro: es un **sistema híbrido con enrutamiento por LLM** (`analytics/chat/router.py`) que, para cada pregunta, decide primero si debe resolverse mediante una consulta SQL verificable o mediante recuperación semántica de texto libre, y despacha a uno de dos motores:
 
-La mitigación de alucinaciones se basa en tres principios:
+* **Motor Text-to-SQL** (`analytics/chat/sql_agent.py`): un esquema curado de las tablas Gold (`ESQUEMA_GOLD`, con notas de granularidad por tabla para evitar que el LLM genere JOINs que dupliquen filas) se inyecta en el prompt junto con la pregunta. El LLM genera una única sentencia SQL, que se valida antes de ejecutarse (`validar_sql`: exige `SELECT` único, whitelist explícita de tablas Gold —nunca las tablas del corpus RAG— y bloqueo de palabras de escritura como `INSERT`/`DROP`/`DELETE`) y se le añade un `LIMIT` por defecto si no lo trae. El resultado real de la consulta, no una cifra inventada por el LLM, se convierte después en una respuesta en lenguaje natural.
+* **Motor RAG** (`analytics/rag/rag_answer.py`): recupera por similitud los fragmentos de reseñas más relevantes y el LLM sintetiza una respuesta citando las fuentes, con temperatura baja (0,2) para que se ciña al contenido recuperado en vez de generar libremente.
 
-1. **Conocimiento factual estrictamente acotado:** El LLM solo puede usar los datos numéricos que se le proporcionan explícitamente en el prompt.
-2. **Guardrails de sistema:** El modelo actúa bajo el rol de *Analista Senior de Turismo Sostenible de TUI* con instrucción explícita de no inventar cifras.
-3. **Trazabilidad:** Cada informe generado se persiste en `gold.nlp_informe_global`, registrando modelo, fecha, ámbito espacial y parámetros usados.
+El **router** (`PROMPT_CLASIFICACION`, temperatura 0,0) distingue explícitamente preguntas de cifra/agregado (incluida la puntuación media de sentimiento por municipio, que es SQL, no RAG) de preguntas de percepción u opinión en texto libre. La mitigación de alucinaciones se apoya en tres mecanismos: (1) en la vía SQL, la respuesta está anclada al resultado real de una consulta validada, no a texto libre del LLM; (2) en la vía RAG, temperatura baja más instrucción explícita de citar las fuentes recuperadas; (3) en ambas vías, el LLM opera con un guion de sistema acotado (rol de analista, prohibición de inventar cifras) y solo ve los datos que se le inyectan en el prompt, nunca su conocimiento preentrenado sobre Tenerife.
+
+**Limitaciones conocidas, documentadas y sin resolver a fecha de esta memoria:** el router no es determinista al 100 % incluso a temperatura 0,0 (misma pregunta, clasificación distinta en repeticiones sucesivas); tiende a sesgarse hacia RAG ante frases formuladas de manera conversacional/personal; y no existe combinación de ambos motores en una sola respuesta (una pregunta que requiera cifra y opinión a la vez solo se resuelve parcialmente).
 
 ## 6.2. Motor de Inferencia de Alta Velocidad (Groq API)
 
-Se descartó mantener GPUs dedicadas en Azure (coste > 900 USD/mes para uso esporádico) en favor de la **API de Groq LPU**, que ofrece más de 250 tokens/segundo con tarificación por consumo. El modelo seleccionado es **`openai/gpt-oss-120b`** (con fallback en `llama-3.3-70b-versatile`), operando con temperatura T = 0,4 para maximizar la consistencia lógica *(código del cliente `llm_client.py` en Anexo D.2)*.
+Se descartó mantener GPUs dedicadas en Azure (coste > 900 USD/mes para uso esporádico) en favor de la **API de Groq LPU**, que ofrece más de 250 tokens/segundo con tarificación por consumo. El modelo seleccionado es **`openai/gpt-oss-120b`** *(código del cliente `llm_client.py` en Anexo D.2)*. La temperatura se ajusta por caso de uso en vez de un valor único global: 0,0 para clasificación del router y generación de SQL (determinismo, aunque imperfecto — ver 6.1), 0,2 para síntesis RAG (ceñirse a los fragmentos recuperados) y 0,3 para la narración final de resultados SQL en lenguaje natural.
 
-## 6.3. Casos de Uso: Informes Macro y Fichas Micro
+## 6.3. Casos de Uso Implementados
 
-El sistema ofrece dos modalidades de generación narrativa:
-
-* **Informe Macro Insular:** Sintetiza los tópicos del Modelo A de BERTopic en tres bloques ejecutivos: percepción general de la marca Tenerife, fricciones y puntos críticos (atascos, masificación, dificultad de acceso a Anaga y Masca) y oportunidades de mejora para TUI (reconfiguración de excursiones, promoción de medianías, desestacionalización).
-* **Ficha Micro Territorial por Celda H3:** Activada al seleccionar una celda en el mapa, recupera en tiempo real su altitud, microclima ajustado, paradas de transporte, plazas hoteleras, tiempo al aeropuerto, sentimiento medio y queja principal de PyABSA, generando una ficha ejecutiva de viabilidad de absorción de nuevos flujos turísticos en menos de tres segundos.
+El asistente se expone como una página de chat en el dashboard (`app/asistente.py`, con `st.chat_input`/`st.chat_message`) donde el usuario formula preguntas en lenguaje natural y el router las despacha como se describe en 6.1. Al hacer clic en un hexágono del mapa se abre un panel de detalle (`app/detail_panel.py`) con sus KPIs, comparativas y gráficos — pero se construye directamente desde los datos, **sin llamada a LLM**; no existe todavía (a fecha de esta memoria) la inyección del contexto de esa selección cartográfica en el chat, de forma que hoy el asistente conversacional y el mapa funcionan como dos módulos independientes del dashboard, no integrados entre sí.
 
 ---
 
@@ -478,17 +492,21 @@ El sistema ofrece dos modalidades de generación narrativa:
 
 El cuadro de mando se desarrolló con **Streamlit** y **Deck.gl / PyDeck** como motor de renderizado cartográfico acelerado mediante WebGL. Se eligió esta combinación frente a Power BI o Tableau por tres motivos: renderiza de forma nativa los 2.579 polígonos hexagonales 3D extruidos sin colapsar la interfaz; se integra sin fisuras con el resto del ecosistema Python (clustering, LLM, simulador gravitatorio); y se despliega en contenedores Docker sobre la VM de Azure sin costes de licencia por usuario.
 
-## 7.2. Módulos Operativos del Dashboard
+## 7.2. Módulos Operativos del Dashboard (estado real, 16-sep-2026)
 
-El cuadro de mando se organiza en cuatro módulos:
+> Esta sección describía originalmente cuatro módulos aspiracionales (incluyendo un simulador gravitatorio de redistribución y un sistema de alertas) que no llegaron a implementarse. Se sustituye por el inventario real de páginas del dashboard (`app/main.py`, navegación `st.navigation`/`st.Page`), verificado contra el código:
 
-**Módulo 1 — Explorador Territorial H3:** Permite superponer cuatro capas temáticas sobre las 2.579 celdas insulares: capa biofísica (NDVI, NDBI, VIIRS), capa microclimática (temperatura, humedad modelada con Mar de Nubes, horas de sol), capa de accesibilidad multimodal (isócronas ORS, densidad GTFS en 200/500/1.000 m, distancia a hospitales) y capa de arquetipos HDBSCAN + índice PTNA.
+* **Resumen** (`app/summary.py`): KPIs insulares agregados y gráfico de distribución de restricciones legales (ENP / zona turística) por municipio.
+* **Mapa H3** (`app/map_layers.py`, PyDeck): capas superponibles sobre las 2.579 celdas — densidad hotelera, sentimiento, NDVI, distancia a costa, POIs turísticos, pendiente del terreno, restricciones legales, y accesibilidad real (tiempo al aeropuerto, distancia a hospital, paradas de bus), más una capa de isócronas de conducción. Al hacer clic en un hexágono se abre el panel de detalle. **No implementadas:** las capas de arquetipos HDBSCAN e índice PTNA previstas en el plan original, porque `gold_h3_clusters` y `gold_h3_ptna` todavía no existen en la rama principal (secciones 4.5 y 4.6).
+* **Tabla** (`app/table_view.py`): explorador tabular de las ~120 columnas de `gold_h3_master` con glosario de columnas buscable.
+* **Rankings** (`app/rankings.py`): ranking de municipios por métrica seleccionable.
+* **Clima** (`app/clima.py`): serie trimestral por variable climática con la media anual como referencia textual.
+* **Municipios** (`app/municipios.py`): series temporales por municipio y comparativa multi-municipio (hasta 4 a la vez) con evolución anual y variación interanual (YoY).
+* **Temas** y **Turismo** (`app/temas.py`, `app/turismo.py`): tópicos BERTopic más frecuentes y estacionalidad/KPIs de tráfico aéreo AENA (TFS vs. TFN).
+* **Alojamiento** (`app/alojamiento.py`): oferta alojativa por municipio.
+* **Asistente IA** (`app/asistente.py`): chat híbrido Text-to-SQL + RAG descrito en la sección 6.
 
-**Módulo 2 — Monitor de Reputación y NLP:** Mapa de calor por *Net Sentiment Score*; selector de quejas por las seis dimensiones de calidad (Limpieza, Servicio, Precio/Calidad, Ubicación, Ruido, Masificación); y botón de generación de informe RAG con Groq sobre el área visible en pantalla.
-
-**Módulo 3 — Simulador Gravitatorio de Redistribución:** Basado en los modelos de interacción espacial de Reilly (1931) y Huff (1963), permite al planificador definir el porcentaje de reasignación desde los municipios saturados del sur (Adeje, Arona) hacia comarcas deficitarias (Arico, Vilaflor, La Guancha, Buenavista). El algoritmo calcula la probabilidad de atracción de cada hexágono receptor en función de su PTNA, accesibilidad vial y distancia funcional, y proyecta al instante: reducción del tráfico diario en la TF-1, incremento de ingresos en medianías y verificación de la capacidad de absorción. El simulador bloquea automáticamente la reasignación hacia celdas del Cluster 3 (ENP) o con pendiente >25°, garantizando la sostenibilidad física de la simulación. Redirigir un 10 % de las pernoctaciones del sur reduce la congestión costera en ~14 % e inyecta más de 42 millones de euros anuales en la economía local de medianías.
-
-**Módulo 4 — Sistema de Alertas Preventivas:** Evalúa reglas de negocio sobre umbrales críticos: *Alerta Roja de Saturación* (plazas/km² > percentil 95 con transporte deficiente); *Alerta Climática de Calima* (temperatura >32 °C y humedad <25 %); y *Alerta de Fricción Reputacional* (sentimiento medio < -0,25 o queja dominante `"ruido nocturno"` / `"masificación"`).
+El **simulador gravitatorio de redistribución** (Huff/Reilly) y el **sistema de alertas preventivas** descritos en versiones anteriores de esta memoria no se han construido: dependen de `gold_h3_ptna` (coeficientes MGWR locales) y de los arquetipos HDBSCAN, ninguno de los cuales está aún disponible en la rama principal del dashboard. Se mantienen como líneas de trabajo futuras (sección 8.3), condicionadas a que el Bloque 5 (PTNA) y el Bloque 6 (clustering) se completen y fusionen.
 
 ---
 
@@ -618,17 +636,34 @@ AI_Dashboard_Core/
 │   └── models/
 │       ├── sources.yml                # Declaración de fuentes Bronze
 │       ├── silver/                    # Limpieza, deduplicación y tipado
-│       └── gold/                      # Modelos analíticos multidimensionales
-│           ├── gold_h3_master.sql
-│           ├── gold_sentimiento_h3.sql
-│           └── gold_municipio_master.sql
+│       └── gold/                      # 11 modelos analíticos (gold_h3_master,
+│                                       # gold_sentimiento_h3 *(no materializado,
+│                                       # ver 5.5)*, gold_municipio_master,
+│                                       # gold_municipio_anual/mensual/empleo,
+│                                       # gold_turismo_hotelero_anual/mensual,
+│                                       # gold_aena_pasajeros, gold_topicos_h3,
+│                                       # gold_topicos_municipio). gold_h3_ptna
+│                                       # y gold_h3_clusters NO son modelos dbt
+│                                       # todavía — ver analytics/mgwr/ y nota
+│                                       # de la sección 4.5/4.6.
 │
 ├── analytics/                         # Analítica avanzada, ML y NLP
 │   ├── accesibilidad/                 # ORS matrix (18 destinos) e isócronas
-│   ├── clustering/                    # Features H3 y modelo HDBSCAN
-│   ├── llm/                           # Asistente RAG con Groq API
+│   ├── chat/                          # Router SQL/RAG + agente Text-to-SQL (sección 6.1)
+│   ├── clustering/                    # build_features.py: solo prep. de features (Issue #25);
+│   │                                   # el fit HDBSCAN (Issue #26) no está implementado
+│   ├── llm/                           # Cliente Groq API (llm_client.py)
+│   ├── mgwr/                          # PTNA/MGWR — solo en rama feature/gold-h3-ptna sin fusionar
+│   ├── rag/                           # Motor RAG (retrieval + síntesis con citas)
 │   ├── sentiment/                     # Inferencia XLM-RoBERTa por lotes
 │   └── topics/                        # BERTopic (Modelos A y B)
+│
+├── app/                                # Dashboard Streamlit productivo (sección 7)
+│   ├── main.py                        # Navegación (st.navigation/st.Page)
+│   ├── map_layers.py                  # Capas PyDeck del mapa H3
+│   ├── data.py                        # Carga cacheada de tablas Gold
+│   ├── asistente.py                   # Chat del asistente híbrido
+│   └── detail_panel.py                # Panel de detalle al clicar un hexágono
 │
 └── docs/                              # Documentación técnica y memoria oficial
 ```
@@ -736,24 +771,41 @@ SELECT
 FROM idw_base;
 ```
 
-### C.3. Agregación de Sentimiento y Queja Principal (gold_sentimiento_h3.sql)
+### C.3. Agregación de Sentimiento y Queja Principal (gold.gold_h3_sentimiento)
+
+SQL real ejecutado por `analytics/mgwr/scripts/00_create_sentimiento_table.py` (script directo, no modelo dbt — ver sección 5.5):
 
 ```sql
-SELECT
-    s.h3_index,
-    ROUND(AVG(s.score)::numeric, 2) AS sentimiento_medio,
-    COUNT(DISTINCT s.resena_id) AS n_resenas,
-    COUNT(DISTINCT s.resena_id) FILTER (WHERE s.fuente = 'booking')
-        AS n_resenas_booking,
-    COUNT(DISTINCT s.resena_id) FILTER (WHERE s.fuente = 'tripadvisor')
-        AS n_resenas_tripadvisor,
-    MODE() WITHIN GROUP (ORDER BY COALESCE(t.aspecto_traducido, a.aspecto))
-        AS queja_principal
-FROM gold.nlp_sentimiento_resenas s
-LEFT JOIN gold.nlp_aspectos_resenas a ON a.resena_id = s.resena_id
-LEFT JOIN gold.aspecto_traducciones t ON t.aspecto_original = a.aspecto
-WHERE s.h3_index IS NOT NULL
-GROUP BY s.h3_index;
+CREATE TABLE gold.gold_h3_sentimiento AS
+WITH sent_agg AS (
+    SELECT
+        h3_index,
+        AVG(score) AS sentimiento_medio,
+        COUNT(*) AS n_resenas_sentimiento,
+        COUNT(*) FILTER (WHERE fuente = 'booking')     AS n_resenas_booking,
+        COUNT(*) FILTER (WHERE fuente = 'tripadvisor') AS n_resenas_tripadvisor
+    FROM gold.nlp_sentimiento_resenas
+    WHERE h3_index IS NOT NULL
+    GROUP BY h3_index
+),
+aspectos_h3 AS (
+    SELECT s.h3_index, a.aspecto, a.sentimiento
+    FROM gold.nlp_aspectos_resenas a
+    JOIN gold.nlp_sentimiento_resenas s
+      ON s.resena_id = a.resena_id AND s.fuente = a.fuente
+    WHERE s.h3_index IS NOT NULL AND a.aspecto IS NOT NULL
+),
+queja AS (
+    -- Filtro a sentimiento='Negative' deliberado: sin él, la moda es el
+    -- aspecto MÁS MENCIONADO en general (casi siempre positivo).
+    SELECT h3_index, MODE() WITHIN GROUP (ORDER BY aspecto) AS queja_principal
+    FROM aspectos_h3
+    WHERE sentimiento = 'Negative'
+    GROUP BY h3_index
+)
+SELECT sa.*, q.queja_principal
+FROM sent_agg sa
+LEFT JOIN queja q ON q.h3_index = sa.h3_index;
 ```
 
 ---

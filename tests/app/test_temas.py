@@ -139,12 +139,44 @@ def test_topics_for_municipio_filters_by_fuentes():
     assert result["n"].tolist() == [1]
 
 
+def _chunks_df_con_sin_municipio():
+    df = _chunks_df()
+    extra = pd.DataFrame(
+        [
+            {
+                "chunk_id": 5, "source": "youtube_comment", "text": "Video sobre Tenerife en general",
+                "topic_id": 20, "topic_label": "island, general, trip", "municipio": None, "h3_index": None,
+                "fecha": "2025-04-01", "pais_resenante": None, "rating": None,
+            },
+            {
+                "chunk_id": 6, "source": "youtube_comment", "text": "Otro comentario sin geolocalizar",
+                "topic_id": 20, "topic_label": "island, general, trip", "municipio": None, "h3_index": None,
+                "fecha": "2025-04-05", "pais_resenante": None, "rating": None,
+            },
+        ]
+    )
+    return pd.concat([df, extra], ignore_index=True)
+
+
+def test_topics_for_municipio_con_none_cuenta_solo_los_chunks_sin_municipio():
+    # municipio=None -> chunks huerfanos (sin geolocalizar), no un municipio
+    # real. 5.032 comentarios reales (LosViajeros + YouTube) estan en este
+    # caso y hoy son invisibles en el dashboard.
+    result = topics_for_municipio(_chunks_df_con_sin_municipio(), None, n=20)
+    assert result["topic_id"].tolist() == [20]
+    assert result["n"].tolist() == [2]
+
+
 def test_available_fuentes_returns_sorted_distinct_sources_for_municipio():
     assert available_fuentes(_chunks_df(), "Adeje") == ["Booking", "TripAdvisor"]
 
 
 def test_available_fuentes_scopes_to_municipio():
     assert available_fuentes(_chunks_df(), "Arona") == ["Booking"]
+
+
+def test_available_fuentes_con_none_devuelve_fuentes_de_chunks_sin_municipio():
+    assert available_fuentes(_chunks_df_con_sin_municipio(), None) == ["YouTube"]
 
 
 def test_sample_chunks_filters_by_municipio_and_topic():
@@ -170,6 +202,11 @@ def test_sample_chunks_maps_source_to_display_label():
 def test_sample_chunks_filters_by_fuentes():
     result = sample_chunks(_chunks_df(), "Adeje", 11, fuentes=["TripAdvisor"], n=15)
     assert result["chunk_id"].tolist() == [2]
+
+
+def test_sample_chunks_con_none_filtra_a_chunks_sin_municipio():
+    result = sample_chunks(_chunks_df_con_sin_municipio(), None, 20, n=15)
+    assert sorted(result["chunk_id"].tolist()) == [5, 6]
 
 
 def _topicos_df():

@@ -19,7 +19,7 @@ import plotly.express as px
 import streamlit as st
 
 from app.alojamiento import render_alojamiento_tab
-from app.asistente import page_asistente
+from app.asistente import render_floating_assistant
 from app.clima import render_clima_tab
 from app.color_scales import RESTRICTION_COLOR_MAP_HEX
 from app.data import (
@@ -43,11 +43,13 @@ from app.data import (
     merge_h3_data,
 )
 from app.detail_panel import render_detail_panel
+from app.map_state import get_selected_h3_index
 from app.map_layers import (
     DEFAULT_HEXAGON_OPACITY,
     METRICS,
     MUNICIPIO_METRICS,
     build_deck,
+    build_highlight_layer,
     build_isocronas_layer,
     build_municipio_layer,
     legend_html,
@@ -226,7 +228,7 @@ def page_resumen() -> None:
         xaxis_title=None, yaxis_title="Nº de hexágonos", showlegend=False, height=320
     )
     add_chart_motion(fig_restriction)
-    st.plotly_chart(fig_restriction, use_container_width=True)
+    st.plotly_chart(fig_restriction, width="stretch")
 
     col5, col6 = st.columns(2)
     with col5.container(border=True):
@@ -280,17 +282,10 @@ def page_resumen() -> None:
             f"{municipio_master['municipio'].nunique()} municipios",
         ),
         (
-            nav_alojamiento,
+            nav_alojamiento_temas,
             "🏨",
-            "Alojamiento",
-            "Reputación y tipo de alojamiento: hoteles, viviendas vacacionales y extrahoteleros.",
-            f"{format_metric(int(full_gdf['n_reviews_booking'].sum()), 'entero')} reseñas Booking",
-        ),
-        (
-            nav_temas,
-            "💬",
-            "Temas y Opinión",
-            "Qué opinan los visitantes de verdad, extraído con NLP de miles de reseñas.",
+            "Alojamiento y Opinión",
+            "Reputación y tipo de alojamiento, y qué opinan los visitantes de verdad, extraído con NLP.",
             f"{format_metric(len(nlp_chunks), 'entero')} opiniones analizadas",
         ),
         (
@@ -307,7 +302,7 @@ def page_resumen() -> None:
             st.markdown(f"#### {icon} {title}")
             st.caption(description)
             st.markdown(f"**{highlight}**")
-            st.page_link(page_obj, label="Explorar →", use_container_width=True)
+            st.page_link(page_obj, label="Explorar →", width="stretch")
 
 
 def page_mapa() -> None:
@@ -413,6 +408,8 @@ def page_mapa() -> None:
         st.caption(f"Leyenda — {municipio_metric_key} (municipios)")
         st.markdown(municipio_legend_html(municipio_metric_key, municipio_master), unsafe_allow_html=True)
 
+    selected_h3_index = get_selected_h3_index()
+
     deck = build_deck(
         filtered_gdf,
         metric_key,
@@ -426,14 +423,9 @@ def page_mapa() -> None:
         deck.layers.append(build_municipio_layer(municipio_master, municipio_metric_key))
     if show_isocronas and isocrona_destino:
         deck.layers.append(build_isocronas_layer(isocronas, isocrona_destino))
+    if selected_h3_index:
+        deck.layers.append(build_highlight_layer(selected_h3_index))
     st.pydeck_chart(deck, on_select="rerun", selection_mode="single-object", key="h3_map", height=650)
-
-    selected_h3_index = None
-    event = st.session_state.get("h3_map")
-    if event is not None:
-        picked_hex = event.get("selection", {}).get("objects", {}).get("h3_index", [])
-        if picked_hex:
-            selected_h3_index = picked_hex[0].get("h3_index")
 
     st.divider()
     render_detail_panel(full_gdf, selected_h3_index)
@@ -512,12 +504,14 @@ def page_municipios() -> None:
     render_municipios_tab(municipio_master, municipio_anual, municipio_empleo, municipio_mensual)
 
 
-def page_alojamiento() -> None:
+def page_alojamiento_temas() -> None:
     render_page_banner(
         "alojamiento_hotel.jpg",
-        "Alojamiento",
-        "Reputación y distribución de la oferta de alojamiento turístico",
+        "Alojamiento y Opinión",
+        "Oferta de alojamiento, reputación y qué dicen realmente los visitantes, extraído con NLP",
     )
+
+    st.subheader("🏨 Alojamiento")
     alojamiento_municipio = st.selectbox(
         "Municipio", ["Todos"] + list_municipios(full_gdf), key="alojamiento_municipio"
     )
@@ -525,13 +519,9 @@ def page_alojamiento() -> None:
         st.caption(f"🔍 Filtrando por municipio: **{alojamiento_municipio}**")
     render_alojamiento_tab(filter_by_municipio(full_gdf, alojamiento_municipio))
 
+    st.divider()
 
-def page_temas() -> None:
-    render_page_banner(
-        "temas_cafe.jpg",
-        "Temas y Opinión",
-        "Qué dicen realmente los visitantes, extraído con NLP de miles de reseñas",
-    )
+    st.subheader("💬 Temas y Opinión")
     render_temas_tab(topicos_municipio, nlp_chunks)
 
 
@@ -546,27 +536,28 @@ def page_turismo() -> None:
 
 nav_resumen = st.Page(page_resumen, title="Resumen", icon="📊", default=True)
 nav_mapa = st.Page(page_mapa, title="Mapa", icon="🗺️")
-nav_asistente = st.Page(page_asistente, title="Asistente IA", icon="🤖")
 nav_tabla = st.Page(page_tabla, title="Tabla", icon="📋")
 nav_rankings = st.Page(page_rankings, title="Rankings", icon="🏆")
 nav_clima = st.Page(page_clima, title="Clima", icon="🌡️")
 nav_municipios = st.Page(page_municipios, title="Municipios", icon="🏛️")
-nav_alojamiento = st.Page(page_alojamiento, title="Alojamiento", icon="🏨")
-nav_temas = st.Page(page_temas, title="Temas", icon="💬")
+nav_alojamiento_temas = st.Page(page_alojamiento_temas, title="Alojamiento y Opinión", icon="🏨")
 nav_turismo = st.Page(page_turismo, title="Turismo", icon="✈️")
 
 pages = [
     nav_resumen,
     nav_mapa,
-    nav_asistente,
     nav_tabla,
     nav_rankings,
     nav_clima,
     nav_municipios,
-    nav_alojamiento,
-    nav_temas,
+    nav_alojamiento_temas,
     nav_turismo,
 ]
 
 pg = st.navigation(pages)
 pg.run()
+
+# Fuera de pg.run() a propósito: se ejecuta una vez por rerun sin importar
+# qué página esté activa, así el botón flotante sale en todas -- ver
+# app/asistente.py para el porqué del CSS (position: fixed sobre stPopover).
+render_floating_assistant()

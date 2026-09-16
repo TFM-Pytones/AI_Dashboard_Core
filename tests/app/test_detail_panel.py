@@ -1,7 +1,9 @@
 import pandas as pd
+import pytest
 
 from app.detail_panel import (
     municipio_aspect_comparison,
+    municipio_metric_comparison,
     nearest_destinos,
     restriction_badges,
 )
@@ -39,6 +41,55 @@ def test_municipio_aspect_comparison_drops_null_quejas():
     result = municipio_aspect_comparison(gdf, "a")
     assert result["aspecto"].tolist() == ["ruido", "precio"]
     assert result.loc[result["aspecto"] == "ruido", "n_hexagonos"].iloc[0] == 1
+
+
+def _metric_gdf():
+    return pd.DataFrame(
+        {
+            "h3_index": ["a", "b", "c", "d"],
+            "municipio": ["Adeje", "Adeje", "Adeje", "Arona"],
+            "ndvi_medio": [0.2, 0.4, 0.6, 0.8],
+            "altitud_media_m": [10.0, 20.0, 30.0, 900.0],
+            "n_plazas_registro": [100, 200, 300, 5],
+        }
+    )
+
+
+def test_municipio_metric_comparison_returns_none_for_unknown_hexagon():
+    assert municipio_metric_comparison(_metric_gdf(), "no-existe", "ndvi_medio") is None
+
+
+def test_municipio_metric_comparison_compares_hexagono_vs_media_de_sus_pares():
+    result = municipio_metric_comparison(_metric_gdf(), "a", "ndvi_medio")
+    fila_hex = result[result["serie"] == "Este hexágono"]
+    fila_media = result[result["serie"] == "Media del municipio"]
+    assert fila_hex["valor"].iloc[0] == 0.2
+    assert fila_media["valor"].iloc[0] == pytest.approx((0.2 + 0.4 + 0.6) / 3)
+
+
+def test_municipio_metric_comparison_no_mezcla_hexagonos_de_otro_municipio():
+    result = municipio_metric_comparison(_metric_gdf(), "a", "ndvi_medio")
+    fila_media = result[result["serie"] == "Media del municipio"]
+    # Arona (0.8) no debe entrar en la media -- solo los 3 hexagonos de Adeje.
+    assert fila_media["valor"].iloc[0] == pytest.approx(0.4)
+
+
+def test_municipio_metric_comparison_returns_none_sin_dato_en_ningun_lado():
+    gdf = _metric_gdf()
+    gdf["ndvi_medio"] = None
+    assert municipio_metric_comparison(gdf, "a", "ndvi_medio") is None
+
+
+def test_municipio_metric_comparison_returns_none_si_la_columna_no_existe():
+    assert municipio_metric_comparison(_metric_gdf(), "a", "columna_inventada") is None
+
+
+def test_municipio_metric_comparison_compara_otra_metrica_distinta():
+    result = municipio_metric_comparison(_metric_gdf(), "d", "altitud_media_m")
+    fila_hex = result[result["serie"] == "Este hexágono"]
+    fila_media = result[result["serie"] == "Media del municipio"]
+    assert fila_hex["valor"].iloc[0] == 900.0
+    assert fila_media["valor"].iloc[0] == pytest.approx(900.0)  # Arona solo tiene "d"
 
 
 def test_restriction_badges_shows_enp_badge():

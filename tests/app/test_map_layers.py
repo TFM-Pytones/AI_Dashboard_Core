@@ -6,6 +6,7 @@ from shapely.geometry import MultiPolygon, box
 from app.map_layers import (
     build_deck,
     build_fill_color_column,
+    build_highlight_layer,
     build_isocronas_fill_color,
     build_isocronas_layer,
     build_layer,
@@ -152,6 +153,22 @@ def test_build_layer_is_semi_transparent_by_default_so_the_basemap_shows_through
 def test_build_layer_accepts_custom_opacity():
     layer = build_layer(_gdf(), "Densidad hotelera", opacity=0.2)
     assert layer.opacity == 0.2
+
+
+def test_build_highlight_layer_targets_the_selected_hexagon():
+    layer = build_highlight_layer("8834413693fffff")
+    assert isinstance(layer, pdk.Layer)
+    assert layer.data["h3_index"].tolist() == ["8834413693fffff"]
+    assert layer.get_hexagon == "@@=h3_index"
+
+
+def test_build_highlight_layer_is_an_outline_not_a_fill():
+    # Sin relleno -- para no tapar el color de la capa de métrica que haya
+    # debajo, solo un contorno llamativo alrededor del hexágono seleccionado.
+    layer = build_highlight_layer("8834413693fffff")
+    assert layer.filled is False
+    assert layer.stroked is True
+    assert layer.line_width_min_pixels >= 4
 
 
 def test_build_deck_has_one_layer_centered_on_tenerife(monkeypatch):

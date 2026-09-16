@@ -2,7 +2,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from app.color_scales import SEQUENTIAL_TEAL
+from app.color_scales import ACCENT_DETALLE_MEDIA, ACCENT_DETALLE_SELECCIONADO, SEQUENTIAL_TEAL
 from app.ui_helpers import add_chart_motion, format_metric
 
 # (column, label, kind, help) -- kind drives number formatting (see
@@ -113,6 +113,45 @@ def nearest_destinos(row, n: int = 5) -> pd.DataFrame:
     return df.sort_values("minutos").head(n)
 
 
+# (columna, etiqueta) -- métricas numéricas ya disponibles en gold_h3_master,
+# sin inventar ningún ratio/índice nuevo. El usuario elige UNA de estas en un
+# desplegable para comparar el hexágono seleccionado contra la media de los
+# hexágonos de su mismo municipio -- comparar varias a la vez en un único
+# gráfico no funciona bien porque tienen escalas incomparables (NDVI 0-1,
+# altitud en metros, plazas en unidades, minutos, km...).
+COMPARACION_MUNICIPIO_OPCIONES = [
+    ("ndvi_medio", "NDVI medio"),
+    ("altitud_media_m", "Altitud media (m)"),
+    ("n_plazas_registro", "Plazas registradas"),
+    ("n_hoteles", "Nº hoteles"),
+    ("n_establecimientos_registro", "Nº alojamientos registrados"),
+    ("sentimiento_medio", "Sentimiento medio"),
+    ("rating_booking_medio", "Rating Booking"),
+    ("rating_tripadvisor_medio", "Rating TripAdvisor"),
+    ("tiempo_aeropuerto_min", "Minutos al aeropuerto"),
+    ("dist_hospital_km", "Km al hospital"),
+    ("dist_costa_km", "Km a la costa"),
+    ("n_paradas_bus_500m", "Paradas de bus (500 m)"),
+]
+
+
+def municipio_metric_comparison(gdf: pd.DataFrame, h3_index: str, columna: str) -> pd.DataFrame | None:
+    if columna not in gdf.columns or h3_index not in gdf["h3_index"].values:
+        return None
+    row = gdf.loc[gdf["h3_index"] == h3_index].iloc[0]
+    peers = gdf[gdf["municipio"] == row["municipio"]]
+    valor_hexagono = row.get(columna)
+    media_municipio = peers[columna].mean()
+    if pd.isna(valor_hexagono) and pd.isna(media_municipio):
+        return None
+    return pd.DataFrame(
+        [
+            {"serie": "Este hexágono", "valor": valor_hexagono},
+            {"serie": "Media del municipio", "valor": media_municipio},
+        ]
+    )
+
+
 def municipio_aspect_comparison(gdf: pd.DataFrame, h3_index: str) -> pd.DataFrame | None:
     if h3_index not in gdf["h3_index"].values:
         return None
@@ -171,8 +210,40 @@ def render_detail_panel(gdf: pd.DataFrame, selected_h3_index: str | None) -> Non
             x="aspecto",
             y="n_hexagonos",
             color="es_seleccionado",
-            color_discrete_map={True: "#1e3a8a", False: "#d1d5db"},
+            color_discrete_map={True: ACCENT_DETALLE_SELECCIONADO, False: ACCENT_DETALLE_MEDIA},
             title=f"Aspectos más mencionados en {row['municipio']}",
         )
         add_chart_motion(fig)
         st.plotly_chart(fig, width="stretch")
+
+    opciones_comparacion = {
+        etiqueta: columna for columna, etiqueta in COMPARACION_MUNICIPIO_OPCIONES if columna in gdf.columns
+    }
+    if opciones_comparacion:
+        st.subheader(
+            "Comparar este hexágono con la media del municipio",
+            help=(
+                "Compara este hexágono con la media de todos los hexágonos de su municipio en "
+                "la métrica que elijas, para ver de un vistazo si es atípico respecto a su "
+                "entorno (por ejemplo, con más o menos oferta turística de lo normal para la "
+                "zona)."
+            ),
+        )
+        etiqueta_elegida = st.selectbox(
+            "¿Qué quieres comparar?", list(opciones_comparacion.keys()), key="detalle_comparacion_metrica"
+        )
+        columna_elegida = opciones_comparacion[etiqueta_elegida]
+        metric_comparison = municipio_metric_comparison(gdf, selected_h3_index, columna_elegida)
+        if metric_comparison is None:
+            st.caption(f"Sin dato de «{etiqueta_elegida.lower()}» para este hexágono o su municipio.")
+        else:
+            fig_comp = px.bar(
+                metric_comparison,
+                x="serie",
+                y="valor",
+                color="serie",
+                color_discrete_map={"Este hexágono": ACCENT_DETALLE_SELECCIONADO, "Media del municipio": ACCENT_DETALLE_MEDIA},
+                labels={"valor": etiqueta_elegida, "serie": ""},
+            )
+            add_chart_motion(fig_comp)
+            st.plotly_chart(fig_comp, width="stretch")

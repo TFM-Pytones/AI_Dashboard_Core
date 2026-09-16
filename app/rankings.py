@@ -85,12 +85,10 @@ def render_rankings_tab(gdf: pd.DataFrame) -> None:
         )
         fig.update_traces(marker_color=spec["color"])
         add_chart_motion(fig)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
         display = result.copy()
         display[column] = display[column].map(lambda v: format_metric(v, spec["kind"]))
         display = display.rename(columns={"municipio": "Municipio", column: label})
         st.dataframe(display, width="stretch", hide_index=True)
-
-    render_footer("gold.gold_h3_master, gold.gold_sentimiento_h3")
 

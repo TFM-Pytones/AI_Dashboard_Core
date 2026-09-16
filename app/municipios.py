@@ -252,7 +252,7 @@ def render_municipios_tab(
     # eje de años (ej. 2020, 2020.5, 2021...) cuando hay pocos puntos.
     fig.update_xaxes(dtick=1)
     add_chart_motion(fig)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     st.subheader("Evolución mensual")
     metrica_mensual_label = st.selectbox(
@@ -271,7 +271,7 @@ def render_municipios_tab(
             line_color=ACCENT_MUNICIPIOS, line_shape="spline", fillcolor=hex_to_rgba(ACCENT_MUNICIPIOS, 0.15)
         )
         add_chart_motion(fig_mensual)
-        st.plotly_chart(fig_mensual, use_container_width=True)
+        st.plotly_chart(fig_mensual, width="stretch")
 
     st.subheader("Empleo: asalariados vs. autónomos")
     empleo_row = get_latest_empleo_row(municipio_empleo_df, municipio, anio)
@@ -289,7 +289,7 @@ def render_municipios_tab(
             color_discrete_sequence=[ACCENT_MUNICIPIOS, ACCENT_ALOJAMIENTO],
         )
         add_chart_motion(fig_empleo)
-        st.plotly_chart(fig_empleo, use_container_width=True)
+        st.plotly_chart(fig_empleo, width="stretch")
 
     st.subheader("Comparativa entre municipios")
     municipios_comparar = st.multiselect(
@@ -319,7 +319,7 @@ def render_municipios_tab(
         )
         fig_comparativa.update_xaxes(dtick=1)
         add_chart_motion(fig_comparativa)
-        st.plotly_chart(fig_comparativa, use_container_width=True)
+        st.plotly_chart(fig_comparativa, width="stretch")
 
         st.subheader("Tasas interanuales (YoY)")
         yoy_metrica_label = st.selectbox(
@@ -341,4 +341,4 @@ def render_municipios_tab(
             )
             fig_yoy.add_hline(y=0, line_dash="dash", line_color="gray")
             add_chart_motion(fig_yoy)
-            st.plotly_chart(fig_yoy, use_container_width=True)
+            st.plotly_chart(fig_yoy, width="stretch")

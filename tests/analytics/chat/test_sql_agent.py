@@ -5,13 +5,31 @@ from analytics.chat.sql_agent import (
     ESQUEMA_GOLD,
     GRANULARIDAD_TABLA,
     LIMIT_POR_DEFECTO,
+    PROMPT_NARRACION,
     PROMPT_SQL,
     RespuestaSQL,
+    _narrar_resultado,
     asegurar_limit,
     describir_esquema,
     responder_sql,
     validar_sql,
 )
+
+
+class _LLMSecuencial:
+    """Fake LLM que devuelve una respuesta distinta por llamada, en orden --
+    para probar la logica de reintento sin depender de la API real."""
+
+    def __init__(self, respuestas: list[str]):
+        self.respuestas = respuestas
+        self.llamadas = 0
+        self.prompts_recibidos = []
+
+    def complete(self, prompt: str, temperature: float = 0.4, max_tokens: int = 1200) -> str:
+        self.prompts_recibidos.append(prompt)
+        respuesta = self.respuestas[min(self.llamadas, len(self.respuestas) - 1)]
+        self.llamadas += 1
+        return respuesta
 
 
 def test_validar_sql_acepta_select_simple_sobre_tabla_permitida():
@@ -182,3 +200,92 @@ def test_prompt_sql_pide_incluir_columnas_usadas_en_el_select():
     assert "SELECT" in PROMPT_SQL
     texto_minusculas = PROMPT_SQL.lower()
     assert "verificable" in texto_minusculas or "verificar" in texto_minusculas
+
+
+def test_prompt_sql_exige_nombre_legible_de_municipio_no_solo_codigo():
+    # Bug real: preguntas que devuelven varios municipios (ej. "los 10
+    # municipios con menor sentimiento") generaban SQL con GROUP BY/SELECT
+    # cod_municipio sin incluir la columna municipio -- la narracion final
+    # listaba codigos INE tecnicos ("38023") en vez de nombres ("Adeje").
+    # No basta con que la palabra "municipio" aparezca en el prompt (ya
+    # aparece en otras reglas) -- tiene que haber una instruccion explicita
+    # de incluir la columna `municipio` legible, no solo cod_municipio.
+    texto_minusculas = PROMPT_SQL.lower()
+    assert "columna `municipio`" in texto_minusculas or "columna municipio" in texto_minusculas
+    assert "cod_municipio` no es legible" in texto_minusculas or "codigo ine" in texto_minusculas
+
+
+def test_prompt_narracion_prefiere_nombre_de_municipio_sobre_codigo():
+    # Bug real detectado en pruebas manuales (con trampa): aunque el SQL ya
+    # incluye la columna `municipio`, la narracion puede elegir citar
+    # cod_municipio en su lugar si la propia pregunta del usuario usa la
+    # palabra "codigo" (ej. "agrupa los hexagonos por codigo de municipio").
+    # Repeticion del bug de test_prompt_sql_exige_nombre_legible... pero en
+    # el segundo paso (narracion), no en la generacion de SQL.
+    texto_minusculas = PROMPT_NARRACION.lower()
+    assert "cod_municipio" in texto_minusculas
+    assert "nunca el código" in texto_minusculas or "no el código" in texto_minusculas
+
+
+def test_prompt_narracion_incluye_ejemplo_concreto_nombre_vs_codigo():
+    # La instruccion abstracta (test anterior) no bastaba en la practica --
+    # confirmado en pruebas manuales: la pregunta "agrupa por codigo de
+    # municipio" seguia generando narracion con codigos (38026, 38005...)
+    # pese a la regla explicita. Un ejemplo concreto de entrada/salida es
+    # mas efectivo para fijar el formato que una regla abstracta.
+    assert "38001" in PROMPT_NARRACION
+    assert "Adeje" in PROMPT_NARRACION
+
+
+def test_narrar_resultado_devuelve_texto_si_el_llm_responde_a_la_primera():
+    llm = _LLMSecuencial(["Los municipios son Adeje y Arona."])
+    texto = _narrar_resultado("pregunta", [{"municipio": "Adeje"}], llm)
+    assert texto == "Los municipios son Adeje y Arona."
+    assert llm.llamadas == 1
+
+
+def test_narrar_resultado_reintenta_si_el_llm_devuelve_vacio():
+    # Bug real: reproducido contra la API de Groq con el caso de 31
+    # municipios agrupados -- el modelo (openai/gpt-oss-120b) gasta a veces
+    # todo max_tokens en razonamiento interno y devuelve "" (2 de 4 intentos
+    # vacios incluso con max_tokens=1500). Un reintento normalmente basta.
+    llm = _LLMSecuencial(["", "Los municipios son Adeje y Arona."])
+    texto = _narrar_resultado("pregunta", [{"municipio": "Adeje"}], llm)
+    assert texto == "Los municipios son Adeje y Arona."
+    assert llm.llamadas == 2
+
+
+def test_narrar_resultado_da_mensaje_de_fallback_si_sigue_vacio_tras_reintentar():
+    llm = _LLMSecuencial(["", ""])
+    texto = _narrar_resultado("pregunta", [{"municipio": "Adeje"}], llm)
+    assert texto != ""
+    assert "tabla" in texto.lower()
+    assert llm.llamadas == 2
+
+
+def test_narrar_resultado_incluye_el_aviso_de_cobertura_parcial_en_el_prompt():
+    # Bug real: "cuantos hexagonos han sido analizados" generaba SQL contra
+    # gold_h3_sentimiento (410 filas) y la narracion respondia "Se han
+    # analizado 410 hexagonos" sin avisar de que son solo 410 de 2.579 --
+    # aunque GRANULARIDAD_TABLA ya tiene esa nota, _narrar_resultado nunca
+    # recibia que tabla se habia consultado para poder usarla.
+    llm = _LLMSecuencial(["Se han analizado 410 hexágonos (cobertura parcial)."])
+    _narrar_resultado(
+        "cuantos hexagonos han sido analizados",
+        [{"total_hexagonos": 410}],
+        llm,
+        sql="SELECT COUNT(*) AS total_hexagonos FROM gold.gold_h3_sentimiento LIMIT 200",
+    )
+    assert "410" in llm.prompts_recibidos[0]
+    assert "2.579" in llm.prompts_recibidos[0]
+
+
+def test_narrar_resultado_no_incluye_aviso_para_tablas_sin_nota_de_cobertura():
+    llm = _LLMSecuencial(["Adeje tiene 134 hexágonos."])
+    _narrar_resultado(
+        "cuantos hexagonos tiene adeje",
+        [{"n": 134}],
+        llm,
+        sql="SELECT COUNT(*) AS n FROM gold.gold_h3_master WHERE municipio = 'Adeje'",
+    )
+    assert "cobertura parcial" not in llm.prompts_recibidos[0].lower()

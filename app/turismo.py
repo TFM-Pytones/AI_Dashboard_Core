@@ -277,4 +277,4 @@ def render_turismo_tab(
         labels={"mes_label": "Mes", "valor": "Pasajeros medios", "aeropuerto_nombre": "Aeropuerto"},
     )
     add_chart_motion(fig_comparativa)
-    st.plotly_chart(fig_comparativa, use_container_width=True)
+    st.plotly_chart(fig_comparativa, width="stretch")

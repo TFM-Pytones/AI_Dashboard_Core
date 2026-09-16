@@ -76,7 +76,7 @@ def render_clima_tab(gdf: pd.DataFrame) -> None:
     )
     fig.update_traces(line_color=color, line_shape="spline", fillcolor=hex_to_rgba(color, 0.15))
     add_chart_motion(fig)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     valor_anual = climate_value_anual(gdf, variable["prefix"])
     st.caption(f"📅 La {variable_label.lower()} media anual es **{valor_anual:.1f} {unidad}**.")
