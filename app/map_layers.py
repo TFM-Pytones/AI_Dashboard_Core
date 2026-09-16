@@ -1,5 +1,6 @@
 import json
 import os
+from typing import Any
 
 import pandas as pd
 import pydeck as pdk
@@ -39,7 +40,7 @@ TENERIFE_VIEW_STATE = pdk.ViewState(
     latitude=28.29, longitude=-16.62, zoom=9, pitch=0, min_zoom=9, max_zoom=16
 )
 
-METRICS = {
+METRICS: dict[str, dict[str, Any]] = {
     # ── Tipología Territorial y Estrategia TUI ──
     "Tipología Territorial (Clústeres)": {
         "column": "tipo_zona",
@@ -168,7 +169,8 @@ def build_fill_color_column(gdf: pd.DataFrame, metric_key: str) -> pd.Series:
         return values.apply(lambda v: diverging_color(v, vmin, vmid, vmax))
 
     # scale == "sequential"
-    light_hex, dark_hex = config.get("ramp", SEQUENTIAL_DENSITY)
+    ramp: tuple[str, str] = config.get("ramp", SEQUENTIAL_DENSITY)
+    light_hex, dark_hex = ramp
     if "min_max" in config:
         vmin, vmax = config["min_max"]
     elif "domain" in config and len(config["domain"]) == 2:
@@ -183,7 +185,7 @@ def build_fill_color_column(gdf: pd.DataFrame, metric_key: str) -> pd.Series:
 DEFAULT_HEXAGON_OPACITY = 0.4
 
 
-def _tooltip_value_column(gdf: pd.DataFrame, config: dict) -> pd.Series:
+def _tooltip_value_column(gdf: pd.DataFrame, config: dict[str, Any]) -> pd.Series:
     col = config["column"]
     values = gdf[col] if col in gdf.columns else pd.Series([None] * len(gdf), index=gdf.index)
     if config.get("scale") == "categorical":
@@ -360,7 +362,8 @@ def legend_html(metric_key: str, gdf: pd.DataFrame) -> str:
         return _gradient_bar_html(gradient, format_metric(vmin, "decimal"), format_metric(vmax, "decimal"))
 
     # Sequential scale
-    light_hex, dark_hex = config.get("ramp", SEQUENTIAL_DENSITY)
+    ramp: tuple[str, str] = config.get("ramp", SEQUENTIAL_DENSITY)
+    light_hex, dark_hex = ramp
     kind = config.get("format", "decimal")
     if "min_max" in config:
         vmin, vmax = config["min_max"]

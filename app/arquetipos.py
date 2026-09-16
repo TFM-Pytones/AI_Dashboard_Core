@@ -17,39 +17,40 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
 
     # ── 1. Resumen Ejecutivo y Métricas Clave ──
     n_total = len(gdf)
-    n_saturado = int((gdf["tipo_zona"] == "Saturado/Overtourism").sum())
-    n_transicion = int((gdf["tipo_zona"] == "Transición").sum())
-    n_rural_infra = int((gdf["tipo_zona"] == "Rural Infrautilizada").sum())
+    n_saturado = int(gdf["tipo_zona"].str.contains("Saturado", na=False).sum())
+    n_transicion = int(gdf["tipo_zona"].str.contains("Transición", na=False).sum())
+    n_rural = int(gdf["tipo_zona"].str.contains("Rural", na=False).sum())
+    n_teide = int(gdf["tipo_zona"].str.contains("Espacio Natural", na=False).sum())
     n_oportunidad_ideal = int(gdf.get("es_oportunidad_ideal", pd.Series(False, index=gdf.index)).sum())
 
     kpi1, kpi2, kpi3, kpi4 = st.columns(4)
     with kpi1.container(border=True):
         st.metric(
-            "🔴 Clúster Saturado (Overtourism)",
+            "🔴 Saturado / Overtourism",
             f"{n_saturado} hex.",
             f"{(n_saturado / n_total * 100):.1f}% del territorio",
-            help="Hexágonos costeros con densidad hotelera extrema y máxima luz nocturna (HDBSCAN).",
+            help="61 hexágonos con densidad hotelera extrema y máxima luz nocturna (Adeje, Arona, Puerto de la Cruz).",
         )
     with kpi2.container(border=True):
         st.metric(
-            "🟡 Clúster Transición",
+            "🟡 Transición Costera",
             f"{n_transicion} hex.",
             f"{(n_transicion / n_total * 100):.1f}% del territorio",
-            help="Zonas con desarrollo turístico moderado o en crecimiento, óptimas para diversificación.",
+            help="Zonas intermedias con desarrollo turístico moderado o en crecimiento, óptimas para descompresión.",
         )
     with kpi3.container(border=True):
         st.metric(
-            "🟢 Rural Infrautilizado",
-            f"{n_rural_infra} hex.",
-            f"{(n_rural_infra / n_total * 100):.1f}% del territorio",
-            help="Zonas de alto valor paisajístico y natural (NDVI alto, PTNA positivo) sin explotación masiva.",
+            "🌲 Rurales y Medianías",
+            f"{n_rural} hex.",
+            f"{(n_rural / n_total * 100):.1f}% del territorio",
+            help="Espacios protegidos (Anaga/Teno) y medianías agrícolas del norte de alto valor paisajístico y potencial no explotado.",
         )
     with kpi4.container(border=True):
         st.metric(
-            "⭐ Oportunidades Ideales TUI",
-            f"{n_oportunidad_ideal} hex.",
-            "Alto PTNA + Alto ESG",
-            help="Hexágonos identificados en Bloque 5 que combinan alto potencial de atracción y máxima sostenibilidad.",
+            "🌋 Espacio Natural / Teide",
+            f"{n_teide} hex.",
+            f"{(n_teide / n_total * 100):.1f}% del territorio",
+            help="Parque Nacional del Teide y cumbres (ENP 93%), suelo protegido no urbanizable de máxima preservación ambiental.",
         )
 
     st.divider()

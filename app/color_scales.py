@@ -26,19 +26,32 @@ RESTRICTION_COLOR_MAP_HEX = {
     "Sin restricción": "#0ca30c",
 }
 
-# Clústeres territoriales (gold.h3_clusters): 4 tipos
-# Rojo = saturación extrema; Ámbar = transición; Verde = rural infrautilizado; Gris = urbano/residencial
+# Clústeres territoriales (gold.h3_clusters): 6 tipologías oficiales HDBSCAN (V1)
 CLUSTER_COLOR_MAP_HEX = {
-    "Saturado/Overtourism": "#ef4444",
+    "Espacio Natural / Teide y Cumbre": "#475569",          # Pizarra / volcánico Teide
+    "Espacios Rurales Protegidos (Anaga/Teno)": "#15803d",    # Verde bosque frondoso
+    "Rural Agrícola / Medianías Norte": "#84cc16",          # Verde lima / huerta
+    "Transición Costera y Medianías": "#f59e0b",            # Ámbar / transición conector
+    "Saturado / Overtourism": "#ef4444",                    # Rojo intenso / masificación
+    "Urbano Residencial": "#3b82f6",                        # Azul metropolitano residencial
+    # Claves históricas / alias de compatibilidad
     "Transición": "#f59e0b",
-    "Rural Infrautilizada": "#10b981",
-    "Urbano Sin Turismo": "#64748b",
+    "Saturado/Overtourism": "#ef4444",
+    "Rural Infrautilizada": "#84cc16",
+    "Urbano Sin Turismo": "#475569",
 }
 CLUSTER_COLOR_MAP_RGB = {
-    "Saturado/Overtourism": [239, 68, 68],
+    "Espacio Natural / Teide y Cumbre": [71, 85, 105],
+    "Espacios Rurales Protegidos (Anaga/Teno)": [21, 128, 61],
+    "Rural Agrícola / Medianías Norte": [132, 204, 22],
+    "Transición Costera y Medianías": [245, 158, 11],
+    "Saturado / Overtourism": [239, 68, 68],
+    "Urbano Residencial": [59, 130, 246],
+    # Claves históricas / alias de compatibilidad
     "Transición": [245, 158, 11],
-    "Rural Infrautilizada": [16, 185, 129],
-    "Urbano Sin Turismo": [100, 116, 139],
+    "Saturado/Overtourism": [239, 68, 68],
+    "Rural Infrautilizada": [132, 204, 22],
+    "Urbano Sin Turismo": [71, 85, 105],
 }
 
 # Arquetipos de producto turístico TUI

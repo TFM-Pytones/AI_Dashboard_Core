@@ -195,7 +195,7 @@ def load_h3_clusters(_engine: Engine) -> pd.DataFrame:
     if not inspect(_engine).has_table("h3_clusters", schema="gold"):
         return pd.DataFrame(columns=["h3_index", "tipo_zona"])
     df = pd.read_sql(H3_CLUSTERS_QUERY, _engine)
-    df["tipo_zona"] = df["tipo_zona"].apply(lambda x: "Transición" if "Transici" in str(x) else str(x))
+    df["tipo_zona"] = df["tipo_zona"].astype(str).str.replace("Transicin", "Transición")
     return df
 
 
