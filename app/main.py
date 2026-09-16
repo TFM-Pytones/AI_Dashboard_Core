@@ -274,17 +274,10 @@ def page_resumen() -> None:
             f"{municipio_master['municipio'].nunique()} municipios",
         ),
         (
-            nav_alojamiento,
+            nav_alojamiento_temas,
             "🏨",
-            "Alojamiento",
-            "Reputación y tipo de alojamiento: hoteles, viviendas vacacionales y extrahoteleros.",
-            f"{format_metric(int(full_gdf['n_reviews_booking'].sum()), 'entero')} reseñas Booking",
-        ),
-        (
-            nav_temas,
-            "💬",
-            "Temas y Opinión",
-            "Qué opinan los visitantes de verdad, extraído con NLP de miles de reseñas.",
+            "Alojamiento y Opinión",
+            "Reputación y tipo de alojamiento, y qué opinan los visitantes de verdad, extraído con NLP.",
             f"{format_metric(len(nlp_chunks), 'entero')} opiniones analizadas",
         ),
         (
@@ -428,12 +421,14 @@ def page_municipios() -> None:
     render_municipios_tab(municipio_master, municipio_anual, municipio_empleo, municipio_mensual)
 
 
-def page_alojamiento() -> None:
+def page_alojamiento_temas() -> None:
     render_page_banner(
         "alojamiento_hotel.jpg",
-        "Alojamiento",
-        "Reputación y distribución de la oferta de alojamiento turístico",
+        "Alojamiento y Opinión",
+        "Oferta de alojamiento, reputación y qué dicen realmente los visitantes, extraído con NLP",
     )
+
+    st.subheader("🏨 Alojamiento")
     alojamiento_municipio = st.selectbox(
         "Municipio", ["Todos"] + list_municipios(full_gdf), key="alojamiento_municipio"
     )
@@ -441,13 +436,9 @@ def page_alojamiento() -> None:
         st.caption(f"🔍 Filtrando por municipio: **{alojamiento_municipio}**")
     render_alojamiento_tab(filter_by_municipio(full_gdf, alojamiento_municipio))
 
+    st.divider()
 
-def page_temas() -> None:
-    render_page_banner(
-        "temas_cafe.jpg",
-        "Temas y Opinión",
-        "Qué dicen realmente los visitantes, extraído con NLP de miles de reseñas",
-    )
+    st.subheader("💬 Temas y Opinión")
     render_temas_tab(topicos_municipio, nlp_chunks)
 
 
@@ -467,8 +458,7 @@ nav_tabla = st.Page(page_tabla, title="Tabla", icon="📋")
 nav_rankings = st.Page(page_rankings, title="Rankings", icon="🏆")
 nav_clima = st.Page(page_clima, title="Clima", icon="🌡️")
 nav_municipios = st.Page(page_municipios, title="Municipios", icon="🏛️")
-nav_alojamiento = st.Page(page_alojamiento, title="Alojamiento", icon="🏨")
-nav_temas = st.Page(page_temas, title="Temas", icon="💬")
+nav_alojamiento_temas = st.Page(page_alojamiento_temas, title="Alojamiento y Opinión", icon="🏨")
 nav_turismo = st.Page(page_turismo, title="Turismo", icon="✈️")
 
 pages = [
@@ -479,8 +469,7 @@ pages = [
     nav_rankings,
     nav_clima,
     nav_municipios,
-    nav_alojamiento,
-    nav_temas,
+    nav_alojamiento_temas,
     nav_turismo,
 ]
 

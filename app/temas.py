@@ -53,18 +53,29 @@ def _map_fuente(source_column: pd.Series) -> pd.Series:
     return source_column.map(lambda s: SOURCE_LABELS.get(s, s))
 
 
-def available_fuentes(chunks_df: pd.DataFrame, municipio: str) -> list[str]:
-    subset = chunks_df.loc[chunks_df["municipio"] == municipio]
+def _scope_by_municipio(chunks_df: pd.DataFrame, municipio: str | None) -> pd.DataFrame:
+    # municipio=None -> chunks sin geolocalizar (huerfanos): reseñas/mensajes
+    # que el pipeline de toponimia no pudo asignar a ningun municipio (ver
+    # gold.nlp_chunks.municipio IS NULL -- 5.032 filas reales, sobre todo
+    # YouTube al completo y ~22% de LosViajeros). Antes eran invisibles
+    # porque todo el modulo filtraba con == municipio.
+    if municipio is None:
+        return chunks_df.loc[chunks_df["municipio"].isna()]
+    return chunks_df.loc[chunks_df["municipio"] == municipio]
+
+
+def available_fuentes(chunks_df: pd.DataFrame, municipio: str | None) -> list[str]:
+    subset = _scope_by_municipio(chunks_df, municipio)
     return sorted(_map_fuente(subset["source"]).dropna().unique().tolist())
 
 
 def topics_for_municipio(
-    chunks_df: pd.DataFrame, municipio: str, fuentes: list[str] | None = None, n: int = 20
+    chunks_df: pd.DataFrame, municipio: str | None, fuentes: list[str] | None = None, n: int = 20
 ) -> pd.DataFrame:
     # topicos_top3 (top_topicos_dataframe) only ever has 3 entries -- this
     # scans every chunk for the municipio so the dropdown can offer more than
     # just the top 3 topics, and can be narrowed down by fuente.
-    subset = chunks_df.loc[chunks_df["municipio"] == municipio].copy()
+    subset = _scope_by_municipio(chunks_df, municipio).copy()
     subset["fuente"] = _map_fuente(subset["source"])
     if fuentes:
         subset = subset[subset["fuente"].isin(fuentes)]
@@ -78,14 +89,13 @@ def topics_for_municipio(
 
 def sample_chunks(
     chunks_df: pd.DataFrame,
-    municipio: str,
+    municipio: str | None,
     topic_id: int,
     fuentes: list[str] | None = None,
     n: int = 15,
 ) -> pd.DataFrame:
-    filtered = chunks_df.loc[
-        (chunks_df["municipio"] == municipio) & (chunks_df["topic_id"] == topic_id)
-    ].copy()
+    filtered = _scope_by_municipio(chunks_df, municipio)
+    filtered = filtered.loc[filtered["topic_id"] == topic_id].copy()
     filtered["fuente"] = _map_fuente(filtered["source"])
     if fuentes:
         filtered = filtered[filtered["fuente"].isin(fuentes)]
@@ -125,62 +135,77 @@ def prepare_review_cards(muestra: pd.DataFrame) -> list[dict]:
     return cards
 
 
+SIN_MUNICIPIO_OPCION = "— Sin municipio asignado —"
+
+
 def render_temas_tab(topicos_municipio_df: pd.DataFrame, chunks_df: pd.DataFrame) -> None:
-    municipio = st.selectbox(
-        "Municipio", sorted(topicos_municipio_df["municipio"].tolist()), key="temas_municipio"
-    )
-    row = get_topicos_row(topicos_municipio_df, municipio)
-    if row is None:
-        st.warning("No hay datos de temas para este municipio.")
-        return
+    # SIN_MUNICIPIO_OPCION va al final, no al principio, para que el
+    # desplegable siga arrancando en un municipio real por defecto (como
+    # antes) y esta sea una opción más a elegir, no la que sale de inicio.
+    opciones_municipio = sorted(topicos_municipio_df["municipio"].tolist()) + [SIN_MUNICIPIO_OPCION]
+    municipio_elegido = st.selectbox("Municipio", opciones_municipio, key="temas_municipio")
+    municipio = None if municipio_elegido == SIN_MUNICIPIO_OPCION else municipio_elegido
+    topicos_df = None  # solo existe en modo "con municipio" -- hay gráfico de barras que clicar
 
-    col1, col2 = st.columns(2)
-    with col1.container(border=True):
-        st.metric(
-            "💬 Opiniones analizadas",
-            format_metric(row["n_opiniones"], "entero"),
-            help="Reseñas, mensajes y comentarios analizados con NLP para este municipio.",
+    if municipio is None:
+        st.caption(
+            "🧭 Reseñas y comentarios que el pipeline de geolocalización no pudo asignar a ningún "
+            "municipio (sobre todo comentarios de YouTube y algunos mensajes de foros) -- no tienen "
+            "resumen agregado, pero puedes explorarlos igual por fuente y tema más abajo."
         )
-    with col2.container(border=True):
-        st.metric(
-            "🏷️ Temas distintos detectados",
-            format_metric(row["n_topicos_distintos"], "entero"),
-            help="Temas distintos identificados mediante topic modeling (BERTopic).",
-        )
+    else:
+        row = get_topicos_row(topicos_municipio_df, municipio)
+        if row is None:
+            st.warning("No hay datos de temas para este municipio.")
+            return
 
-    fuentes_df = fuentes_breakdown(row)
-    topicos_df = top_topicos_dataframe(row)
+        col1, col2 = st.columns(2)
+        with col1.container(border=True):
+            st.metric(
+                "💬 Opiniones analizadas",
+                format_metric(row["n_opiniones"], "entero"),
+                help="Reseñas, mensajes y comentarios analizados con NLP para este municipio.",
+            )
+        with col2.container(border=True):
+            st.metric(
+                "🏷️ Temas distintos detectados",
+                format_metric(row["n_topicos_distintos"], "entero"),
+                help="Temas distintos identificados mediante topic modeling (BERTopic).",
+            )
 
-    col_fuentes, col_topicos = st.columns(2)
-    with col_fuentes:
-        fig_fuentes = px.pie(
-            fuentes_df,
-            names="fuente",
-            values="cantidad",
-            title="Origen de las opiniones",
-            hole=0.45,
-            color_discrete_sequence=[ACCENT_TEMAS, "#eb6834", "#6b7280", "#f3f4f6"],
-        )
-        add_chart_motion(fig_fuentes)
-        st.plotly_chart(fig_fuentes, use_container_width=True)
-    with col_topicos:
-        fig_topicos = px.bar(
-            topicos_df.sort_values("n"),
-            x="n",
-            y="label_es",
-            orientation="h",
-            title="Temas más mencionados",
-            labels={"n": "Nº de reseñas", "label_es": "Tema"},
-        )
-        fig_topicos.update_traces(marker_color=ACCENT_TEMAS)
-        add_chart_motion(fig_topicos)
-        st.plotly_chart(
-            fig_topicos,
-            use_container_width=True,
-            on_select="rerun",
-            selection_mode="points",
-            key="temas_topicos_chart",
-        )
+        fuentes_df = fuentes_breakdown(row)
+        topicos_df = top_topicos_dataframe(row)
+
+        col_fuentes, col_topicos = st.columns(2)
+        with col_fuentes:
+            fig_fuentes = px.pie(
+                fuentes_df,
+                names="fuente",
+                values="cantidad",
+                title="Origen de las opiniones",
+                hole=0.45,
+                color_discrete_sequence=[ACCENT_TEMAS, "#eb6834", "#6b7280", "#f3f4f6"],
+            )
+            add_chart_motion(fig_fuentes)
+            st.plotly_chart(fig_fuentes, use_container_width=True)
+        with col_topicos:
+            fig_topicos = px.bar(
+                topicos_df.sort_values("n"),
+                x="n",
+                y="label_es",
+                orientation="h",
+                title="Temas más mencionados",
+                labels={"n": "Nº de reseñas", "label_es": "Tema"},
+            )
+            fig_topicos.update_traces(marker_color=ACCENT_TEMAS)
+            add_chart_motion(fig_topicos)
+            st.plotly_chart(
+                fig_topicos,
+                use_container_width=True,
+                on_select="rerun",
+                selection_mode="points",
+                key="temas_topicos_chart",
+            )
 
     st.subheader("Ver opiniones reales de un tema")
     st.caption(
@@ -208,12 +233,15 @@ def render_temas_tab(topicos_municipio_df: pd.DataFrame, chunks_df: pd.DataFrame
         # A chart click pushes its display string into the selectbox's own
         # state *before* the widget is created, so it wins this rerun without
         # fighting the selectbox's normal key-based state on later reruns.
-        event = st.session_state.get("temas_topicos_chart")
-        clicked_topic_id = selected_topic_from_event(event, topicos_df)
-        if clicked_topic_id is not None:
-            clicked_match = topics_df.loc[topics_df["topic_id"] == clicked_topic_id]
-            if not clicked_match.empty:
-                st.session_state["temas_topico_elegido"] = clicked_match["display"].iloc[0]
+        # Solo hay gráfico que clicar en modo "con municipio" (topicos_df no
+        # es None ahí) -- en modo "sin municipio" no hay nada que interpretar.
+        if topicos_df is not None:
+            event = st.session_state.get("temas_topicos_chart")
+            clicked_topic_id = selected_topic_from_event(event, topicos_df)
+            if clicked_topic_id is not None:
+                clicked_match = topics_df.loc[topics_df["topic_id"] == clicked_topic_id]
+                if not clicked_match.empty:
+                    st.session_state["temas_topico_elegido"] = clicked_match["display"].iloc[0]
 
         if st.session_state.get("temas_topico_elegido") not in topic_options:
             st.session_state["temas_topico_elegido"] = topic_options[0]
