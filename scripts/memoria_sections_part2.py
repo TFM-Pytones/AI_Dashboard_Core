@@ -13,11 +13,16 @@ def get_chapter_4():
 
 La capacidad de carga de cada celda hexagonal se caracteriza mediante tres conjuntos de variables biofísicas:
 
-**A. Variables Morfométricas (MDT05 del IGN, 5 m de resolución):** Elevación media (0 m en costa – 3.715 m en el Teide), pendiente media (1,2°–48,5°), orientación o aspecto (discrimina barlovento/sotavento) y sombreado del relieve (hillshade). El operador diferencial de Horn (1981) sobre ventanas 3×3 píxeles calcula la pendiente *(detalle matemático en Anexo C.2)*.
+**A. Variables Morfométricas (MDT25 del GRAFCAN, 25 m de resolución):** Elevación media (0 m en costa – 3.715 m en el Teide), pendiente media (1,2°–48,5°), orientación topográfica (*aspect*, discrimina barlovento/sotavento) y sombreado del relieve (*hillshade*). El operador diferencial de Horn (1981) sobre ventanas 3×3 píxeles calcula la pendiente *(SQL en Anexo C.2)*.
 
-**B. Teledetección Biofísica — Copernicus Sentinel-2 (10 m, L2A):** Mosaicos estacionales filtrados a menos del 20 % de nubosidad con máscara SCL. El **NDVI** mide el vigor fotosintético: oscila de <0,15 en los malpaíses áridos del sur hasta >0,75 en la laurisilva de Anaga; el **NDBI** cartografía el suelo sellado y el asfalto como indicador de huella construida *(fórmulas en Anexo C.2)*.
+**B. Teledetección Biofísica — Copernicus Sentinel-2 (20 m, L2A):** Tenerife impide el enfoque estándar de una escena por mes: la *"panza de burro"* —banco de estratocúmulos que bloquea la vertiente norte entre 600 y 1.500 m durante 6–8 meses al año— dejaría el norte sin datos con un filtro simple de nubosidad <20 %. Adicionalmente, la calima sahariana no es detectada por el algoritmo SCL de Sentinel-2 y sesga el NDVI a la baja. La solución adoptada es el **composite de mediana trimestral** procesado en Google Earth Engine sobre la colección `COPERNICUS/S2_SR_HARMONIZED`, con un triple filtro de calidad en cascada a nivel de píxel: (1) máscara SCL que excluye nubes, cirrus y sombras (clases 1, 3, 8, 9 y 10); (2) umbral AOT < 0,3 DN para descartar aerosol sahariano; y (3) banda azul B02 < 0,18 como refuerzo anti-calima. El resultado son **30 composites trimestrales** (2019 Q1 – 2026 Q2) particionados en Azure Blob Storage con cobertura completa de los 2.579 hexágonos. Las variables derivadas calculadas directamente en GEE antes de la exportación son:
 
-**C. Radianza Nocturna NOAA/NASA VIIRS (500 m, DNB):** Compuestos mensuales calibrados en nW/(cm²·sr). Los polos turísticos del sur (Adeje, Arona) superan los 65 nW/(cm²·sr), mientras que las celdas de medianías caen por debajo de 4 nW/(cm²·sr) y la cumbre del Teide registra valores cercanos a cero, protegida por la Ley del Cielo (Ley 31/1988).
+- **NDVI** (vigor fotosintético): de <0,15 en malpaíses áridos hasta >0,75 en la laurisilva de Anaga.
+- **NDBI** (huella construida): de −0,45 en masa forestal densa hasta +0,38 en trama urbana compacta.
+
+En `gold_h3_master` se consolidan los estadísticos anuales (2022–2026) y trimestrales (Q1–Q4) de NDVI, NDBI y el cambio porcentual de luz nocturna VIIRS respecto a 2022.
+
+**C. Radianza Nocturna NOAA/NASA VIIRS (500 m, DNB):** Composites mensuales calibrados en nW/(cm²·sr) procedentes de GEE (`NOAA/VIIRS/DNB/MONTHLY_V1/VCMSLCFG`). Los polos turísticos del sur (Adeje, Arona) superan los 65 nW/(cm²·sr); las celdas de medianías caen por debajo de 4 nW/(cm²·sr). La serie Bronze cubre 90 meses (2019–2026); la capa Silver filtra desde 2022 para trabajar en la ventana post-pandemia homogénea.
 
 | Variable | Rango Empírico en Tenerife |
 | :--- | :--- |
@@ -29,21 +34,19 @@ La capacidad de carga de cada celda hexagonal se caracteriza mediante tres conju
 
 ## 4.2. Modelo Topoclimático Microinsular
 
-El clima de Tenerife responde a cuatro forzadores atmosféricos simultáneos:
+El clima de Tenerife responde a cuatro forzadores atmosféricos simultáneos: los **vientos Alisios del Noreste** (masas de aire fresco y húmedo); la **inversión térmica de subsidencia** (800–1.500 m) que genera el Mar de Nubes; el **efecto Föhn en sotavento** (aire descendente que se calienta adiabáticamente, generando el clima árido del sur); y la **calima y advección sahariana** (invasiones de polvo que elevan la temperatura por encima de 32 °C y reducen la humedad por debajo del 25 %).
 
-1. **Vientos Alisios del Noreste:** Masas de aire fresco y húmedo del anticiclón de las Azores que inciden de forma permanente sobre la vertiente norte.
-2. **Inversión Térmica de Subsidencia (800–1.500 m):** Capa de aire cálido que actúa como tapadera impidiendo el ascenso convectivo y favoreciendo la formación del Mar de Nubes.
-3. **Efecto Föhn en Sotavento:** El aire que rebasa la cumbre desciende por la vertiente sur calentándose adiabáticamente, generando un clima árido y despejado en Adeje y Arona.
-4. **Calima y Advección Sahariana:** Invasiones de polvo que provocan aumentos térmicos repentinos (>32 °C) y caídas de humedad (<25 %).
+El modelo topoclimático, implementado en `gold_h3_master.sql` como una cadena de CTEs (`clima_diario`, `estaciones_clima`, `estaciones_con_topografia`, `h3_vecinos_clima`, `h3_vecinos_clima_factores`, `h3_clima`), combina **interpolación IDW con k=3 estaciones** de la red de Agrocabildo (67 estaciones activas) ponderadas por distancia euclídea inversa cuadrática (`peso = 1 / d²`) y cuatro sistemas de corrección físicos aplicados simultáneamente al H3 de destino y a la estación de origen:
 
-La implementación en dbt Core combina **interpolación IDW con k=3 estaciones** de la red de Agrocabildo (67 estaciones activas) y cuatro factores correctores físicos:
+1. **Gradiente adiabático de temperatura:** La temperatura ajustada se calcula como `T_ajust = T_IDW + (elevación_estación − elevación_H3) × 0,0065 °C/m`. Las variaciones estacionales incorporan además un delta por diferencia de distancia a la costa (±0,05 a ±0,15 °C/km según trimestre).
 
-* **Gradiente adiabático de temperatura:** -0,0065 °C por metro de desnivel respecto a la estación de referencia.
-* **Mar de Nubes (800–1.500 m, barlovento):** Factor +25 % de humedad relativa por condensación persistente de los Alisios.
-* **Pisos de cumbre (>1.500 m):** Factor -30 % de humedad por la atmósfera cristalina y seca de alta montaña.
-* **Efecto Föhn (sotavento, orientación 90°–300°):** Factor -15 % de humedad; reducción del 60 % de precipitación.
-* **Influencia marítima costera (<1,5 km):** Bonificación de +15 % de humedad en toda la franja litoral.
-* **Medianías bajas (<800 m, barlovento):** Factor de +5 % de humedad.
+2. **Factor de humedad por orientación de ladera y altitud:** El factor multiplicativo se construye distinguiendo barlovento (aspect 300°–90°, factor +1,05 a +1,25 según altitud), sotavento (aspect 90°–300°, factor 0,85) y cumbre seca (>1.500 m, factor 0,70). La franja costera (<1,5 km) añade +0,15 puntos de factor en cualquier orientación.
+
+3. **Factor de precipitación por sombra de lluvia:** En barlovento <1.500 m el factor es 1,30 (orografía favorece la convección); en sotavento es 0,40 (efecto paraguas orográfico).
+
+4. **Factor de viento por exposición:** La cara norte-noreste (aspect 0°–90°) recibe un multiplicador 1,20; el sotavento (180°–270°), 0,60; las cumbres (>2.000 m), 1,40.
+
+5. **Indicadores ESG de extremos climáticos:** La capa `estaciones_clima` computa, por estación, los **días de ola de calor** (`temp_max ≥ 35 °C` + `humedad_min ≤ 30 %` + `dirección del viento 60°–200°` simultáneos), la **amplitud térmica media diaria** y las **horas de sol reales** según el estándar OMM (radiación medida ≥ 120 W/m²), desagregadas por trimestre. Estas variables se interpolan IDW al hexágono y alimentarán el **Índice ESG Territorial** *(pendiente de implementación, definición completa en el plan del proyecto, sección 5.3)*.
 
 La validación frente a 12 estaciones AEMET independientes redujo el RMSE de temperatura de 2,84 °C (IDW estándar) a **0,91 °C**, y el de humedad relativa de 18,6 % a **6,2 %**, confirmando la precisión del modelo físico *(SQL completo en Anexo C.2)*.
 
@@ -51,10 +54,31 @@ La validación frente a 12 estaciones AEMET independientes redujo el RMSE de tem
 
 La redistribución de flujos turísticos requiere conocer la accesibilidad real de cada celda hexagonal:
 
-* **Matriz de Conducción Vial (OpenRouteService):** Tiempos de viaje en vehículo privado desde cada uno de los 2.579 hexágonos hacia **18 destinos estratégicos insulares**: aeropuertos TFS y TFN, Santa Cruz, Costa Adeje, Puerto de la Cruz, Teleférico del Teide, La Laguna, Candelaria, Los Gigantes, El Médano, Garachico, Anaga, Masca, Vilaflor, La Orotava, Güímar, Buenavista del Norte y Arico. Adicionalmente se generaron isócronas a 15, 30, 45 y 60 minutos desde ambos aeropuertos.
-* **Cobertura en Transporte Público Regular (GTFS TITSA/Tranvía):** Recuento de paradas activas en tres umbrales escalonados: 200 m (proximidad estricta), 500 m (estándar cómodo) y 1.000 m (acceso amplio). Se complementa con la distancia continua a la marquesina más cercana y la distancia al hospital comarcal más próximo.
+* **Matriz de Conducción Vial (OpenRouteService):** Tiempos de viaje en vehículo privado desde cada uno de los 2.579 hexágonos hacia **18 destinos estratégicos insulares**: aeropuertos TFS y TFN, Santa Cruz, Costa Adeje, Puerto de la Cruz, Teleférico del Teide, La Laguna, Candelaria, Los Gigantes, El Médano, Garachico, Anaga, Masca, Vilaflor, La Orotava, Güímar, Buenavista del Norte y Arico. Adicionalmente se generaron **isócronas de conducción** a 15, 30, 45 y 60 minutos desde ambos aeropuertos (`gold_isocronas_visuales.py`), materializadas en `gold.gold_h3_accesibilidad` y listas para visualización directa en el dashboard.
 
-## 4.4. Segmentación Espacial No Supervisada: HDBSCAN
+* **Cobertura en Transporte Público Regular (GTFS TITSA/Tranvía):** Recuento de paradas activas en tres umbrales escalonados: 200 m (proximidad estricta), 500 m (estándar cómodo) y 1.000 m (acceso amplio), más la distancia continua a la marquesina más cercana. La distancia al hospital comarcal más próximo actúa como indicador de acceso a servicios esenciales y alimenta la dimensión Social del Índice ESG.
+
+## 4.4. Tablas Gold: Catálogo y Estructura
+
+El conjunto de modelos Gold materializa en PostgreSQL el resultado de toda la cadena de transformaciones. Los **11 modelos Gold** del proyecto son:
+
+| Modelo Gold | Contenido | Escala |
+| :--- | :--- | :---: |
+| `gold_h3_master` | >60 variables biofísicas, topoclimáticas, alojativas, NLP y de accesibilidad | H3 (2.579 celdas) |
+| `gold_sentimiento_h3` | Sentimiento medio, volumen por fuente, queja modal | H3 |
+| `gold_municipio_master` | Indicadores ISTAC, AENA, empleo y alojamiento | Municipal (31) |
+| `gold_municipio_anual` | Series anuales de pernoctaciones, plazas y ocupación | Municipal |
+| `gold_municipio_mensual` | Desestacionalización y estacionalidad mensual | Municipal |
+| `gold_municipio_empleo` | Afiliaciones SS por sector (hostelería, autónomos, monocultivo) | Municipal |
+| `gold_turismo_hotelero_anual` | KPIs hoteleros anuales (RevPAR, ADR, GOP) | Municipal |
+| `gold_turismo_hotelero_mensual` | KPIs hoteleros mensuales con ARIMA de referencia | Municipal |
+| `gold_aena_pasajeros` | Serie de pasajeros TFS/TFN (2019–2026) | Aeropuerto |
+| `gold_h3_ptna` | Índice PTNA, coeficientes MGWR locales, `esg_territorial_score` *(pendiente)* | H3 |
+| `gold_h3_clusters` | Arquetipos HDBSCAN, probabilidad de pertenencia, etiqueta de negocio | H3 |
+
+`gold_h3_master` actúa como **tabla maestra** de la que derivan el simulador gravitatorio, el asistente RAG y todos los módulos del dashboard. Sus índices GiST en la geometría y su índice único en `h3_index` permiten resolver cruces espaciales complejos en 15–45 milisegundos.
+
+## 4.5. Segmentación Espacial No Supervisada: HDBSCAN
 
 ### Motivación y elección del algoritmo
 
@@ -66,7 +90,7 @@ Los métodos de clustering convencionales presentan limitaciones críticas cuand
 
 ### Implementación y variables de entrada
 
-A partir de las características normalizadas con `RobustScaler` (escalado robusto ante valores extremos) en [`build_features.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/analytics/clustering/build_features.py), se construyó la matriz de entrada con diez variables por celda:
+A partir de las características normalizadas con `RobustScaler` en [`build_features.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/analytics/clustering/build_features.py), se construyó la matriz de entrada con diez variables por celda:
 
 | Variable | Descripción funcional |
 | :--- | :--- |
@@ -100,7 +124,7 @@ La evaluación comparativa de algoritmos ratifica la elección:
 | DBSCAN Clásico | 0,465 | Sí (parcial) | Deficiente: falla con densidades marcadamente heterogéneas. |
 | **HDBSCAN** | **0,582** | **Sí (robusto al ruido)** | **Seleccionado:** jerarquía multiescala adaptada al relieve insular. |
 
-## 4.5. Regresión Geográfica Ponderada (MGWR) e Índice de Potencial de Nicho (PTNA)
+## 4.6. Regresión Geográfica Ponderada (MGWR) e Índice de Potencial de Nicho (PTNA)
 
 ### Limitaciones del modelo OLS y justificación de MGWR
 
@@ -140,7 +164,7 @@ El salto de R² de 0,418 (OLS) a 0,782 (MGWR) y la reducción del AICc en más d
 
 ### El Índice de Potencial Turístico No Aprovechado (PTNA)
 
-A partir de los coeficientes locales de MGWR, se construyó el **Índice PTNA** (*Potential Tourism Niche Attraction*), una puntuación continua en escala [0, 100] que combina cinco dimensiones ponderadas por los pesos empíricos del modelo:
+A partir de los coeficientes locales de MGWR, se construyó el **Índice PTNA** (*Potential Tourism Niche Attraction*), una puntuación continua en escala [0, 100] que combina cinco dimensiones ponderadas por los pesos empíricos del modelo. El valor `ptna_score` se calcula como la diferencia entre la densidad de plazas esperada por el modelo y la observada: `ptna_score > 0` indica un hexágono con condiciones objetivamente superiores a su ocupación turística actual (oportunidad de inversión); `ptna_score < 0` señala zonas sobre-explotadas respecto a su vocación territorial (riesgo de overtourism).
 
 1. **Atractivo Ambiental (35 %):** NDVI elevado (>0,55), horas de sol favorables (según OMM) y ausencia de contaminación lumínica nocturna (VIIRS <10 nW).
 2. **Confort Climático (20 %):** Temperatura media anual entre 16 y 24 °C y humedad relativa modelada entre 50 % y 80 %, excluyendo las oscilaciones extremas de calima y sotavento.
@@ -149,6 +173,10 @@ A partir de los coeficientes locales de MGWR, se construyó el **Índice PTNA** 
 5. **Accesibilidad Razonable (10 %):** Tiempo de conducción inferior a 45 minutos hasta al menos uno de los dos aeropuertos y presencia de al menos una parada GTFS en radio de 1.000 m.
 
 Las celdas con PTNA superior a 70 sobre 100 representan los **microdestinos prioritarios para TUI**: zonas con condiciones objetivamente favorables para el ecoturismo, el turismo rural de calidad y el senderismo, pero con una cuota de mercado actual casi nula. Geográficamente, se concentran en las medianías agrícolas de la vertiente norte (Garachico, Icod de los Vinos, La Guancha, Buenavista del Norte) y en los valles del sureste (Arico, Fasnia), coincidiendo con el Cluster 2 de HDBSCAN y validando la coherencia interna entre los dos enfoques analíticos.
+
+### Línea de trabajo futura: Marco ESG Territorial
+
+Como extensión directa del Índice PTNA, el proyecto tiene planificada la implementación del **Marco Multidimensional ESG Territorial** (`gold_h3_ptna.esg_territorial_score`, campo definido en esquema pero pendiente de materialización): una puntuación compuesta [0, 100] que evalúa cada hexágono en tres dimensiones —Medioambiental [E] (40 %): evolución temporal del NDVI, polución VIIRS, sellado NDBI y `dias_ola_calor_anual`; Social [S] (40 %): densidad alojativa, cobertura GTFS, distancia a hospital y quejas NLP de masificación; y Gobernanza [G] (20 %): ratio hotel/VV y presencia de BICs—. Esta métrica permitirá filtrar las oportunidades de inversión de TUI al cruce de alto PTNA y alto ESG, garantizando un retorno financiero compatible con la sostenibilidad ecológica y social de la isla.
 """
 
 
@@ -166,28 +194,39 @@ Para capturar la experiencia cualitativa del visitante, el proyecto estructuró 
 | LosViajeros (foros) | 2.650 mensajes | Rutas, tráfico y masificación (textos extensos) |
 | YouTube Data API v3 | 1.890 comentarios | Vídeos de viajes y experiencias en Tenerife |
 
-El pipeline de preprocesamiento aplicó detección de idioma (`langdetect`), eliminación de HTML y URLs, filtrado de stopwords y normalización de términos locales canarios (`"guagua"`, `"guachinche"`, `"barranco"`).
+El pipeline de preprocesamiento (`batch_inference.py`) aplica limpieza de URLs, normalización de espacios y filtrado por longitud mínima de texto (mínimo 3 caracteres).
 
 ## 5.2. Inferencia de Sentimiento Multilingüe (XLM-RoBERTa)
 
-Se empleó el transformador **`cardiffnlp/twitter-xlm-roberta-base-sentiment-multilingual`** (Barbieri et al., 2022), preentrenado en 30 idiomas. La inferencia por lotes de 64 documentos (máx. 256 tokens) produce una puntuación continua de polaridad en [-1, +1]:
+El pipeline de sentimiento opera en dos etapas secuenciales integradas en el DAG de Airflow (Fase 4, tasks `sentiment_batch_inference` y `sentiment_backfill_relevance`):
+
+**Etapa 1 — Filtro de Relevancia Zero-Shot:** Antes de clasificar el sentimiento, un clasificador zero-shot `MoritzLaurer/mDeBERTa-v3-base-mnli-xnli` evalúa cada texto contra cuatro hipótesis: *"comentario sobre turismo en Canarias"*, *"comentario sobre el canal de YouTube"*, *"conversación personal no relacionada"* y *"spam o publicidad"*. Un texto se descarta si la hipótesis off-topic gana por un margen de confianza superior a 0,25, reduciendo el ruido del corpus sin descartar críticas válidas aunque sean negativas. El lote de clasificación zero-shot se procesa en grupos de 8 textos (la evaluación de 4 hipótesis simultáneas es intensiva en GPU).
+
+**Etapa 2 — Clasificación de Sentimiento:** Se empleó el transformador **`cardiffnlp/twitter-xlm-roberta-base-sentiment`** (Barbieri et al., 2022). La inferencia por lotes de 32 documentos (máx. 256 tokens) produce tres probabilidades (positivo, neutro, negativo), de las que se deriva la puntuación continua:
 
 `Score = (+1 · P_positivo) + (0 · P_neutro) + (-1 · P_negativo)`
 
-Contrastado frente a 1.000 opiniones anotadas manualmente, el modelo alcanzó un **F1-score macro de 0,874** y una **exactitud global del 88,2 %**, superando ampliamente a clasificadores Naive Bayes y VADER (<72 %). El script completo `batch_inference.py` se detalla en el Anexo D.1.
+Los resultados se persisten en `bronze.ml_sentiment_results` con la columna `is_relevant` (filtro zero-shot), `label`, `score`, `model_name` y `processed_at`. El diseño es **incremental**: en cada ejecución solo se procesan los textos cuyo `source_id` no existe aún en la tabla, sin reprocesar lo ya clasificado. La tabla es genérica (`source TEXT`) para absorber cualquier fuente futura sin cambiar el esquema.
 
-Antes de clasificar el sentimiento, un filtro **zero-shot** basado en `mDeBERTa-v3-base-mnli-xnli` descarta los textos no relacionados con turismo o el impacto del turismo en Canarias (umbral de confianza > 0,25), reduciendo el ruido del corpus.
+Contrastado frente a 1.000 opiniones anotadas manualmente, el modelo alcanzó un **F1-score macro de 0,874** y una **exactitud global del 88,2 %**, superando ampliamente a clasificadores Naive Bayes y VADER (<72 %) *(métricas completas en Anexo F)*.
 
-## 5.3. Modelado de Tópicos No Supervisado (BERTopic y pyabsa)
+## 5.3. Minería de Aspectos (PyABSA-ATEPC)
 
-Para descubrir los temas latentes sin categorías preconcebidas, se articuló un pipeline con **BERTopic** (Grootendorst, 2022): embeddings semánticos de 768 dimensiones con `paraphrase-multilingual-mpnet-base-v2`, reducción UMAP a 5 dimensiones y clustering HDBSCAN con representación c-TF-IDF. Se implementaron dos modelos especializados:
+La tarea de análisis de aspectos (*Aspect-Based Sentiment Analysis*, ABSA) se realiza con **PyABSA** (Yang y Li, 2023) en su modalidad ATEPC (*Aspect-Term Extraction and Polarity Classification* en un solo paso), orchestrada en la Fase 4 del DAG de Airflow (task `aspects_batch_inference`, `analytics/aspects/batch_inference.py`). El checkpoint empleado es `pyabsa-multilingual-ATEPC`, que detecta simultáneamente los términos de aspecto presentes en el texto y su polaridad.
 
-* **Modelo A (Macro Insular):** Entrenado sobre YouTube y LosViajeros (3.245 documentos). Identifica debates generales: atascos en TF-1/TF-5 (polaridad -0,62), masificación en playas del sur (-0,48), senderismo en Teide y Anaga (+0,81) y gastronomía en guachinches (+0,86).
-* **Modelo B (Micro Geolocalizado):** Entrenado en Google Colab con GPU sobre más de 50.000 reseñas de Booking y TripAdvisor vinculadas a celdas H3. Mapea qué temáticas emergen en cada zona: ruido nocturno y colas en piscinas en Adeje/Arona vs. sosiego, paisaje y vistas al mar en medianías del norte.
+Los resultados se persisten en `silver.aspect_results`. Mediante la tabla de traducción `gold.aspecto_traducciones`, más de 1.200 variantes lingüísticas detectadas en cinco idiomas se normalizan a **seis dimensiones canónicas**: *Limpieza*, *Servicio*, *Relación Calidad-Precio*, *Ubicación*, *Confort y Ruido*, y *Saturación e Instalaciones*.
 
-En paralelo, **PyABSA** (Yang y Li, 2023) realiza minería de aspectos (ATE) y clasificación de polaridad por aspecto (APC). Mediante la tabla `gold.aspecto_traducciones`, más de 1.200 variantes lingüísticas se normalizan en seis dimensiones: *Limpieza*, *Servicio*, *Relación Calidad-Precio*, *Ubicación*, *Confort y Ruido*, y *Saturación e Instalaciones*.
+El análisis exploratorio en el notebook `analytics/tarea2/nlp_aspectos_tarea_2_2.ipynb` y la normalización de términos en `traducir_aspectos.ipynb` precedieron a la implementación del pipeline de producción, garantizando la solidez del vocabulario canónico antes del procesamiento masivo.
 
-## 5.4. Integración del Sentimiento en la Malla H3
+## 5.4. Modelado de Tópicos No Supervisado (BERTopic)
+
+Para descubrir los temas latentes sin categorías preconcebidas se articuló un pipeline con **BERTopic** (Grootendorst, 2022): embeddings semánticos de 768 dimensiones con `paraphrase-multilingual-mpnet-base-v2`, reducción UMAP a 5 dimensiones y clustering HDBSCAN con representación c-TF-IDF. Se implementaron **dos modelos especializados** con partición del corpus por disponibilidad de geolocalización:
+
+* **Modelo A — Macro Insular** (`analytics/topics/topic_modeling.py`, ejecutable en CPU): Entrenado sobre YouTube (reseñas ya filtradas por relevancia en `silver.sentiment_results`) y mensajes de LosViajeros **sin ubicación detectada** (el 54 % del corpus de 1.590 mensajes sin coordenadas en `gold.geo_mentions`). Los tópicos identificados incluyen: atascos en TF-1/TF-5 (polaridad -0,62), masificación en playas del sur (-0,48), senderismo en Teide y Anaga (+0,81) y gastronomía en guachinches (+0,86). El modelo se persiste en `analytics/topics/bertopic_model/` para ejecuciones incrementales: en ejecuciones sucesivas solo se clasifican los documentos nuevos (`topic_model.transform`), sin reentrenar desde cero. Parámetros: `min_topic_size = 15`, `min_corpus_size_check = 500`.
+
+* **Modelo B — Micro Geolocalizado** (`topic_modeling_geo_colab.ipynb`, requiere GPU): Entrenado en Google Colab sobre el corpus geolocalizados de Booking (38.412 reseñas) + TripAdvisor (12.840) + LosViajeros con coordenada detectada (46 % del corpus, ~730 mensajes). El corpus se exporta mediante `analytics/topics/export_geo_corpus.py`, se procesa en Colab y los resultados se reimportan a PostgreSQL con `import_geo_results.py`. Vincula cada tópico a su hexágono H3, permitiendo mapear: ruido nocturno y colas en piscinas en Adeje/Arona frente a sosiego, paisaje y vistas al mar en medianías del norte.
+
+## 5.5. Integración del Sentimiento en la Malla H3
 
 El modelo dbt `gold_sentimiento_h3.sql` computa por hexágono el `sentimiento_medio`, el volumen muestral por fuente y la **queja dominante** mediante `MODE() WITHIN GROUP (ORDER BY aspecto_normalizado)`. Los hallazgos estratégicos son:
 
@@ -196,3 +235,4 @@ El modelo dbt `gold_sentimiento_h3.sql` computa por hexágono el `sentimiento_me
 
 *(La consulta SQL completa de `gold_sentimiento_h3.sql` se incluye en el Anexo C.3.)*
 """
+

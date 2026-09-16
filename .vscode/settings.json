@@ -3,5 +3,8 @@
     "${workspaceFolder}",
     "${workspaceFolder}/validation",
     "${workspaceFolder}/ingestion"
-  ]
+  ],
+  "python.analysis.diagnosticSeverityOverrides": {
+    "reportMissingImports": "none"
+  }
 }

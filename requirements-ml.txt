@@ -1,0 +1,21 @@
+# requirements-ml.txt
+# Dependencias exclusivas para los modelos de Machine Learning (Deep Learning / NLP)
+# Instalar esto solo si se necesita ejecutar:
+# - analytics/sentiment/batch_inference.py
+# - analytics/aspects/batch_inference.py
+# - analytics/topics/topic_modeling.py
+#
+# Uso: pip install -r requirements-ml.txt
+
+# NLP / Hugging Face (analytics/sentiment)
+transformers==4.57.1
+torch==2.9.0
+sentencepiece==0.2.1
+
+# NLP / Extraccion de aspectos (analytics/aspects)
+pyabsa==2.4.2
+update-checker==0.18.0  # pin necesario: la 1.0.0 rompe metric_visualizer (dependencia de pyabsa)
+
+# NLP / Modelado de topicos (analytics/topics) - Issue #19
+bertopic>=0.16.0
+sentence-transformers==3.3.1  # pin: >=3.0.0 resolves to 6.x, which forces transformers>=5.0.0 and conflicts with the transformers==4.57.1 pin above
