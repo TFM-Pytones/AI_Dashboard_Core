@@ -40,6 +40,7 @@ from app.data import (
     merge_h3_data,
 )
 from app.detail_panel import render_detail_panel
+from app.map_state import get_selected_h3_index
 from app.map_layers import (
     DEFAULT_HEXAGON_OPACITY,
     METRICS,
@@ -346,12 +347,7 @@ def page_mapa() -> None:
         deck.layers.append(build_isocronas_layer(isocronas, isocrona_destino))
     st.pydeck_chart(deck, on_select="rerun", selection_mode="single-object", key="h3_map", height=650)
 
-    selected_h3_index = None
-    event = st.session_state.get("h3_map")
-    if event is not None:
-        picked_hex = event.get("selection", {}).get("objects", {}).get("h3_index", [])
-        if picked_hex:
-            selected_h3_index = picked_hex[0].get("h3_index")
+    selected_h3_index = get_selected_h3_index()
 
     st.divider()
     render_detail_panel(full_gdf, selected_h3_index)
