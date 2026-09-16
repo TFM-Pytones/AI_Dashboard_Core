@@ -75,3 +75,6 @@ main
 *.docx
 extracted_*.txt
 
+# 11. Bloque 5 (MGWR/PTNA) -- artefactos regenerables, no versionar
+analytics/mgwr/data/
+analytics/mgwr/logs/
