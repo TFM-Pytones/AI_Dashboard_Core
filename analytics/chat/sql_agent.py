@@ -300,6 +300,10 @@ Usa JOIN solo cuando necesites columnas de ambas tablas a la vez en el SELECT.
 Incluye siempre en el SELECT las columnas numéricas que uses para ordenar o filtrar
 (no solo el nombre o id del municipio), para que el resultado sea verificable.
 
+Si el resultado involucra municipios, incluye siempre la columna `municipio`
+(nombre legible) en el SELECT -- `cod_municipio` no es legible para el usuario
+final, es solo un código INE interno para hacer JOIN o filtrar.
+
 ESQUEMA DISPONIBLE:
 {esquema}
 

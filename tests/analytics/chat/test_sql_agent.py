@@ -182,3 +182,16 @@ def test_prompt_sql_pide_incluir_columnas_usadas_en_el_select():
     assert "SELECT" in PROMPT_SQL
     texto_minusculas = PROMPT_SQL.lower()
     assert "verificable" in texto_minusculas or "verificar" in texto_minusculas
+
+
+def test_prompt_sql_exige_nombre_legible_de_municipio_no_solo_codigo():
+    # Bug real: preguntas que devuelven varios municipios (ej. "los 10
+    # municipios con menor sentimiento") generaban SQL con GROUP BY/SELECT
+    # cod_municipio sin incluir la columna municipio -- la narracion final
+    # listaba codigos INE tecnicos ("38023") en vez de nombres ("Adeje").
+    # No basta con que la palabra "municipio" aparezca en el prompt (ya
+    # aparece en otras reglas) -- tiene que haber una instruccion explicita
+    # de incluir la columna `municipio` legible, no solo cod_municipio.
+    texto_minusculas = PROMPT_SQL.lower()
+    assert "columna `municipio`" in texto_minusculas or "columna municipio" in texto_minusculas
+    assert "cod_municipio` no es legible" in texto_minusculas or "codigo ine" in texto_minusculas
