@@ -44,3 +44,15 @@ def test_prompt_clasificacion_distingue_sentimiento_agregado_de_opiniones():
     # Probado empiricamente: "dime los 10 municipios con menor sentimiento
     # medio" caia a RAG con el prompt anterior pase lo que pase la redaccion.
     assert "sentimiento" in PROMPT_CLASIFICACION.lower()
+
+
+def test_prompt_clasificacion_avisa_que_el_tono_conversacional_no_implica_rag():
+    # Bug real (probado empiricamente contra la API real de Groq):
+    # "¿Donde podria yo encontrar mas plazas hoteleras en el sur?" y "¿Me
+    # recomiendas algun municipio con mucha oferta hotelera?" caian a RAG --
+    # son preguntas de datos (SQL) con fraseo personal/conversacional, y el
+    # prompt anterior no distinguia el TONO de la pregunta del TIPO de
+    # respuesta que requiere.
+    texto_minusculas = PROMPT_CLASIFICACION.lower()
+    assert "dónde podría" in texto_minusculas
+    assert "recomiendas" in texto_minusculas

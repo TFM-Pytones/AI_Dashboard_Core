@@ -18,6 +18,15 @@ Responde con una única palabra: SQL o RAG.
 - SQL: la pregunta pide una cifra, un agregado, una comparación numérica o un ranking, calculable con una consulta SQL sobre tablas de datos oficiales (población, paro, empleo, plazas de vivienda vacacional, turismo hotelero, tráfico aéreo, y también la puntuación media de sentimiento agregada por hexágono/municipio -- un número, no el contenido de las opiniones). Ejemplos: "¿cuántas plazas hoteleras hay en Adeje?", "¿qué municipio tiene mayor paro?", "¿cuántos pasajeros llegaron a Tenerife Sur en 2025?", "¿qué municipios tienen menor sentimiento medio?".
 - RAG: la pregunta pide opiniones, percepciones, quejas o experiencias de viajeros en texto libre, no calculables con una consulta SQL -- el "por qué" o el contenido de lo que dicen, no una puntuación numérica ya agregada. Ejemplos: "¿por qué se quejan los turistas del transporte en el sur?", "¿qué opinan sobre las carreteras de Anaga?", "¿cómo describen la playa de Adeje?".
 
+El TONO conversacional o personal de la pregunta ("¿dónde podría yo...?",
+"me gustaría saber...", "¿me recomiendas...?") NO implica RAG por sí solo --
+clasifica según lo que se necesita para responder (una cifra/tabla de datos
+oficiales = SQL; el contenido de opiniones de viajeros = RAG), no según la
+forma en que está redactada. Ejemplos SQL con fraseo conversacional:
+"¿Dónde podría yo encontrar más plazas hoteleras en el sur?" (pide datos de
+plazas por municipio), "¿Me recomiendas algún municipio con mucha oferta
+hotelera?" (pide un ranking por cifra de oferta, no opiniones de viajeros).
+
 PREGUNTA: {pregunta}
 
 Responde solo con SQL o RAG, sin explicación."""
