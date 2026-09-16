@@ -27,3 +27,4 @@ FROM {{ source('bronze', 'bronze_estaciones_agrocabildo') }} e
 WHERE e.estacion_id IS NOT NULL
   AND e.latitud  IS NOT NULL
   AND e.longitud IS NOT NULL
+  AND e.fecha_instalacion::timestamp <= '2022-01-01'::timestamp

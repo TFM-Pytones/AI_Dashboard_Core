@@ -65,7 +65,7 @@ MUNICIPIOS_ALIAS = {
     "Tacoronte": ["tacoronte"], "Tegueste": ["tegueste"],
     "Vilaflor de Chasna": ["vilaflor"],
 }
-# Hitos/zonas conocidas que NO son nombre de municipio (Teide/Anaga cruzan varios).
+# Hitos/zonas conocidas que no son nombre de municipio (Teide/Anaga cruzan varios).
 ZONAS_ALIAS = {
     "Parque Nacional del Teide": ["teide"],
     "Macizo de Anaga": ["anaga"],

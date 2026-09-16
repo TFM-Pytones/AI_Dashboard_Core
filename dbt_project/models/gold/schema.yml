@@ -57,6 +57,16 @@ models:
         description: "Distancia mínima a la línea de costa en kilómetros."
         tests:
           - not_null
+      - name: tiempo_aeropuerto_min
+        description: "Tiempo de conducción por carretera en minutos al aeropuerto más cercano (MIN entre TFS y TFN via OpenRouteService)."
+      - name: aeropuerto_mas_cercano
+        description: "Código IATA del aeropuerto con menor tiempo de conducción ('TFS' o 'TFN')."
+      - name: tiempo_teide_min
+        description: "Tiempo de conducción en minutos a la estación base del Teleférico del Teide via OpenRouteService."
+      - name: dist_hospital_km
+        description: "Distancia euclidiana mínima en kilómetros al centro hospitalario o de urgencias más cercano (OSM)."
+      - name: dist_parada_cercana_m
+        description: "Distancia geodésica exacta en metros a la parada de guagua TITSA más cercana."
       - name: geometry
         description: "Geometría poligonal PostGIS (SRID 4326) del hexágono H3."
         tests:
@@ -279,3 +289,79 @@ models:
         description: "Operaciones aéreas comerciales procesadas en el mes."
         tests:
           - not_null
+
+  - name: gold_sentimiento_h3
+    description: "Agregación por celda H3 del sentimiento general multilingüe (1 a 5) y aspecto modal principal (PyABSA) de reseñas de Booking y TripAdvisor."
+    columns:
+      - name: h3_index
+        description: "Identificador hexadecimal único del hexágono Uber H3 Resolución 8."
+        tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('silver_h3_grid')
+                field: h3_index
+      - name: sentimiento_medio
+        description: "Puntuación media de sentimiento multilingüe (1.00 a 5.00) de las opiniones en la celda."
+      - name: n_resenas
+        description: "Número total de reseñas distintas agregadas en el hexágono."
+      - name: n_resenas_booking
+        description: "Número de reseñas de Booking.com en la celda."
+      - name: n_resenas_tripadvisor
+        description: "Número de reseñas de TripAdvisor en la celda."
+      - name: queja_principal
+        description: "Aspecto o queja modal más frecuente normalizada (ej. 'limpieza', 'ruido', 'precio')."
+
+  - name: gold_topicos_h3
+    description: "Agregación por celda H3 de los tópicos de BERTopic para fuentes con coordenadas exactas (Booking y TripAdvisor)."
+    columns:
+      - name: h3_index
+        description: "Identificador hexadecimal único del hexágono Uber H3 Resolución 8."
+        tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('silver_h3_grid')
+                field: h3_index
+      - name: n_opiniones
+        description: "Número total de opiniones asignadas a un tema válido en el hexágono."
+      - name: n_topicos_distintos
+        description: "Número de tópicos diferentes detectados en la celda."
+      - name: topic_id_principal
+        description: "Identificador numérico del tópico dominante en la celda."
+      - name: topico_principal
+        description: "Etiqueta descriptiva en español generada por LLM para el tópico dominante."
+      - name: n_opiniones_principal
+        description: "Número de opiniones que respaldan el tema dominante."
+      - name: topicos_top3
+        description: "Array JSONB con el ranking top 3 de temas de la celda (topic_id, label, n)."
+
+  - name: gold_topicos_municipio
+    description: "Agregación municipal canónica (31 municipios) de tópicos de BERTopic integrando reseñas y foros de LosViajeros georreferenciados."
+    columns:
+      - name: municipio
+        description: "Nombre oficial normalizado del término municipal."
+        tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('gold_municipio_master')
+                field: municipio
+      - name: n_opiniones
+        description: "Volumen total de opiniones y comentarios sobre el municipio."
+      - name: n_topicos_distintos
+        description: "Número de tópicos diferentes identificados en el municipio."
+      - name: topic_id_principal
+        description: "ID del tema dominante en el municipio."
+      - name: topico_principal
+        description: "Etiqueta descriptiva en español del tema dominante en el municipio."
+      - name: n_opiniones_principal
+        description: "Volumen de opiniones que respaldan el tema dominante."
+      - name: topicos_top3
+        description: "Array JSONB con el ranking de los 3 tópicos más tratados en el municipio."
+      - name: fuentes
+        description: "Objeto JSONB con el recuento de opiniones aportadas por cada fuente ('booking', 'tripadvisor', 'losviajeros_message')."
+

@@ -70,19 +70,18 @@ start
 |----------|------------------|-------------|
 | `run_heavy_ml` | `false` | Activar tasks de GPU (sentiment, aspects, topics) |
 
-### ⚠️ Caso Especial: Histórico de Clima (Agrocabildo)
+### ⚡ Ingesta de Clima vía CKAN (Agrocabildo)
 
-El script `clima_historical_upload_blob.py` descarga el histórico desde 2019 de 56 estaciones, lo cual **puede tardar hasta una semana** debido a la lentitud de la API del Cabildo. 
-**No se recomienda correr esto de forma síncrona dentro de Airflow** para no bloquear el worker. El protocolo operativo es:
-1. Delegar esta tarea a una **Máquina Virtual (MV)** independiente: ejecutar el script manualmente dejándolo en segundo plano (`tmux` o `nohup`). El script tiene autoguardado (`backfill_progress.json`).
-2. En la interfaz de Airflow, seleccionar la caja de la tarea `ingest_clima_historico` y marcarla manualmente como **"Success"**. Esto permite que el resto del pipeline histórico (Postgres, dbt) continúe sin esperar una semana.
-3. El día a día (DAG 2) no tiene este problema, ya que usa una versión rápida que solo consulta el último mes.
+El histórico meteorológico y la ingesta incremental han sido migrados al catálogo abierto **CKAN del Cabildo** (`clima_ckan_bulk_upload_blob.py` y `clima_realtime_upload_blob.py`):
+1. **Histórico Masivo**: Pasa de tardar 7-10 días a solo **minutos** mediante volcados JSON anuales consolidados por estación, eliminando el bloqueo del worker.
+2. **Incremental Mensual**: Descarga concurrente multi-hilo del año corriente en **~30-50 segundos** con deduplicación y particionado Hive en Azure Blob Storage.
+3. **Carga en PostgreSQL**: Se procesa directamente mediante streaming `COPY` con `PyArrow` en segundos.
 
 ---
 
 ## DAG 2 — `incremental_monthly_pipeline`
 
-**Cuándo ejecutar**: Automáticamente el **día 1 de cada mes a las 06:00**.
+**Cuándo ejecutar**: Automáticamente el **día 5 de cada mes a las 06:00** (para dar margen a que los portales oficiales como ISTAC y Copernicus consoliden y publiquen los datos del mes vencido).
 
 **Fuentes actualizadas**:
 - ✅ Satélite (GEE — nuevas imágenes del mes anterior)

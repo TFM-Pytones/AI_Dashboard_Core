@@ -2,7 +2,7 @@ version: 2
 
 models:
   - name: silver_estaciones_agrocabildo
-    description: "Red oficial de estaciones meteorológicas del Cabildo Insular de Tenerife (Agrocabildo), georreferenciadas con elevación y metadatos operativos."
+    description: "Red oficial de estaciones meteorológicas del Cabildo Insular de Tenerife (Agrocabildo) con fecha de instalación anterior o igual al 01/01/2022 (57 estaciones maduras), georreferenciadas con elevación y metadatos operativos para garantizar series históricas continuas y sin huecos."
     columns:
       - name: id_estacion
         description: "Identificador numérico único de la estación agrometeorológica."
@@ -35,7 +35,7 @@ models:
           - not_null
 
   - name: silver_clima_agrocabildo
-    description: "Series temporales meteorológicas horarias de Agrocabildo (temperatura, humedad, viento, precipitación y radiación solar) filtradas a horas en punto y depuradas de fallos de sensorización."
+    description: "Series temporales meteorológicas horarias de Agrocabildo (temperatura, humedad, viento, precipitación y radiación solar) de las 57 estaciones maduras (instaladas <= 2022-01-01), filtradas a horas en punto y depuradas de fallos de sensorización."
     columns:
       - name: id_estacion
         description: "Identificador de la estación sensora; clave foránea a silver_estaciones_agrocabildo."

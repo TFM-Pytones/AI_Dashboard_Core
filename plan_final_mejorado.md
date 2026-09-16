@@ -79,7 +79,7 @@ La capa Silver tiene la siguiente estructura final (tras consolidación).
 | Modelo | Descripción | Estado |
 |---|---|---|
 | `silver_booking_establishments` | Establecimientos de Booking. `geometry` PostGIS. Deduplicación y enriquecimiento de coordenadas con geocodificador. | Completo |
-| `silver_booking_reviews` | Reseñas de texto de Booking. **Sin agregar** (1 fila = 1 reseña). Flag `periodo_covid`. Campo `longitud_texto`. Filtra reseñas vacías. | Completo |
+| `silver_booking_reviews` | Reseñas de texto de Booking. **Sin agregar** (1 fila = 1 reseña). Campo `longitud_texto`. Filtra reseñas vacías. | Completo |
 
 ### espacial/
 | Modelo | Descripción | Estado |
@@ -124,14 +124,14 @@ La capa Silver tiene la siguiente estructura final (tras consolidación).
 |---|---|---|
 | `silver_youtube` | Métricas agregadas por vídeo (engagement, nº comentarios válidos). Para el Dashboard de engagement. | Completo |
 | `silver_losviajeros` | Métricas agregadas por hilo del foro. Para el Dashboard de engagement. | Completo |
-| `silver_youtube_comentarios` | **Sin agregar** (1 fila = 1 comentario). Flag `periodo_covid`. Para el Squad NLP. | Completo |
-| `silver_losviajeros_mensajes` | **Sin agregar** (1 fila = 1 mensaje). Flag `periodo_covid`. Para el Squad NLP. | Completo |
+| `silver_youtube_comentarios` | **Sin agregar** (1 fila = 1 comentario). Para el Squad NLP. | Completo |
+| `silver_losviajeros_mensajes` | **Sin agregar** (1 fila = 1 mensaje). Para el Squad NLP. | Completo |
 
 ### tripadvisor/
 | Modelo | Descripción | Estado |
 |---|---|---|
 | `silver_tripadvisor_ubicaciones` | Establecimientos con `geometry` PostGIS e índice GIST. | Completo |
-| `silver_tripadvisor_resenas` | Reseñas (1 fila = 1 reseña). Flag `periodo_covid`. Filtra reseñas vacías. | Completo |
+| `silver_tripadvisor_resenas` | Reseñas (1 fila = 1 reseña). Filtra reseñas vacías. | Completo |
 
 ---
 
@@ -237,7 +237,7 @@ GROUP BY h.h3_index
 
 ### Subtarea 1.3 — Agregar valoraciones de Booking y TripAdvisor (Separadas y Métricas Unificadas)
 - **Fuentes Silver:** `silver.booking_establishments` + `silver.booking_reviews` | `silver.tripadvisor_ubicaciones` + `silver.tripadvisor_resenas`
-- **Técnica:** JOIN establishments → reviews → ST_Contains con `h3_grid`. Filtro temporal `>= 2022` y exclusión de `periodo_covid`.
+- **Técnica:** JOIN establishments → reviews → ST_Contains con `h3_grid`. Filtro temporal `>= 2022`.
 - **Métricas Separadas y Consolidadas:**
   - **Booking:** `n_establecimientos_booking`, `rating_booking_medio` (escala 1-10), `n_reviews_booking`.
   - **TripAdvisor:** `n_establecimientos_tripadvisor`, `rating_tripadvisor_medio` (escala 1-5), `n_reviews_tripadvisor`.
@@ -251,7 +251,7 @@ booking AS (
         h.h3_index,
         COUNT(DISTINCT e.establishment_id) AS n_establecimientos_booking,
         ROUND(AVG(r.rating)::numeric, 2) AS rating_booking_medio,
-        COUNT(r.review_id) FILTER (WHERE NOT r.periodo_covid) AS n_reviews_booking
+        COUNT(r.review_id) AS n_reviews_booking
     FROM h3 h
     LEFT JOIN silver.booking_establishments e ON ST_Contains(h.geometry, e.geometry)
     LEFT JOIN silver.booking_reviews r ON r.establishment_id = e.establishment_id
@@ -262,7 +262,7 @@ tripadvisor AS (
         h.h3_index,
         COUNT(DISTINCT e.location_id) AS n_establecimientos_tripadvisor,
         ROUND(AVG(r.rating)::numeric, 2) AS rating_tripadvisor_medio,
-        COUNT(r.review_id) FILTER (WHERE NOT r.periodo_covid) AS n_reviews_tripadvisor
+        COUNT(r.review_id) AS n_reviews_tripadvisor
     FROM h3 h
     LEFT JOIN silver.tripadvisor_ubicaciones e ON ST_Contains(h.geometry, e.geometry)
     LEFT JOIN silver.tripadvisor_resenas r ON r.location_id = e.location_id

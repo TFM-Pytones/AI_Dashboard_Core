@@ -99,13 +99,23 @@ with DAG(
             ),
         )
 
+        ingest_clima_metadatos = BashOperator(
+            task_id="ingest_clima_metadatos",
+            bash_command=(
+                f"{PYTHON} {REPO_ROOT}/ingestion/clima/"
+                "clima_metadatos_upload_blob.py"
+            ),
+        )
+
         ingest_clima = BashOperator(
             task_id="ingest_clima_historico",
             bash_command=(
                 f"{PYTHON} {REPO_ROOT}/ingestion/clima/"
-                "clima_historical_upload_blob.py"
+                "clima_ckan_bulk_upload_blob.py --years 2019-2026 --upload-blob --no-local"
             ),
         )
+
+        ingest_clima_metadatos >> ingest_clima
 
         ingest_gtfs = BashOperator(
             task_id="ingest_gtfs",
@@ -422,6 +432,14 @@ with DAG(
         dbt_gold_turismo_mensual = BashOperator(
             task_id="gold_turismo_hotelero_mensual",
             bash_command=f"{DBT_CMD} --select gold_turismo_hotelero_mensual",
+        )
+        dbt_gold_topicos_h3 = BashOperator(
+            task_id="gold_topicos_h3",
+            bash_command=f"{DBT_CMD} --select gold_topicos_h3",
+        )
+        dbt_gold_topicos_municipio = BashOperator(
+            task_id="gold_topicos_municipio",
+            bash_command=f"{DBT_CMD} --select gold_topicos_municipio",
         )
 
     # ─── END ──────────────────────────────────────────────────────────────────

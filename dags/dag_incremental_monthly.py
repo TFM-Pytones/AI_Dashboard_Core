@@ -3,7 +3,7 @@ dag_incremental_monthly.py
 ─────────────────────────────────────────────────────────────────────────────
 DAG: incremental_monthly_pipeline
 Propósito: Actualización mensual automática de las fuentes que cambian
-            cada mes. Se ejecuta el día 1 de cada mes a las 06:00.
+            cada mes. Se ejecuta el día 5 de cada mes a las 06:00.
 
 Fuentes actualizadas:
   - satélite    → sentinel2_upload_blob.py (nuevo mes de imágenes GEE)
@@ -82,7 +82,7 @@ with DAG(
         "Actualización mensual: satélite, ISTAC, clima, alojamientos + "
         "AENA (con flag manual) → postgres → dbt silver → analytics → dbt gold"
     ),
-    schedule="0 6 3 * *",  # Día 3 de cada mes a las 06:00
+    schedule="0 6 5 * *",  # Día 5 de cada mes a las 06:00
     start_date=datetime(2024, 1, 1),
     catchup=False,
     default_args=DEFAULT_ARGS,
@@ -127,7 +127,7 @@ with DAG(
         ingest_clima = BashOperator(
             task_id="ingest_clima_realtime",
             bash_command=(
-                f"{PYTHON} {REPO_ROOT}/ingestion/clima/clima_realtime_upload_blob.py"
+                f"{PYTHON} {REPO_ROOT}/ingestion/clima/clima_realtime_upload_blob.py --auto"
             ),
         )
 

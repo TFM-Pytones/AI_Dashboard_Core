@@ -109,6 +109,11 @@ st.markdown(
     [data-testid="stMain"] {
         background: linear-gradient(180deg, #fefefe 0%, #f4f6fb 100%);
     }
+
+    /* Sliders: espacio superior suficiente para que el número flotante (stThumbValue) no se corte por arriba */
+    div[data-testid="stSlider"] {
+        padding-top: 0.75rem;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -285,6 +290,7 @@ def page_resumen() -> None:
 
 
 def page_mapa() -> None:
+    st.markdown("<div style='margin-top: 1.5rem;'></div>", unsafe_allow_html=True)
     with st.sidebar:
         st.subheader("Filtros del mapa")
         show_hexagons = st.checkbox("Mostrar capa de hexágonos", value=False)
@@ -330,6 +336,7 @@ def page_mapa() -> None:
 
 
 def page_tabla() -> None:
+    st.markdown("<div style='margin-top: 1.5rem;'></div>", unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     tabla_municipio = col1.selectbox(
         "Municipio", ["Todos"] + list_municipios(full_gdf), key="tabla_municipio"

@@ -20,3 +20,13 @@ sources:
         description: "Corpus fragmentado y enriquecido con municipio/zona/h3_index/fecha para el RAG (analytics/rag/build_chunks.py, ver plan_rag.md)."
       - name: geo_mentions
         description: "Lugar detectado en cada mensaje de LosViajeros por coincidencia con gazetteer (analytics/geo/extract_toponyms.py). Da nombre de lugar, no coordenadas."
+
+  - name: gold_accesibilidad
+    schema: gold
+    description: >
+      Tabla de accesibilidad territorial generada por OpenRouteService y PostGIS
+      (analytics/accesibilidad/gold_h3_accesibilidad.py). Contiene tiempos de conducción a 18 polos,
+      distancias a hospitales y conteo de paradas de bus a pie por celda H3.
+    tables:
+      - name: gold_h3_accesibilidad
+        description: "Variables de accesibilidad y fricción espacial por celda H3."

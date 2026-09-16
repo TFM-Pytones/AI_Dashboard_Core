@@ -26,7 +26,6 @@ comentarios AS (
         comment_id,
         video_id,
         published_at::date  AS fecha_comentario,
-        author              AS autor,
         "text"              AS texto,
         like_count          AS likes_comentario,
         LENGTH("text")      AS longitud_texto

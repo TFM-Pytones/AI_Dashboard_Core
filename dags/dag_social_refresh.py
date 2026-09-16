@@ -248,6 +248,14 @@ with DAG(
             task_id="gold_municipio_master",
             bash_command=f"{DBT_CMD} --select gold_municipio_master",
         )
+        gold_topicos_h3 = BashOperator(
+            task_id="gold_topicos_h3",
+            bash_command=f"{DBT_CMD} --select gold_topicos_h3",
+        )
+        gold_topicos_municipio = BashOperator(
+            task_id="gold_topicos_municipio",
+            bash_command=f"{DBT_CMD} --select gold_topicos_municipio",
+        )
 
     end = EmptyOperator(task_id="end")
 
