@@ -1,23 +1,6 @@
 version: 2
 
 models:
-  - name: silver_losviajeros
-    description: "Hilos de discusión y foros temáticos sobre Tenerife extraídos de la comunidad de viajeros LosViajeros.com."
-    columns:
-      - name: tema_id
-        description: "Identificador unívoco del tema o hilo de debate."
-        tests:
-          - unique
-          - not_null
-      - name: titulo_tema
-        description: "Título del hilo de conversación del foro."
-        tests:
-          - not_null
-      - name: url
-        description: "Enlace URL canónico del hilo."
-        tests:
-          - not_null
-
   - name: silver_losviajeros_mensajes
     description: "Mensajes y opiniones individuales de los foros de LosViajeros.com, preparados para análisis de procesamiento de lenguaje natural (NLP)."
     columns:
