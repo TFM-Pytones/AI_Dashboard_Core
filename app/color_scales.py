@@ -48,6 +48,12 @@ ACCENT_RANKING_TURISTICA = "#d97706"  # amber -- tourism volume
 ACCENT_RANKING_VALORADAS = "#7c3aed"  # purple -- quality/rating
 ACCENT_RANKING_CALUROSAS = "#dc2626"  # red -- heat
 
+# Panel de detalle (mapa, al clicar un hexágono): pareja de acento propia,
+# más llamativa que el navy/gris apagado que se usaba antes -- distingue
+# "este hexágono" del resto/la media de un vistazo.
+ACCENT_DETALLE_SELECCIONADO = "#db2777"  # magenta vivo -- el hexágono en foco
+ACCENT_DETALLE_MEDIA = "#f59e0b"  # ámbar vivo -- el resto / la media del municipio
+
 
 def _hex_to_rgb(hex_color: str) -> list[int]:
     hex_color = hex_color.lstrip("#")

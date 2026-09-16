@@ -2,7 +2,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from app.color_scales import SEQUENTIAL_TEAL
+from app.color_scales import ACCENT_DETALLE_MEDIA, ACCENT_DETALLE_SELECCIONADO, SEQUENTIAL_TEAL
 from app.ui_helpers import add_chart_motion, format_metric
 
 # (column, label, kind, help) -- kind drives number formatting (see
@@ -194,7 +194,7 @@ def render_detail_panel(gdf: pd.DataFrame, selected_h3_index: str | None) -> Non
             x="aspecto",
             y="n_hexagonos",
             color="es_seleccionado",
-            color_discrete_map={True: "#1e3a8a", False: "#d1d5db"},
+            color_discrete_map={True: ACCENT_DETALLE_SELECCIONADO, False: ACCENT_DETALLE_MEDIA},
             title=f"Aspectos más mencionados en {row['municipio']}",
         )
         add_chart_motion(fig)
@@ -211,7 +211,7 @@ def render_detail_panel(gdf: pd.DataFrame, selected_h3_index: str | None) -> Non
             y="valor",
             color="serie",
             facet_col="metrica",
-            color_discrete_map={"Este hexágono": "#1e3a8a", "Media del municipio": "#d1d5db"},
+            color_discrete_map={"Este hexágono": ACCENT_DETALLE_SELECCIONADO, "Media del municipio": ACCENT_DETALLE_MEDIA},
             title=f"Este hexágono vs. media de {row['municipio']}",
             labels={"valor": "", "serie": ""},
         )
