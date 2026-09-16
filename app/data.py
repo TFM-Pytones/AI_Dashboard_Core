@@ -103,7 +103,18 @@ def adjust_coastal_distance(gdf: pd.DataFrame, edge_km: float = H3_RES8_EDGE_KM)
 
 @st.cache_resource
 def get_engine() -> Engine:
-    return create_engine(os.environ["AZURE_DB_URL"])
+    return create_engine(
+        os.environ["AZURE_DB_URL"],
+        pool_pre_ping=True,
+        pool_recycle=300,
+        connect_args={
+            "connect_timeout": 15,
+            "keepalives": 1,
+            "keepalives_idle": 30,
+            "keepalives_interval": 10,
+            "keepalives_count": 5,
+        },
+    )
 
 
 @st.cache_data
