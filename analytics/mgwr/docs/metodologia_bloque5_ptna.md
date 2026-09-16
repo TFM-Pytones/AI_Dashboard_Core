@@ -70,7 +70,7 @@ de variables (incluirla habría descartado incorrectamente la mayoría del datas
 cobertura, no de calidad). Para el ajuste del modelo, los valores faltantes se imputan con la mediana,
 igual que el resto de variables.
 
-**Casos de `confianza_ptna = 'baja'` (107/2579, 4.1%).** Se marcan por dos criterios independientes,
+**Casos de `confianza_ptna = 'baja'` (259/2579, 10.0%).** Se marcan por tres criterios independientes,
 no excluyentes entre sí:
 1. **Periferia geográfica + bandwidth chico**: hexágonos en el borde del rango geográfico de la isla
    cuyo coeficiente de `dist_costa_km` o `dist_parada_cercana_m` cae en el percentil 1 o 99 — zonas
@@ -80,6 +80,29 @@ no excluyentes entre sí:
    compuesto de varias dimensiones geográficas relacionadas (litoralidad, clima, protección ambiental,
    accesibilidad). Esto genera coeficientes inestables en 2 zonas geográficas compactas y bien
    pobladas (no periféricas), que se marcan aparte del criterio anterior.
+3. **Bandwidth casi-global (Hallazgo 12)**: al inspeccionar `bandwidths_full` del checkpoint MGWR v3
+   ajustado, 9 de las 14 variables X (`slope_mean`, `dist_hospital_km`, `pct_area_enp`,
+   `temp_media_anual`, `lluvia_mm_anual`, `dist_parada_cercana_m`, `tiempo_aeropuerto_min`,
+   `dist_costa_km`, `sentimiento_medio`) quedaron con un bandwidth óptimo de 2573 vecinos sobre un
+   techo de N=2579 (99.8% del dataset) — muy por encima del umbral de saturación fijado en el 90% de
+   N (2321.1 vecinos). Las otras 5 variables (`ndvi_medio`=198, `altitud_media_m`=138,
+   `n_restaurantes`=177, `n_naturaleza`=132, `n_cultura`=960) quedaron con ventanas mucho más chicas
+   y genuinamente locales. Este criterio es **conceptualmente distinto** a los dos anteriores: no es
+   "coeficiente ruidoso por pocos vecinos" (criterio 1, Hallazgo 4 — bandwidth chico) ni "coeficiente
+   inestable por colinealidad con ventana local real" (criterio 2, Hallazgo 11). Con un bandwidth casi
+   global, el kernel adaptativo del MGWR promedia casi toda la isla para estimar el coeficiente local
+   de esa variable en ese hexágono — la varianza del estimador debería ser *baja* (todo lo contrario de
+   un problema de inestabilidad), pero el coeficiente deja de representar una relación local genuina:
+   el modelo lo trató, en la práctica, como un efecto casi global constante, y el valor extremo en
+   percentil 1/99 solo refleja el 0.2% de vecinos que sí cambia según dónde esté el hexágono. Por el
+   mismo motivo **no se aplica el filtro de periferia** a este criterio (criterios 1 y 2 solo excluyen
+   o incluyen según cercanía al borde del mapa): el vecindario de estas 9 variables es casi toda la
+   isla, exactamente lo opuesto de "pocos vecinos reales concentrados de un lado" — exigir periferia
+   aquí descartaría el hallazgo por el motivo equivocado. Cifras: 217/2579 hexágonos (8.4%) caen en
+   percentil 1/99 de al menos una de estas 9 variables; de esos, 152 no estaban ya cubiertos por los
+   criterios 1 y 2, y son los que este tercer criterio suma de nuevo a `confianza_ptna='baja'` (de 107
+   a 259 en total). Implementado en `calcular_h3_confianza_baja_bandwidth`,
+   `analytics/mgwr/scripts/05_ptna_score.py`.
 
 ## 4. Resultado
 
@@ -101,27 +124,32 @@ La distribución es muy asimétrica hacia la derecha: la mediana está cerca de 
 residuo), pero una cola larga de hexágonos con oportunidad alta concentra la mayor parte de la señal
 útil para inversión.
 
-**Top de oportunidades con `confianza_ptna = 'normal'`** (hallazgo presentable sin salvedades):
+**Top de oportunidades con `confianza_ptna = 'normal'`** (hallazgo presentable sin salvedades; tabla
+actualizada tras sumar el criterio de bandwidth casi-global — Hallazgo 12, sección 3 — que reclasificó
+varios de los hexágonos que antes encabezaban esta lista, entre ellos los 3 primeros de la versión
+previa):
 
 | # | Hexágono | Municipio | PTNA score |
 |---|---|---|---|
-| 1 | `88344cdb1dfffff` | Puerto de la Cruz | 3.285,2 |
-| 2 | `88344125d1fffff` | Adeje | 1.315,5 |
-| 3 | `88344cdb57fffff` | Puerto de la Cruz | 1.304,2 |
-| 4 | `883441254dfffff` | Guía de Isora | 1.265,6 |
-| 5 | `88344125cbfffff` | Adeje | 1.077,4 |
-| 6 | `88344c5015fffff` | Granadilla de Abona | 1.077,0 |
-| 7 | `88344cd84bfffff` | La Orotava | 1.033,0 |
-| 8 | `88344124e9fffff` | Adeje | 935,4 |
-| 9 | `883441249bfffff` | Arona | 775,6 |
-| 10 | `88344cda0bfffff` | Santa Úrsula | 755,0 |
+| 1 | `88344125d1fffff` | Adeje | 1.315,5 |
+| 2 | `883441254dfffff` | Guía de Isora | 1.265,6 |
+| 3 | `88344125cbfffff` | Adeje | 1.077,4 |
+| 4 | `88344124e9fffff` | Adeje | 935,4 |
+| 5 | `883441249bfffff` | Arona | 775,6 |
+| 6 | `88344124e1fffff` | Adeje | 737,6 |
+| 7 | `88344122c7fffff` | Santiago del Teide | 679,2 |
+| 8 | `88344124e7fffff` | Adeje | 668,2 |
+| 9 | `88344125ddfffff` | Adeje | 650,2 |
+| 10 | `88344cdb17fffff` | Puerto de la Cruz | 639,0 |
 
-**Nota sobre los casos de confianza baja:** si se mira el top 10 sin filtrar por confianza, 4 de los
-10 hexágonos son `confianza_ptna = 'baja'` — incluido el valor más alto de todo el dataset
-(`88344c5a51fffff`, Arona, PTNA = 7.370). Estos casos no deben presentarse como oportunidades de
-inversión sin la salvedad correspondiente: su coeficiente es estadísticamente menos estable que el del
-resto del dataset, por los motivos descritos en la sección 3, y requieren una lectura más cualitativa
-antes de usarse para una decisión.
+**Nota sobre los casos de confianza baja:** si se mira el top 10 sin filtrar por confianza, 7 de los
+10 hexágonos son `confianza_ptna = 'baja'` (antes del Hallazgo 12 eran 4/10) — incluido el valor más
+alto de todo el dataset (`88344c5a51fffff`, Arona, PTNA = 7.370, ya marcado `baja` desde antes de este
+hallazgo). Estos casos no deben presentarse como oportunidades de inversión sin la salvedad
+correspondiente: su coeficiente es estadísticamente menos estable — o, en el caso del criterio de
+bandwidth casi-global, no representativo de una relación local genuina — que el del resto del dataset,
+por los motivos descritos en la sección 3, y requieren una lectura más cualitativa antes de usarse para
+una decisión.
 
 ## 5. Limitaciones conocidas
 
@@ -315,10 +343,11 @@ escala real: `esg_h3_score > 60`, combinado sin cambios con `ptna_score > 0` (es
 original sí es alcanzable: 1373/2579 hexágonos tienen `ptna_score > 0`). Con este criterio ajustado:
 **247/2579 hexágonos (9.6%)** cumplen ambas condiciones.
 
-Los hexágonos con `confianza_ptna = 'baja'` **no se excluyeron** del resultado — de los 247, 1 tiene
-`confianza_ptna='baja'`, y queda presente en la tabla con esa columna visible, para que cada consumo de
-la tabla decida si filtrarlo según el nivel de rigor que necesite (ver sección 3 de este documento para
-qué significa `confianza_ptna='baja'`).
+Los hexágonos con `confianza_ptna = 'baja'` **no se excluyeron** del resultado — de los 247, 22 tienen
+`confianza_ptna='baja'` (1 preexistente + 21 sumados al aplicar el criterio de bandwidth casi-global,
+Hallazgo 12, sección 3), y quedan presentes en la tabla con esa columna visible, para que cada consumo
+de la tabla decida si filtrarlos según el nivel de rigor que necesite (ver sección 3 de este documento
+para qué significa `confianza_ptna='baja'`).
 
 Verificación previa a la construcción: join 1:1 exacto entre `gold.gold_h3_ptna_v3` y
 `gold.gold_h3_esg_v1` por `h3_index` (2579 filas en cada tabla, sin huérfanos ni duplicados de ningún

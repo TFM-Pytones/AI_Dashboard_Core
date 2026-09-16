@@ -1,7 +1,7 @@
 # Contexto maestro — TFM AI Dashboard Tenerife: Bloque 5 (MGWR + Índice PTNA)
 
 **Fecha de creación:** 2 de septiembre de 2026
-**Última actualización:** 16 de septiembre de 2026, cierre de sesión (actualizado — decisión de Gobernanza/ESG mesomunicipal ya resuelta, y filtro combinado PTNA×ESG construido) — **empezar por la sección 0**. Resumen: Subtareas 5.1 y 5.2 cerradas (v3, `gold.gold_h3_ptna_v3` subida a Postgres, 1373/2579 con `ptna_score>0`, 107/2579 con `confianza_ptna='baja'`). Subtarea 5.3 **cerrada por completo**: dimensión microespacial H3 (`gold.gold_h3_esg_v1`, ver sección 5), dimensión mesomunicipal (`gold.gold_bloque5_municipio_esg_v1`, Opción C — reconstrucción con variables propias, ver sección 0), y el filtro combinado PTNA×ESG de interpretabilidad para TUI (`gold.gold_bloque5_h3_oportunidad_v1`, 247/2579 hexágonos, umbral `esg_h3_score>60` corregido — el `>75` del plan era inalcanzable). Subtarea 5.4 sin empezar. Ver sección 0 para el estado completo y qué falta antes de retomar en una conversación nueva.
+**Última actualización:** 16 de septiembre de 2026, cierre de sesión (actualizado — decisión de Gobernanza/ESG mesomunicipal ya resuelta, filtro combinado PTNA×ESG construido, y tercer criterio de `confianza_ptna` por saturación de bandwidth implementado, Hallazgo 12) — **empezar por la sección 0**. Resumen: Subtareas 5.1 y 5.2 cerradas (v3, `gold.gold_h3_ptna_v3` subida a Postgres, 1373/2579 con `ptna_score>0`, **259/2579 con `confianza_ptna='baja'`** tras sumar el Hallazgo 12 a los 2 criterios anteriores). Subtarea 5.3 **cerrada por completo**: dimensión microespacial H3 (`gold.gold_h3_esg_v1`, ver sección 5), dimensión mesomunicipal (`gold.gold_bloque5_municipio_esg_v1`, Opción C — reconstrucción con variables propias, ver sección 0), y el filtro combinado PTNA×ESG de interpretabilidad para TUI (`gold.gold_bloque5_h3_oportunidad_v1`, 247/2579 hexágonos, umbral `esg_h3_score>60` corregido — el `>75` del plan era inalcanzable). Subtarea 5.4 sin empezar. Ver sección 0 para el estado completo y qué falta antes de retomar en una conversación nueva.
 **Propósito de este documento:** contexto técnico completo y autosuficiente del Bloque 5 (`gold_h3_ptna`), para retomar el trabajo en conversaciones nuevas sin necesidad de re-explicar nada desde cero. Sigue el mismo patrón que `contexto_maestro_proyecto.md` (Booking, issue #12).
 
 Para el panorama general del repo (equipo, otras fuentes, infraestructura Azure) usar `contexto_maestro_repo.md` — este documento se enfoca solo en el Bloque 5.
@@ -20,10 +20,12 @@ Para el panorama general del repo (equipo, otras fuentes, infraestructura Azure)
   185.9–345.8).
 - **Subtarea 5.2 (modelo MGWR + PTNA)**: corrido (v3, 28.5 min), checkpoint con `params`/`predy` sin
   `ENP_j`/`CCT` (decisión de costo/beneficio, Hallazgo 9). `ptna_score` y `confianza_ptna` calculados
-  con 2 criterios independientes: periferia geográfica (Hallazgo 4) + clúster de colinealidad de
-  `altitud_media_m` (Hallazgo 11). Subido a Postgres como `gold.gold_h3_ptna_v3`. **1.373/2.579
-  hexágonos con `ptna_score > 0`**, **107/2.579 (4.1%) con `confianza_ptna = 'baja'`** (verificado
-  contra la tabla real, no estimado).
+  con **3 criterios independientes** (unión, sin doble conteo): periferia geográfica (Hallazgo 4) +
+  clúster de colinealidad de `altitud_media_m` (Hallazgo 11) + saturación de bandwidth casi-global en 9
+  de las 14 variables X (Hallazgo 12, ver más abajo). Subido a Postgres como `gold.gold_h3_ptna_v3`.
+  **1.373/2.579 hexágonos con `ptna_score > 0`**, **259/2.579 (10.0%) con `confianza_ptna = 'baja'`**
+  (verificado contra la tabla real, no estimado; sube de 107 a 259 por el Hallazgo 12, `ptna_score` sin
+  cambios — diff=0.0 en las 2579 filas).
 - **ESG microespacial H3**: `gold.gold_h3_esg_v1` en Postgres. Capeo en p95 aplicado a
   `densidad_plazas_km2` antes de normalizar (winsorización simple, mismo criterio de percentiles que
   `confianza_ptna`). Hallazgo documentado: el pilar **G (Gobernanza)** tiene señal real en muy pocos
@@ -59,21 +61,41 @@ Para el panorama general del repo (equipo, otras fuentes, infraestructura Azure)
   Decisión del equipo: umbral absoluto ajustado `esg_h3_score > 60` (no percentil dinámico), combinado
   con `ptna_score > 0` sin cambios; hexágonos con `confianza_ptna='baja'` **no excluidos**, quedan
   marcados para que cada consumo decida. **Resultado**: `gold.gold_bloque5_h3_oportunidad_v1`, 2579
-  filas totales, **247/2579 (9.6%) con `es_oportunidad_ideal=true`** (1 de ellos con
-  `confianza_ptna='baja'`), concentrados en La Orotava/Los Realejos/Adeje. Detalle completo en
+  filas totales, **247/2579 (9.6%) con `es_oportunidad_ideal=true`** (22 de ellos con
+  `confianza_ptna='baja'` tras el Hallazgo 12 — 1 preexistente + 21 nuevos, ver bullet siguiente),
+  concentrados en La Orotava/Los Realejos/Adeje. Detalle completo en
   `analytics/mgwr/docs/metodologia_bloque5_ptna.md`, sección 7.
+- **Hallazgo 12 — tercer criterio de `confianza_ptna`, saturación de bandwidth (post-implementación,
+  16-sep-2026)**: al investigar el "segundo clúster de inestabilidad" pendiente (corredor de 26
+  hexágonos de `dist_parada_cercana_m` en Santa Úrsula/La Victoria de Acentejo/La Matanza de
+  Acentejo/El Sauzal/La Orotava, ver Hallazgo 11 más abajo), se encontró que la causa NO es la misma que
+  `altitud_media_m` (colinealidad expresándose en un clúster compacto y bien poblado) — es un mecanismo
+  distinto: **9 de las 14 variables X** (`slope_mean`, `dist_hospital_km`, `pct_area_enp`,
+  `temp_media_anual`, `lluvia_mm_anual`, `dist_parada_cercana_m`, `tiempo_aeropuerto_min`,
+  `dist_costa_km`, `sentimiento_medio`) quedaron con bandwidth=2573 de un techo de N=2579 (99.8%,
+  prácticamente toda la isla como vecindario) — el kernel adaptativo las trata como casi-globales, y sus
+  coeficientes en percentil 1/99 no reflejan inestabilidad (varianza baja, esperable con bandwidth tan
+  grande) sino que dejan de capturar variación local genuina en esa zona. VIF global de
+  `dist_parada_cercana_m` = 2.5 (bajo, descarta colinealidad); vecindario real = 2573/2573 (100%) con
+  peso>0 (descarta escasez de vecinos/periferia). Cuantificado antes de implementar: 217/2579 (8.4%)
+  hexágonos en extremo de al menos una de las 9 variables, 152 de ellos sin cobertura por los 2
+  criterios existentes. **Implementado** en `calcular_h3_confianza_baja_bandwidth`,
+  `analytics/mgwr/scripts/05_ptna_score.py` — unión sin filtro de periferia (no aplica: vecindario casi
+  total, lo opuesto de escasez). **Resultado verificado en Postgres**: `confianza_ptna='baja'` sube de
+  107 a **259/2579 (10.0%)**; `ptna_score` sin cambios (diff=0.0 en las 2579 filas, solo se tocó la
+  columna `confianza_ptna`); de los 247 hexágonos de `es_oportunidad_ideal=true`, 22 quedan con
+  `confianza_ptna='baja'` (21 nuevos, incluye 2 casos de `ptna_score` muy alto en La Orotava que antes
+  se reportaban sin ninguna salvedad). Detalle completo en
+  `analytics/mgwr/docs/metodologia_bloque5_ptna.md`, sección 3 ("Casos de `confianza_ptna='baja'`"), y
+  en este mismo documento, sección 6, `### Hallazgo 12`.
 
 ### ⏳ Pendiente — en orden de urgencia
 
 1. **Subtarea 5.4 (elasticidades)**: sin empezar. Candidata a quedar fuera o como trabajo futuro
    documentado si no alcanza el tiempo antes del jueves.
-2. **Segundo clúster de inestabilidad sin diagnosticar a fondo**: 26 hexágonos en el corredor Santa
-   Úrsula → La Victoria de Acentejo → La Matanza de Acentejo → El Sauzal muestran el mismo patrón que
-   `altitud_media_m` (coeficientes de `dist_parada_cercana_m` casi congelados entre sí). Identificado,
-   no investigado, no bloqueante.
-3. **Redacción de metodología/limitaciones del TFM**: el documento técnico
+2. **Redacción de metodología/limitaciones del TFM**: el documento técnico
    (`analytics/mgwr/docs/metodologia_bloque5_ptna.md`) ya cubre 5.1/5.2 y el ESG completo (H3 +
-   mesomunicipal, sección 6) — pendiente solo la integración final en la memoria del TFM.
+   mesomunicipal, sección 6/7) — pendiente solo la integración final en la memoria del TFM.
 
 ### 📁 Archivos y tablas clave
 
@@ -611,9 +633,27 @@ La corrida real del v3 (14 variables, ver Hallazgo 10) terminó OK en 28.5 min. 
 
 El patrón se sostiene para ambas — comparable al v1 (33/2579, 1.3%, con `n_paradas_bus_500m`) y al v2 con este mismo par de variables (52/2579, 2.02%; overlap de 49/52 hexágonos entre v2 y v3, mismo conjunto en más del 94% de los casos). Nota aparte, no bloqueante: `dist_costa_km` tiene un ajuste casi perfecto a periferia (98.1%) mientras que solo la mitad de los extremos de `dist_parada_cercana_m` son periféricos (48.1%) — el criterio igual filtra correctamente a los 25 que sí lo son, pero significa que la otra mitad de su inestabilidad viene de algo no-periférico que este criterio no captura (no investigado más, fuera del alcance de este rediagnóstico). Con esto confirmado, se reemplazó `n_paradas_bus_500m` por `dist_parada_cercana_m` en `CONFIANZA_BAJA_VARIABLES`.
 
-**Seguimiento (16-sep-2026, sobre `gold_h3_ptna_v3.parquet` ya generado, sin recalcular nada)**: se investigó dónde están geográficamente los 27 hexágonos no-periféricos de `dist_parada_cercana_m` (los que quedaron fuera del 48.1% de arriba). **26 de los 27 forman un corredor geográfico compacto y contiguo** — Santa Úrsula → La Victoria de Acentejo → La Matanza de Acentejo → El Sauzal (norte de Tenerife, valle entre La Orotava y La Laguna) — con coeficientes casi congelados entre -7.86 y -7.87 (variación casi nula entre 26 hexágonos), la misma firma que los 2 clusters de `altitud_media_m` de más arriba, no ruido aleatorio. El hexágono restante (`88344c5127fffff`, Arona, coef=-15.24) es un outlier aislado, geográficamente lejos de ese corredor. **Posible tercer cluster de inestabilidad sin diagnosticar todavía** (no investigado a fondo — VIF/vecinos locales pendientes, no urgente, queda como pista para retomar).
+**Seguimiento (16-sep-2026, sobre `gold_h3_ptna_v3.parquet` ya generado, sin recalcular nada)**: se investigó dónde están geográficamente los 27 hexágonos no-periféricos de `dist_parada_cercana_m` (los que quedaron fuera del 48.1% de arriba). **26 de los 27 forman un corredor geográfico compacto y contiguo** — Santa Úrsula → La Victoria de Acentejo → La Matanza de Acentejo → El Sauzal (norte de Tenerife, valle entre La Orotava y La Laguna) — con coeficientes casi congelados entre -7.86 y -7.87 (variación casi nula entre 26 hexágonos), la misma firma que los 2 clusters de `altitud_media_m` de más arriba, no ruido aleatorio. El hexágono restante (`88344c5127fffff`, Arona, coef=-15.24) es un outlier aislado, geográficamente lejos de ese corredor. **Posible tercer cluster de inestabilidad, diagnosticado y resuelto — ver Hallazgo 12 más abajo.**
 
-**Top 10 del `gold_h3_ptna_v3.parquet` real (16-sep-2026)**: de los 4 hexágonos de `confianza_ptna='baja'` que aparecen en el top 10 por `ptna_score`, **3 caen por el criterio de cluster de altitud (Hallazgo 11)** — `88344c5a51fffff` (Arona), `88344c5a49fffff` (Adeje), `88344124a3fffff` (Adeje) — y **1 por periferia clásica en ambas variables a la vez** — `88344c51e1fffff` (Arona, `dist_costa_km` y `dist_parada_cercana_m`). El top 10 filtrado a solo `confianza_ptna='normal'` (hallazgo presentable sin salvedades) está encabezado por `88344cdb1dfffff` (Puerto de la Cruz, ptna_score=3285.2).
+**Top 10 del `gold_h3_ptna_v3.parquet` real (16-sep-2026, ANTES del Hallazgo 12)**: de los 4 hexágonos de `confianza_ptna='baja'` que aparecen en el top 10 por `ptna_score`, **3 caen por el criterio de cluster de altitud (Hallazgo 11)** — `88344c5a51fffff` (Arona), `88344c5a49fffff` (Adeje), `88344124a3fffff` (Adeje) — y **1 por periferia clásica en ambas variables a la vez** — `88344c51e1fffff` (Arona, `dist_costa_km` y `dist_parada_cercana_m`). El top 10 filtrado a solo `confianza_ptna='normal'` (hallazgo presentable sin salvedades) está encabezado por `88344cdb1dfffff` (Puerto de la Cruz, ptna_score=3285.2). **Nota (post-Hallazgo 12):** este top 10 no cambia — ninguno de los 10 hexágonos ahí listados es alcanzado por el criterio nuevo, pero el top de `gold.gold_bloque5_h3_oportunidad_v1` (que cruza con el ESG) sí tiene 21 casos nuevos marcados, ver Hallazgo 12.
+
+### Hallazgo 12 — Saturación de bandwidth en 9 de las 14 variables X: tercer criterio de `confianza_ptna` (16-sep-2026, dataset v3, CONFIRMADO, implementado)
+
+Investigación de solo lectura sobre el checkpoint v3 ya guardado (sin re-correr el modelo), a partir del "posible tercer cluster" dejado pendiente en el Seguimiento de arriba.
+
+**1. El corredor real de `dist_parada_cercana_m` no son 26 hexágonos en 4 municipios, son 26 en 5**: al recalcular sin asumir la lista original, se sumó **La Orotava** (1 hexágono, contiguo al borde del corredor) — La Matanza de Acentejo (8), Santa Úrsula (7), El Sauzal (6), La Victoria de Acentejo (4), La Orotava (1). El hexágono 27 (`88344c5127fffff`, Arona) queda confirmado como un caso aparte, cola opuesta de la distribución (percentil 1, no 99), sin relación con el corredor.
+
+**2. Causa descartada**: no es colinealidad como `altitud_media_m` (Hallazgo 11). VIF global de `dist_parada_cercana_m` = 2.515 (bajo — muy distinto del 13.4 de altitud). Correlación local dentro del corredor, repartida entre varias variables, ninguna >0.8. Tampoco es escasez de vecinos (Hallazgo 4/periferia): vecindario real = 2573/2573 (100%) con peso>0 en los 26 hexágonos.
+
+**3. Causa real — bandwidth casi-global**: `dist_parada_cercana_m` tiene bandwidth=2573 de un techo teórico de N=2579 (kernel adaptativo) — prácticamente toda la isla como vecindario. Esto produce un "techo" (plateau) en el cuartil superior de la distribución del coeficiente EN TODA LA ISLA (P75→max comprimido en solo 0.57 unidades sobre un rango total de ~7.6), y el corredor de 26 hexágonos es la manifestación geográfica contigua de ese techo, no un clúster de inestabilidad real.
+
+**4. El fenómeno no es exclusivo de `dist_parada_cercana_m`**: al revisar `bandwidths_full` del checkpoint completo, **9 de las 14 variables X** comparten ese mismo bandwidth casi-máximo (umbral fijado en ≥90% de N = 2321.1): `slope_mean`, `dist_hospital_km`, `pct_area_enp`, `temp_media_anual`, `lluvia_mm_anual`, `dist_parada_cercana_m`, `tiempo_aeropuerto_min`, `dist_costa_km`, `sentimiento_medio` — las 9 con bandwidth=2573 exacto. Las otras 5 (`ndvi_medio`=198, `altitud_media_m`=138, `n_restaurantes`=177, `n_naturaleza`=132, `n_cultura`=960) tienen ventanas genuinamente locales.
+
+**5. Cuantificación antes de implementar** (mismo criterio p1/p99, sin filtro de periferia, por variable): las 9 dan 52 hexágonos extremos cada una (consistente con percentil 1/99 sobre N=2579). Unión sin doble conteo: **217/2579 (8.4%)** hexágonos únicos en extremo de al menos una de las 9. De esos, **152 no estaban cubiertos** por los 2 criterios existentes (unión de periferia + cluster altitud = 107). Concentración geográfica: 12 municipios, top-3 (Santa Cruz de Tenerife 62, La Orotava 40, Buenavista del Norte/Arona 26 c/u) concentran 59% — no es un único corredor lineal como el de `dist_parada_cercana_m` solo, sino 2-3 focos grandes (Santa Cruz de Tenerife, y el eje La Orotava/Santa Úrsula/La Matanza/El Sauzal) más una cola de municipios con pocos casos.
+
+**Decisión tomada**: implementar un tercer criterio, `calcular_h3_confianza_baja_bandwidth` (`analytics/mgwr/scripts/05_ptna_score.py`), unión sin filtro de periferia (no aplica: vecindario casi total, lo opuesto de "pocos vecinos en el borde del mapa" que busca el criterio de periferia). Conceptualmente distinto a los otros 2: no es "coeficiente ruidoso por pocos vecinos" (Hallazgo 4) ni "coeficiente inestable por colinealidad con ventana local real" (Hallazgo 11) — con bandwidth tan grande la varianza del estimador debería ser *baja*; el problema es que el coeficiente deja de representar una relación local genuina, el modelo lo trata casi como efecto global ahí.
+
+**Verificación de escritura en Postgres** (dos chequeos previos al UPDATE, pedidos explícitamente antes de escribir): (a) confirmado que `es_oportunidad_ideal` en `gold.gold_bloque5_h3_oportunidad_v1` sigue siendo exactamente `ptna_score > 0 AND esg_h3_score > 60`, sin relación con `confianza_ptna`, 247/2579 sin cambios; (b) diff completo antes/después confirmando que la ÚNICA columna que cambia en `gold_h3_ptna_v3` y en `gold_bloque5_h3_oportunidad_v1` es `confianza_ptna`, en exactamente 152 de las 2579 filas (todas `normal→baja`, ninguna al revés), `ptna_score` con diferencia máxima 0.0. **Resultado final en Postgres**: `confianza_ptna='baja'` sube de 107 a **259/2579 (10.0%)**; de los 247 hexágonos con `es_oportunidad_ideal=true`, **22 quedan con `confianza_ptna='baja'`** (1 preexistente + 21 nuevos), incluidos 2 casos con `ptna_score` muy alto en La Orotava (362.6 y 444.0) que antes se reportaban como oportunidad sin ninguna salvedad.
 
 ## 7. Brechas de datos — estado actualizado (15-sep-2026)
 
@@ -629,6 +669,7 @@ El patrón se sostiene para ambas — comparable al v1 (33/2579, 1.3%, con `n_pa
 10. **Nuevo (15-sep-2026)** — `LinAlgError` en la búsqueda de bandwidth sobre la submuestra (`_bw_search_worker`), causado por `lluvia_mm_anual`/`tiempo_teide_min`/`tiempo_aeropuerto_min`/`tiempo_polo_turistico_min` con varianza local ~0 en bandwidths chicos. Ver Hallazgo 8. Resuelto (`init_multi=n_sub`).
 11. **Nuevo (16-sep-2026)** — Multicolinealidad severa entre `tiempo_teide_min`/`tiempo_aeropuerto_min`/`tiempo_polo_turistico_min` (VIF 185.9-345.8). Ver Hallazgo 10. Resuelto (excluir 2 de las 3, conservar `tiempo_aeropuerto_min`) — falta correr el v3 con las 14 variables.
 12. **Nuevo (16-sep-2026)** — `altitud_media_m` con VIF moderado (13.4) tras el fix de Hallazgo 10, inestabilidad local en 2 clusters geográficos compactos (no periféricos). Ver Hallazgo 11. Resuelto (se mantiene en el modelo, criterio nuevo de `confianza_ptna` sin filtro de periferia).
+13. **Nuevo (16-sep-2026)** — 9 de las 14 variables X con bandwidth casi-global (2573/2579), produciendo un "techo" de coeficiente que se manifestaba como el corredor de `dist_parada_cercana_m` dejado pendiente en el Hallazgo 11. Ver Hallazgo 12. Resuelto (tercer criterio de `confianza_ptna`, `calcular_h3_confianza_baja_bandwidth`, sin filtro de periferia; `confianza_ptna='baja'` sube de 107 a 259/2579; `ptna_score` sin cambios).
 
 **Ningún bloqueante activo a la fecha (16-sep-2026).**
 
@@ -649,6 +690,7 @@ El patrón se sostiene para ambas — comparable al v1 (33/2579, 1.3%, con `n_pa
 - **[16-sep-2026]** Índice ESG H3 (`gold.gold_h3_esg_v1`) construido con MinMax + ponderación equal-weight dentro de cada pilar (asunción explícita, no especificada por el plan), `densidad_plazas_km2` capeada en p95 antes de normalizar, y el pilar G dejado sin ajustar por ser escasez estructural de dato, no un problema de normalización — ver sección 5 para el detalle completo.
 - **[16-sep-2026]** ESG mesomunicipal — resuelta la "DECISIÓN ABIERTA" (Gobernanza mesomunicipal sin datos, fecha límite original mañana al mediodía) con **Opción C: reconstrucción con variables propias**, en vez de la Opción B original (eliminar Gobernanza y reponderar E/S) o de quedarse solo con el proxy de ratio de hoteles. Cada variable de reemplazo pasó verificación individual contra Postgres (cobertura 31 municipios, VIF umbral 10, capeo p95 donde correspondía) antes de incorporarse. Se detectó además que el pilar E dependía en solitario de `pob_turistica_equiv` con cobertura real de solo 6/31 municipios — se completó con 5 variables adicionales de `gold_h3_master` en vez de excluir el pilar o reponderar ignorándolo. Resultado: `gold.gold_bloque5_municipio_esg_v1`, 31/31 municipios sin `NULL`s — ver sección 0 y `metodologia_bloque5_ptna.md` sección 6 para el detalle completo.
 - **[16-sep-2026]** Filtro combinado PTNA×ESG para TUI — construido y verificado el cruce descrito como objetivo final de interpretabilidad de la Subtarea 5.3, que nunca se había implementado. Se detectó que la columna `esg_territorial_score` que menciona el plan no existe (nombre real `esg_h3_score`) y que los umbrales `esg_score > 75` (Subtarea 5.3) y `> 80` (Subtarea 9.2, Bloque 9, no tocada) son inalcanzables — máximo real de `esg_h3_score` = 68.55. Se ajustó a umbral absoluto `esg_h3_score > 60` (decisión explícita del equipo, no percentil dinámico) combinado con `ptna_score > 0`, sin excluir `confianza_ptna='baja'` (queda como columna informativa). Resultado: `gold.gold_bloque5_h3_oportunidad_v1`, 247/2579 hexágonos con `es_oportunidad_ideal=true` — ver sección 0 y `metodologia_bloque5_ptna.md` sección 7 para el detalle completo.
+- **[16-sep-2026]** Hallazgo 12 — tercer criterio de `confianza_ptna` por saturación de bandwidth. Investigando el corredor de `dist_parada_cercana_m` dejado pendiente en el Hallazgo 11, se encontró que 9 de las 14 variables X tienen bandwidth≈N (2573/2579, casi-global) — mecanismo distinto a colinealidad (Hallazgo 11, VIF alto) o escasez de vecinos (Hallazgo 4, periferia): con bandwidth tan grande la varianza del estimador es baja, pero el coeficiente deja de capturar variación local genuina. Cuantificado antes de implementar (217/2579 en el peor caso, 152 nuevos no cubiertos) y verificado con 2 chequeos explícitos antes del UPDATE real (lógica de `es_oportunidad_ideal` intacta, diff completo confirmando que solo `confianza_ptna` cambia). Implementado en `calcular_h3_confianza_baja_bandwidth` (`05_ptna_score.py`), unión sin filtro de periferia. `confianza_ptna='baja'` sube de 107 a 259/2579 (10.0%); `ptna_score` sin cambios (diff=0.0); de los 247 en `es_oportunidad_ideal=true`, 22 quedan con confianza baja (21 nuevos) — ver sección 0 y Hallazgo 12 más arriba para el detalle completo.
 
 ## 9. Próximos pasos
 
