@@ -12,9 +12,9 @@ ptna_score > 0 -> el hexagono "deberia" tener mas plazas hoteleras segun sus
 ptna_score < 0 -> zona sobre-explotada -> riesgo de overtourism.
 
 NOTA SOBRE `confianza_ptna` (diagnostico de estabilidad de coeficientes,
-union de 2 criterios distintos, cada uno de una sesion de diagnostico
+union de 3 criterios distintos, cada uno de una sesion de diagnostico
 aparte sobre el .pkl ya generado): `ptna_score` NO cambia por ninguno de
-los dos -- `confianza_ptna` es puramente informativa, para que quien lea
+los tres -- `confianza_ptna` es puramente informativa, para que quien lea
 el top-10 sepa si algun "mejor candidato" tiene esta salvedad antes de
 reportarlo como hallazgo solido sin mas contexto.
 
@@ -44,12 +44,53 @@ reportarlo como hallazgo solido sin mas contexto.
   vecinos como el caso de arriba. Mismo percentil extremo, pero SIN el
   filtro de periferia (no aplica -- estos hexagonos dieron
   periferico=False). Ver `calcular_h3_confianza_baja_cluster`.
+- **Criterio bandwidth casi-global (Hallazgo 12, dataset v3)**: diagnostico
+  aparte (misma sesion) sobre `model["bandwidths_full"]` del checkpoint ya
+  ajustado (`ptna_mgwr_model_v3_checkpoint.pkl` / `ptna_mgwr_model_v3.pkl`,
+  verificado que son el mismo array) encontro que 9 de las 14 variables X
+  quedaron con bandwidth optimo pegado al techo del kernel adaptativo: 2573
+  vecinos sobre un techo de N=2579 (99.8% del dataset), vs. las otras 5
+  variables (`ndvi_medio`=198, `altitud_media_m`=138, `n_restaurantes`=177,
+  `n_naturaleza`=132, `n_cultura`=960) que quedaron con ventanas mucho mas
+  chicas y genuinamente locales. Esto es DISTINTO, conceptualmente, a los
+  otros 2 criterios de arriba:
+    - No es "coeficiente ruidoso/inestable por pocos vecinos" (eso es lo que
+      busca el criterio periferia, Hallazgo 4 -- bandwidth CHICO + pocos
+      vecinos reales). Aca es lo opuesto: bandwidth casi-global, con la
+      varianza del estimador GWR bajando cuanto mas grande el bandwidth (mas
+      observaciones promediadas). El problema no es "estimador ruidoso", es
+      "el coeficiente ya no captura variacion local genuina en esa zona -- el
+      kernel adaptativo eligio tratar la variable casi como un efecto global
+      constante en toda la isla para ese hexagono, indistinguible de un OLS
+      global salvo por el 0.2% de vecinos mas lejanos que caen fuera de la
+      ventana". El coeficiente en el percentil 1/99 no refleja una relacion
+      local real, sino el residuo de que ese 0.2% de vecinos SI cambia segun
+      donde este el hexagono.
+    - Por eso tampoco es igual al criterio cluster (Hallazgo 11, VIF
+      moderado con bandwidth chico/local de 138): alli la inestabilidad viene
+      de colinealidad entre variables geograficas relacionadas, con una
+      ventana local real. Aca no hay colinealidad senalada como causa -- es
+      el propio proceso de seleccion de bandwidth (golden section search
+      sobre AICc) el que convergio a un optimo casi-global para estas 9
+      variables especificas.
+    - NO se aplica filtro de periferia (`_es_periferico`) a este criterio: el
+      vecindario de estas 9 variables es casi TODA la isla (2573/2579 con
+      peso>0), exactamente lo opuesto de "pocos vecinos reales concentrados
+      de un lado" que busca ese filtro. Exigir periferia aca no tendria
+      sentido conceptual y descartaria el hallazgo por el motivo equivocado.
+  Cifras de la investigacion previa (misma sesion, sobre este mismo
+  checkpoint): 217/2579 hexagonos (8.4%) caen en percentil 1/99 de al menos
+  una de estas 9 variables; de esos, 152 no estaban ya cubiertos por los 2
+  criterios existentes (periferia + cluster) -- son los que este tercer
+  criterio suma de nuevo a `confianza_ptna='baja'`. Ver
+  `calcular_h3_confianza_baja_bandwidth`.
 
 Uso:
     python 05_ptna_score.py
 """
 
 import argparse
+import logging
 import pickle
 import sys
 import time
@@ -90,6 +131,49 @@ CONFIANZA_BAJA_MARGEN_PERIFERICO = 0.05  # 5% del rango lon/lat del dataset
 # diagnostico real). Ver calcular_h3_confianza_baja_cluster.
 CONFIANZA_BAJA_VARIABLES_CLUSTER = ["altitud_media_m"]
 CONFIANZA_BAJA_CLUSTER_PERCENTILES = (1, 99)
+
+# Hallazgo 12 (dataset v3): diagnostico aparte de model["bandwidths_full"]
+# (checkpoint ya ajustado, ptna_mgwr_model_v3_checkpoint.pkl / _v3.pkl --
+# verificado que son el mismo array) encontro que estas 9 de las 14
+# variables X quedaron con bandwidth optimo pegado al techo del kernel
+# adaptativo (2573 vecinos sobre un techo de N=2579, 99.8% del dataset),
+# a diferencia de las otras 5 (ndvi_medio=198, altitud_media_m=138,
+# n_restaurantes=177, n_naturaleza=132, n_cultura=960) que quedaron con
+# ventanas chicas y genuinamente locales. Con un bandwidth tan grande el
+# kernel adaptativo trata la variable casi como un efecto global constante
+# para casi toda la isla -- el coeficiente en percentil 1/99 no refleja
+# inestabilidad del estimador (con tantos vecinos promediados la varianza
+# deberia ser BAJA, al reves que en el criterio cluster de arriba), sino que
+# el coeficiente no esta capturando variacion local genuina en esa zona. Por
+# eso este criterio es CONCEPTUALMENTE DISTINTO a los otros 2 -- no es
+# "coeficiente ruidoso por pocos vecinos" (periferia, Hallazgo 4) ni
+# "coeficiente inestable por colinealidad con ventana local real" (cluster,
+# Hallazgo 11) -- ver nota extensa arriba en el modulo. Tampoco se aplica
+# filtro de periferia: el vecindario de estas 9 variables es casi TODA la
+# isla (2573/2579 con peso>0), lo opuesto de "pocos vecinos concentrados de
+# un lado" que busca ese filtro. Investigacion previa (misma sesion, sobre
+# este checkpoint): 217/2579 hexagonos en percentil 1/99 de al menos una de
+# estas 9 variables, de los cuales 152 no estaban cubiertos por los otros 2
+# criterios. Ver calcular_h3_confianza_baja_bandwidth.
+CONFIANZA_BAJA_VARIABLES_BANDWIDTH = [
+    "slope_mean",
+    "dist_hospital_km",
+    "pct_area_enp",
+    "temp_media_anual",
+    "lluvia_mm_anual",
+    "dist_parada_cercana_m",
+    "tiempo_aeropuerto_min",
+    "dist_costa_km",
+    "sentimiento_medio",
+]
+CONFIANZA_BAJA_BANDWIDTH_PERCENTILES = (1, 99)
+# Porcentaje de N (numero de hexagonos del modelo) usado para definir un
+# bandwidth como "saturado"/casi-global. N=2579 en el checkpoint v3 ->
+# umbral=2321.1; las 9 variables de arriba dieron bandwidth=2573 (>= umbral),
+# las otras 5 dieron entre 132 y 960 (muy por debajo). Explicito aca (no
+# hardcodeado en el cuerpo de la funcion) para que quede claro de donde sale
+# el corte si se recalcula contra un checkpoint distinto en el futuro.
+CONFIANZA_BAJA_BANDWIDTH_PCT = 0.9
 
 
 def _es_periferico(lon, lat, lon_min, lon_max, lat_min, lat_max, margen_pct):
@@ -196,6 +280,81 @@ def calcular_h3_confianza_baja_cluster(model):
     return h3_confianza_baja, detalle_por_variable
 
 
+def calcular_h3_confianza_baja_bandwidth(model):
+    """
+    Hallazgo 12 (dataset v3): union, sobre CONFIANZA_BAJA_VARIABLES_BANDWIDTH,
+    de los hexagonos cuyo coeficiente local esta en percentil 1 o 99 -- SIN
+    filtro de periferia, igual que calcular_h3_confianza_baja_cluster.
+
+    Motivo del criterio (ver nota extensa al inicio del modulo y el comentario
+    junto a CONFIANZA_BAJA_VARIABLES_BANDWIDTH): estas variables quedaron con
+    bandwidth optimo pegado al techo del kernel adaptativo (~99.8% de N), por
+    lo que el modelo las trata casi como efectos globales -- el coeficiente
+    extremo no representa una relacion local real ni un estimador inestable
+    (con tantos vecinos promediados la varianza del estimador deberia ser
+    BAJA, al reves que en el criterio cluster de altitud_media_m). Es un
+    mecanismo distinto a los otros 2 criterios, por eso vive en su propia
+    funcion en vez de sumarse a alguna de las anteriores.
+
+    El umbral de "saturado" (bandwidth >= CONFIANZA_BAJA_BANDWIDTH_PCT * N) se
+    recalcula aca contra el N real del modelo (no se hardcodea el 2579 del
+    checkpoint actual). CONFIANZA_BAJA_VARIABLES_BANDWIDTH es la lista ya
+    confirmada (9 variables, ver comentario arriba) pero si en el futuro se
+    corre este calculo contra un checkpoint distinto (modelo re-ajustado) y
+    la lista de variables que superan el umbral cambia, se emite un warning
+    para que quede documentado que el modelo cambio -- no se usa la lista
+    recalculada para el filtro sin revisión manual, para no alterar el
+    criterio de forma silenciosa.
+
+    Recalcula el conjunto de hexagonos solo (no hardcodea por h3_index) -- si
+    el modelo cambia, el percentil 1/99 se rehace solo sobre las variables de
+    CONFIANZA_BAJA_VARIABLES_BANDWIDTH.
+    """
+    feature_names = model["feature_names"]
+    params = model["params"]
+    h3_model = model["h3_index"]
+    bandwidths_full = model.get("bandwidths_full")
+
+    faltantes = [v for v in CONFIANZA_BAJA_VARIABLES_BANDWIDTH if v not in feature_names]
+    if faltantes:
+        raise RuntimeError(
+            f"Las variables {faltantes} (usadas para confianza_ptna, criterio bandwidth/Hallazgo 12) "
+            f"no estan en feature_names del modelo: {feature_names}."
+        )
+
+    if bandwidths_full is not None:
+        umbral_bandwidth = CONFIANZA_BAJA_BANDWIDTH_PCT * len(h3_model)
+        bw_by_name = dict(zip(feature_names, np.asarray(bandwidths_full).flatten()))
+        saturadas_recalculadas = sorted(
+            v for v in feature_names if v != "intercept" and bw_by_name.get(v, 0) >= umbral_bandwidth
+        )
+        if sorted(CONFIANZA_BAJA_VARIABLES_BANDWIDTH) != saturadas_recalculadas:
+            logging.getLogger(SCRIPT_NAME).warning(
+                "El checkpoint cargado da una lista de variables con bandwidth >= %.1f%% de N "
+                "distinta a CONFIANZA_BAJA_VARIABLES_BANDWIDTH (hardcodeada, confirmada sobre el "
+                "checkpoint del Hallazgo 12). Esperada: %s. Recalculada: %s. El modelo probablemente "
+                "cambio -- revisar si corresponde actualizar la constante.",
+                CONFIANZA_BAJA_BANDWIDTH_PCT * 100,
+                sorted(CONFIANZA_BAJA_VARIABLES_BANDWIDTH), saturadas_recalculadas,
+            )
+
+    coef_df = pd.DataFrame(params, columns=feature_names)
+    coef_df["h3_index"] = h3_model
+
+    p_bajo, p_alto = CONFIANZA_BAJA_BANDWIDTH_PERCENTILES
+    h3_confianza_baja = set()
+    detalle_por_variable = {}
+    for var in CONFIANZA_BAJA_VARIABLES_BANDWIDTH:
+        coef = coef_df[var].values
+        p1 = np.percentile(coef, p_bajo)
+        p99 = np.percentile(coef, p_alto)
+        extremos = coef_df.loc[(coef <= p1) | (coef >= p99), "h3_index"]
+        detalle_por_variable[var] = len(extremos)
+        h3_confianza_baja.update(extremos)
+
+    return h3_confianza_baja, detalle_por_variable
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Calcula ptna_score y produce el dataset final del Bloque 5")
     parser.add_argument(
@@ -273,10 +432,22 @@ def main():
         for var, n in detalle_confianza_cluster.items():
             logger.info("  %s: %d hexagonos extremos (p1/p99), colinealidad global moderada (VIF>10)", var, n)
 
-        h3_confianza_baja = h3_confianza_baja_periferia | h3_confianza_baja_cluster
-        detalle_confianza = {**detalle_confianza_periferia, **detalle_confianza_cluster}
         logger.info(
-            "Total hexagonos marcados confianza_ptna='baja' (union de ambos criterios, sin doble conteo): %d",
+            "Calculando confianza_ptna, criterio bandwidth casi-global/Hallazgo 12 (variables=%s, "
+            "percentiles=%s, SIN filtro de periferia, umbral=%.0f%% de N)...",
+            CONFIANZA_BAJA_VARIABLES_BANDWIDTH, CONFIANZA_BAJA_BANDWIDTH_PERCENTILES,
+            CONFIANZA_BAJA_BANDWIDTH_PCT * 100,
+        )
+        h3_confianza_baja_bandwidth, detalle_confianza_bandwidth = calcular_h3_confianza_baja_bandwidth(model)
+        for var, n in detalle_confianza_bandwidth.items():
+            logger.info("  %s: %d hexagonos extremos (p1/p99), bandwidth casi-global", var, n)
+
+        h3_confianza_baja = h3_confianza_baja_periferia | h3_confianza_baja_cluster | h3_confianza_baja_bandwidth
+        detalle_confianza = {
+            **detalle_confianza_periferia, **detalle_confianza_cluster, **detalle_confianza_bandwidth,
+        }
+        logger.info(
+            "Total hexagonos marcados confianza_ptna='baja' (union de los 3 criterios, sin doble conteo): %d",
             len(h3_confianza_baja),
         )
 
@@ -346,7 +517,7 @@ def main():
     print(f"Hexagonos con ptna_score > 0 (oportunidad): {n_positive}")
     print(f"Hexagonos con ptna_score < 0 (sobre-explotado): {n_negative}")
     print(
-        f"Hexagonos con confianza_ptna='baja' (union de 2 criterios distintos, sin doble conteo): "
+        f"Hexagonos con confianza_ptna='baja' (union de 3 criterios distintos, sin doble conteo): "
         f"{n_confianza_baja} / {len(result_df)} ({n_confianza_baja / len(result_df) * 100:.1f}%)"
     )
     print(f"  Criterio periferia (Hallazgo 4: bandwidth chico + zona periferica del mapa):")
@@ -354,6 +525,9 @@ def main():
         print(f"    - {var}: {n} hexagonos")
     print(f"  Criterio cluster (Hallazgo 11: colinealidad global moderada, VIF>10, sin filtro de periferia):")
     for var, n in detalle_confianza_cluster.items():
+        print(f"    - {var}: {n} hexagonos")
+    print(f"  Criterio bandwidth casi-global (Hallazgo 12: bandwidth >= {CONFIANZA_BAJA_BANDWIDTH_PCT*100:.0f}% de N, sin filtro de periferia):")
+    for var, n in detalle_confianza_bandwidth.items():
         print(f"    - {var}: {n} hexagonos")
     if n_missing_score:
         print(f"AVISO: {n_missing_score} filas sin match de h3_index entre dataset y modelo.")
