@@ -18,4 +18,4 @@ update-checker==0.18.0  # pin necesario: la 1.0.0 rompe metric_visualizer (depen
 
 # NLP / Modelado de topicos (analytics/topics) - Issue #19
 bertopic>=0.16.0
-sentence-transformers>=3.0.0
+sentence-transformers==3.3.1  # pin: >=3.0.0 resolves to 6.x, which forces transformers>=5.0.0 and conflicts with the transformers==4.57.1 pin above

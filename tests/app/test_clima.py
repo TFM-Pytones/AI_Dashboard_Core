@@ -1,6 +1,6 @@
 import pandas as pd
 
-from app.clima import CLIMATE_VARIABLES, climate_by_trimestre
+from app.clima import CLIMATE_VARIABLES, climate_by_trimestre, climate_value_anual
 
 
 def _gdf():
@@ -11,6 +11,7 @@ def _gdf():
             "temp_media_q2": [20.0, 22.0],
             "temp_media_q3": [24.0, 26.0],
             "temp_media_q4": [19.0, 21.0],
+            "temp_media_anual": [20.0, 22.0],
         }
     )
 
@@ -38,3 +39,7 @@ def test_climate_variables_each_have_a_prefix_unidad_and_help():
         assert variable["prefix"]
         assert variable["unidad"]
         assert variable["help"]
+
+
+def test_climate_value_anual_averages_across_hexagons():
+    assert climate_value_anual(_gdf(), "temp_media") == 21.0

@@ -9,7 +9,7 @@ from app.color_scales import (
     ACCENT_CLIMA_VIENTO,
     hex_to_rgba,
 )
-from app.ui_helpers import add_chart_motion, render_footer
+from app.ui_helpers import add_chart_motion
 
 # prefix: column prefix in gold_h3_master (suffixed _q1.._q4 per trimestre).
 # unidad/help: shown next to the chart so the numbers aren't left unexplained.
@@ -53,6 +53,10 @@ def climate_by_trimestre(gdf: pd.DataFrame, variable_prefix: str) -> pd.DataFram
     return pd.DataFrame(rows)
 
 
+def climate_value_anual(gdf: pd.DataFrame, variable_prefix: str) -> float:
+    return gdf[f"{variable_prefix}_anual"].mean()
+
+
 def render_clima_tab(gdf: pd.DataFrame) -> None:
     variable_label = st.selectbox("Variable climática", list(CLIMATE_VARIABLES.keys()))
     variable = CLIMATE_VARIABLES[variable_label]
@@ -60,8 +64,8 @@ def render_clima_tab(gdf: pd.DataFrame) -> None:
 
     st.caption(f"📏 Unidad: **{unidad}** — {variable['help']}")
 
-    result = climate_by_trimestre(gdf, variable["prefix"])
     color = variable["color"]
+    result = climate_by_trimestre(gdf, variable["prefix"])
     fig = px.area(
         result,
         x="trimestre",
@@ -74,4 +78,5 @@ def render_clima_tab(gdf: pd.DataFrame) -> None:
     add_chart_motion(fig)
     st.plotly_chart(fig, use_container_width=True)
 
-    render_footer("silver_clima_agrocabildo (agregado a hexágono H3)")
+    valor_anual = climate_value_anual(gdf, variable["prefix"])
+    st.caption(f"📅 La {variable_label.lower()} media anual es **{valor_anual:.1f} {unidad}**.")

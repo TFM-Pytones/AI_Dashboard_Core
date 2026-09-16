@@ -1,7 +1,7 @@
 import geopandas as gpd
 import pandas as pd
 import pydeck as pdk
-from shapely.geometry import box
+from shapely.geometry import MultiPolygon, box
 
 from app.map_layers import (
     build_deck,
@@ -9,8 +9,11 @@ from app.map_layers import (
     build_isocronas_fill_color,
     build_isocronas_layer,
     build_layer,
+    build_municipio_fill_color_column,
+    build_municipio_layer,
     legend_html,
     list_destinos,
+    municipio_legend_html,
 )
 
 
@@ -220,3 +223,71 @@ def test_legend_html_categorical_shows_a_chip_per_category():
     assert "Zona turística oficial" in html
     assert "Sin restricción" in html
     assert html.count("border-radius:3px") == 3
+
+
+def _municipio_gdf():
+    return gpd.GeoDataFrame(
+        {
+            "municipio": ["Adeje", "Arona", "Santa Cruz de Tenerife"],
+            "plazas_por_1000_hab": [0.0, 50.0, 100.0],
+            "densidad_plazas_km2": [10.0, 20.0, 30.0],
+            "crec_plazas_vv_pct": [-5.0, 0.0, 15.0],
+        },
+        geometry=[box(0, 0, 1, 1), box(1, 0, 2, 1), box(2, 0, 3, 1)],
+    )
+
+
+def test_build_municipio_fill_color_column_scales_min_to_max():
+    colors = build_municipio_fill_color_column(_municipio_gdf(), "Presión residencial")
+    assert colors.iloc[0] == [205, 226, 251]  # light end of the blue ramp
+    assert colors.iloc[2] == [13, 54, 107]  # dark end of the blue ramp
+
+
+def test_build_municipio_fill_color_column_handles_null_values():
+    gdf = _municipio_gdf()
+    gdf.loc[0, "densidad_plazas_km2"] = None
+    colors = build_municipio_fill_color_column(gdf, "Densidad turística")
+    assert colors.iloc[0] == [107, 114, 128]  # NO_DATA_COLOR
+
+
+def test_build_municipio_layer_returns_pickable_geojson_layer():
+    layer = build_municipio_layer(_municipio_gdf(), "Densidad turística")
+    assert isinstance(layer, pdk.Layer)
+    assert layer.id == "municipio"
+    assert layer.pickable is True
+    assert layer.get_fill_color == "@@=properties.fill_color"
+    assert len(layer.data["features"]) == 3
+
+
+def test_build_municipio_layer_includes_municipio_and_formatted_tooltip_value():
+    layer = build_municipio_layer(_municipio_gdf(), "Evolución de oferta VV")
+    properties = [f["properties"] for f in layer.data["features"]]
+    assert [p["municipio"] for p in properties] == ["Adeje", "Arona", "Santa Cruz de Tenerife"]
+    assert properties[0]["tooltip_value"] == "-5,0"
+
+
+def test_municipio_legend_html_shows_gradient_with_min_max_labels():
+    html = municipio_legend_html("Densidad turística", _municipio_gdf())
+    assert "linear-gradient" in html
+    assert "10" in html and "30" in html
+
+
+def test_build_municipio_layer_normalizes_mixed_geometry_types_to_multipolygon():
+    # deck.gl's GeoJsonLayer throws inside its SolidPolygonLayer sub-layer
+    # (TypeError: Cannot read properties of undefined (reading 'fill_color'))
+    # when a FeatureCollection mixes Polygon and MultiPolygon features --
+    # confirmed against gold_municipio_master, which has 29 Polygon + 2
+    # MultiPolygon rows. Every feature must come out as MultiPolygon so the
+    # layer (and therefore click-to-select) doesn't break.
+    gdf = gpd.GeoDataFrame(
+        {
+            "municipio": ["Adeje", "San Sebastián de La Gomera"],
+            "plazas_por_1000_hab": [10.0, 20.0],
+            "densidad_plazas_km2": [1.0, 2.0],
+            "crec_plazas_vv_pct": [0.0, 0.0],
+        },
+        geometry=[box(0, 0, 1, 1), MultiPolygon([box(2, 0, 3, 1), box(4, 0, 5, 1)])],
+    )
+    layer = build_municipio_layer(gdf, "Densidad turística")
+    geometry_types = {f["geometry"]["type"] for f in layer.data["features"]}
+    assert geometry_types == {"MultiPolygon"}
