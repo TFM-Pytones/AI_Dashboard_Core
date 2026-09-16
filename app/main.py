@@ -19,6 +19,7 @@ import plotly.express as px
 import streamlit as st
 
 from app.alojamiento import render_alojamiento_tab
+from app.arquetipos import render_arquetipos_tab
 from app.asistente import render_floating_assistant
 from app.clima import render_clima_tab
 from app.color_scales import RESTRICTION_COLOR_MAP_HEX
@@ -28,6 +29,8 @@ from app.data import (
     list_municipios,
     load_accesibilidad,
     load_aena_pasajeros,
+    load_esg,
+    load_h3_clusters,
     load_h3_master,
     load_isocronas,
     load_municipio_anual,
@@ -35,11 +38,14 @@ from app.data import (
     load_municipio_master,
     load_municipio_mensual,
     load_nlp_chunks,
+    load_oportunidad,
+    load_ptna,
     load_sentimiento,
     load_topicos_municipio,
     load_turismo_hotelero_anual,
     load_turismo_hotelero_mensual,
     merge_accesibilidad,
+    merge_clusters_and_analytics,
     merge_h3_data,
 )
 from app.detail_panel import render_detail_panel
@@ -172,9 +178,14 @@ with st.spinner("Cargando datos del dashboard..."):
     turismo_hotelero_anual = load_turismo_hotelero_anual(engine)
     turismo_hotelero_mensual = load_turismo_hotelero_mensual(engine)
     aena_pasajeros = load_aena_pasajeros(engine)
+    clusters = load_h3_clusters(engine)
+    ptna = load_ptna(engine)
+    esg = load_esg(engine)
+    oportunidad = load_oportunidad(engine)
 
     full_gdf = merge_h3_data(h3_master, sentimiento)
     full_gdf = merge_accesibilidad(full_gdf, accesibilidad)
+    full_gdf = merge_clusters_and_analytics(full_gdf, clusters, ptna, esg, oportunidad)
 
 
 def page_resumen() -> None:
@@ -252,6 +263,13 @@ def page_resumen() -> None:
             "Mapa",
             "Colorea Tenerife hexágono a hexágono: densidad hotelera, sentimiento, accesibilidad y más.",
             f"{len(METRICS)} capas de color",
+        ),
+        (
+            nav_arquetipos,
+            "🎯",
+            "Oportunidades TUI",
+            "Matriz estratégica Eje 1 (Saturación) vs Eje 2 (Rural), clústeres territoriales y 5 arquetipos de producto.",
+            "5 arquetipos de producto",
         ),
         (
             nav_tabla,
@@ -534,8 +552,18 @@ def page_turismo() -> None:
     render_turismo_tab(turismo_hotelero_anual, turismo_hotelero_mensual, aena_pasajeros)
 
 
+def page_arquetipos() -> None:
+    render_page_banner(
+        "hero_puerto_cruz.jpg",
+        "Oportunidades TUI — Arquetipos y Clústeres",
+        "Matriz Estratégica Eje 1 (Saturación continua) vs Eje 2 (Rural infrautilizado), tipología territorial y catálogo",
+    )
+    render_arquetipos_tab(full_gdf)
+
+
 nav_resumen = st.Page(page_resumen, title="Resumen", icon="📊", default=True)
 nav_mapa = st.Page(page_mapa, title="Mapa", icon="🗺️")
+nav_arquetipos = st.Page(page_arquetipos, title="Oportunidades TUI", icon="🎯")
 nav_tabla = st.Page(page_tabla, title="Tabla", icon="📋")
 nav_rankings = st.Page(page_rankings, title="Rankings", icon="🏆")
 nav_clima = st.Page(page_clima, title="Clima", icon="🌡️")
@@ -546,6 +574,7 @@ nav_turismo = st.Page(page_turismo, title="Turismo", icon="✈️")
 pages = [
     nav_resumen,
     nav_mapa,
+    nav_arquetipos,
     nav_tabla,
     nav_rankings,
     nav_clima,

@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import plotly.express as px
 import streamlit as st
@@ -172,9 +173,48 @@ def render_detail_panel(gdf: pd.DataFrame, selected_h3_index: str | None) -> Non
         st.warning("No hay datos para el hexágono seleccionado.")
         return
     row = matches.iloc[0]
-    st.subheader(f"Hexágono {selected_h3_index}")
-    for badge in restriction_badges(row):
+    st.subheader(f"Hexágono {selected_h3_index} — {row.get('municipio', '')}")
+
+    badges = restriction_badges(row)
+    tipo_zona = row.get("tipo_zona")
+    arquetipo = row.get("arquetipo_principal")
+    es_ideal = row.get("es_oportunidad_ideal", False)
+
+    # Bloque Estratégico TUI
+    with st.container(border=True):
+        st.markdown("#### 🎯 Tipología Territorial y Estrategia TUI")
+        b_col1, b_col2, b_col3, b_col4 = st.columns(4)
+        with b_col1:
+            st.markdown(f"**Clúster:** `{tipo_zona if pd.notna(tipo_zona) else 'Sin clasificar'}`")
+        with b_col2:
+            st.markdown(f"**Arquetipo TUI:** **{arquetipo if pd.notna(arquetipo) else 'No asignado'}**")
+        with b_col3:
+            eje1 = row.get("eje_1_saturacion")
+            st.markdown(f"**Eje 1 (Saturación):** `{f'{eje1:.2f}' if pd.notna(eje1) else '-'}`")
+            if pd.notna(eje1):
+                st.progress(float(np.clip(eje1, 0.0, 1.0)))
+        with b_col4:
+            eje2 = row.get("eje_2_rural_infrautilizado")
+            st.markdown(f"**Eje 2 (Rural Infra.):** `{f'{eje2:.2f}' if pd.notna(eje2) else '-'}`")
+            if pd.notna(eje2):
+                st.progress(float(np.clip(eje2, 0.0, 1.0)))
+
+        m_col1, m_col2, m_col3 = st.columns(3)
+        with m_col1:
+            ptna = row.get("ptna_score")
+            st.caption(f"📈 **PTNA Score:** {f'{ptna:.1f}' if pd.notna(ptna) else '-'}")
+        with m_col2:
+            esg = row.get("esg_h3_score")
+            st.caption(f"🌱 **Score ESG:** {f'{esg:.1f} / 100' if pd.notna(esg) else '-'}")
+        with m_col3:
+            if es_ideal:
+                st.caption("⭐ **Oportunidad Ideal TUI (PTNA + ESG)**")
+            else:
+                st.caption(f"🔒 **Restricción:** {row.get('restriction_category', 'Sin restricción')}")
+
+    for badge in badges:
         st.caption(badge)
+
     cols = st.columns(3)
     for i, (column, label, kind, help_text) in enumerate(KPI_COLUMNS):
         with cols[i % 3].container(border=True):

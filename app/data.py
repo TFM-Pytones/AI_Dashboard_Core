@@ -1,3 +1,4 @@
+import numpy as np
 import os
 
 import geopandas as gpd
@@ -35,6 +36,10 @@ NLP_CHUNKS_QUERY = """
            municipio, zona, h3_index, fecha, pais_resenante, rating, processed_at
     FROM gold.nlp_chunks
 """
+H3_CLUSTERS_QUERY = "SELECT h3_index, tipo_zona FROM gold.h3_clusters"
+H3_PTNA_QUERY = "SELECT h3_index, ptna_score, confianza_ptna FROM gold.gold_h3_ptna_v3"
+H3_ESG_QUERY = "SELECT h3_index, e_score, s_score, g_score, esg_h3_score FROM gold.gold_h3_esg_v1"
+H3_OPORTUNIDAD_QUERY = "SELECT h3_index, es_oportunidad_ideal FROM gold.gold_bloque5_h3_oportunidad_v1"
 
 # gold_h3_accesibilidad usa 999 como centinela de "destino inalcanzable" en
 # vez de NULL en las columnas tiempo_*_min (confirmado por auditoría directa
@@ -183,6 +188,161 @@ def load_topicos_municipio(_engine: Engine) -> pd.DataFrame:
 @st.cache_data
 def load_nlp_chunks(_engine: Engine) -> pd.DataFrame:
     return pd.read_sql(NLP_CHUNKS_QUERY, _engine)
+
+
+@st.cache_data
+def load_h3_clusters(_engine: Engine) -> pd.DataFrame:
+    if not inspect(_engine).has_table("h3_clusters", schema="gold"):
+        return pd.DataFrame(columns=["h3_index", "tipo_zona"])
+    df = pd.read_sql(H3_CLUSTERS_QUERY, _engine)
+    df["tipo_zona"] = df["tipo_zona"].apply(lambda x: "Transición" if "Transici" in str(x) else str(x))
+    return df
+
+
+@st.cache_data
+def load_ptna(_engine: Engine) -> pd.DataFrame:
+    if not inspect(_engine).has_table("gold_h3_ptna_v3", schema="gold"):
+        return pd.DataFrame(columns=["h3_index", "ptna_score", "confianza_ptna"])
+    return pd.read_sql(H3_PTNA_QUERY, _engine)
+
+
+@st.cache_data
+def load_esg(_engine: Engine) -> pd.DataFrame:
+    if not inspect(_engine).has_table("gold_h3_esg_v1", schema="gold"):
+        return pd.DataFrame(columns=["h3_index", "e_score", "s_score", "g_score", "esg_h3_score"])
+    return pd.read_sql(H3_ESG_QUERY, _engine)
+
+
+@st.cache_data
+def load_oportunidad(_engine: Engine) -> pd.DataFrame:
+    if not inspect(_engine).has_table("gold_bloque5_h3_oportunidad_v1", schema="gold"):
+        return pd.DataFrame(columns=["h3_index", "es_oportunidad_ideal"])
+    return pd.read_sql(H3_OPORTUNIDAD_QUERY, _engine)
+
+
+def _normalize_series(series: pd.Series) -> pd.Series:
+    s = pd.to_numeric(series, errors="coerce").fillna(0.0)
+    mn, mx = s.min(), s.max()
+    if mx > mn:
+        return (s - mn) / (mx - mn)
+    return pd.Series(0.0, index=series.index)
+
+
+def compute_strategic_axes_and_archetypes(gdf: pd.DataFrame) -> pd.DataFrame:
+    gdf = gdf.copy()
+
+    # Normalizaciones base para scoring
+    p_norm = _normalize_series(np.log1p(gdf["n_plazas_registro"].fillna(0).clip(lower=0)))
+    v_norm = _normalize_series(np.log1p(gdf["viirs_medio"].fillna(0).clip(lower=0)))
+    costa_prox = (1.0 - (gdf["dist_costa_km"].fillna(10.0) / 10.0)).clip(0.0, 1.0)
+    establ_norm = _normalize_series(np.log1p(gdf["n_establecimientos_registro"].fillna(0).clip(lower=0)))
+
+    ndvi_norm = _normalize_series(gdf["ndvi_medio"].fillna(0))
+    ndbi_norm = _normalize_series(gdf["ndbi_medio"].fillna(0))
+    ndbi_inv = (1.0 - ndbi_norm).clip(0.0, 1.0)
+
+    slope_norm = _normalize_series(gdf["slope_mean"].fillna(0))
+    alt_norm = _normalize_series(gdf["altitud_media_m"].fillna(0).clip(lower=0))
+
+    ptna_val = gdf["ptna_score"] if "ptna_score" in gdf.columns else pd.Series(0.0, index=gdf.index)
+    ptna_norm = _normalize_series(ptna_val)
+
+    esg_val = gdf["esg_h3_score"] if "esg_h3_score" in gdf.columns else pd.Series(50.0, index=gdf.index)
+    esg_norm = (pd.to_numeric(esg_val, errors="coerce").fillna(50.0) / 100.0).clip(0.0, 1.0)
+
+    cultura_norm = _normalize_series(np.log1p(gdf["n_cultura"].fillna(0)))
+    rest_norm = _normalize_series(np.log1p(gdf["n_restaurantes"].fillna(0)))
+    pois_norm = _normalize_series(np.log1p(gdf["n_pois_total"].fillna(0)))
+    nat_norm = _normalize_series(np.log1p(gdf.get("n_naturaleza", pd.Series(0.0, index=gdf.index)).fillna(0)))
+    rating_val = gdf["rating_booking_medio"].fillna(gdf["rating_booking_medio"].mean())
+    rating_norm = _normalize_series(rating_val)
+
+    # -------------------------------------------------------------
+    # Eje 1 (HDBSCAN, silhouette 0.808): Saturado <-> Transición [continuo]
+    # Mide la presión turística continua en el gradiente de masificación.
+    # -------------------------------------------------------------
+    eje1_raw = 0.45 * p_norm + 0.25 * v_norm + 0.15 * costa_prox + 0.15 * establ_norm
+    gdf["eje_1_saturacion"] = _normalize_series(eje1_raw).round(4)
+
+    # -------------------------------------------------------------
+    # Eje 2 (score compuesto): Rural Infrautilizado [0-1]
+    # Mide el potencial rural y ambiental sostenible actualmente desaprovechado.
+    # -------------------------------------------------------------
+    no_masificacion = (1.0 - p_norm).clip(0.0, 1.0)
+    eje2_raw = (
+        0.25 * ndvi_norm +
+        0.25 * ptna_norm +
+        0.20 * no_masificacion +
+        0.15 * ndbi_inv +
+        0.15 * esg_norm
+    )
+    gdf["eje_2_rural_infrautilizado"] = _normalize_series(eje2_raw).round(4)
+
+    # -------------------------------------------------------------
+    # Scores de los 5 Arquetipos de Producto Turístico TUI
+    # -------------------------------------------------------------
+    # 1. Sol y Playa Premium
+    gdf["score_sol_playa"] = _normalize_series(
+        0.40 * p_norm + 0.30 * costa_prox + 0.15 * v_norm + 0.15 * rating_norm
+    ).round(4)
+
+    # 2. Ecoturismo Rural y Medianías
+    gdf["score_ecoturismo"] = _normalize_series(
+        0.30 * ndvi_norm + 0.25 * ptna_norm + 0.25 * no_masificacion + 0.20 * esg_norm
+    ).round(4)
+
+    # 3. Cultural y Patrimonial
+    gdf["score_cultural"] = _normalize_series(
+        0.35 * cultura_norm + 0.25 * rest_norm + 0.20 * pois_norm + 0.20 * ptna_norm
+    ).round(4)
+
+    # 4. Aventura y Activo
+    gdf["score_aventura"] = _normalize_series(
+        0.35 * slope_norm + 0.30 * alt_norm + 0.20 * ndvi_norm + 0.15 * nat_norm
+    ).round(4)
+
+    # 5. Bienestar y Salud (temperatura constante ~21°C, baja estacionalidad y calma)
+    temp = gdf["temp_media_anual"].fillna(21.0)
+    temp_opt = (1.0 - (np.abs(temp - 21.0) / 10.0)).clip(0.0, 1.0)
+    gdf["score_bienestar"] = _normalize_series(
+        0.35 * temp_opt + 0.25 * no_masificacion + 0.20 * ndvi_norm + 0.20 * esg_norm
+    ).round(4)
+
+    # Arquetipo Dominante
+    arch_cols = ["score_sol_playa", "score_ecoturismo", "score_cultural", "score_aventura", "score_bienestar"]
+    arch_names = {
+        "score_sol_playa": "🏖️ Sol y Playa",
+        "score_ecoturismo": "🌿 Ecoturismo Rural",
+        "score_cultural": "🏛️ Cultural y Patrimonial",
+        "score_aventura": "🏔️ Aventura y Activo",
+        "score_bienestar": "🧘 Bienestar y Salud",
+    }
+    gdf["arquetipo_principal"] = gdf[arch_cols].idxmax(axis=1).map(arch_names)
+
+    return gdf
+
+
+def merge_clusters_and_analytics(
+    gdf: pd.DataFrame,
+    clusters_df: pd.DataFrame,
+    ptna_df: pd.DataFrame,
+    esg_df: pd.DataFrame,
+    oportunidad_df: pd.DataFrame,
+) -> pd.DataFrame:
+    merged = gdf.copy()
+    if not clusters_df.empty and "tipo_zona" in clusters_df.columns:
+        merged = merged.merge(clusters_df[["h3_index", "tipo_zona"]], on="h3_index", how="left")
+    if not ptna_df.empty:
+        ptna_cols = [c for c in ["h3_index", "ptna_score", "confianza_ptna"] if c in ptna_df.columns]
+        merged = merged.merge(ptna_df[ptna_cols], on="h3_index", how="left")
+    if not esg_df.empty:
+        esg_cols = [c for c in ["h3_index", "e_score", "s_score", "g_score", "esg_h3_score"] if c in esg_df.columns]
+        merged = merged.merge(esg_df[esg_cols], on="h3_index", how="left")
+    if not oportunidad_df.empty and "es_oportunidad_ideal" in oportunidad_df.columns:
+        merged = merged.merge(oportunidad_df[["h3_index", "es_oportunidad_ideal"]], on="h3_index", how="left")
+        merged["es_oportunidad_ideal"] = merged["es_oportunidad_ideal"].fillna(False)
+
+    return compute_strategic_axes_and_archetypes(merged)
 
 
 def compute_density_metric(gdf: pd.DataFrame) -> pd.DataFrame:

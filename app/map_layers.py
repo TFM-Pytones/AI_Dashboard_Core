@@ -6,6 +6,8 @@ import pydeck as pdk
 from shapely.geometry import MultiPolygon
 
 from app.color_scales import (
+    ARCHETYPE_COLOR_MAP_RGB,
+    CLUSTER_COLOR_MAP_RGB,
     DIVERGING_SENTIMENT_DOMAIN,
     DIVERGING_SENTIMENT_HIGH,
     DIVERGING_SENTIMENT_LOW,
@@ -15,7 +17,13 @@ from app.color_scales import (
     RESTRICTION_SIN_RESTRICCION,
     RESTRICTION_ZONA_TURISTICA,
     SEQUENTIAL_DENSITY,
+    SEQUENTIAL_EJE1,
+    SEQUENTIAL_EJE2,
+    SEQUENTIAL_ESG,
+    SEQUENTIAL_NDBI,
     SEQUENTIAL_NDVI,
+    SEQUENTIAL_PTNA,
+    SEQUENTIAL_VIIRS,
     categorical_color,
     diverging_color,
     sequential_color,
@@ -32,6 +40,44 @@ TENERIFE_VIEW_STATE = pdk.ViewState(
 )
 
 METRICS = {
+    # ── Tipología Territorial y Estrategia TUI ──
+    "Tipología Territorial (Clústeres)": {
+        "column": "tipo_zona",
+        "scale": "categorical",
+        "categories": CLUSTER_COLOR_MAP_RGB,
+    },
+    "Arquetipo TUI Óptimo": {
+        "column": "arquetipo_principal",
+        "scale": "categorical",
+        "categories": ARCHETYPE_COLOR_MAP_RGB,
+    },
+    "Eje 1: Saturación Turística (HDBSCAN)": {
+        "column": "eje_1_saturacion",
+        "scale": "sequential",
+        "ramp": SEQUENTIAL_EJE1,
+        "domain": (0.0, 1.0),
+        "format": "decimal2",
+    },
+    "Eje 2: Rural Infrautilizado [0-1]": {
+        "column": "eje_2_rural_infrautilizado",
+        "scale": "sequential",
+        "ramp": SEQUENTIAL_EJE2,
+        "domain": (0.0, 1.0),
+        "format": "decimal2",
+    },
+    "Potencial Turístico (PTNA)": {
+        "column": "ptna_score",
+        "scale": "sequential",
+        "ramp": SEQUENTIAL_PTNA,
+        "format": "decimal2",
+    },
+    "Índice ESG (Sostenibilidad)": {
+        "column": "esg_h3_score",
+        "scale": "sequential",
+        "ramp": SEQUENTIAL_ESG,
+        "format": "decimal",
+    },
+    # ── Análisis de Densidad y Oferta ──
     "Densidad hotelera": {
         "column": "densidad_metric",
         "scale": "sequential",
@@ -47,8 +93,19 @@ METRICS = {
         "scale": "sequential",
         "ramp": SEQUENTIAL_NDVI,
     },
-    # Site-selection layers (alojamiento turístico): cada una es una columna
-    # real de gold_h3_master, sin combinarlas en un índice/score inventado.
+    "Luz Nocturna (VIIRS)": {
+        "column": "viirs_medio",
+        "scale": "sequential",
+        "ramp": SEQUENTIAL_VIIRS,
+        "format": "decimal2",
+    },
+    "Urbanización (NDBI)": {
+        "column": "ndbi_medio",
+        "scale": "sequential",
+        "ramp": SEQUENTIAL_NDBI,
+        "format": "decimal2",
+    },
+    # ── Factores de Emplazamiento ──
     "Distancia a la costa": {
         "column": "dist_costa_km",
         "scale": "sequential",
@@ -73,8 +130,7 @@ METRICS = {
             "Sin restricción": RESTRICTION_SIN_RESTRICCION,
         },
     },
-    # Accesibilidad real (gold_h3_accesibilidad) -- el centinela 999 ya se
-    # limpia a NaN en app.data.clean_accesibilidad_sentinel antes de llegar aquí.
+    # ── Accesibilidad ──
     "Tiempo al aeropuerto": {
         "column": "tiempo_aeropuerto_min",
         "scale": "sequential",
@@ -98,9 +154,12 @@ def build_fill_color_column(gdf: pd.DataFrame, metric_key: str) -> pd.Series:
     values = gdf[config["column"]]
     if config["scale"] == "sequential":
         light_hex, dark_hex = config["ramp"]
-        non_null = values.dropna()
-        vmin = float(non_null.min()) if not non_null.empty else 0.0
-        vmax = float(non_null.max()) if not non_null.empty else 1.0
+        if "domain" in config:
+            vmin, vmax = config["domain"]
+        else:
+            non_null = values.dropna()
+            vmin = float(non_null.min()) if not non_null.empty else 0.0
+            vmax = float(non_null.max()) if not non_null.empty else 1.0
         return values.apply(lambda v: sequential_color(v, vmin, vmax, light_hex, dark_hex))
     if config["scale"] == "categorical":
         return values.apply(lambda v: categorical_color(v, config["categories"]))
@@ -115,7 +174,8 @@ def _tooltip_value_column(gdf: pd.DataFrame, config: dict) -> pd.Series:
     values = gdf[config["column"]]
     if config["scale"] == "categorical":
         return values.apply(lambda v: "Sin datos" if pd.isna(v) else str(v))
-    return values.apply(lambda v: "Sin datos" if pd.isna(v) else format_metric(v, "decimal"))
+    kind = config.get("format", "decimal")
+    return values.apply(lambda v: "Sin datos" if pd.isna(v) else format_metric(v, kind))
 
 
 def build_layer(
@@ -269,11 +329,15 @@ def legend_html(metric_key: str, gdf: pd.DataFrame) -> str:
         return _gradient_bar_html(gradient, format_metric(vmin, "decimal"), format_metric(vmax, "decimal"))
 
     light_hex, dark_hex = config["ramp"]
-    values = gdf[config["column"]].dropna()
-    vmin = float(values.min()) if not values.empty else 0.0
-    vmax = float(values.max()) if not values.empty else 1.0
+    kind = config.get("format", "decimal")
+    if "domain" in config:
+        vmin, vmax = config["domain"]
+    else:
+        values = gdf[config["column"]].dropna()
+        vmin = float(values.min()) if not values.empty else 0.0
+        vmax = float(values.max()) if not values.empty else 1.0
     gradient = f"linear-gradient(to right, {light_hex}, {dark_hex})"
-    return _gradient_bar_html(gradient, format_metric(vmin, "decimal"), format_metric(vmax, "decimal"))
+    return _gradient_bar_html(gradient, format_metric(vmin, kind), format_metric(vmax, kind))
 
 
 # Capa coroplética municipal (gold_municipio_master): un polígono por

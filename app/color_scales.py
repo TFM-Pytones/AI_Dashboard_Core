@@ -26,6 +26,45 @@ RESTRICTION_COLOR_MAP_HEX = {
     "Sin restricción": "#0ca30c",
 }
 
+# Clústeres territoriales (gold.h3_clusters): 4 tipos
+# Rojo = saturación extrema; Ámbar = transición; Verde = rural infrautilizado; Gris = urbano/residencial
+CLUSTER_COLOR_MAP_HEX = {
+    "Saturado/Overtourism": "#ef4444",
+    "Transición": "#f59e0b",
+    "Rural Infrautilizada": "#10b981",
+    "Urbano Sin Turismo": "#64748b",
+}
+CLUSTER_COLOR_MAP_RGB = {
+    "Saturado/Overtourism": [239, 68, 68],
+    "Transición": [245, 158, 11],
+    "Rural Infrautilizada": [16, 185, 129],
+    "Urbano Sin Turismo": [100, 116, 139],
+}
+
+# Arquetipos de producto turístico TUI
+ARCHETYPE_COLOR_MAP_HEX = {
+    "🏖️ Sol y Playa": "#0284c7",
+    "🌿 Ecoturismo Rural": "#16a34a",
+    "🏛️ Cultural y Patrimonial": "#7c3aed",
+    "🏔️ Aventura y Activo": "#ea580c",
+    "🧘 Bienestar y Salud": "#0d9488",
+}
+ARCHETYPE_COLOR_MAP_RGB = {
+    "🏖️ Sol y Playa": [2, 132, 199],
+    "🌿 Ecoturismo Rural": [22, 163, 74],
+    "🏛️ Cultural y Patrimonial": [124, 58, 237],
+    "🏔️ Aventura y Activo": [234, 88, 12],
+    "🧘 Bienestar y Salud": [13, 148, 136],
+}
+
+# Rampas secuenciales para ejes continuos y métricas satelitales
+SEQUENTIAL_EJE1 = ("#fef3c7", "#b45309")  # Ámbar suave a naranja/rojo quemado (Saturación continua)
+SEQUENTIAL_EJE2 = ("#d1fae5", "#047857")  # Verde menta a esmeralda profundo (Rural infrautilizado)
+SEQUENTIAL_PTNA = ("#e0f2fe", "#0369a1")  # Azul celeste a cobalto (Potencial turístico)
+SEQUENTIAL_ESG = ("#ecfdf5", "#065f46")   # Verde claro a bosque profundo (Score ESG)
+SEQUENTIAL_VIIRS = ("#f3e8ff", "#6b21a8") # Púrpura suave a violeta eléctrico (Luz nocturna)
+SEQUENTIAL_NDBI = ("#ffedd5", "#c2410c")  # Melocotón a terracota (Urbanización NDBI)
+
 # Per-section accent colors (hex, for Plotly charts) -- every tab used the
 # same navy for every chart regardless of what it showed. Each section gets
 # its own fixed hue instead, so color carries which part of the dashboard
@@ -35,6 +74,7 @@ ACCENT_TURISMO = "#0891b2"  # teal -- travel/ocean
 ACCENT_TURISMO_AEREO = "#d97706"  # amber -- contrasts hotel (teal) vs. air traffic within Turismo
 ACCENT_ALOJAMIENTO = "#d97706"  # amber -- hospitality/warmth
 ACCENT_TEMAS = "#7c3aed"  # purple -- opinion/insight
+ACCENT_OPORTUNIDADES = "#0284c7"  # sky blue -- TUI opportunities
 
 ACCENT_CLIMA_TEMPERATURA = "#dc2626"  # red -- heat
 ACCENT_CLIMA_LLUVIA = "#2563eb"  # blue -- water
