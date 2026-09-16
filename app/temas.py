@@ -5,7 +5,7 @@ import streamlit as st
 from app.color_scales import ACCENT_TEMAS
 from app.topic_labels_es import topic_label_es
 from app.translation import translate_to_spanish
-from app.ui_helpers import add_chart_motion, format_metric, latest_value, render_footer
+from app.ui_helpers import add_chart_motion, format_metric
 
 SOURCE_LABELS = {
     "booking_review": "Booking",
@@ -170,6 +170,7 @@ def render_temas_tab(topicos_municipio_df: pd.DataFrame, chunks_df: pd.DataFrame
             y="label_es",
             orientation="h",
             title="Temas más mencionados",
+            labels={"n": "Nº de reseñas", "label_es": "Tema"},
         )
         fig_topicos.update_traces(marker_color=ACCENT_TEMAS)
         add_chart_motion(fig_topicos)
@@ -248,8 +249,3 @@ def render_temas_tab(topicos_municipio_df: pd.DataFrame, chunks_df: pd.DataFrame
                                 st.error("No se pudo traducir esta opinión. Inténtalo de nuevo.")
                     if st.session_state.get(traduccion_key):
                         st.markdown(f"🌐 *{st.session_state[traduccion_key]}*")
-
-    render_footer(
-        "gold.gold_topicos_municipio, gold.nlp_chunks (BERTopic)",
-        as_of=latest_value(chunks_df["fecha"]),
-    )

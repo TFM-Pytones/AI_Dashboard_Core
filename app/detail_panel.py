@@ -3,7 +3,7 @@ import plotly.express as px
 import streamlit as st
 
 from app.color_scales import SEQUENTIAL_TEAL
-from app.ui_helpers import add_chart_motion, format_metric, render_footer
+from app.ui_helpers import add_chart_motion, format_metric
 
 # (column, label, kind, help) -- kind drives number formatting (see
 # format_metric); help is shown as an (i) tooltip on the metric tile so the
@@ -171,5 +171,3 @@ def render_detail_panel(gdf: pd.DataFrame, selected_h3_index: str | None) -> Non
         )
         add_chart_motion(fig)
         st.plotly_chart(fig, width="stretch")
-
-    render_footer("gold.gold_h3_master, gold.gold_h3_accesibilidad, gold.gold_sentimiento_h3")

@@ -5,7 +5,7 @@ import plotly.express as px
 import streamlit as st
 
 from app.color_scales import ACCENT_ALOJAMIENTO, ACCENT_MUNICIPIOS, hex_to_rgba
-from app.ui_helpers import add_chart_motion, format_metric, latest_value, render_footer
+from app.ui_helpers import add_chart_motion, format_metric
 
 # (column, label, kind, help) -- kind drives number formatting (see format_metric).
 HEX_KPI_COLUMNS = [
@@ -237,11 +237,19 @@ def render_municipios_tab(
     )
     serie = evolucion_series(municipio_anual_df, municipio, EVOLUCION_METRICS[metrica_label])
     fig = px.area(
-        serie, x="anio", y="valor", markers=True, title=f"{metrica_label} por año — {municipio}"
+        serie,
+        x="anio",
+        y="valor",
+        markers=True,
+        title=f"{metrica_label} por año — {municipio}",
+        labels={"anio": "Año", "valor": metrica_label},
     )
     fig.update_traces(
         line_color=ACCENT_MUNICIPIOS, line_shape="spline", fillcolor=hex_to_rgba(ACCENT_MUNICIPIOS, 0.2)
     )
+    # dtick=1: sin esto Plotly puede elegir un intervalo fraccionario para el
+    # eje de años (ej. 2020, 2020.5, 2021...) cuando hay pocos puntos.
+    fig.update_xaxes(dtick=1)
     add_chart_motion(fig)
     st.plotly_chart(fig, use_container_width=True)
 
@@ -306,7 +314,9 @@ def render_municipios_tab(
             color="municipio",
             markers=True,
             title=f"{metrica_comparativa_label} por año — comparativa",
+            labels={"anio": "Año", "valor": metrica_comparativa_label, "municipio": "Municipio"},
         )
+        fig_comparativa.update_xaxes(dtick=1)
         add_chart_motion(fig_comparativa)
         st.plotly_chart(fig_comparativa, use_container_width=True)
 
@@ -331,9 +341,3 @@ def render_municipios_tab(
             fig_yoy.add_hline(y=0, line_dash="dash", line_color="gray")
             add_chart_motion(fig_yoy)
             st.plotly_chart(fig_yoy, use_container_width=True)
-
-    render_footer(
-        "gold.gold_municipio_master, gold.gold_municipio_anual, gold.gold_municipio_empleo, "
-        "gold.gold_municipio_mensual",
-        as_of=latest_value(municipio_anual_df["anio"]),
-    )

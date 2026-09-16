@@ -5,7 +5,7 @@ import plotly.express as px
 import streamlit as st
 
 from app.color_scales import ACCENT_TURISMO, ACCENT_TURISMO_AEREO, hex_to_rgba
-from app.ui_helpers import add_chart_motion, format_metric, latest_value, render_footer
+from app.ui_helpers import add_chart_motion, format_metric
 
 # (value_column, yoy_delta_column | None, label, kind, help)
 HOTELERO_KPI_COLUMNS = [
@@ -39,11 +39,25 @@ HOTELERO_KPI_COLUMNS = [
     ),
 ]
 
+# (column, help) -- se muestra un caption con la explicacion encima de la
+# grafica de estacionalidad, igual que en la pagina de Clima.
 ESTACIONALIDAD_METRICS = {
-    "Pernoctaciones": "pernoctaciones",
-    "Viajeros entrados": "viajeros_entrados",
-    "Ocupación plazas (%)": "tasa_ocupacion_plazas",
-    "Estancia media (días)": "estancia_media_hotel_dias",
+    "Pernoctaciones": (
+        "pernoctaciones",
+        "Noches pernoctadas en establecimientos hoteleros, promediadas por mes a lo largo de los años.",
+    ),
+    "Viajeros entrados": (
+        "viajeros_entrados",
+        "Viajeros alojados en establecimientos hoteleros, promediados por mes a lo largo de los años.",
+    ),
+    "Ocupación plazas (%)": (
+        "tasa_ocupacion_plazas",
+        "Porcentaje medio de plazas hoteleras ocupadas ese mes.",
+    ),
+    "Estancia media (días)": (
+        "estancia_media_hotel_dias",
+        "Duración media de la estancia en establecimientos hoteleros, en días.",
+    ),
 }
 
 MES_LABELS = {
@@ -137,13 +151,16 @@ def render_turismo_tab(
     metrica_label = st.selectbox(
         "Métrica", list(ESTACIONALIDAD_METRICS.keys()), key="turismo_estacionalidad_metrica"
     )
-    serie = estacionalidad_by_mes(hotelero_mensual_df, municipio, ESTACIONALIDAD_METRICS[metrica_label])
+    metrica_columna, metrica_help = ESTACIONALIDAD_METRICS[metrica_label]
+    st.caption(f"ℹ️ {metrica_help}")
+    serie = estacionalidad_by_mes(hotelero_mensual_df, municipio, metrica_columna)
     fig = px.bar(
         serie,
         x="mes_label",
         y="valor",
         category_orders={"mes_label": MES_ORDER},
         title=f"{metrica_label} media por mes — {municipio}",
+        labels={"mes_label": "Mes", "valor": metrica_label},
     )
     fig.update_traces(marker_color=ACCENT_TURISMO)
     add_chart_motion(fig)
@@ -190,11 +207,7 @@ def render_turismo_tab(
             "Tenerife Norte - Ciudad de La Laguna": ACCENT_TURISMO_AEREO,
         },
         title="Pasajeros medios por mes — TFS vs. TFN",
+        labels={"mes_label": "Mes", "valor": "Pasajeros medios", "aeropuerto_nombre": "Aeropuerto"},
     )
     add_chart_motion(fig_comparativa)
     st.plotly_chart(fig_comparativa, use_container_width=True)
-
-    render_footer(
-        "gold.gold_turismo_hotelero_anual, gold.gold_turismo_hotelero_mensual, gold.gold_aena_pasajeros",
-        as_of=latest_value(hotelero_anual_df["anio"]),
-    )

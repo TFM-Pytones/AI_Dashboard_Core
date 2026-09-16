@@ -8,7 +8,7 @@ from app.color_scales import (
     ACCENT_RANKING_TURISTICA,
     ACCENT_RANKING_VALORADAS,
 )
-from app.ui_helpers import add_chart_motion, format_metric, render_footer
+from app.ui_helpers import add_chart_motion, format_metric
 
 # "agg" controls how each metric is rolled up from hexagon-level rows to one
 # value per municipio -- "mean" for rates/scores, "sum" for counts. "color"
@@ -50,6 +50,10 @@ def top_n_by_ranking(gdf: pd.DataFrame, ranking_key: str, n: int = 10) -> pd.Dat
 
 
 def render_rankings_tab(gdf: pd.DataFrame) -> None:
+    # Espaciador invisible: un st.write("") no bastaba de margen y la
+    # etiqueta flotante del valor del slider quedaba cortada contra el borde
+    # superior de la página. Esto da el mismo margen sin mostrar un título.
+    st.markdown("<div style='height: 2rem'></div>", unsafe_allow_html=True)
     col1, col2 = st.columns([3, 1])
     ranking_key = col1.selectbox("Ranking", list(RANKINGS.keys()))
     n = col2.slider("Nº de municipios", min_value=5, max_value=31, value=10)
@@ -75,5 +79,3 @@ def render_rankings_tab(gdf: pd.DataFrame) -> None:
         display = result.copy()
         display[column] = display[column].map(lambda v: format_metric(v, spec["kind"]))
         st.dataframe(display, width="stretch", hide_index=True)
-
-    render_footer("gold.gold_h3_master, gold.gold_sentimiento_h3")

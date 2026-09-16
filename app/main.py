@@ -54,10 +54,10 @@ from app.map_layers import (
 from app.municipios import render_municipios_tab
 from app.rankings import RANKINGS, render_rankings_tab
 from app.summary import compute_summary_stats, restriction_counts_dataframe
-from app.table_view import build_table_column_config, filter_table, prepare_table_view
+from app.table_view import build_column_glossary, build_table_column_config, filter_table, prepare_table_view
 from app.temas import render_temas_tab
 from app.turismo import render_turismo_tab
-from app.ui_helpers import add_chart_motion, format_metric, render_footer
+from app.ui_helpers import add_chart_motion, format_metric
 
 st.set_page_config(page_title="AI-Dashboard Tenerife", page_icon="🌋", layout="wide")
 
@@ -204,14 +204,19 @@ def page_resumen() -> None:
 
     st.subheader("Reparto de restricciones legales")
     restriction_df = restriction_counts_dataframe(stats["restriction_counts"])
-    fig_restriction = px.bar(
-        restriction_df,
-        x="restriction_category",
-        y="n_hexagonos",
-        color="restriction_category",
-        color_discrete_map=RESTRICTION_COLOR_MAP_HEX,
+    fig_restriction = px.bar(restriction_df, x="restriction_category", y="n_hexagonos")
+    # Un solo trace con color por barra via marker_color, en vez de
+    # color="restriction_category" (igual que x): con color=x, Plotly Express
+    # crea un trace distinto por categoria y las centra como si fueran a
+    # agruparse con las demas, dejando cada barra desplazada de su etiqueta
+    # del eje X en vez de centrada encima.
+    fig_restriction.update_traces(
+        marker_color=[RESTRICTION_COLOR_MAP_HEX[c] for c in restriction_df["restriction_category"]],
+        width=0.4,
     )
-    fig_restriction.update_layout(xaxis_title=None, yaxis_title="Nº de hexágonos", showlegend=False)
+    fig_restriction.update_layout(
+        xaxis_title=None, yaxis_title="Nº de hexágonos", showlegend=False, height=320
+    )
     add_chart_motion(fig_restriction)
     st.plotly_chart(fig_restriction, use_container_width=True)
 
@@ -295,8 +300,6 @@ def page_resumen() -> None:
             st.caption(description)
             st.markdown(f"**{highlight}**")
             st.page_link(page_obj, label="Explorar →", use_container_width=True)
-
-    render_footer("gold.gold_h3_master, gold.gold_h3_accesibilidad, gold.gold_sentimiento_h3")
 
 
 def page_mapa() -> None:
@@ -384,7 +387,7 @@ def page_tabla() -> None:
         tabla_mostrable,
         width="stretch",
         hide_index=True,
-        column_config=build_table_column_config(show_technical=show_technical),
+        column_config=build_table_column_config(show_technical=show_technical, gdf=tabla_filtrada),
     )
     st.download_button(
         "Descargar CSV",
@@ -393,7 +396,17 @@ def page_tabla() -> None:
         mime="text/csv",
     )
 
-    render_footer("gold.gold_h3_master, gold.gold_h3_accesibilidad, gold.gold_sentimiento_h3")
+    st.subheader("Leyenda de columnas")
+    glosario = build_column_glossary()
+    columna_buscada = st.selectbox(
+        "Busca una columna para ver qué significa",
+        list(glosario.keys()),
+        index=None,
+        placeholder="Escribe el nombre de una columna...",
+        key="tabla_glosario_busqueda",
+    )
+    if columna_buscada:
+        st.info(glosario[columna_buscada])
 
 
 def page_rankings() -> None:
