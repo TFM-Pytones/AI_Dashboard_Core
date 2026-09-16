@@ -108,6 +108,34 @@ def nearest_destinos(row, n: int = 5) -> pd.DataFrame:
     return df.sort_values("minutos").head(n)
 
 
+# (columna, etiqueta) -- métricas numéricas ya disponibles en gold_h3_master,
+# sin inventar ningún ratio/índice nuevo. Comparan el hexágono seleccionado
+# contra la media simple de los hexágonos de su mismo municipio.
+COMPARACION_MUNICIPIO_COLUMNS = [
+    ("ndvi_medio", "NDVI medio"),
+    ("altitud_media_m", "Altitud media (m)"),
+    ("n_plazas_registro", "Plazas registradas"),
+]
+
+
+def municipio_metric_comparison(gdf: pd.DataFrame, h3_index: str) -> pd.DataFrame | None:
+    if h3_index not in gdf["h3_index"].values:
+        return None
+    row = gdf.loc[gdf["h3_index"] == h3_index].iloc[0]
+    peers = gdf[gdf["municipio"] == row["municipio"]]
+    registros = []
+    for columna, etiqueta in COMPARACION_MUNICIPIO_COLUMNS:
+        valor_hexagono = row.get(columna)
+        media_municipio = peers[columna].mean() if columna in peers else None
+        if pd.isna(valor_hexagono) and pd.isna(media_municipio):
+            continue
+        registros.append({"metrica": etiqueta, "serie": "Este hexágono", "valor": valor_hexagono})
+        registros.append({"metrica": etiqueta, "serie": "Media del municipio", "valor": media_municipio})
+    if not registros:
+        return None
+    return pd.DataFrame(registros)
+
+
 def municipio_aspect_comparison(gdf: pd.DataFrame, h3_index: str) -> pd.DataFrame | None:
     if h3_index not in gdf["h3_index"].values:
         return None
@@ -171,3 +199,24 @@ def render_detail_panel(gdf: pd.DataFrame, selected_h3_index: str | None) -> Non
         )
         add_chart_motion(fig)
         st.plotly_chart(fig, width="stretch")
+
+    metric_comparison = municipio_metric_comparison(gdf, selected_h3_index)
+    if metric_comparison is not None and not metric_comparison.empty:
+        # facet_col porque las 3 métricas tienen escalas muy distintas (NDVI
+        # 0-1, altitud en metros, plazas en unidades) -- un único eje Y las
+        # aplastaría. matches=None libera el eje Y de cada faceta.
+        fig_comp = px.bar(
+            metric_comparison,
+            x="serie",
+            y="valor",
+            color="serie",
+            facet_col="metrica",
+            color_discrete_map={"Este hexágono": "#1e3a8a", "Media del municipio": "#d1d5db"},
+            title=f"Este hexágono vs. media de {row['municipio']}",
+            labels={"valor": "", "serie": ""},
+        )
+        fig_comp.update_yaxes(matches=None)
+        fig_comp.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1]))
+        fig_comp.update_xaxes(showticklabels=False, title=None)
+        add_chart_motion(fig_comp)
+        st.plotly_chart(fig_comp, width="stretch")
