@@ -5,6 +5,7 @@ from analytics.chat.sql_agent import (
     ESQUEMA_GOLD,
     GRANULARIDAD_TABLA,
     LIMIT_POR_DEFECTO,
+    PROMPT_NARRACION,
     PROMPT_SQL,
     RespuestaSQL,
     asegurar_limit,
@@ -195,3 +196,15 @@ def test_prompt_sql_exige_nombre_legible_de_municipio_no_solo_codigo():
     texto_minusculas = PROMPT_SQL.lower()
     assert "columna `municipio`" in texto_minusculas or "columna municipio" in texto_minusculas
     assert "cod_municipio` no es legible" in texto_minusculas or "codigo ine" in texto_minusculas
+
+
+def test_prompt_narracion_prefiere_nombre_de_municipio_sobre_codigo():
+    # Bug real detectado en pruebas manuales (con trampa): aunque el SQL ya
+    # incluye la columna `municipio`, la narracion puede elegir citar
+    # cod_municipio en su lugar si la propia pregunta del usuario usa la
+    # palabra "codigo" (ej. "agrupa los hexagonos por codigo de municipio").
+    # Repeticion del bug de test_prompt_sql_exige_nombre_legible... pero en
+    # el segundo paso (narracion), no en la generacion de SQL.
+    texto_minusculas = PROMPT_NARRACION.lower()
+    assert "cod_municipio" in texto_minusculas
+    assert "nunca el código" in texto_minusculas or "no el código" in texto_minusculas

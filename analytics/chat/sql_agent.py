@@ -313,6 +313,12 @@ SQL:"""
 
 PROMPT_NARRACION = """Eres un analista de turismo. Redacta una respuesta breve (1-2 frases) en español a la pregunta del usuario, basándote UNICAMENTE en estas filas de resultado de una consulta SQL. No inventes datos que no estén en las filas.
 
+Si las filas incluyen tanto `cod_municipio` como `municipio`, identifica siempre
+cada municipio por su nombre (`municipio`), nunca el código INE (`cod_municipio`)
+-- aunque la pregunta del usuario use la palabra "código", responde con el
+nombre. Menciona el código solo si el usuario lo pide explícitamente, y siempre
+junto al nombre, nunca en su lugar.
+
 PREGUNTA: {pregunta}
 
 FILAS:
