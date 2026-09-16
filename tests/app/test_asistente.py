@@ -1,6 +1,16 @@
 import pandas as pd
 
-from app.asistente import _construir_pregunta_con_contexto, resumen_contexto_hexagono
+from app.asistente import _construir_pregunta_con_contexto, _responder_desde_contexto, resumen_contexto_hexagono
+
+
+class _LLMFalso:
+    def __init__(self, respuesta: str):
+        self.respuesta = respuesta
+        self.prompts_recibidos = []
+
+    def complete(self, prompt: str, temperature: float = 0.4, max_tokens: int = 1200) -> str:
+        self.prompts_recibidos.append(prompt)
+        return self.respuesta
 
 
 def test_resumen_contexto_hexagono_incluye_municipio_y_metricas_disponibles():
@@ -49,3 +59,30 @@ def test_construir_pregunta_con_contexto_antepone_el_resumen_del_hexagono():
     resultado = _construir_pregunta_con_contexto("¿qué puedo hacer aquí?", "Hexágono en Adeje.")
     assert "Hexágono en Adeje." in resultado
     assert "¿qué puedo hacer aquí?" in resultado
+
+
+def test_responder_desde_contexto_devuelve_la_respuesta_si_el_llm_puede_contestar():
+    # Bug real: "qué me puedes decir del hexágono que tengo seleccionado"
+    # caía a RAG y fallaba, aunque toda la respuesta ya estaba en el
+    # contexto inyectado (KPIs del hexágono) -- ni el agente SQL ni el RAG
+    # saben "resumir el contexto ya dado", solo generar SQL nuevo o buscar
+    # reseñas. Esta vía nueva contesta directamente desde el contexto cuando
+    # puede, sin pasar por el router.
+    llm = _LLMFalso("Este hexágono tiene 12 hoteles y un NDVI medio de 0,42.")
+    resultado = _responder_desde_contexto(
+        "qué me puedes decir de este hexágono", "Hexágono en Adeje. 🏨 Nº hoteles: 12.", llm
+    )
+    assert resultado == "Este hexágono tiene 12 hoteles y un NDVI medio de 0,42."
+    assert "Hexágono en Adeje" in llm.prompts_recibidos[0]
+
+
+def test_responder_desde_contexto_devuelve_none_si_el_llm_deriva():
+    llm = _LLMFalso("DERIVAR")
+    resultado = _responder_desde_contexto("qué opinan los viajeros de este sitio", "Hexágono en Adeje.", llm)
+    assert resultado is None
+
+
+def test_responder_desde_contexto_devuelve_none_si_el_llm_no_responde():
+    llm = _LLMFalso("")
+    resultado = _responder_desde_contexto("pregunta", "contexto", llm)
+    assert resultado is None

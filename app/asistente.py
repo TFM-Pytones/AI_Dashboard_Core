@@ -3,19 +3,26 @@ import streamlit as st
 
 from analytics.chat.router import clasificar
 from analytics.chat.sql_agent import responder_sql
+from analytics.llm.llm_client import LLMClient
 from analytics.rag.rag_answer import responder as responder_rag
 from app.data import get_engine, load_accesibilidad, load_h3_master, load_sentimiento, merge_accesibilidad, merge_h3_data
 from app.detail_panel import ACCESIBILIDAD_KPI_COLUMNS, KPI_COLUMNS, restriction_badges
 from app.map_state import get_selected_h3_index
 from app.ui_helpers import format_metric
 
-AVISO = (
-    "Este asistente combina dos motores: uno consulta cifras oficiales (población, paro, "
-    "turismo, tráfico aéreo) con SQL generado automáticamente; el otro busca opiniones reales "
-    "de viajeros. Cada respuesta muestra la consulta SQL usada (si aplica). El motor de "
-    "opiniones nunca inventa cifras ni compara cantidades a partir de una muestra de reseñas."
-)
+PROMPT_CONTEXTO_HEXAGONO = """Eres un asistente turístico. Tienes estos datos del hexágono
+actualmente seleccionado en el mapa:
 
+{contexto_hexagono}
+
+Pregunta del usuario: {pregunta}
+
+Si puedes responder a esta pregunta usando SOLO estos datos, hazlo en 1-3 frases en español.
+Si la pregunta pide algo que NO está en estos datos (opiniones de otros viajeros, comparación
+con otro municipio, series temporales, un ranking de toda la isla...), responde EXACTAMENTE con
+la palabra: DERIVAR
+
+RESPUESTA:"""
 
 def resumen_contexto_hexagono(row: pd.Series) -> str:
     partes = [f"Hexágono H3 en {row.get('municipio') or 'municipio desconocido'}."]
@@ -35,7 +42,30 @@ def _construir_pregunta_con_contexto(pregunta: str, contexto_hexagono: str | Non
     return f"Contexto del hexágono seleccionado en el mapa: {contexto_hexagono}\n\nPregunta del usuario: {pregunta}"
 
 
-def _generar_respuesta(pregunta: str) -> dict:
+def _responder_desde_contexto(pregunta: str, contexto_hexagono: str, llm: LLMClient) -> str | None:
+    prompt = PROMPT_CONTEXTO_HEXAGONO.format(contexto_hexagono=contexto_hexagono, pregunta=pregunta)
+    texto = llm.complete(prompt, temperature=0.2, max_tokens=1200).strip()
+    if not texto or texto.upper().startswith("DERIVAR"):
+        return None
+    return texto
+
+
+def _generar_respuesta(pregunta: str, contexto_hexagono: str | None = None) -> dict:
+    # Bug real: preguntas abiertas tipo "qué me puedes decir de este
+    # hexágono" caían a RAG y fallaban, aunque la respuesta ya estaba en el
+    # contexto inyectado -- ni el agente SQL (genera SQL NUEVO a partir de
+    # la pregunta, no resume datos ya dados) ni el RAG (busca reseñas, no
+    # tiene los KPIs del hexágono) saben usar el contexto directamente.
+    if contexto_hexagono:
+        try:
+            respuesta_directa = _responder_desde_contexto(pregunta, contexto_hexagono, LLMClient())
+        except Exception:
+            respuesta_directa = None
+        if respuesta_directa:
+            return {"role": "assistant", "content": respuesta_directa}
+
+    pregunta = _construir_pregunta_con_contexto(pregunta, contexto_hexagono)
+
     try:
         tipo = clasificar(pregunta)
     except Exception:
@@ -126,8 +156,6 @@ def render_floating_assistant() -> None:
     st.markdown(_FLOATING_CSS, unsafe_allow_html=True)
 
     with st.popover("🤖", help="Asistente IA -- pregunta sobre el turismo en Tenerife"):
-        st.info(AVISO)
-
         contexto_hexagono = None
         selected_h3_index = get_selected_h3_index()
         if selected_h3_index:
@@ -147,8 +175,7 @@ def render_floating_assistant() -> None:
 
         pregunta = st.chat_input("Pregunta algo sobre el turismo en Tenerife...", key="asistente_chat_input")
         if pregunta:
-            pregunta_con_contexto = _construir_pregunta_con_contexto(pregunta, contexto_hexagono)
             st.session_state["chat_historial"].append({"role": "user", "content": pregunta})
             with st.spinner("Pensando..."):
-                st.session_state["chat_historial"].append(_generar_respuesta(pregunta_con_contexto))
+                st.session_state["chat_historial"].append(_generar_respuesta(pregunta, contexto_hexagono))
             st.rerun()
