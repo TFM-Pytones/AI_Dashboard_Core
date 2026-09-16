@@ -393,9 +393,25 @@ def responder_sql(pregunta: str, engine, llm: LLMClient | None = None) -> Respue
         return RespuestaSQL(texto="La consulta no devolvió resultados.", sql=sql_final, filas=[])
 
     filas = df.to_dict("records")
+    texto = _narrar_resultado(pregunta, filas, cliente)
+    return RespuestaSQL(texto=texto, sql=sql_final, filas=filas)
+
+
+def _narrar_resultado(pregunta: str, filas: list[dict], llm: LLMClient) -> str:
     prompt_narracion = PROMPT_NARRACION.format(pregunta=pregunta, filas=filas)
-    # max_tokens=600, no 200: mismo motivo que en _generar_sql -- con muchas
-    # filas (ej. los 31 municipios agrupados) el modelo necesita mas
-    # presupuesto de razonamiento antes de poder redactar la respuesta.
-    texto = cliente.complete(prompt_narracion, temperature=0.3, max_tokens=600)
-    return RespuestaSQL(texto=texto.strip(), sql=sql_final, filas=filas)
+    # max_tokens=3000, no 600: reproducido contra la API real de Groq con el
+    # caso de los 31 municipios agrupados -- el modelo (openai/gpt-oss-120b)
+    # a veces gasta TODO el presupuesto en razonamiento interno antes de
+    # escribir nada (reasoning_tokens observado hasta 1498 de 1500, e
+    # incluso hasta 946 con 1200 de tope) y devuelve "" (finish_reason=
+    # "length"). Con 3000 de margen se ha visto terminar con stop usando
+    # 1000-1400 de razonamiento. Pero el gasto de razonamiento varia entre
+    # llamadas -- 2 de 4 intentos fallaron incluso con max_tokens=1500 -- asi
+    # que ademas se reintenta una vez si sigue vacio.
+    texto = llm.complete(prompt_narracion, temperature=0.3, max_tokens=3000).strip()
+    if texto:
+        return texto
+    texto = llm.complete(prompt_narracion, temperature=0.3, max_tokens=3000).strip()
+    if texto:
+        return texto
+    return "No he podido redactar un resumen en texto para estos resultados -- consulta la tabla de datos."

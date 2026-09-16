@@ -8,11 +8,26 @@ from analytics.chat.sql_agent import (
     PROMPT_NARRACION,
     PROMPT_SQL,
     RespuestaSQL,
+    _narrar_resultado,
     asegurar_limit,
     describir_esquema,
     responder_sql,
     validar_sql,
 )
+
+
+class _LLMSecuencial:
+    """Fake LLM que devuelve una respuesta distinta por llamada, en orden --
+    para probar la logica de reintento sin depender de la API real."""
+
+    def __init__(self, respuestas: list[str]):
+        self.respuestas = respuestas
+        self.llamadas = 0
+
+    def complete(self, prompt: str, temperature: float = 0.4, max_tokens: int = 1200) -> str:
+        respuesta = self.respuestas[min(self.llamadas, len(self.respuestas) - 1)]
+        self.llamadas += 1
+        return respuesta
 
 
 def test_validar_sql_acepta_select_simple_sobre_tabla_permitida():
@@ -208,3 +223,29 @@ def test_prompt_narracion_prefiere_nombre_de_municipio_sobre_codigo():
     texto_minusculas = PROMPT_NARRACION.lower()
     assert "cod_municipio" in texto_minusculas
     assert "nunca el código" in texto_minusculas or "no el código" in texto_minusculas
+
+
+def test_narrar_resultado_devuelve_texto_si_el_llm_responde_a_la_primera():
+    llm = _LLMSecuencial(["Los municipios son Adeje y Arona."])
+    texto = _narrar_resultado("pregunta", [{"municipio": "Adeje"}], llm)
+    assert texto == "Los municipios son Adeje y Arona."
+    assert llm.llamadas == 1
+
+
+def test_narrar_resultado_reintenta_si_el_llm_devuelve_vacio():
+    # Bug real: reproducido contra la API de Groq con el caso de 31
+    # municipios agrupados -- el modelo (openai/gpt-oss-120b) gasta a veces
+    # todo max_tokens en razonamiento interno y devuelve "" (2 de 4 intentos
+    # vacios incluso con max_tokens=1500). Un reintento normalmente basta.
+    llm = _LLMSecuencial(["", "Los municipios son Adeje y Arona."])
+    texto = _narrar_resultado("pregunta", [{"municipio": "Adeje"}], llm)
+    assert texto == "Los municipios son Adeje y Arona."
+    assert llm.llamadas == 2
+
+
+def test_narrar_resultado_da_mensaje_de_fallback_si_sigue_vacio_tras_reintentar():
+    llm = _LLMSecuencial(["", ""])
+    texto = _narrar_resultado("pregunta", [{"municipio": "Adeje"}], llm)
+    assert texto != ""
+    assert "tabla" in texto.lower()
+    assert llm.llamadas == 2
