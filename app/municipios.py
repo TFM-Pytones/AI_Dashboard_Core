@@ -5,7 +5,7 @@ import plotly.express as px
 import streamlit as st
 
 from app.color_scales import ACCENT_ALOJAMIENTO, ACCENT_MUNICIPIOS, hex_to_rgba
-from app.ui_helpers import add_chart_motion, format_metric, latest_value, render_footer
+from app.ui_helpers import add_chart_motion, format_metric
 
 # (column, label, kind, help) -- kind drives number formatting (see format_metric).
 HEX_KPI_COLUMNS = [
@@ -96,6 +96,14 @@ EVOLUCION_METRICS = {
     "Ocupación VV media (%)": "tasa_ocupacion_vv_media",
 }
 
+YOY_MENSUAL_METRICS = {
+    "Paro registrado": "paro_registrado",
+    "Plazas VV": "plazas_vv",
+    "Ingresos VV": "ingresos_vv",
+}
+
+MAX_MUNICIPIOS_COMPARATIVA = 4
+
 EVOLUCION_MENSUAL_METRICS = {
     "Paro registrado": "paro_registrado",
     "Plazas VV": "plazas_vv",
@@ -138,6 +146,27 @@ def format_yoy_delta(value) -> str | None:
 def evolucion_series(df: pd.DataFrame, municipio: str, column: str) -> pd.DataFrame:
     rows = df.loc[df["municipio"] == municipio, ["anio", column]].sort_values("anio")
     return rows.rename(columns={column: "valor"})
+
+
+def evolucion_series_multi(df: pd.DataFrame, municipios: list[str], column: str) -> pd.DataFrame:
+    rows = df.loc[df["municipio"].isin(municipios), ["municipio", "anio", column]]
+    rows = rows.rename(columns={column: "valor"}).sort_values(["municipio", "anio"])
+    return rows.reset_index(drop=True)
+
+
+def yoy_mensual_series_multi(df: pd.DataFrame, municipios: list[str], column: str) -> pd.DataFrame:
+    subset = df.loc[df["municipio"].isin(municipios), ["municipio", "periodo", column]].copy()
+    subset["_period"] = pd.PeriodIndex(subset["periodo"], freq="M")
+
+    prior_year = subset[["municipio", "_period", column]].rename(columns={column: "valor_hace_12m"})
+    prior_year["_period"] = prior_year["_period"] + 12
+
+    merged = subset.merge(prior_year, on=["municipio", "_period"], how="left")
+    merged["valor"] = (merged[column] - merged["valor_hace_12m"]) / merged["valor_hace_12m"] * 100
+    merged = merged.dropna(subset=["valor"])
+
+    result = merged[["municipio", "periodo", "valor"]].sort_values(["municipio", "periodo"])
+    return result.reset_index(drop=True)
 
 
 def evolucion_mensual_series(df: pd.DataFrame, municipio: str, column: str) -> pd.DataFrame:
@@ -209,11 +238,19 @@ def render_municipios_tab(
     )
     serie = evolucion_series(municipio_anual_df, municipio, EVOLUCION_METRICS[metrica_label])
     fig = px.area(
-        serie, x="anio", y="valor", markers=True, title=f"{metrica_label} por año — {municipio}"
+        serie,
+        x="anio",
+        y="valor",
+        markers=True,
+        title=f"{metrica_label} por año — {municipio}",
+        labels={"anio": "Año", "valor": metrica_label},
     )
     fig.update_traces(
         line_color=ACCENT_MUNICIPIOS, line_shape="spline", fillcolor=hex_to_rgba(ACCENT_MUNICIPIOS, 0.2)
     )
+    # dtick=1: sin esto Plotly puede elegir un intervalo fraccionario para el
+    # eje de años (ej. 2020, 2020.5, 2021...) cuando hay pocos puntos.
+    fig.update_xaxes(dtick=1)
     add_chart_motion(fig)
     st.plotly_chart(fig, use_container_width=True)
 
@@ -254,8 +291,54 @@ def render_municipios_tab(
         add_chart_motion(fig_empleo)
         st.plotly_chart(fig_empleo, use_container_width=True)
 
-    render_footer(
-        "gold.gold_municipio_master, gold.gold_municipio_anual, gold.gold_municipio_empleo, "
-        "gold.gold_municipio_mensual",
-        as_of=latest_value(municipio_anual_df["anio"]),
+    st.subheader("Comparativa entre municipios")
+    municipios_comparar = st.multiselect(
+        "Municipios a comparar (máx. 4)",
+        sorted(municipio_master_df["municipio"].dropna().unique().tolist()),
+        default=[municipio],
+        max_selections=MAX_MUNICIPIOS_COMPARATIVA,
+        key="municipios_comparativa_multiselect",
     )
+    if not municipios_comparar:
+        st.info("Selecciona al menos un municipio para comparar.")
+    else:
+        metrica_comparativa_label = st.selectbox(
+            "Métrica anual", list(EVOLUCION_METRICS.keys()), key="municipios_comparativa_metrica"
+        )
+        serie_comparativa = evolucion_series_multi(
+            municipio_anual_df, municipios_comparar, EVOLUCION_METRICS[metrica_comparativa_label]
+        )
+        fig_comparativa = px.line(
+            serie_comparativa,
+            x="anio",
+            y="valor",
+            color="municipio",
+            markers=True,
+            title=f"{metrica_comparativa_label} por año — comparativa",
+            labels={"anio": "Año", "valor": metrica_comparativa_label, "municipio": "Municipio"},
+        )
+        fig_comparativa.update_xaxes(dtick=1)
+        add_chart_motion(fig_comparativa)
+        st.plotly_chart(fig_comparativa, use_container_width=True)
+
+        st.subheader("Tasas interanuales (YoY)")
+        yoy_metrica_label = st.selectbox(
+            "Métrica interanual", list(YOY_MENSUAL_METRICS.keys()), key="municipios_yoy_metrica"
+        )
+        serie_yoy = yoy_mensual_series_multi(
+            municipio_mensual_df, municipios_comparar, YOY_MENSUAL_METRICS[yoy_metrica_label]
+        )
+        if serie_yoy.empty:
+            st.info("No hay suficiente histórico (se necesitan al menos 12 meses) para calcular la variación interanual.")
+        else:
+            fig_yoy = px.line(
+                serie_yoy,
+                x="periodo",
+                y="valor",
+                color="municipio",
+                markers=True,
+                title=f"Variación interanual de {yoy_metrica_label.lower()} (%) — mismo mes año anterior",
+            )
+            fig_yoy.add_hline(y=0, line_dash="dash", line_color="gray")
+            add_chart_motion(fig_yoy)
+            st.plotly_chart(fig_yoy, use_container_width=True)

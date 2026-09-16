@@ -9,7 +9,7 @@ from app.color_scales import (
     ACCENT_RANKING_PLAZAS,
     ACCENT_RANKING_VALORADAS,
 )
-from app.ui_helpers import add_chart_motion, format_metric, render_footer
+from app.ui_helpers import add_chart_motion, format_metric
 
 # "agg" controls how each metric is rolled up from hexagon-level rows to one
 # value per municipio -- "mean" for rates/scores, "sum" for counts. "color"

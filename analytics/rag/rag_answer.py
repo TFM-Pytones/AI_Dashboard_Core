@@ -24,6 +24,7 @@ import textwrap
 from dataclasses import dataclass, field
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "llm"))
 
 from filtros import detectar_perspectiva, extraer_filtros, relajar_filtros, resolver_municipio, resolver_zona  # noqa: E402

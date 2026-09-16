@@ -4,11 +4,13 @@ from app.municipios import (
     empleo_breakdown,
     evolucion_mensual_series,
     evolucion_series,
+    evolucion_series_multi,
     format_yoy_delta,
     get_anual_row,
     get_latest_empleo_row,
     get_municipio_row,
     list_available_years,
+    yoy_mensual_series_multi,
 )
 
 
@@ -82,6 +84,21 @@ def test_evolucion_series_returns_year_ordered_tidy_frame():
     assert result["valor"].tolist() == [1996.0, 1925.0, 1902.0]
 
 
+def test_evolucion_series_multi_includes_one_row_per_municipio_and_year():
+    result = evolucion_series_multi(_municipio_anual_df(), ["Adeje", "Arona"], "paro_medio")
+    assert result[["municipio", "anio", "valor"]].to_dict("records") == [
+        {"municipio": "Adeje", "anio": 2024, "valor": 1996.0},
+        {"municipio": "Adeje", "anio": 2025, "valor": 1925.0},
+        {"municipio": "Adeje", "anio": 2026, "valor": 1902.0},
+        {"municipio": "Arona", "anio": 2025, "valor": 3000.0},
+    ]
+
+
+def test_evolucion_series_multi_excludes_unselected_municipios():
+    result = evolucion_series_multi(_municipio_anual_df(), ["Arona"], "paro_medio")
+    assert result["municipio"].unique().tolist() == ["Arona"]
+
+
 def _municipio_mensual_df():
     return pd.DataFrame(
         [
@@ -101,6 +118,37 @@ def test_evolucion_mensual_series_returns_period_ordered_tidy_frame():
 def test_evolucion_mensual_series_scopes_to_municipio():
     result = evolucion_mensual_series(_municipio_mensual_df(), "Arona", "plazas_vv")
     assert result["valor"].tolist() == [9000.0]
+
+
+def _municipio_mensual_yoy_df():
+    return pd.DataFrame(
+        [
+            {"municipio": "Adeje", "periodo": "2025-01", "paro_registrado": 2000.0},
+            {"municipio": "Adeje", "periodo": "2025-02", "paro_registrado": 1980.0},
+            {"municipio": "Adeje", "periodo": "2026-01", "paro_registrado": 1900.0},
+            {"municipio": "Adeje", "periodo": "2026-02", "paro_registrado": 1881.0},
+            {"municipio": "Arona", "periodo": "2025-01", "paro_registrado": 3000.0},
+            {"municipio": "Arona", "periodo": "2026-01", "paro_registrado": 3150.0},
+        ]
+    )
+
+
+def test_yoy_mensual_series_multi_computes_pct_change_vs_same_month_last_year():
+    result = yoy_mensual_series_multi(_municipio_mensual_yoy_df(), ["Adeje"], "paro_registrado")
+    assert result[["municipio", "periodo", "valor"]].to_dict("records") == [
+        {"municipio": "Adeje", "periodo": "2026-01", "valor": -5.0},
+        {"municipio": "Adeje", "periodo": "2026-02", "valor": -5.0},
+    ]
+
+
+def test_yoy_mensual_series_multi_covers_several_municipios():
+    result = yoy_mensual_series_multi(_municipio_mensual_yoy_df(), ["Adeje", "Arona"], "paro_registrado")
+    assert result["municipio"].unique().tolist() == ["Adeje", "Arona"]
+
+
+def test_yoy_mensual_series_multi_drops_periods_without_prior_year_data():
+    result = yoy_mensual_series_multi(_municipio_mensual_yoy_df(), ["Arona"], "paro_registrado")
+    assert result["periodo"].tolist() == ["2026-01"]
 
 
 def _municipio_empleo_df():
