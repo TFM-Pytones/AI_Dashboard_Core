@@ -1,3 +1,14 @@
+import os
+
+# Debe fijarse antes de que se importe torch (vía sentence-transformers en el
+# asistente): evita que torch._inductor compile y lance un subproceso de
+# prueba para detectar el juego de instrucciones de la CPU. Ese subproceso se
+# hace con fork() desde el hilo en segundo plano donde Streamlit ejecuta el
+# script, y choca con el manejador atfork de libproj (cargado por geopandas
+# en el Mapa), provocando un SIGSEGV. No usamos torch.compile, así que la
+# comprobación no aporta nada y se puede omitir con seguridad.
+os.environ.setdefault("TORCHINDUCTOR_VEC_ISA_OK", "1")
+
 import base64
 from pathlib import Path
 
