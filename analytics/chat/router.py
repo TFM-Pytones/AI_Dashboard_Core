@@ -15,8 +15,8 @@ PROMPT_CLASIFICACION = """Eres un router que decide qué motor debe responder un
 
 Responde con una única palabra: SQL o RAG.
 
-- SQL: la pregunta pide una cifra, un agregado, una comparación numérica o un ranking, calculable con una consulta SQL sobre tablas de datos oficiales (población, paro, empleo, plazas de vivienda vacacional, turismo hotelero, tráfico aéreo). Ejemplos: "¿cuántas plazas hoteleras hay en Adeje?", "¿qué municipio tiene mayor paro?", "¿cuántos pasajeros llegaron a Tenerife Sur en 2025?".
-- RAG: la pregunta pide opiniones, percepciones, quejas o experiencias de viajeros, no calculables con una consulta SQL. Ejemplos: "¿por qué se quejan los turistas del transporte en el sur?", "¿qué opinan sobre las carreteras de Anaga?", "¿cómo describen la playa de Adeje?".
+- SQL: la pregunta pide una cifra, un agregado, una comparación numérica o un ranking, calculable con una consulta SQL sobre tablas de datos oficiales (población, paro, empleo, plazas de vivienda vacacional, turismo hotelero, tráfico aéreo, y también la puntuación media de sentimiento agregada por hexágono/municipio -- un número, no el contenido de las opiniones). Ejemplos: "¿cuántas plazas hoteleras hay en Adeje?", "¿qué municipio tiene mayor paro?", "¿cuántos pasajeros llegaron a Tenerife Sur en 2025?", "¿qué municipios tienen menor sentimiento medio?".
+- RAG: la pregunta pide opiniones, percepciones, quejas o experiencias de viajeros en texto libre, no calculables con una consulta SQL -- el "por qué" o el contenido de lo que dicen, no una puntuación numérica ya agregada. Ejemplos: "¿por qué se quejan los turistas del transporte en el sur?", "¿qué opinan sobre las carreteras de Anaga?", "¿cómo describen la playa de Adeje?".
 
 PREGUNTA: {pregunta}
 

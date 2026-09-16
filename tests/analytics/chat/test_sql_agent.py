@@ -3,6 +3,7 @@ import pytest
 
 from analytics.chat.sql_agent import (
     ESQUEMA_GOLD,
+    GRANULARIDAD_TABLA,
     LIMIT_POR_DEFECTO,
     PROMPT_SQL,
     RespuestaSQL,
@@ -107,6 +108,30 @@ def test_esquema_gold_h3_master_incluye_columnas_de_restricciones_y_costa():
     # en la propia descripción -- si no, el LLM no sabe cómo escribir el
     # WHERE para "municipios sin restricciones".
     assert "0" in columnas_h3["pct_area_enp"]
+
+
+def test_esquema_gold_incluye_h3_sentimiento():
+    # gold_h3_sentimiento se conecto al dashboard el 2026-09-16 (antes
+    # devolvia vacio -- ver app/data.py). Sin esto, preguntas de sentimiento
+    # por municipio ("municipios con menor sentimiento") no eran respondibles
+    # ni por SQL ni por RAG (probado: el router las manda a RAG, que no tiene
+    # el agregado numerico).
+    assert "gold.gold_h3_sentimiento" in ESQUEMA_GOLD
+    columnas = dict(ESQUEMA_GOLD["gold.gold_h3_sentimiento"])
+    assert "sentimiento_medio" in columnas
+    assert "h3_index" in columnas
+    # No tiene columna de municipio -- el LLM tiene que saber que hace falta
+    # un JOIN con gold_h3_master por h3_index para agrupar por municipio.
+    assert "municipio" not in columnas
+    assert "gold_h3_master" in columnas["h3_index"] or "h3_master" in GRANULARIDAD_TABLA["gold.gold_h3_sentimiento"]
+
+
+def test_granularidad_h3_sentimiento_indica_cobertura_parcial():
+    # Solo 410 de 2.579 hexagonos tienen reseñas geolocalizadas -- si el LLM
+    # no lo sabe, puede presentar un AVG sobre 410 filas como si fuera
+    # representativo de toda la isla sin avisar de la cobertura parcial.
+    granularidad = GRANULARIDAD_TABLA["gold.gold_h3_sentimiento"]
+    assert "410" in granularidad
 
 
 def test_describir_esquema_incluye_todas_las_tablas_y_columnas():

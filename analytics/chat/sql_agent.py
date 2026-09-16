@@ -196,6 +196,23 @@ ESQUEMA_GOLD: dict[str, list[tuple[str, str]]] = {
         ),
         ("nombre_zona_turistica", "nombre de la zona turística oficial, si pct_area_zona_turistica > 0"),
     ],
+    # Conectada al dashboard el 2026-09-16 (antes devolvia vacio -- el
+    # modelo dbt original nunca se materializo, ver app/data.py). Solo cubre
+    # los hexagonos cuyas reseñas se pudieron geolocalizar (410 de 2.579).
+    # No tiene columna de municipio: para agrupar por municipio hace falta
+    # JOIN con gold.gold_h3_master por h3_index (union segura, 1 fila por
+    # hexagono en ambas tablas, sin riesgo de duplicar filas).
+    "gold.gold_h3_sentimiento": [
+        ("h3_index", "identificador del hexágono H3 -- usa JOIN con gold_h3_master.h3_index para obtener el municipio"),
+        (
+            "sentimiento_medio",
+            "puntuación media de sentimiento de las reseñas del hexágono, escala 1 (muy negativo) a 5 (muy positivo)",
+        ),
+        ("n_resenas_sentimiento", "número de reseñas analizadas para calcular sentimiento_medio en el hexágono"),
+        ("n_resenas_booking", "de esas reseñas, cuántas son de Booking"),
+        ("n_resenas_tripadvisor", "de esas reseñas, cuántas son de TripAdvisor"),
+        ("queja_principal", "aspecto o queja más mencionado en las reseñas del hexágono"),
+    ],
 }
 
 TABLAS_PERMITIDAS: set[str] = set(ESQUEMA_GOLD.keys())
@@ -220,6 +237,10 @@ GRANULARIDAD_TABLA: dict[str, str] = {
     "gold.gold_h3_master": (
         "1 fila por hexágono H3, ~2.579 filas en total -- MUCHAS filas por municipio, "
         "a diferencia de las demás tablas"
+    ),
+    "gold.gold_h3_sentimiento": (
+        "1 fila por hexágono H3, pero SOLO 410 de los 2.579 hexágonos tienen reseñas "
+        "geolocalizadas -- avisa de esta cobertura parcial en la respuesta"
     ),
 }
 

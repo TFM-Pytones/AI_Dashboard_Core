@@ -1,4 +1,4 @@
-from analytics.chat.router import clasificar
+from analytics.chat.router import PROMPT_CLASIFICACION, clasificar
 
 
 class _LLMFalso:
@@ -35,3 +35,12 @@ def test_clasificar_pasa_la_pregunta_al_prompt():
     llm = _LLMFalso("RAG")
     clasificar("¿qué opinan del ruido en Los Cristianos?", llm=llm)
     assert "¿qué opinan del ruido en Los Cristianos?" in llm.prompts_recibidos[0]
+
+
+def test_prompt_clasificacion_distingue_sentimiento_agregado_de_opiniones():
+    # Bug real: "sentimiento" se asociaba solo con RAG (percepciones/
+    # opiniones) porque el prompt no mencionaba que sentimiento_medio es un
+    # numero agregable por SQL (gold_h3_sentimiento, conectada 2026-09-16).
+    # Probado empiricamente: "dime los 10 municipios con menor sentimiento
+    # medio" caia a RAG con el prompt anterior pase lo que pase la redaccion.
+    assert "sentimiento" in PROMPT_CLASIFICACION.lower()
