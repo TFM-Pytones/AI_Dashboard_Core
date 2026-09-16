@@ -4,6 +4,7 @@ import pytest
 from analytics.chat.sql_agent import (
     ESQUEMA_GOLD,
     LIMIT_POR_DEFECTO,
+    PROMPT_SQL,
     RespuestaSQL,
     asegurar_limit,
     describir_esquema,
@@ -114,3 +115,45 @@ def test_describir_esquema_incluye_todas_las_tablas_y_columnas():
         assert tabla in texto
         for columna, _descripcion in columnas:
             assert columna in texto
+
+
+def test_esquema_distingue_n_hoteles_de_plazas_registro():
+    # Bug real detectado en pruebas manuales: ante "plazas hoteleras por cada
+    # 1000 habitantes" el LLM generó SQL usando n_hoteles (número de
+    # establecimientos) en vez de n_plazas_registro (capacidad real). Las
+    # descripciones deben dejar la diferencia inequívoca para las dos tablas
+    # que tienen ambas columnas.
+    for tabla in ("gold.gold_municipio_master", "gold.gold_h3_master"):
+        columnas = dict(ESQUEMA_GOLD[tabla])
+        assert "plazas" in columnas["n_hoteles"].lower()
+        assert "n_plazas_registro" in columnas["n_hoteles"]
+
+
+def test_describir_esquema_indica_granularidad_de_gold_h3_master():
+    # gold_h3_master tiene ~2.579 filas (una por hexágono) frente a 1 fila
+    # por municipio en las tablas *_anual/*_mensual -- si el LLM no sabe
+    # esto, genera JOINs entre ambos niveles que duplican cada hexágono una
+    # vez por cada fila coincidente de la otra tabla, sesgando AVG/SUM. La
+    # cabecera de cada tabla (antes de la lista de columnas) debe dejar
+    # explícita la granularidad, no basta con que la palabra aparezca en
+    # alguna descripción de columna.
+    texto = describir_esquema()
+    cabecera_h3 = texto[texto.index("Tabla gold.gold_h3_master") : texto.index("\n  - h3_index")]
+    assert "fila" in cabecera_h3.lower()
+    assert "hexágono" in cabecera_h3.lower()
+
+    cabecera_anual = texto[
+        texto.index("Tabla gold.gold_municipio_anual") : texto.index("\n  - cod_municipio", texto.index("Tabla gold.gold_municipio_anual"))
+    ]
+    assert "fila" in cabecera_anual.lower()
+
+
+def test_prompt_sql_advierte_sobre_join_entre_niveles_distintos():
+    assert "JOIN" in PROMPT_SQL
+    assert "IN (SELECT DISTINCT" in PROMPT_SQL
+
+
+def test_prompt_sql_pide_incluir_columnas_usadas_en_el_select():
+    assert "SELECT" in PROMPT_SQL
+    texto_minusculas = PROMPT_SQL.lower()
+    assert "verificable" in texto_minusculas or "verificar" in texto_minusculas

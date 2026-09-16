@@ -32,8 +32,16 @@ ESQUEMA_GOLD: dict[str, list[tuple[str, str]]] = {
         ("tasa_ocupacion_vv_actual", "% de ocupación de vivienda vacacional, dato actual"),
         ("ingresos_vv_actual", "ingresos por vivienda vacacional en euros, dato actual"),
         ("n_establecimientos_registro", "número de alojamientos turísticos con registro oficial"),
-        ("n_plazas_registro", "plazas turísticas registradas (capacidad total)"),
-        ("n_hoteles", "número de hoteles"),
+        (
+            "n_plazas_registro",
+            "plazas turísticas registradas (capacidad total en camas/plazas, todos los tipos "
+            "de alojamiento). Esta es la columna correcta para 'plazas' o 'capacidad'",
+        ),
+        (
+            "n_hoteles",
+            "número de hoteles (establecimientos, NO camas/plazas). Para 'plazas hoteleras' o "
+            "'capacidad' usa n_plazas_registro, no esta columna",
+        ),
         ("n_vv", "número de viviendas vacacionales registradas"),
         ("densidad_plazas_km2", "plazas turísticas por km2"),
         ("plazas_por_1000_hab", "plazas turísticas por cada 1000 habitantes"),
@@ -150,8 +158,16 @@ ESQUEMA_GOLD: dict[str, list[tuple[str, str]]] = {
         ("municipio", "nombre del municipio al que pertenece el hexágono"),
         ("area_km2", "superficie del hexágono en km2"),
         ("n_establecimientos_registro", "alojamientos turísticos con registro oficial en el hexágono"),
-        ("n_plazas_registro", "plazas turísticas registradas en el hexágono"),
-        ("n_hoteles", "número de hoteles en el hexágono"),
+        (
+            "n_plazas_registro",
+            "plazas turísticas registradas en el hexágono (capacidad total en camas/plazas). "
+            "Esta es la columna correcta para 'plazas' o 'capacidad'",
+        ),
+        (
+            "n_hoteles",
+            "número de hoteles (establecimientos, NO camas/plazas) en el hexágono. Para "
+            "'plazas hoteleras' o 'capacidad' usa n_plazas_registro, no esta columna",
+        ),
         ("n_vv", "número de viviendas vacacionales en el hexágono"),
         ("rating_booking_medio", "valoración media en Booking en el hexágono, escala 0-10"),
         ("rating_tripadvisor_medio", "valoración media en TripAdvisor en el hexágono, escala 0-5"),
@@ -188,12 +204,33 @@ PALABRAS_PROHIBIDAS = {"INSERT", "UPDATE", "DELETE", "DROP", "ALTER", "TRUNCATE"
 
 LIMIT_POR_DEFECTO = 200
 
+# Granularidad de cada tabla, mostrada en el esquema que ve el LLM. Sin esto
+# el LLM no sabe que gold_h3_master tiene muchas filas por municipio (a
+# diferencia de las tablas *_anual/*_mensual, con una fila por municipio y
+# periodo) y genera JOINs entre niveles que duplican cada hexágono una vez
+# por cada fila coincidente de la otra tabla, sesgando cualquier AVG/SUM.
+GRANULARIDAD_TABLA: dict[str, str] = {
+    "gold.gold_municipio_master": "1 fila por municipio, 31 filas en total",
+    "gold.gold_municipio_anual": "1 fila por municipio y año",
+    "gold.gold_municipio_mensual": "1 fila por municipio y mes",
+    "gold.gold_municipio_empleo": "1 fila por municipio y trimestre",
+    "gold.gold_turismo_hotelero_anual": "1 fila por municipio y año",
+    "gold.gold_turismo_hotelero_mensual": "1 fila por municipio y mes",
+    "gold.gold_aena_pasajeros": "1 fila por mes, no tiene columna de municipio",
+    "gold.gold_h3_master": (
+        "1 fila por hexágono H3, ~2.579 filas en total -- MUCHAS filas por municipio, "
+        "a diferencia de las demás tablas"
+    ),
+}
+
 
 def describir_esquema() -> str:
     bloques = []
     for tabla, columnas in ESQUEMA_GOLD.items():
+        granularidad = GRANULARIDAD_TABLA.get(tabla)
+        cabecera = f"Tabla {tabla} ({granularidad}):" if granularidad else f"Tabla {tabla}:"
         lineas_columnas = "\n".join(f"  - {col}: {desc}" for col, desc in columnas)
-        bloques.append(f"Tabla {tabla}:\n{lineas_columnas}")
+        bloques.append(f"{cabecera}\n{lineas_columnas}")
     return "\n\n".join(bloques)
 
 
@@ -229,6 +266,18 @@ PROMPT_SQL = """Eres un generador de consultas SQL de solo lectura (PostgreSQL) 
 
 Devuelve UNICAMENTE la sentencia SQL, sin explicaciones, sin bloques de código markdown, sin punto y coma final.
 Debe ser una única sentencia SELECT. Usa solo las tablas y columnas listadas abajo.
+
+Cada tabla indica su granularidad (filas que tiene) entre paréntesis. Si necesitas
+combinar una tabla a nivel de hexágono (gold_h3_master, muchas filas por municipio) con
+una tabla a nivel de municipio-año/mes (que también puede tener varias filas por
+municipio) SOLO para filtrar por una columna de la segunda, NO uses JOIN: cada fila de
+la primera tabla se duplicaría una vez por cada fila coincidente de la segunda,
+sesgando cualquier AVG/SUM/COUNT. En su lugar, filtra con una subconsulta:
+  WHERE cod_municipio IN (SELECT DISTINCT cod_municipio FROM tabla WHERE condicion)
+Usa JOIN solo cuando necesites columnas de ambas tablas a la vez en el SELECT.
+
+Incluye siempre en el SELECT las columnas numéricas que uses para ordenar o filtrar
+(no solo el nombre o id del municipio), para que el resultado sea verificable.
 
 ESQUEMA DISPONIBLE:
 {esquema}
