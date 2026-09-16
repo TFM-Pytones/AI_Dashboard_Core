@@ -55,14 +55,14 @@ METRICS = {
         "column": "eje_1_saturacion",
         "scale": "sequential",
         "ramp": SEQUENTIAL_EJE1,
-        "domain": (0.0, 1.0),
+        "min_max": (0.0, 1.0),
         "format": "decimal2",
     },
     "Eje 2: Rural Infrautilizado [0-1]": {
         "column": "eje_2_rural_infrautilizado",
         "scale": "sequential",
         "ramp": SEQUENTIAL_EJE2,
-        "domain": (0.0, 1.0),
+        "min_max": (0.0, 1.0),
         "format": "decimal2",
     },
     "Potencial Turístico (PTNA)": {
@@ -151,28 +151,42 @@ METRICS = {
 
 def build_fill_color_column(gdf: pd.DataFrame, metric_key: str) -> pd.Series:
     config = METRICS[metric_key]
-    values = gdf[config["column"]]
-    if config["scale"] == "sequential":
-        light_hex, dark_hex = config["ramp"]
-        if "domain" in config:
-            vmin, vmax = config["domain"]
+    col = config["column"]
+    values = gdf[col] if col in gdf.columns else pd.Series([None] * len(gdf), index=gdf.index)
+
+    scale = config.get("scale", "sequential")
+    if scale == "categorical":
+        return values.apply(lambda v: categorical_color(v, config.get("categories", {})))
+
+    if scale == "diverging":
+        domain = config.get("domain", DIVERGING_SENTIMENT_DOMAIN)
+        if len(domain) == 3:
+            vmin, vmid, vmax = domain
         else:
-            non_null = values.dropna()
-            vmin = float(non_null.min()) if not non_null.empty else 0.0
-            vmax = float(non_null.max()) if not non_null.empty else 1.0
-        return values.apply(lambda v: sequential_color(v, vmin, vmax, light_hex, dark_hex))
-    if config["scale"] == "categorical":
-        return values.apply(lambda v: categorical_color(v, config["categories"]))
-    vmin, vmid, vmax = config["domain"]
-    return values.apply(lambda v: diverging_color(v, vmin, vmid, vmax))
+            vmin, vmax = domain[0], domain[-1]
+            vmid = (vmin + vmax) / 2.0
+        return values.apply(lambda v: diverging_color(v, vmin, vmid, vmax))
+
+    # scale == "sequential"
+    light_hex, dark_hex = config.get("ramp", SEQUENTIAL_DENSITY)
+    if "min_max" in config:
+        vmin, vmax = config["min_max"]
+    elif "domain" in config and len(config["domain"]) == 2:
+        vmin, vmax = config["domain"]
+    else:
+        non_null = values.dropna()
+        vmin = float(non_null.min()) if not non_null.empty else 0.0
+        vmax = float(non_null.max()) if not non_null.empty else 1.0
+    return values.apply(lambda v: sequential_color(v, vmin, vmax, light_hex, dark_hex))
 
 
 DEFAULT_HEXAGON_OPACITY = 0.4
 
 
 def _tooltip_value_column(gdf: pd.DataFrame, config: dict) -> pd.Series:
-    values = gdf[config["column"]]
-    if config["scale"] == "categorical":
+    col = config["column"]
+    values = gdf[col] if col in gdf.columns else pd.Series([None] * len(gdf), index=gdf.index)
+    if config.get("scale") == "categorical":
         return values.apply(lambda v: "Sin datos" if pd.isna(v) else str(v))
     kind = config.get("format", "decimal")
     return values.apply(lambda v: "Sin datos" if pd.isna(v) else format_metric(v, kind))
@@ -308,34 +322,59 @@ def _gradient_bar_html(gradient_css: str, min_label: str, max_label: str) -> str
     )
 
 
+def _format_legend_color(color) -> str:
+    if isinstance(color, str):
+        return color
+    if isinstance(color, (list, tuple)) and len(color) >= 3:
+        return f"rgb({color[0]},{color[1]},{color[2]})"
+    return "#6b7280"
+
+
 def legend_html(metric_key: str, gdf: pd.DataFrame) -> str:
+    if metric_key not in METRICS:
+        return ""
     config = METRICS[metric_key]
+    scale = config.get("scale", "sequential")
 
-    if config["scale"] == "categorical":
-        chips = "".join(
-            '<span style="display:inline-flex;align-items:center;gap:6px;margin-right:16px;">'
-            f'<span style="width:12px;height:12px;border-radius:3px;background:rgb({r},{g},{b});'
-            f'display:inline-block;"></span>{label}</span>'
-            for label, (r, g, b) in config["categories"].items()
-        )
-        return f'<div style="font-size:0.85rem;padding:4px 0 10px;">{chips}</div>'
+    if scale == "categorical":
+        chips = []
+        for label, color in config.get("categories", {}).items():
+            color_css = _format_legend_color(color)
+            chips.append(
+                '<span style="display:inline-flex;align-items:center;gap:6px;margin-right:16px;">'
+                f'<span style="width:12px;height:12px;border-radius:3px;background:{color_css};'
+                f'display:inline-block;"></span>{label}</span>'
+            )
+        return f'<div style="font-size:0.85rem;padding:4px 0 10px;">{"".join(chips)}</div>'
 
-    if config["scale"] == "diverging":
-        vmin, _vmid, vmax = config["domain"]
+    if scale == "diverging":
+        domain = config.get("domain", DIVERGING_SENTIMENT_DOMAIN)
+        if len(domain) == 3:
+            vmin, _vmid, vmax = domain
+        else:
+            vmin, vmax = domain[0], domain[-1]
         gradient = (
             f"linear-gradient(to right, {DIVERGING_SENTIMENT_LOW}, "
             f"{DIVERGING_SENTIMENT_MID}, {DIVERGING_SENTIMENT_HIGH})"
         )
         return _gradient_bar_html(gradient, format_metric(vmin, "decimal"), format_metric(vmax, "decimal"))
 
-    light_hex, dark_hex = config["ramp"]
+    # Sequential scale
+    light_hex, dark_hex = config.get("ramp", SEQUENTIAL_DENSITY)
     kind = config.get("format", "decimal")
-    if "domain" in config:
+    if "min_max" in config:
+        vmin, vmax = config["min_max"]
+    elif "domain" in config and len(config["domain"]) == 2:
         vmin, vmax = config["domain"]
     else:
-        values = gdf[config["column"]].dropna()
-        vmin = float(values.min()) if not values.empty else 0.0
-        vmax = float(values.max()) if not values.empty else 1.0
+        col = config["column"]
+        if col in gdf.columns:
+            values = gdf[col].dropna()
+            vmin = float(values.min()) if not values.empty else 0.0
+            vmax = float(values.max()) if not values.empty else 1.0
+        else:
+            vmin, vmax = 0.0, 1.0
+
     gradient = f"linear-gradient(to right, {light_hex}, {dark_hex})"
     return _gradient_bar_html(gradient, format_metric(vmin, kind), format_metric(vmax, kind))
 
