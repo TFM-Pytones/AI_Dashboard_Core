@@ -10,6 +10,7 @@ from app.color_scales import (
     DIVERGING_SENTIMENT_HIGH,
     DIVERGING_SENTIMENT_LOW,
     DIVERGING_SENTIMENT_MID,
+    MAP_SELECTION_HIGHLIGHT,
     RESTRICTION_ENP,
     RESTRICTION_SIN_RESTRICCION,
     RESTRICTION_ZONA_TURISTICA,
@@ -135,6 +136,24 @@ def build_layer(gdf: pd.DataFrame, metric_key: str, opacity: float = DEFAULT_HEX
         get_fill_color="fill_color",
         get_line_color=[255, 255, 255],
         line_width_min_pixels=1,
+    )
+
+
+def build_highlight_layer(h3_index: str) -> pdk.Layer:
+    # H3HexagonLayer calcula la geometría a partir del propio índice H3, así
+    # que no hace falta buscar la fila/geometría del hexágono -- basta con su
+    # id. Sin relleno (filled=False) para no tapar la capa de métrica de
+    # color que haya debajo, solo un contorno llamativo alrededor.
+    return pdk.Layer(
+        "H3HexagonLayer",
+        data=pd.DataFrame({"h3_index": [h3_index]}),
+        pickable=False,
+        stroked=True,
+        filled=False,
+        extruded=False,
+        get_hexagon="h3_index",
+        get_line_color=MAP_SELECTION_HIGHLIGHT,
+        line_width_min_pixels=5,
     )
 
 

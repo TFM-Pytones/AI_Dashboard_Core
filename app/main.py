@@ -46,6 +46,7 @@ from app.map_layers import (
     METRICS,
     MUNICIPIO_METRICS,
     build_deck,
+    build_highlight_layer,
     build_isocronas_layer,
     build_municipio_layer,
     legend_html,
@@ -340,14 +341,16 @@ def page_mapa() -> None:
         st.caption(f"Leyenda — {municipio_metric_key} (municipios)")
         st.markdown(municipio_legend_html(municipio_metric_key, municipio_master), unsafe_allow_html=True)
 
+    selected_h3_index = get_selected_h3_index()
+
     deck = build_deck(filtered_gdf, metric_key, show_hexagons=show_hexagons, opacity=hex_opacity)
     if show_municipios:
         deck.layers.append(build_municipio_layer(municipio_master, municipio_metric_key))
     if show_isocronas and isocrona_destino:
         deck.layers.append(build_isocronas_layer(isocronas, isocrona_destino))
+    if selected_h3_index:
+        deck.layers.append(build_highlight_layer(selected_h3_index))
     st.pydeck_chart(deck, on_select="rerun", selection_mode="single-object", key="h3_map", height=650)
-
-    selected_h3_index = get_selected_h3_index()
 
     st.divider()
     render_detail_panel(full_gdf, selected_h3_index)
