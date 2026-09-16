@@ -221,9 +221,7 @@ def render_detail_panel(gdf: pd.DataFrame, selected_h3_index: str | None) -> Non
                 "Compara este hexágono con la media de todos los hexágonos de su municipio en "
                 "la métrica que elijas, para ver de un vistazo si es atípico respecto a su "
                 "entorno (por ejemplo, con más o menos oferta turística de lo normal para la "
-                "zona). Cada métrica se muestra por separado porque tienen escalas distintas "
-                "(NDVI de 0 a 1, altitud en metros, ratings 0-10...): mezclarlas en un mismo "
-                "gráfico las haría ilegibles."
+                "zona)."
             ),
         )
         etiqueta_elegida = st.selectbox(
