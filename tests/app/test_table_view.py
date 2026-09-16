@@ -93,6 +93,21 @@ def test_prepare_table_view_shows_dash_instead_of_none_for_missing_ratings():
     assert result["rating_tripadvisor_medio"].tolist() == ["—", "3,5"]
 
 
+def test_prepare_table_view_shows_dash_instead_of_none_for_missing_queja_principal():
+    # Mismo bug que con los ratings, pero en una columna de texto
+    # (queja_principal): TextColumn tambien muestra "None" en crudo para
+    # los huecos, no solo NumberColumn.
+    gdf = pd.DataFrame(
+        {
+            "municipio": ["Adeje", "Arona"],
+            "restriction_category": ["ENP", "Sin restricción"],
+            "queja_principal": ["ruido", None],
+        }
+    )
+    result = prepare_table_view(gdf)
+    assert result["queja_principal"].tolist() == ["ruido", "—"]
+
+
 def test_build_table_column_config_uses_text_column_for_sparse_ratings():
     config = build_table_column_config()
     assert config["rating_booking_medio"]["type_config"]["type"] == "text"

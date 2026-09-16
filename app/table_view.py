@@ -76,17 +76,21 @@ CURATED_COLUMNS = [
     ),
 ]
 
-# Columnas numericas con muchos huecos reales (la mayoria de hexagonos no
-# tienen alojamiento con presencia en Booking/TripAdvisor, o no hay datos de
-# sentimiento por hexagono todavia) -- st.dataframe con NumberColumn muestra
-# el texto literal "None" para estos huecos, asi que se formatean como texto
-# con "—" en vez de dejar que el NumberColumn los renderice en crudo.
+# Columnas con muchos huecos reales (la mayoria de hexagonos no tienen
+# alojamiento con presencia en Booking/TripAdvisor, no todas las reseñas
+# estan geolocalizadas al hexagono, etc.) -- st.dataframe muestra el texto
+# literal "None" para estos huecos tanto en NumberColumn como en TextColumn,
+# asi que se formatean como texto con "—" en vez de dejar que se rendericen
+# en crudo.
 SPARSE_NUMERIC_COLUMNS = {"rating_booking_medio", "rating_tripadvisor_medio", "sentimiento_medio"}
+SPARSE_TEXT_COLUMNS = {"queja_principal"}
 
 
-def _format_or_dash(value, fmt: str) -> str:
+def _format_or_dash(value, fmt: str | None) -> str:
     if value is None or pd.isna(value):
         return "—"
+    if fmt is None:
+        return value
     formatted = fmt % value
     return formatted.replace(".", ",")
 
@@ -111,7 +115,7 @@ def prepare_table_view(gdf: pd.DataFrame, show_technical: bool = False) -> pd.Da
     columns = [column for column in columns if column not in empty_columns]
     result = dropped[columns].copy()
     for column, _, fmt, _ in CURATED_COLUMNS:
-        if column in SPARSE_NUMERIC_COLUMNS and column in result.columns:
+        if column in SPARSE_NUMERIC_COLUMNS | SPARSE_TEXT_COLUMNS and column in result.columns:
             result[column] = result[column].map(lambda v, fmt=fmt: _format_or_dash(v, fmt))
     return result
 
