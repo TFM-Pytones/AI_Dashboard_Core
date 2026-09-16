@@ -85,14 +85,42 @@ def drop_municipio_alias_rows(df: pd.DataFrame) -> pd.DataFrame:
     return df.loc[~df["municipio"].isin(MUNICIPIO_ALIAS_DROP)].reset_index(drop=True)
 
 
+# Longitud aproximada de la arista para celdas H3 Res 8 (~461 m / 0.461 km).
+# Al calcularse dist_costa_km desde el centroide del hexágono hacia la costa,
+# los hexágonos que tocan físicamente el mar presentaban una distancia artificial
+# de entre 0.01 y 0.46 km. Restando la arista y acotando a 0.0 km, las celdas
+# de primera línea / litoral muestran 0.0 km en el Dashboard sin alterar la
+# pureza continua de gold.gold_h3_master en PostgreSQL para el modelo MGWR.
+H3_RES8_EDGE_KM = 0.461
+
+
+def adjust_coastal_distance(gdf: pd.DataFrame, edge_km: float = H3_RES8_EDGE_KM) -> pd.DataFrame:
+    gdf = gdf.copy()
+    if "dist_costa_km" in gdf.columns:
+        gdf["dist_costa_km"] = (gdf["dist_costa_km"] - edge_km).clip(lower=0.0).round(2)
+    return gdf
+
+
 @st.cache_resource
 def get_engine() -> Engine:
-    return create_engine(os.environ["AZURE_DB_URL"])
+    return create_engine(
+        os.environ["AZURE_DB_URL"],
+        pool_pre_ping=True,
+        pool_recycle=300,
+        connect_args={
+            "connect_timeout": 15,
+            "keepalives": 1,
+            "keepalives_idle": 30,
+            "keepalives_interval": 10,
+            "keepalives_count": 5,
+        },
+    )
 
 
 @st.cache_data
 def load_h3_master(_engine: Engine) -> gpd.GeoDataFrame:
-    return gpd.read_postgis(H3_MASTER_QUERY, _engine, geom_col="geometry")
+    gdf = gpd.read_postgis(H3_MASTER_QUERY, _engine, geom_col="geometry")
+    return adjust_coastal_distance(gdf)
 
 
 @st.cache_data

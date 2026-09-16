@@ -17,11 +17,7 @@ WITH mensajes AS (
         tema_titulo,
         fetched_at::date        AS fecha_mensaje,
         REPLACE(REPLACE(contexto_pagina_raw, 'ı', 'i'), 'İ', 'I') AS texto,
-        LENGTH(contexto_pagina_raw) AS longitud_texto,
-        CASE
-            WHEN fetched_at::date BETWEEN '2020-03-14' AND '2021-12-31' THEN TRUE
-            ELSE FALSE
-        END AS periodo_covid
+        LENGTH(contexto_pagina_raw) AS longitud_texto
     FROM {{ source('bronze', 'bronze_losviajeros_mensajes') }}
     WHERE mensaje_id IS NOT NULL
       AND contexto_pagina_raw IS NOT NULL

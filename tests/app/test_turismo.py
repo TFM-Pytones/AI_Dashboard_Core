@@ -3,6 +3,7 @@ import pandas as pd
 from app.turismo import (
     aena_estacionalidad_comparativa,
     aena_series,
+    compute_aena_kpis,
     estacionalidad_by_mes,
     format_yoy_delta,
     get_hotelero_anual_row,
@@ -93,6 +94,53 @@ def test_get_latest_aena_row_returns_none_for_unknown_airport():
 def test_aena_series_filters_and_sorts_by_periodo():
     result = aena_series(_aena_df(), "TFS")
     assert result["periodo"].tolist() == ["2026-05", "2026-06"]
+
+
+def test_aena_series_total_aggregates_both_airports_per_period():
+    result = aena_series(_aena_df(), "TOTAL")
+    assert result["periodo"].tolist() == ["2026-05", "2026-06"]
+    # 2026-05: only TFS (938372.0)
+    assert result.loc[result["periodo"] == "2026-05", "pasajeros"].iloc[0] == 938372.0
+    # 2026-06: TFS (935707.0) + TFN (300000.0) = 1235707.0
+    assert result.loc[result["periodo"] == "2026-06", "pasajeros"].iloc[0] == 1235707.0
+    assert result.loc[result["periodo"] == "2026-06", "operaciones"].iloc[0] == 9325.0
+
+
+def test_get_latest_aena_row_total_returns_combined_latest_period():
+    row = get_latest_aena_row(_aena_df(), "TOTAL")
+    assert row is not None
+    assert row["periodo"] == "2026-06"
+    assert row["pasajeros"] == 1235707.0
+    assert row["operaciones"] == 9325.0
+    assert row["pasajeros_por_operacion"] == round(1235707.0 / 9325.0, 1)
+
+
+def test_get_latest_aena_row_total_returns_none_on_empty_df():
+    empty_df = pd.DataFrame(columns=["aeropuerto_codigo", "periodo", "pasajeros", "operaciones"])
+    assert get_latest_aena_row(empty_df, "TOTAL") is None
+
+
+def test_compute_aena_kpis_returns_expected_kpis_with_yoy_and_trailing():
+    df = pd.DataFrame(
+        [
+            {"aeropuerto_codigo": "TFS", "periodo": "2025-06", "pasajeros": 800000.0, "operaciones": 5000.0},
+            {"aeropuerto_codigo": "TFS", "periodo": "2026-06", "pasajeros": 900000.0, "operaciones": 6000.0},
+        ]
+    )
+    serie = aena_series(df, "TFS")
+    kpis = compute_aena_kpis(serie)
+    assert len(kpis) == 3
+    assert kpis[0]["label"] == "✈️ Pasajeros (último mes)"
+    assert kpis[0]["value"] == 900000.0
+    assert kpis[0]["delta"] == "+12.5%"
+    assert kpis[1]["label"] == "📅 Acumulado anual (12 meses)"
+    assert kpis[1]["value"] == 1700000.0
+    assert kpis[2]["label"] == "📊 Media mensual histórica"
+    assert kpis[2]["value"] == 850000.0
+
+
+def test_compute_aena_kpis_returns_empty_list_for_empty_df():
+    assert compute_aena_kpis(pd.DataFrame()) == []
 
 
 def _aena_estacionalidad_df():

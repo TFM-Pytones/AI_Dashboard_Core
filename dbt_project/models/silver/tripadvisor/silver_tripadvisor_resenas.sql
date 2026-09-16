@@ -9,7 +9,7 @@
 
 /*
   Modelo Silver: silver_tripadvisor_resenas
-  Reseñas de TripAdvisor limpias y con flag de periodo COVID.
+  Reseñas de TripAdvisor limpias y normalizadas.
   Tabla de referencia para NLP (Squad A): sentimiento y aspectos.
   Se une con silver_tripadvisor_ubicaciones por location_id para
   obtener coordenadas y hacer el cruce con la malla H3.
@@ -41,8 +41,7 @@ raw_data AS (
             WHEN length(resena_raw->>'travel_date') = 7 THEN (resena_raw->>'travel_date' || '-01')::date
             ELSE (resena_raw->>'travel_date')::date 
         END AS fecha_viaje,
-        resena_raw->>'trip_type' AS tipo_viaje,
-        resena_raw->'user'->>'username' AS usuario
+        resena_raw->>'trip_type' AS tipo_viaje
     FROM source_data
 )
 
@@ -55,12 +54,7 @@ SELECT
     fecha_publicacion,
     fecha_viaje,
     tipo_viaje,
-    usuario,
-    LENGTH(TRIM(COALESCE(texto, ''))) AS longitud_texto,
-    CASE
-        WHEN EXTRACT(YEAR FROM fecha_publicacion) BETWEEN 2020 AND 2021 THEN TRUE
-        ELSE FALSE
-    END AS periodo_covid
+    LENGTH(TRIM(COALESCE(texto, ''))) AS longitud_texto
 FROM raw_data
 WHERE review_id IS NOT NULL  AND texto IS NOT NULL
   AND LENGTH(TRIM(texto)) > 15

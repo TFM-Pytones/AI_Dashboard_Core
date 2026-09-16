@@ -58,4 +58,4 @@ def render_alojamiento_tab(gdf: pd.DataFrame) -> None:
         color_discrete_sequence=[ACCENT_ALOJAMIENTO, "#1e3a8a", "#6b7280"],
     )
     add_chart_motion(fig)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")

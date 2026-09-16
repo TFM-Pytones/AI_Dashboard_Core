@@ -187,7 +187,7 @@ def render_temas_tab(topicos_municipio_df: pd.DataFrame, chunks_df: pd.DataFrame
                 color_discrete_sequence=[ACCENT_TEMAS, "#eb6834", "#6b7280", "#f3f4f6"],
             )
             add_chart_motion(fig_fuentes)
-            st.plotly_chart(fig_fuentes, use_container_width=True)
+            st.plotly_chart(fig_fuentes, width="stretch")
         with col_topicos:
             fig_topicos = px.bar(
                 topicos_df.sort_values("n"),
@@ -201,7 +201,7 @@ def render_temas_tab(topicos_municipio_df: pd.DataFrame, chunks_df: pd.DataFrame
             add_chart_motion(fig_topicos)
             st.plotly_chart(
                 fig_topicos,
-                use_container_width=True,
+                width="stretch",
                 on_select="rerun",
                 selection_mode="points",
                 key="temas_topicos_chart",

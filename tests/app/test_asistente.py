@@ -13,6 +13,18 @@ class _LLMFalso:
         return self.respuesta
 
 
+def test_resumen_contexto_hexagono_incluye_el_h3_index():
+    # Bug real: preguntar "cual es el h3_index en el que estoy" caia a SQL,
+    # que intentaba reconstruir el hexagono buscando una coincidencia EXACTA
+    # de todos los valores redondeados del contexto (ej. ndvi_medio = 0.19),
+    # que casi nunca coincide con el valor real de la base de datos -- "La
+    # consulta no devolvio resultados". El contexto nunca incluia el propio
+    # h3_index, el dato mas basico de "el hexagono en el que estoy".
+    row = pd.Series({"h3_index": "88344ccb0dfffff", "municipio": "La Orotava"})
+    resumen = resumen_contexto_hexagono(row)
+    assert "88344ccb0dfffff" in resumen
+
+
 def test_resumen_contexto_hexagono_incluye_municipio_y_metricas_disponibles():
     row = pd.Series(
         {

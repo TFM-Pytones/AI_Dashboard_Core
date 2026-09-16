@@ -93,6 +93,8 @@ def fetch_comments(video_id: str) -> list[dict]:
             "part": "snippet",
             "maxResults": 100,
             "textFormat": "plainText",
+            # Filtrado en origen (RGPD): se omiten identificadores personales (authorDisplayName)
+            "fields": "items(snippet/topLevelComment(id,snippet(textDisplay,likeCount,publishedAt))),nextPageToken",
         }
         if page_token:
             params["pageToken"] = page_token
@@ -110,7 +112,6 @@ def fetch_comments(video_id: str) -> list[dict]:
                 {
                     "comment_id": item["snippet"]["topLevelComment"]["id"],
                     "video_id": video_id,
-                    "author": top.get("authorDisplayName"),
                     "text": top.get("textDisplay"),
                     "like_count": top.get("likeCount", 0),
                     "published_at": top.get("publishedAt"),
@@ -136,6 +137,8 @@ def upload_to_azure(blob_service_client, df_new: pd.DataFrame, blob_name: str, u
         downloader = blob_client.download_blob()
         existing_buffer = io.BytesIO(downloader.readall())
         df_existing = pd.read_parquet(existing_buffer)
+        if "author" in df_existing.columns:
+            df_existing.drop(columns=["author"], inplace=True)
         df_combined = pd.concat([df_existing, df_new], ignore_index=True)
     except ResourceNotFoundError:
         pass  # El blob no existe aún, se creará uno nuevo

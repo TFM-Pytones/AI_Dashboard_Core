@@ -79,7 +79,7 @@ La capa Silver tiene la siguiente estructura final (tras consolidación).
 | Modelo | Descripción | Estado |
 |---|---|---|
 | `silver_booking_establishments` | Establecimientos de Booking. `geometry` PostGIS. Deduplicación y enriquecimiento de coordenadas con geocodificador. | Completo |
-| `silver_booking_reviews` | Reseñas de texto de Booking. **Sin agregar** (1 fila = 1 reseña). Flag `periodo_covid`. Campo `longitud_texto`. Filtra reseñas vacías. | Completo |
+| `silver_booking_reviews` | Reseñas de texto de Booking. **Sin agregar** (1 fila = 1 reseña). Campo `longitud_texto`. Filtra reseñas vacías. | Completo |
 
 ### espacial/
 | Modelo | Descripción | Estado |
@@ -124,14 +124,14 @@ La capa Silver tiene la siguiente estructura final (tras consolidación).
 |---|---|---|
 | `silver_youtube` | Métricas agregadas por vídeo (engagement, nº comentarios válidos). Para el Dashboard de engagement. | Completo |
 | `silver_losviajeros` | Métricas agregadas por hilo del foro. Para el Dashboard de engagement. | Completo |
-| `silver_youtube_comentarios` | **Sin agregar** (1 fila = 1 comentario). Flag `periodo_covid`. Para el Squad NLP. | Completo |
-| `silver_losviajeros_mensajes` | **Sin agregar** (1 fila = 1 mensaje). Flag `periodo_covid`. Para el Squad NLP. | Completo |
+| `silver_youtube_comentarios` | **Sin agregar** (1 fila = 1 comentario). Para el Squad NLP. | Completo |
+| `silver_losviajeros_mensajes` | **Sin agregar** (1 fila = 1 mensaje). Para el Squad NLP. | Completo |
 
 ### tripadvisor/
 | Modelo | Descripción | Estado |
 |---|---|---|
 | `silver_tripadvisor_ubicaciones` | Establecimientos con `geometry` PostGIS e índice GIST. | Completo |
-| `silver_tripadvisor_resenas` | Reseñas (1 fila = 1 reseña). Flag `periodo_covid`. Filtra reseñas vacías. | Completo |
+| `silver_tripadvisor_resenas` | Reseñas (1 fila = 1 reseña). Filtra reseñas vacías. | Completo |
 
 ---
 
@@ -237,7 +237,7 @@ GROUP BY h.h3_index
 
 ### Subtarea 1.3 — Agregar valoraciones de Booking y TripAdvisor (Separadas y Métricas Unificadas)
 - **Fuentes Silver:** `silver.booking_establishments` + `silver.booking_reviews` | `silver.tripadvisor_ubicaciones` + `silver.tripadvisor_resenas`
-- **Técnica:** JOIN establishments → reviews → ST_Contains con `h3_grid`. Filtro temporal `>= 2022` y exclusión de `periodo_covid`.
+- **Técnica:** JOIN establishments → reviews → ST_Contains con `h3_grid`. Filtro temporal `>= 2022`.
 - **Métricas Separadas y Consolidadas:**
   - **Booking:** `n_establecimientos_booking`, `rating_booking_medio` (escala 1-10), `n_reviews_booking`.
   - **TripAdvisor:** `n_establecimientos_tripadvisor`, `rating_tripadvisor_medio` (escala 1-5), `n_reviews_tripadvisor`.
@@ -251,7 +251,7 @@ booking AS (
         h.h3_index,
         COUNT(DISTINCT e.establishment_id) AS n_establecimientos_booking,
         ROUND(AVG(r.rating)::numeric, 2) AS rating_booking_medio,
-        COUNT(r.review_id) FILTER (WHERE NOT r.periodo_covid) AS n_reviews_booking
+        COUNT(r.review_id) AS n_reviews_booking
     FROM h3 h
     LEFT JOIN silver.booking_establishments e ON ST_Contains(h.geometry, e.geometry)
     LEFT JOIN silver.booking_reviews r ON r.establishment_id = e.establishment_id
@@ -262,7 +262,7 @@ tripadvisor AS (
         h.h3_index,
         COUNT(DISTINCT e.location_id) AS n_establecimientos_tripadvisor,
         ROUND(AVG(r.rating)::numeric, 2) AS rating_tripadvisor_medio,
-        COUNT(r.review_id) FILTER (WHERE NOT r.periodo_covid) AS n_reviews_tripadvisor
+        COUNT(r.review_id) AS n_reviews_tripadvisor
     FROM h3 h
     LEFT JOIN silver.tripadvisor_ubicaciones e ON ST_Contains(h.geometry, e.geometry)
     LEFT JOIN silver.tripadvisor_resenas r ON r.location_id = e.location_id
@@ -536,6 +536,8 @@ LEFT JOIN gold.nlp_aspectos_resenas a ON a.review_id = s.review_id
 GROUP BY h.h3_index
 ```
 - **Output Final:** Columnas `sentimiento_medio`, `n_resenas`, `queja_principal` incorporadas a `gold.h3_master`.
+
+> **Nota de ejecución (post-implementación, 16-sep-2026):** `gold.gold_h3_sentimiento` se construyó como tabla real independiente, no incorporada a `gold.h3_master` como dice el "Output Final" de arriba. El plan es inconsistente consigo mismo sobre dónde debía vivir este resultado: esta subtarea (Bloque 2) asume que las columnas terminan fusionadas en `gold.h3_master`, mientras que el Bloque 5 (Subtarea 5.1) asume una tabla separada, unida vía `LEFT JOIN`. Se siguió el criterio del Bloque 5. Además, el SQL exacto de arriba no se pudo ejecutar tal cual: las tablas realmente pobladas (`gold.nlp_sentimiento_resenas`, `gold.nlp_aspectos_resenas`) no coinciden en esquema con lo que asumía — la clave real es `resena_id` (no `review_id`) y `h3_index` ya viene precalculado en `gold.nlp_sentimiento_resenas` (no hace falta el `ST_Contains` contra `silver.h3_grid` ni el join intermedio por establecimiento). Ver `analytics/mgwr/scripts/00_create_sentimiento_table.py` para el SQL real usado.
 
 ---
 
@@ -982,6 +984,8 @@ pip install mgwr libpysal scikit-learn numpy pandas matplotlib
   | 15 Destinos secundarios ORS | `gold_h3_accesibilidad` | **EXCLUIR** (Los tiempos a Garachico, Buenavista, Güímar, etc. saturan el modelo de colinealidad. Solo se usan los 3 polos estratégicos). |
   | `walkability_index` | Teórico (pgRouting) | **EXCLUIR** (Sustituido con éxito por `dist_parada_cercana_m` + `n_restaurantes`). |
 
+> **Nota de ejecución (post-implementación, 16-sep-2026):** De las 3 variables de tiempo listadas arriba (`tiempo_aeropuerto_min`, `tiempo_polo_turistico_min`, `tiempo_teide_min`), 2 (`tiempo_teide_min` y `tiempo_polo_turistico_min`) tuvieron que excluirse del modelo final por multicolinealidad severa: VIF 185.9–345.8 entre las 3 (muy por encima del umbral 10) y correlación >0.98 en los tres pares (r=0.9877 a r=0.9970) — en una isla de este tamaño, las 3 miden esencialmente lo mismo ("qué tan lejos del interior/costa está el hexágono"). Solo `tiempo_aeropuerto_min` quedó en el modelo MGWR final (v3). Detalle completo con la evidencia (matriz de correlación, VIF por variable) en `analytics/mgwr/docs/contexto_maestro_proyecto_ptna.md`, Hallazgo 10.
+
 ---
 
 ### Subtarea 5.2 — Ejecutar el modelo MGWR e Índice PTNA
@@ -1056,6 +1060,8 @@ df['ptna_score'] = modelo.predy.flatten() - y.flatten()  # Esperado - Observado
   - Columna `esg_territorial_score` en `gold.gold_h3_ptna` y `gold.gold_h3_master`.
   - Columna `esg_municipal_score` en `gold.gold_municipio_master`.
 - **Interpretabilidad para TUI:** Permite implementar el filtro de inversión sostenible de TUI: seleccionar hexágonos con alto potencial no aprovechado ($PTNA > 0$) y excelente desempeño ESG ($Score_{ESG} > 75$), garantizando un retorno financiero compatible con la sostenibilidad social y ecológica de Tenerife.
+
+> **Nota de ejecución (post-implementación, 16-sep-2026):** De las 6 variables mesomunicipales requeridas arriba, 2 (`pob_turistica_equiv` y las 4 columnas EOH de ocupación mensual) se resolvieron con tablas satélite propias del Bloque 5 (`gold.gold_bloque5_municipio_anual_extra`, `gold.gold_bloque5_municipio_mensual_extra`) en lugar de modificar `gold_municipio_master`/`gold_municipio_mensual` directamente, para no tocar sin coordinar los modelos dbt de otros bloques. Las otras 4 variables (`renta_bruta_irpf`, `poblacion_extranjera`, `empresas_ss`, `parque_vehiculos_1000hab`) siguen sin ingesta real — gap confirmado por grep en todo el repo, no hay ninguna tabla silver/gold que las contenga.
 
 ---
 

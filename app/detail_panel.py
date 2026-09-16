@@ -55,7 +55,12 @@ ACCESIBILIDAD_KPI_COLUMNS = [
         "Minutos estimados en coche hasta el aeropuerto más cercano.",
     ),
     ("dist_hospital_km", "🏥 Km al hospital", "decimal", "Distancia en línea recta al hospital más cercano."),
-    ("dist_costa_km", "🌊 Km a la costa", "decimal", "Distancia en línea recta a la costa."),
+    (
+        "dist_costa_km",
+        "🌊 Km a la costa",
+        "decimal",
+        "Distancia en línea recta a la costa (0,0 km indica primera línea / litoral).",
+    ),
     (
         "n_paradas_bus_500m",
         "🚌 Paradas de bus (500 m)",

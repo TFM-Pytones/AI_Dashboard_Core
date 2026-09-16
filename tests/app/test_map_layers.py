@@ -127,19 +127,22 @@ def test_build_layer_returns_pickable_h3_layer():
 
 def test_build_layer_includes_municipio_and_formatted_tooltip_value():
     layer = build_layer(_gdf(), "Densidad hotelera")
-    assert list(layer.data.columns) == ["h3_index", "municipio", "tooltip_value", "fill_color"]
-    assert layer.data["municipio"].tolist() == ["Adeje", "Arona", "Adeje"]
-    assert layer.data["tooltip_value"].tolist() == ["0,0", "10,0", "20,0"]
+    data_df = pd.DataFrame(layer.data) if isinstance(layer.data, list) else layer.data
+    assert list(data_df.columns) == ["h3_index", "municipio", "tooltip_value", "fill_color"]
+    assert data_df["municipio"].tolist() == ["Adeje", "Arona", "Adeje"]
+    assert data_df["tooltip_value"].tolist() == ["0,0", "10,0", "20,0"]
 
 
 def test_build_layer_tooltip_value_shows_sin_datos_for_missing():
     layer = build_layer(_gdf(), "Naturaleza (NDVI)")
-    assert layer.data["tooltip_value"].iloc[0] == "Sin datos"
+    data_df = pd.DataFrame(layer.data) if isinstance(layer.data, list) else layer.data
+    assert data_df["tooltip_value"].iloc[0] == "Sin datos"
 
 
 def test_build_layer_tooltip_value_passes_through_categories_as_is():
     layer = build_layer(_gdf(), "Restricciones legales")
-    assert layer.data["tooltip_value"].tolist() == ["ENP", "Zona turística oficial", "Sin restricción"]
+    data_df = pd.DataFrame(layer.data) if isinstance(layer.data, list) else layer.data
+    assert data_df["tooltip_value"].tolist() == ["ENP", "Zona turística oficial", "Sin restricción"]
 
 
 def test_build_layer_is_semi_transparent_by_default_so_the_basemap_shows_through():
@@ -220,6 +223,34 @@ def test_build_deck_tooltip_shows_municipio_and_metric_name(monkeypatch):
     assert "{municipio}" in deck._tooltip["text"]
     assert "Sentimiento" in deck._tooltip["text"]
     assert "{tooltip_value}" in deck._tooltip["text"]
+
+
+def test_build_layer_3d_extrudes_and_includes_altitud():
+    gdf = _gdf().copy()
+    gdf["altitud_media_m"] = [100.0, 500.0, 1500.0]
+    layer = build_layer(gdf, "Densidad hotelera", is_3d=True, elevation_scale=1.5)
+    assert layer.extruded is True
+    assert layer.elevation_scale == 1.5
+    data_df = pd.DataFrame(layer.data) if isinstance(layer.data, list) else layer.data
+    assert "altitud_m" in data_df.columns
+    assert data_df["altitud_m"].tolist() == [100.0, 500.0, 1500.0]
+
+
+def test_build_deck_3d_sets_pitch_and_altitude_tooltip(monkeypatch):
+    monkeypatch.setenv("MAPBOX_API_KEY", "pk.test_token")
+    gdf = _gdf().copy()
+    gdf["altitud_media_m"] = [100.0, 500.0, 1500.0]
+    deck = build_deck(gdf, "Densidad hotelera", is_3d=True, elevation_scale=1.2, pitch=55)
+    assert deck.initial_view_state.pitch == 55
+    assert deck.layers[0].extruded is True
+    assert "Altitud MDT" in deck._tooltip["text"]
+
+
+def test_build_deck_falls_back_to_carto_when_no_mapbox_token(monkeypatch):
+    monkeypatch.delenv("MAPBOX_API_KEY", raising=False)
+    deck = build_deck(_gdf(), "Sentimiento")
+    assert deck.map_provider == "carto"
+    assert deck.map_style == pdk.map_styles.CARTO_DARK
 
 
 def test_legend_html_sequential_shows_gradient_with_min_max_labels():

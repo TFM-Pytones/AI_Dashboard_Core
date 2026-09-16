@@ -28,6 +28,8 @@ WITH lecturas_en_punto AS (
         AND COALESCE(valor_validado, valor_observado) NOT IN (-999, -9999, -99, 999, 9999)
         -- 3. Filtrar datos desde 2022 hasta la actualidad
         AND "timestamp" >= '2022-01-01'
+        -- 4. Filtrar solo estaciones maduras (instaladas <= 2022-01-01) presentes en silver_estaciones_agrocabildo
+        AND id_estacion IN (SELECT id_estacion FROM {{ ref('silver_estaciones_agrocabildo') }})
 ),
 
 lecturas_con_umbrales AS (
@@ -60,6 +62,7 @@ sensor_base AS (
     -- +0=Vel.Viento, +1=Dir.Viento, +2=Temperatura, +3=Humedad, +5=Precipitación, +8=Radiación
     SELECT id_estacion, MIN(id_sensor) AS base_sensor
     FROM {{ source('bronze', 'bronze_clima_horario_agrocabildo') }}
+    WHERE id_estacion IN (SELECT id_estacion FROM {{ ref('silver_estaciones_agrocabildo') }})
     GROUP BY id_estacion
 )
 

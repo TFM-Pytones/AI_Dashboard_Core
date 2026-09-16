@@ -27,6 +27,17 @@ forma en que está redactada. Ejemplos SQL con fraseo conversacional:
 plazas por municipio), "¿Me recomiendas algún municipio con mucha oferta
 hotelera?" (pide un ranking por cifra de oferta, no opiniones de viajeros).
 
+"Diferencias" o "comparar" entre dos municipios/zonas es SQL cuando pide
+comparar cifras oficiales (hoteles, paro, plazas, NDVI, sentimiento medio...),
+aunque no se nombre la métrica explícitamente -- solo es RAG si pide
+diferencias en lo que OPINAN o CUENTAN los viajeros. Por defecto, ante
+"diferencias"/"compara" entre dos lugares sin más contexto, asume que se
+piden cifras (SQL), no opiniones. Ejemplos SQL: "¿qué diferencias hay entre
+Adeje y Arona?", "compara Santa Cruz de Tenerife con Adeje", "¿en qué se
+diferencian Adeje y Arona en cuanto a hoteles?". Ejemplo RAG (aquí sí, porque
+pide explícitamente lo que dicen los viajeros): "¿en qué se diferencian las
+opiniones de los viajeros sobre Adeje y Arona?".
+
 PREGUNTA: {pregunta}
 
 Responde solo con SQL o RAG, sin explicación."""

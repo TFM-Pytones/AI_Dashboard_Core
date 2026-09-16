@@ -1,3 +1,6 @@
+import base64
+from pathlib import Path
+
 import pandas as pd
 import streamlit as st
 
@@ -25,7 +28,10 @@ la palabra: DERIVAR
 RESPUESTA:"""
 
 def resumen_contexto_hexagono(row: pd.Series) -> str:
-    partes = [f"Hexágono H3 en {row.get('municipio') or 'municipio desconocido'}."]
+    partes = [
+        f"Hexágono H3 con h3_index {row.get('h3_index') or 'desconocido'}, "
+        f"en el municipio de {row.get('municipio') or 'municipio desconocido'}."
+    ]
     for columna, etiqueta, tipo, _ayuda in KPI_COLUMNS + ACCESIBILIDAD_KPI_COLUMNS:
         valor = format_metric(row.get(columna), tipo)
         if valor != "—":
@@ -107,8 +113,17 @@ def _cargar_fila_hexagono(h3_index: str) -> pd.Series | None:
     return coincidencias.iloc[0]
 
 
+_AVATAR_PATH = Path(__file__).parent / "assets" / "asistente_avatar.png"
+
+
+def _avatar_data_uri() -> str:
+    datos = base64.b64encode(_AVATAR_PATH.read_bytes()).decode("utf-8")
+    return f"data:image/png;base64,{datos}"
+
+
 def _render_mensaje(mensaje: dict) -> None:
-    with st.chat_message(mensaje["role"]):
+    avatar = str(_AVATAR_PATH) if mensaje["role"] == "assistant" else None
+    with st.chat_message(mensaje["role"], avatar=avatar):
         st.markdown(mensaje["content"])
         if mensaje.get("sql"):
             with st.expander("Ver SQL generado"):
@@ -127,33 +142,44 @@ def _render_mensaje(mensaje: dict) -> None:
 # width:fit-content lo reduce al tamaño real del botón. El selector del
 # botón es descendiente (no hijo directo) porque Streamlit anida el botón
 # dentro de un wrapper del tooltip del `help=`.
-_FLOATING_CSS = """
+#
+# El emoji "🤖" del label se sustituye visualmente por la mascota (imagen de
+# fondo) sin quitar el texto del todo -- font-size:0 lo colapsa visualmente
+# pero lo deja para lectores de pantalla.
+def _floating_css() -> str:
+    return f"""
 <style>
-div[data-testid="stPopover"] {
+div[data-testid="stPopover"] {{
     position: fixed;
     bottom: 24px;
     right: 24px;
     z-index: 9999;
     width: fit-content !important;
-}
-div[data-testid="stPopover"] button[data-testid="stPopoverButton"] {
+}}
+div[data-testid="stPopover"] button[data-testid="stPopoverButton"] {{
     border-radius: 50%;
     width: 60px;
     height: 60px;
-    font-size: 1.6rem;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
-}
-div[data-testid="stPopoverBody"] {
+    background-image: url("{_avatar_data_uri()}");
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+}}
+div[data-testid="stPopover"] button[data-testid="stPopoverButton"] p {{
+    font-size: 0;
+}}
+div[data-testid="stPopoverBody"] {{
     width: 420px;
     max-height: 70vh;
     overflow-y: auto;
-}
+}}
 </style>
 """
 
 
 def render_floating_assistant() -> None:
-    st.markdown(_FLOATING_CSS, unsafe_allow_html=True)
+    st.markdown(_floating_css(), unsafe_allow_html=True)
 
     with st.popover("🤖", help="Asistente IA -- pregunta sobre el turismo en Tenerife"):
         contexto_hexagono = None

@@ -56,3 +56,15 @@ def test_prompt_clasificacion_avisa_que_el_tono_conversacional_no_implica_rag():
     texto_minusculas = PROMPT_CLASIFICACION.lower()
     assert "dónde podría" in texto_minusculas
     assert "recomiendas" in texto_minusculas
+
+
+def test_prompt_clasificacion_distingue_diferencias_de_datos_de_opiniones():
+    # Bug real (probado empiricamente, 3/5 preguntas mal clasificadas):
+    # "¿qué diferencias hay entre Adeje y Arona?", "compara Santa Cruz de
+    # Tenerife con Adeje" y "¿en qué se diferencian Adeje y Arona en cuanto a
+    # hoteles?" caian a RAG -- "diferencias"/"compara" entre dos municipios
+    # se asociaba con opiniones aunque la pregunta pida datos comparables
+    # (hoteles, paro, plazas...), no el contenido de reseñas.
+    texto_minusculas = PROMPT_CLASIFICACION.lower()
+    assert "diferencias" in texto_minusculas
+    assert "compara" in texto_minusculas

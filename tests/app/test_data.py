@@ -3,6 +3,8 @@ import pandas as pd
 from shapely.geometry import Point
 
 from app.data import (
+    H3_RES8_EDGE_KM,
+    adjust_coastal_distance,
     clean_accesibilidad_sentinel,
     compute_density_metric,
     compute_restriction_category,
@@ -135,3 +137,30 @@ def test_drop_municipio_alias_rows_resets_index():
     df = pd.DataFrame({"municipio": ["Guía de Isora", "Adeje"], "n_opiniones": [9, 100]})
     result = drop_municipio_alias_rows(df)
     assert result.index.tolist() == [0]
+
+
+def test_adjust_coastal_distance_subtracts_edge_and_clips_to_zero():
+    df = pd.DataFrame({
+        "h3_index": ["costero_1", "costero_2", "interior"],
+        "dist_costa_km": [0.10, 0.46, 2.461],
+    })
+    result = adjust_coastal_distance(df, edge_km=H3_RES8_EDGE_KM)
+    assert result.loc[0, "dist_costa_km"] == 0.0
+    assert result.loc[1, "dist_costa_km"] == 0.0
+    assert result.loc[2, "dist_costa_km"] == 2.0
+
+
+def test_adjust_coastal_distance_preserves_missing_values():
+    df = pd.DataFrame({
+        "h3_index": ["a", "b"],
+        "dist_costa_km": [None, float("nan")],
+    })
+    result = adjust_coastal_distance(df)
+    assert pd.isna(result.loc[0, "dist_costa_km"])
+    assert pd.isna(result.loc[1, "dist_costa_km"])
+
+
+def test_adjust_coastal_distance_noops_if_column_absent():
+    df = pd.DataFrame({"h3_index": ["a"]})
+    result = adjust_coastal_distance(df)
+    assert "dist_costa_km" not in result.columns

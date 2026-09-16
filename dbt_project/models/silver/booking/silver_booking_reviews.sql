@@ -80,15 +80,7 @@ SELECT
         THEN MAKE_DATE(year_str::INTEGER, month_num, day_str::INTEGER)
         ELSE NULL
     END AS review_date,
-    reviewer_country,
-    -- Flag para excluir del análisis NLP principal (BERTopic, pyabsa, MGWR)
-    -- Las reseñas COVID tienen quejas atípicas ("cerrado", "pandemia") que sesgan el modelo
-    CASE
-        WHEN day_str IS NOT NULL AND year_str IS NOT NULL
-             AND year_str::INTEGER BETWEEN 2020 AND 2021
-        THEN TRUE
-        ELSE FALSE
-    END AS periodo_covid
+    reviewer_country
 FROM date_parsed
 WHERE LENGTH(TRIM(COALESCE(review_text, ''))) > 15  -- Descartar reseñas vacías o solo emojis
   AND year_str::INTEGER >= 2022

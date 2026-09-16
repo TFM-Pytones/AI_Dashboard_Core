@@ -118,24 +118,44 @@ def _tooltip_value_column(gdf: pd.DataFrame, config: dict) -> pd.Series:
     return values.apply(lambda v: "Sin datos" if pd.isna(v) else format_metric(v, "decimal"))
 
 
-def build_layer(gdf: pd.DataFrame, metric_key: str, opacity: float = DEFAULT_HEXAGON_OPACITY) -> pdk.Layer:
+def build_layer(
+    gdf: pd.DataFrame,
+    metric_key: str,
+    opacity: float = DEFAULT_HEXAGON_OPACITY,
+    is_3d: bool = False,
+    elevation_scale: float = 1.0,
+    elevation_column: str = "altitud_media_m",
+) -> pdk.Layer:
     config = METRICS[metric_key]
     gdf = gdf.copy()
     gdf["fill_color"] = build_fill_color_column(gdf, metric_key)
     gdf["tooltip_value"] = _tooltip_value_column(gdf, config)
+
+    cols = ["h3_index", "municipio", "tooltip_value", "fill_color"]
+    if is_3d:
+        if elevation_column in gdf.columns:
+            gdf["altitud_m"] = gdf[elevation_column].fillna(0.0).clip(lower=0.0)
+        else:
+            gdf["altitud_m"] = 0.0
+        gdf["altitud_display"] = gdf["altitud_m"].apply(lambda v: f"{v:.0f} m")
+        cols.extend(["altitud_m", "altitud_display"])
+
     return pdk.Layer(
         "H3HexagonLayer",
-        data=gdf[["h3_index", "municipio", "tooltip_value", "fill_color"]],
+        data=gdf[cols],
         id="h3_index",
         pickable=True,
         stroked=True,
         filled=True,
-        extruded=False,
+        extruded=is_3d,
+        get_elevation="altitud_m" if is_3d else 0,
+        elevation_scale=elevation_scale if is_3d else 1.0,
         opacity=opacity,
         get_hexagon="h3_index",
         get_fill_color="fill_color",
-        get_line_color=[255, 255, 255],
+        get_line_color=[255, 255, 255, 60] if is_3d else [255, 255, 255],
         line_width_min_pixels=1,
+        auto_highlight=True,
     )
 
 
@@ -162,15 +182,59 @@ def build_deck(
     metric_key: str,
     show_hexagons: bool = True,
     opacity: float = DEFAULT_HEXAGON_OPACITY,
+    is_3d: bool = False,
+    elevation_scale: float = 1.0,
+    pitch: int = 50,
+    bearing: int = -15,
 ) -> pdk.Deck:
-    layers = [build_layer(gdf, metric_key, opacity=opacity)] if show_hexagons else []
+    layers = (
+        [
+            build_layer(
+                gdf,
+                metric_key,
+                opacity=opacity,
+                is_3d=is_3d,
+                elevation_scale=elevation_scale,
+            )
+        ]
+        if show_hexagons
+        else []
+    )
+    view_state = (
+        pdk.ViewState(
+            latitude=28.29,
+            longitude=-16.62,
+            zoom=9.3,
+            min_zoom=8.5,
+            max_zoom=16,
+            pitch=pitch,
+            bearing=bearing,
+        )
+        if is_3d
+        else TENERIFE_VIEW_STATE
+    )
+    tooltip_text = (
+        f"{{municipio}}\n{metric_key}: {{tooltip_value}}\nAltitud MDT: {{altitud_display}}"
+        if is_3d
+        else f"{{municipio}}\n{metric_key}: {{tooltip_value}}"
+    )
+    mapbox_token = os.environ.get("MAPBOX_API_KEY", "").strip()
+    if mapbox_token:
+        map_provider = "mapbox"
+        map_style = "mapbox://styles/mapbox/satellite-streets-v9"
+        api_keys = {"mapbox": mapbox_token}
+    else:
+        map_provider = "carto"
+        map_style = pdk.map_styles.CARTO_DARK
+        api_keys = None
+
     return pdk.Deck(
         layers=layers,
-        initial_view_state=TENERIFE_VIEW_STATE,
-        map_provider="mapbox",
-        map_style="mapbox://styles/mapbox/satellite-streets-v9",
-        api_keys={"mapbox": os.environ["MAPBOX_API_KEY"]},
-        tooltip={"text": f"{{municipio}}\n{metric_key}: {{tooltip_value}}"},
+        initial_view_state=view_state,
+        map_provider=map_provider,
+        map_style=map_style,
+        api_keys=api_keys,
+        tooltip={"text": tooltip_text},
     )
 
 
