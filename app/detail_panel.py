@@ -26,7 +26,7 @@ KPI_COLUMNS = [
         "sentimiento_medio",
         "😊 Sentimiento medio",
         "decimal2",
-        "Sentimiento medio de las reseñas analizadas por NLP, de -1 (muy negativo) a 1 (muy positivo).",
+        "Sentimiento medio de las reseñas analizadas por NLP, escala 1 (muy negativo) a 5 (muy positivo).",
     ),
     ("rating_booking_medio", "⭐ Rating Booking", "decimal", "Valoración media en Booking, escala 0-10."),
     (

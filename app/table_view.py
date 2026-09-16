@@ -53,7 +53,7 @@ CURATED_COLUMNS = [
         "sentimiento_medio",
         "Sentimiento medio",
         "%.2f",
-        "Puntuación media de sentimiento de las reseñas del hexágono, de -1 (negativo) a 1 (positivo).",
+        "Puntuación media de sentimiento de las reseñas del hexágono, escala 1 (muy negativo) a 5 (muy positivo).",
     ),
     (
         "ndvi_medio",
