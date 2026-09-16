@@ -202,6 +202,20 @@ def render_detail_panel(gdf: pd.DataFrame, selected_h3_index: str | None) -> Non
 
     metric_comparison = municipio_metric_comparison(gdf, selected_h3_index)
     if metric_comparison is not None and not metric_comparison.empty:
+        st.subheader(
+            f"Este hexágono vs. media de {row['municipio']}",
+            help=(
+                "Compara este hexágono con la media de todos los hexágonos de su municipio, "
+                "para ver de un vistazo si es atípico respecto a su entorno (por ejemplo, con "
+                "más o menos oferta turística de lo normal para la zona).\n\n"
+                "**NDVI medio**: vigor de la vegetación medido por satélite, de 0 (sin "
+                "vegetación) a 1 (vegetación densa).\n\n"
+                "**Altitud media**: elevación media del hexágono, en metros.\n\n"
+                "**Plazas registradas**: capacidad turística oficial (camas) de los "
+                "alojamientos registrados en el hexágono -- no el número de alojamientos, "
+                "sino cuánta gente cabe en total."
+            ),
+        )
         # facet_col porque las 3 métricas tienen escalas muy distintas (NDVI
         # 0-1, altitud en metros, plazas en unidades) -- un único eje Y las
         # aplastaría. matches=None libera el eje Y de cada faceta.
@@ -212,7 +226,6 @@ def render_detail_panel(gdf: pd.DataFrame, selected_h3_index: str | None) -> Non
             color="serie",
             facet_col="metrica",
             color_discrete_map={"Este hexágono": ACCENT_DETALLE_SELECCIONADO, "Media del municipio": ACCENT_DETALLE_MEDIA},
-            title=f"Este hexágono vs. media de {row['municipio']}",
             labels={"valor": "", "serie": ""},
         )
         fig_comp.update_yaxes(matches=None)
