@@ -1,10 +1,73 @@
 # Contexto maestro — TFM AI Dashboard Tenerife: Bloque 5 (MGWR + Índice PTNA)
 
 **Fecha de creación:** 2 de septiembre de 2026
-**Última actualización:** 16 de septiembre de 2026 — Fase B del v3 (14 variables, tras excluir 2 por multicolinealidad severa del Hallazgo 10) completó OK en 28.5 min (`ptna_mgwr_model_v3.pkl` + checkpoint). Apareció `altitud_media_m` con VIF moderado (13.4) e inestabilidad en 2 clusters geográficos compactos (no periféricos) — diagnosticado y resuelto en Hallazgo 11: se mantiene en el modelo, con un criterio nuevo de `confianza_ptna` en `05_ptna_score.py`. Pendiente antes de poder correr `05` sin error: el criterio viejo de periferia (Hallazgo 4) sigue con `n_paradas_bus_500m`, que no existe en el v3. Además, se construyeron 2 tablas satélite (`gold.gold_bloque5_municipio_*_extra`) para 2 gaps mesomunicipales de la Subtarea 5.3/5.4. Ver Hallazgos 9, 10 y 11, y sección 5, para el detalle completo.
+**Última actualización:** 16 de septiembre de 2026, cierre de sesión — **empezar por la sección 0**. Resumen: Subtareas 5.1 y 5.2 cerradas (v3, `gold.gold_h3_ptna_v3` subida a Postgres, 1373/2579 con `ptna_score>0`, 107/2579 con `confianza_ptna='baja'`). Subtarea 5.3 cerrada en su dimensión microespacial H3 (`gold.gold_h3_esg_v1`, ver sección 5) — la dimensión mesomunicipal sigue bloqueada por una decisión abierta con fecha límite mañana al mediodía (sección 0). Subtarea 5.4 sin empezar. Ver sección 0 para el estado completo y qué falta antes de retomar en una conversación nueva.
 **Propósito de este documento:** contexto técnico completo y autosuficiente del Bloque 5 (`gold_h3_ptna`), para retomar el trabajo en conversaciones nuevas sin necesidad de re-explicar nada desde cero. Sigue el mismo patrón que `contexto_maestro_proyecto.md` (Booking, issue #12).
 
 Para el panorama general del repo (equipo, otras fuentes, infraestructura Azure) usar `contexto_maestro_repo.md` — este documento se enfoca solo en el Bloque 5.
+
+---
+
+## 0. LEER PRIMERO — Estado al cierre de esta sesión (16-sep-2026) y qué falta
+
+### ✅ Cerrado — no requiere más trabajo
+
+- **Subtarea 5.1 (dataset)**: v3 final, 14 variables X (`ndvi_medio`, `altitud_media_m`, `slope_mean`,
+  `n_restaurantes`, `n_naturaleza`, `n_cultura`, `dist_hospital_km`, `pct_area_enp`,
+  `temp_media_anual`, `lluvia_mm_anual`, `dist_parada_cercana_m`, `tiempo_aeropuerto_min`,
+  `dist_costa_km`, `sentimiento_medio`), tras excluir `viirs_medio`/`ndbi_medio` (proxy directo de Y)
+  y `tiempo_teide_min`/`tiempo_polo_turistico_min` (Hallazgo 10, multicolinealidad severa VIF
+  185.9–345.8).
+- **Subtarea 5.2 (modelo MGWR + PTNA)**: corrido (v3, 28.5 min), checkpoint con `params`/`predy` sin
+  `ENP_j`/`CCT` (decisión de costo/beneficio, Hallazgo 9). `ptna_score` y `confianza_ptna` calculados
+  con 2 criterios independientes: periferia geográfica (Hallazgo 4) + clúster de colinealidad de
+  `altitud_media_m` (Hallazgo 11). Subido a Postgres como `gold.gold_h3_ptna_v3`. **1.373/2.579
+  hexágonos con `ptna_score > 0`**, **107/2.579 (4.1%) con `confianza_ptna = 'baja'`** (verificado
+  contra la tabla real, no estimado).
+- **ESG microespacial H3**: `gold.gold_h3_esg_v1` en Postgres. Capeo en p95 aplicado a
+  `densidad_plazas_km2` antes de normalizar (winsorización simple, mismo criterio de percentiles que
+  `confianza_ptna`). Hallazgo documentado: el pilar **G (Gobernanza)** tiene señal real en muy pocos
+  hexágonos por escasez estructural de dato (98%/96%/89% en cero en sus 3 variables) — no es un bug
+  ni algo corregible con transformación matemática, queda como limitación de cobertura de datos.
+- **Tablas satélite ISTAC**: `gold.gold_bloque5_municipio_anual_extra` y `_mensual_extra`, resolviendo
+  2 de los 6 gaps mesomunicipales ("gaps de cañería": dato ya en Silver, nunca propagado a Gold) sin
+  tocar modelos dbt de otros bloques.
+
+### ⏳ Pendiente — en orden de urgencia
+
+1. **DECISIÓN ABIERTA — fecha límite: mañana al mediodía.** Si los compañeros no confirman que
+   tienen `renta_bruta_irpf`/`poblacion_extranjera`/`empresas_ss`/`parque_vehiculos_1000hab`, se va
+   con **Opción B**: eliminar la dimensión de Gobernanza mesomunicipal (sin datos para ninguna de sus
+   2 variables) y reponderar [E]/[S]. Proxy alternativo si hace falta algo de G:
+   `SUM(n_hoteles) / SUM(n_hoteles + n_vv)` agregado por municipio desde los hexágonos H3 —
+   **nunca promedio simple del ratio, hay que sumar antes de dividir**.
+2. **ESG mesomunicipal**: sin construir, bloqueado por la decisión de arriba.
+3. **Subtarea 5.4 (elasticidades)**: sin empezar. Candidata a quedar fuera o como trabajo futuro
+   documentado si no alcanza el tiempo antes del jueves.
+4. **Segundo clúster de inestabilidad sin diagnosticar a fondo**: 26 hexágonos en el corredor Santa
+   Úrsula → La Victoria de Acentejo → La Matanza de Acentejo → El Sauzal muestran el mismo patrón que
+   `altitud_media_m` (coeficientes de `dist_parada_cercana_m` casi congelados entre sí). Identificado,
+   no investigado, no bloqueante.
+5. **Redacción de metodología/limitaciones del TFM**: pendiente, pero ya existe
+   `analytics/mgwr/docs/metodologia_bloque5_ptna.md` (generado en esta sesión) con el resumen limpio
+   de 5.1/5.2 listo para reusar — falta ampliarlo con ESG cuando esa parte cierre.
+
+### 📁 Archivos y tablas clave
+
+| Qué | Dónde |
+|---|---|
+| Dataset filtrado v3 | `analytics/mgwr/data/interim/ptna_dataset_filtered_v3.parquet` |
+| Checkpoint del modelo v3 | `analytics/mgwr/data/interim/ptna_mgwr_model_v3_checkpoint.pkl` |
+| Resultado final (parquet) | `analytics/mgwr/data/processed/gold_h3_ptna_v3.parquet` |
+| Resultado final (Postgres) | `gold.gold_h3_ptna_v3` |
+| ESG H3 (Postgres) | `gold.gold_h3_esg_v1` |
+| Satélite mesomunicipal (Postgres) | `gold.gold_bloque5_municipio_anual_extra`, `gold.gold_bloque5_municipio_mensual_extra` |
+| Metodología limpia (para redacción TFM) | `analytics/mgwr/docs/metodologia_bloque5_ptna.md` |
+
+### 🔁 Cómo retomar
+
+Decir: *"Retomo el Bloque 5, ya cerré 5.1/5.2, estoy en la decisión de ESG mesomunicipal (sección 0)
+— [contarme qué contestaron los compañeros / qué falta]"*.
 
 ---
 
@@ -219,6 +282,77 @@ Cálculo: normalizar todas las variables con `MinMaxScaler` (0 a 1), aplicar pes
 **Nota actualizada 12-sep-2026**: a diferencia de lo que decía la versión anterior de este documento, `n_hoteles` y `n_vv` **sí están disponibles** en `gold_h3_master` (columnas confirmadas). Falta todavía `dist_enp_km` explícito (hay `pct_area_enp` y `es_enp`, que pueden servir de proxy o insumo directo — evaluar cuando se llegue a esta subtarea).
 
 **Interpretación combinada para TUI:** un hexágono con `ptna_score > 0` y `esg_territorial_score > 80` es la oportunidad ideal — inversión justificada + criterios de sostenibilidad.
+
+### Índice ESG H3 (microespacial) — construido y cerrado (16-sep-2026)
+
+Independiente del pipeline MGWR/PTNA (que ya estaba cerrado, v3 subido a `gold.gold_h3_ptna_v3` antes
+de empezar esto). Usa tablas ya existentes y estables: `gold.gold_h3_master`,
+`gold.gold_h3_accesibilidad`, `gold.gold_h3_sentimiento`. Resultado final: **`gold.gold_h3_esg_v1`**
+en Postgres, 2579 filas.
+
+**2 huecos resueltos antes de calcular nada:**
+
+1. **% de quejas de ruido por hexágono.** `gold_h3_sentimiento.queja_principal` da el aspecto negativo
+   más frecuente, no una tasa. Se agregó `gold.nlp_aspectos_resenas` (mismo join por
+   `resena_id`+`fuente` contra `nlp_sentimiento_resenas` que ya usa `gold_h3_sentimiento`):
+   `COUNT(aspecto ILIKE '%ruido%' AND sentimiento='Negative') / COUNT(*)` de aspectos totales del
+   hexágono. **`ILIKE`, no `=`**: el dato real tiene 3 variantes (`ruido`, `ruidos`, `ruido de obra`).
+   Cobertura real: solo 38 de los 410 hexágonos con sentimiento (9.3%) tienen al menos 1 mención de
+   ruido — el resto queda `NULL` (sin evidencia, no `0`).
+2. **Bienes culturales y oficina de turismo oficial.** `silver.silver_bienes_culturales` no existe
+   con ese nombre — el real es `silver.silver_bienes_interes_culturales` (125 polígonos BIC,
+   vinculable a H3 vía `ST_Intersects` contra `gold_h3_master.geometry`: 101/2579 hexágonos).
+   `silver.silver_oficinas_turismo` también existe (31 puntos, 28/2579 hexágonos). **Ambas ya están
+   fusionadas en `gold_h3_master.n_pois_institucionales`** (= `COUNT(fuente='IDE_Canarias')`, que
+   incluye BIC + oficinas de turismo a la vez) — no hizo falta construir nada nuevo, habría sido
+   redundante. `es_zona_turistica_oficial` (boolean) **no existe** en `gold_h3_master`; el dato real
+   es `pct_area_zona_turistica` (continuo 0-1, fracción del área del hexágono en zona turística
+   oficial designada, 99/2579 hexágonos > 0) — se usó como reemplazo directo, más preciso que un
+   boolean. Bonus verificado de paso: `cambio_luz_nocturna_pct` ya existe en `gold_h3_master`
+   (no se derivó), y `dist_costa_km` es idéntica entre `gold_h3_master` y `gold_h3_accesibilidad`
+   (0 diferencias) — se usó la del master sin join extra.
+
+**Variables y polaridad** (MinMax 0-1, invirtiendo donde "más crudo = peor"):
+
+- **[E] 40%** (9 variables, todas de `gold_h3_master`): `ndvi_medio`, `ndvi_2026-ndvi_2022`
+  (directas) · `viirs_medio`, `cambio_luz_nocturna_pct`, `ndbi_medio`, `dias_ola_calor_anual`,
+  `amplitud_termica_media` (invertidas) · `pct_area_enp`, `dist_costa_km` (directas — confirmado:
+  el propio plan agrupa `dist_costa_km` con `pct_area_enp` bajo "fragilidad ecológica de hábitats
+  protegidos y ecosistemas litorales", más distancia = menos presión = mejor).
+- **[S] 40%** (4 variables, todas invertidas): `densidad_plazas_km2` **(capeada en p95 = 275.62
+  plazas/km² antes de normalizar — ver abajo)**, `dist_hospital_km`, `dist_parada_cercana_m`
+  (`gold_h3_accesibilidad`), `pct_quejas_ruido` (huso 1 de arriba).
+- **[G] 20%** (3 variables, todas directas): `n_hoteles/(n_hoteles+n_vv)`, `n_pois_institucionales`,
+  `pct_area_zona_turistica` (reemplazo de `es_zona_turistica_oficial`, hueco 2 de arriba).
+
+**Decisiones de diseño explícitas:**
+
+- **Ponderación equal-weight dentro de cada pilar** (E: 1/9 c/u, S: 1/4 c/u, G: 1/3 c/u) — asunción
+  explícita, el plan no especifica pesos internos por variable.
+- **Promedio que ignora NULL dentro de cada pilar** (`AVG` sobre `unnest`, no división por N fijo):
+  un hexágono sin alojamiento (`n_hoteles=n_vv=0`, 1578/2579 = 61.2%) promedia G solo sobre las 2
+  variables restantes en vez de arrastrar el ratio a 0; uno sin reseñas (2169/2579 = 84.1%) promedia
+  S solo sobre las 3 restantes. Columnas de trazabilidad agregadas para poder filtrar esto (mismo
+  espíritu que `n_resenas_sentimiento` en `gold_h3_sentimiento`): `s_score_completo` (false si
+  `pct_quejas_ruido` es NULL) y `g_score_completo` (false si el ratio de hoteles es NULL). Solo
+  390/2579 (15.1%) están completos en S y G a la vez.
+- **Capeo de `densidad_plazas_km2` en el p95** (`LEAST(valor, PERCENTILE_CONT(0.95)...)`, calculado
+  en la misma query, no hardcodeado) antes de la normalización MinMax. Motivo: distribución
+  extremadamente sesgada (mediana 0, máximo 14.463 plazas/km², ratio ~14.000x) — sin el capeo, el 95%
+  de los hexágonos quedaba comprimido entre 0.98-1.0 en ese componente, sin poder discriminante real.
+  Mismo criterio de winsorización por percentiles que `confianza_ptna`.
+- **Pilar G NO ajustado** — a diferencia de S, es una limitación estructural de cobertura de dato,
+  no de normalización: `n_pois_institucionales=0` en 98% de los hexágonos, `pct_area_zona_turistica=0`
+  en 96%, `ratio_hoteles=0` en 89% de los 1001 hexágonos donde el ratio existe. Aplicar capeo/log
+  sobre variables ~90%+ en cero crearía apariencia de discriminación que no existe — se documenta
+  como hallazgo, no se corrige. **Consecuencia explícita**: pese a la ponderación nominal 40/40/20,
+  `esg_h3_score` queda dominado en la práctica por E+S para la mayoría de la isla — G solo aporta
+  señal real en el puñado de hexágonos con algún BIC/oficina de turismo/zona turística oficial/hotel
+  regulado cerca.
+
+**Resultado real** (`gold.gold_h3_esg_v1`, tras el capeo): `esg_h3_score` min=36.28, P50=55.08,
+P95=62.75, max=68.55, media=54.99. Top: `883441350dfffff` (El Tanque, 68.55). Distribución de
+`g_score`: P50=0.0000, P95=0.0124, max=0.3547 (confirma el hallazgo de arriba).
 
 ### Investigación de variables mesomunicipales (16-sep-2026) — Subtarea 5.3/5.4
 
@@ -479,6 +613,7 @@ El patrón se sostiene para ambas — comparable al v1 (33/2579, 1.3%, con `n_pa
 - **[v3, 16-sep-2026]** Excluir `tiempo_teide_min` y `tiempo_polo_turistico_min` de `PTNA_QUALITY_COLUMNS`, conservando solo `tiempo_aeropuerto_min` (Hallazgo 10) — VIF 185.9-345.8 entre las 3, muy por encima del umbral 10. 16 → 14 variables, `bw_floor` 48 → 42.
 - **[v3, 16-sep-2026]** Mantener `altitud_media_m` en el modelo pese a VIF=13.4 (Hallazgo 11) — moderado, no severo, y la variable la pide el plan explícitamente. En `05_ptna_score.py`, `calcular_h3_confianza_baja_cluster` (nuevo, aparte de `calcular_h3_confianza_baja`/Hallazgo 4) marca confianza baja por percentil extremo del coeficiente, sin filtro de periferia (no aplica: los 2 clusters de `altitud_media_m` son geográficamente compactos y bien poblados, no periféricos).
 - **[16-sep-2026]** Construidas 2 tablas satélite del Bloque 5 para gaps mesomunicipales de "cañería" (dato en Silver, nunca propagado a Gold): `gold.gold_bloque5_municipio_anual_extra` (`pob_turistica_equiv`) y `gold.gold_bloque5_municipio_mensual_extra` (métricas EOH mensuales) — ver sección 5 para el detalle completo. No se tocó ningún modelo dbt existente.
+- **[16-sep-2026]** Índice ESG H3 (`gold.gold_h3_esg_v1`) construido con MinMax + ponderación equal-weight dentro de cada pilar (asunción explícita, no especificada por el plan), `densidad_plazas_km2` capeada en p95 antes de normalizar, y el pilar G dejado sin ajustar por ser escasez estructural de dato, no un problema de normalización — ver sección 5 para el detalle completo.
 
 ## 9. Próximos pasos
 
@@ -494,8 +629,8 @@ El patrón se sostiene para ambas — comparable al v1 (33/2579, 1.3%, con `n_pa
 - [x] Adaptar `05_ptna_score.py` para v3: defaults de `--model`/`--dataset`/`--output` actualizados a `_v3` (16-sep-2026). Agregado `calcular_h3_confianza_baja_cluster` (Hallazgo 11) para `altitud_media_m`, aparte del criterio de periferia.
 - [x] `CONFIANZA_BAJA_VARIABLES` (criterio de periferia, Hallazgo 4) actualizada: `n_paradas_bus_500m` → `dist_parada_cercana_m`, rediagnosticada contra el checkpoint v3 antes de aplicar (51 + 25 hexágonos, patrón sostenido — ver Hallazgo 11). Ya no bloquea correr `05_ptna_score.py`.
 - [x] Construidas 2 tablas satélite mesomunicipales (`gold.gold_bloque5_municipio_anual_extra`, `gold.gold_bloque5_municipio_mensual_extra`) para los 2 gaps de "cañería" de la Subtarea 5.3/5.4 — ver sección 5. Los 4 gaps genuinos (`renta_bruta_irpf`, `poblacion_extranjera`, `empresas_ss`, `parque_vehiculos_1000hab`) siguen bloqueados por falta de ingesta real.
-- [ ] Decidir dónde vive el resultado final de PTNA en Postgres: `06_load_to_gold.py` existe pero nunca se corrió — la tabla v1 (`gold_h3_ptna_v1_sin_sentimiento`) no existe todavía en Postgres, solo como parquet local. Subir v3 queda pendiente de decisión explícita, no se automatiza.
-- [ ] Avanzar a Subtarea 5.3 (ESG) una vez cerrada 5.1 y 5.2 del v3 — ya se confirmó que `n_hoteles`/`n_vv` están disponibles, que `gold_h3_sentimiento` (con `queja_principal`) está lista, y que las 2 tablas satélite mesomunicipales cubren los gaps de cañería; falta evaluar `dist_enp_km` vs. `pct_area_enp`/`es_enp` como insumo. No tocar todavía (fuera del alcance de esta sesión) — condicionado además a verificar si `gold_municipio_master`/`gold_municipio_empleo` (ya confirmadas existentes) tienen todo lo necesario para las Subtareas 5.3/5.4 de escala municipal.
+- [x] Decidir dónde vive el resultado final de PTNA en Postgres — resuelto: `06_load_to_gold.py` corrido, `gold.gold_h3_ptna_v3` existe y está verificado en Postgres (2579 filas, 1373 con `ptna_score>0`). La v1 (`gold_h3_ptna_v1_sin_sentimiento`) sigue sin existir en Postgres a propósito (nunca se subió, queda solo como parquet de referencia histórica).
+- [x] Subtarea 5.3 (ESG), dimensión microespacial H3 — **cerrada**: `gold.gold_h3_esg_v1` construida y verificada, ver sección 5 (subsección "Índice ESG H3"). La dimensión mesomunicipal de 5.3 sigue **pendiente**, bloqueada por la decisión abierta de la sección 0 (Gobernanza mesomunicipal sin datos propios, definir Opción B si los compañeros no confirman las 4 variables genuinas antes de mañana al mediodía).
 
 ## Cómo usar este documento en una conversación nueva
 
