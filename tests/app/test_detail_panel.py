@@ -56,30 +56,40 @@ def _metric_gdf():
 
 
 def test_municipio_metric_comparison_returns_none_for_unknown_hexagon():
-    assert municipio_metric_comparison(_metric_gdf(), "no-existe") is None
+    assert municipio_metric_comparison(_metric_gdf(), "no-existe", "ndvi_medio") is None
 
 
 def test_municipio_metric_comparison_compares_hexagono_vs_media_de_sus_pares():
-    result = municipio_metric_comparison(_metric_gdf(), "a")
-    fila_hex = result[(result["metrica"] == "NDVI medio") & (result["serie"] == "Este hexágono")]
-    fila_media = result[(result["metrica"] == "NDVI medio") & (result["serie"] == "Media del municipio")]
+    result = municipio_metric_comparison(_metric_gdf(), "a", "ndvi_medio")
+    fila_hex = result[result["serie"] == "Este hexágono"]
+    fila_media = result[result["serie"] == "Media del municipio"]
     assert fila_hex["valor"].iloc[0] == 0.2
     assert fila_media["valor"].iloc[0] == pytest.approx((0.2 + 0.4 + 0.6) / 3)
 
 
 def test_municipio_metric_comparison_no_mezcla_hexagonos_de_otro_municipio():
-    result = municipio_metric_comparison(_metric_gdf(), "a")
-    fila_media = result[(result["metrica"] == "NDVI medio") & (result["serie"] == "Media del municipio")]
+    result = municipio_metric_comparison(_metric_gdf(), "a", "ndvi_medio")
+    fila_media = result[result["serie"] == "Media del municipio"]
     # Arona (0.8) no debe entrar en la media -- solo los 3 hexagonos de Adeje.
     assert fila_media["valor"].iloc[0] == pytest.approx(0.4)
 
 
-def test_municipio_metric_comparison_omite_metrica_sin_dato():
+def test_municipio_metric_comparison_returns_none_sin_dato_en_ningun_lado():
     gdf = _metric_gdf()
     gdf["ndvi_medio"] = None
-    result = municipio_metric_comparison(gdf, "a")
-    assert "NDVI medio" not in result["metrica"].values
-    assert "Altitud media (m)" in result["metrica"].values
+    assert municipio_metric_comparison(gdf, "a", "ndvi_medio") is None
+
+
+def test_municipio_metric_comparison_returns_none_si_la_columna_no_existe():
+    assert municipio_metric_comparison(_metric_gdf(), "a", "columna_inventada") is None
+
+
+def test_municipio_metric_comparison_compara_otra_metrica_distinta():
+    result = municipio_metric_comparison(_metric_gdf(), "d", "altitud_media_m")
+    fila_hex = result[result["serie"] == "Este hexágono"]
+    fila_media = result[result["serie"] == "Media del municipio"]
+    assert fila_hex["valor"].iloc[0] == 900.0
+    assert fila_media["valor"].iloc[0] == pytest.approx(900.0)  # Arona solo tiene "d"
 
 
 def test_restriction_badges_shows_enp_badge():

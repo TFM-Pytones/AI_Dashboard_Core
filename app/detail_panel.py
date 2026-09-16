@@ -109,31 +109,42 @@ def nearest_destinos(row, n: int = 5) -> pd.DataFrame:
 
 
 # (columna, etiqueta) -- métricas numéricas ya disponibles en gold_h3_master,
-# sin inventar ningún ratio/índice nuevo. Comparan el hexágono seleccionado
-# contra la media simple de los hexágonos de su mismo municipio.
-COMPARACION_MUNICIPIO_COLUMNS = [
+# sin inventar ningún ratio/índice nuevo. El usuario elige UNA de estas en un
+# desplegable para comparar el hexágono seleccionado contra la media de los
+# hexágonos de su mismo municipio -- comparar varias a la vez en un único
+# gráfico no funciona bien porque tienen escalas incomparables (NDVI 0-1,
+# altitud en metros, plazas en unidades, minutos, km...).
+COMPARACION_MUNICIPIO_OPCIONES = [
     ("ndvi_medio", "NDVI medio"),
     ("altitud_media_m", "Altitud media (m)"),
     ("n_plazas_registro", "Plazas registradas"),
+    ("n_hoteles", "Nº hoteles"),
+    ("n_establecimientos_registro", "Nº alojamientos registrados"),
+    ("sentimiento_medio", "Sentimiento medio"),
+    ("rating_booking_medio", "Rating Booking"),
+    ("rating_tripadvisor_medio", "Rating TripAdvisor"),
+    ("tiempo_aeropuerto_min", "Minutos al aeropuerto"),
+    ("dist_hospital_km", "Km al hospital"),
+    ("dist_costa_km", "Km a la costa"),
+    ("n_paradas_bus_500m", "Paradas de bus (500 m)"),
 ]
 
 
-def municipio_metric_comparison(gdf: pd.DataFrame, h3_index: str) -> pd.DataFrame | None:
-    if h3_index not in gdf["h3_index"].values:
+def municipio_metric_comparison(gdf: pd.DataFrame, h3_index: str, columna: str) -> pd.DataFrame | None:
+    if columna not in gdf.columns or h3_index not in gdf["h3_index"].values:
         return None
     row = gdf.loc[gdf["h3_index"] == h3_index].iloc[0]
     peers = gdf[gdf["municipio"] == row["municipio"]]
-    registros = []
-    for columna, etiqueta in COMPARACION_MUNICIPIO_COLUMNS:
-        valor_hexagono = row.get(columna)
-        media_municipio = peers[columna].mean() if columna in peers else None
-        if pd.isna(valor_hexagono) and pd.isna(media_municipio):
-            continue
-        registros.append({"metrica": etiqueta, "serie": "Este hexágono", "valor": valor_hexagono})
-        registros.append({"metrica": etiqueta, "serie": "Media del municipio", "valor": media_municipio})
-    if not registros:
+    valor_hexagono = row.get(columna)
+    media_municipio = peers[columna].mean()
+    if pd.isna(valor_hexagono) and pd.isna(media_municipio):
         return None
-    return pd.DataFrame(registros)
+    return pd.DataFrame(
+        [
+            {"serie": "Este hexágono", "valor": valor_hexagono},
+            {"serie": "Media del municipio", "valor": media_municipio},
+        ]
+    )
 
 
 def municipio_aspect_comparison(gdf: pd.DataFrame, h3_index: str) -> pd.DataFrame | None:
@@ -200,36 +211,36 @@ def render_detail_panel(gdf: pd.DataFrame, selected_h3_index: str | None) -> Non
         add_chart_motion(fig)
         st.plotly_chart(fig, width="stretch")
 
-    metric_comparison = municipio_metric_comparison(gdf, selected_h3_index)
-    if metric_comparison is not None and not metric_comparison.empty:
+    opciones_comparacion = {
+        etiqueta: columna for columna, etiqueta in COMPARACION_MUNICIPIO_OPCIONES if columna in gdf.columns
+    }
+    if opciones_comparacion:
         st.subheader(
-            f"Este hexágono vs. media de {row['municipio']}",
+            "Comparar este hexágono con la media del municipio",
             help=(
-                "Compara este hexágono con la media de todos los hexágonos de su municipio, "
-                "para ver de un vistazo si es atípico respecto a su entorno (por ejemplo, con "
-                "más o menos oferta turística de lo normal para la zona).\n\n"
-                "**NDVI medio**: vigor de la vegetación medido por satélite, de 0 (sin "
-                "vegetación) a 1 (vegetación densa).\n\n"
-                "**Altitud media**: elevación media del hexágono, en metros.\n\n"
-                "**Plazas registradas**: capacidad turística oficial (camas) de los "
-                "alojamientos registrados en el hexágono -- no el número de alojamientos, "
-                "sino cuánta gente cabe en total."
+                "Compara este hexágono con la media de todos los hexágonos de su municipio en "
+                "la métrica que elijas, para ver de un vistazo si es atípico respecto a su "
+                "entorno (por ejemplo, con más o menos oferta turística de lo normal para la "
+                "zona). Cada métrica se muestra por separado porque tienen escalas distintas "
+                "(NDVI de 0 a 1, altitud en metros, ratings 0-10...): mezclarlas en un mismo "
+                "gráfico las haría ilegibles."
             ),
         )
-        # facet_col porque las 3 métricas tienen escalas muy distintas (NDVI
-        # 0-1, altitud en metros, plazas en unidades) -- un único eje Y las
-        # aplastaría. matches=None libera el eje Y de cada faceta.
-        fig_comp = px.bar(
-            metric_comparison,
-            x="serie",
-            y="valor",
-            color="serie",
-            facet_col="metrica",
-            color_discrete_map={"Este hexágono": ACCENT_DETALLE_SELECCIONADO, "Media del municipio": ACCENT_DETALLE_MEDIA},
-            labels={"valor": "", "serie": ""},
+        etiqueta_elegida = st.selectbox(
+            "¿Qué quieres comparar?", list(opciones_comparacion.keys()), key="detalle_comparacion_metrica"
         )
-        fig_comp.update_yaxes(matches=None)
-        fig_comp.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1]))
-        fig_comp.update_xaxes(showticklabels=False, title=None)
-        add_chart_motion(fig_comp)
-        st.plotly_chart(fig_comp, width="stretch")
+        columna_elegida = opciones_comparacion[etiqueta_elegida]
+        metric_comparison = municipio_metric_comparison(gdf, selected_h3_index, columna_elegida)
+        if metric_comparison is None:
+            st.caption(f"Sin dato de «{etiqueta_elegida.lower()}» para este hexágono o su municipio.")
+        else:
+            fig_comp = px.bar(
+                metric_comparison,
+                x="serie",
+                y="valor",
+                color="serie",
+                color_discrete_map={"Este hexágono": ACCENT_DETALLE_SELECCIONADO, "Media del municipio": ACCENT_DETALLE_MEDIA},
+                labels={"valor": etiqueta_elegida, "serie": ""},
+            )
+            add_chart_motion(fig_comp)
+            st.plotly_chart(fig_comp, width="stretch")
