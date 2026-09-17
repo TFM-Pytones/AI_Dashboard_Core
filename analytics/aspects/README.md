@@ -64,7 +64,7 @@ python analytics/aspects/traducir_aspectos.py --limit 50 --dry-run
 ## 3. Integración con la Malla H3 y dbt
 
 La tabla `gold.aspecto_traducciones` es consumida por el modelo dbt:
-- **`gold.gold_sentimiento_h3`**: Calcula la `queja_principal` (moda de los aspectos normalizados) en cada celda hexagonal H3 (`silver.silver_h3_grid`).
+- **`gold.gold_sentimiento_h3`**: Calcula la `queja_principal` (aspecto más recurrente con polaridad negativa: `MODE() ... WHERE sentimiento = 'Negative'`) en las 410 celdas hexagonales H3 con reseñas de alojamiento (`silver.silver_h3_grid`).
 
 ---
 

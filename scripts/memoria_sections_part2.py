@@ -76,7 +76,7 @@ El conjunto de modelos Gold materializa en PostgreSQL el resultado de toda la ca
 | `gold_h3_ptna` | Índice PTNA, coeficientes MGWR locales, `esg_territorial_score` *(pendiente)* | H3 |
 | `gold_h3_clusters` | Arquetipos HDBSCAN, probabilidad de pertenencia, etiqueta de negocio | H3 |
 
-`gold_h3_master` actúa como **tabla maestra** de la que derivan el simulador gravitatorio, el asistente RAG y todos los módulos del dashboard. Sus índices GiST en la geometría y su índice único en `h3_index` permiten resolver cruces espaciales complejos en 15–45 milisegundos.
+`gold_h3_master` actúa como **tabla maestra** de la que derivan el simulador territorial What-If, el asistente RAG y todos los módulos del dashboard. Sus índices GiST en la geometría y su índice único en `h3_index` permiten resolver cruces espaciales complejos en 15–45 milisegundos.
 
 ## 4.5. Segmentación Espacial No Supervisada: HDBSCAN
 
@@ -152,15 +152,12 @@ Esta diferenciación de escalas revela que **la valoración turística es un fen
 
 ### Evaluación comparativa de modelos de regresión
 
-| Modelo | R² Ajustado | AICc | Moran's I Residuos | Dictamen |
+| Modelo | R² Global | Moran's I Residuos | p-valor (999 perm.) | Dictamen |
 | :--- | :---: | :---: | :---: | :--- |
-| OLS Global | 0,418 | 4.821,3 | 0,472 (p < 0,001) | Descartado: sesgo espacial severo |
-| Spatial Lag (SAR) | 0,594 | 4.310,5 | 0,118 (p < 0,01) | Insuficiente: retardo espacial de escala fija |
-| Spatial Error (SEM) | 0,612 | 4.258,2 | 0,094 (p < 0,05) | Parcial: corrige error pero no modela coeficientes locales |
-| GWR Clásico | 0,715 | 4.045,8 | 0,062 (p = 0,12) | Mejora sustancial, pero bandwidth único inadecuado |
-| **MGWR Multiescalar** | **0,782** | **3.914,6** | **0,041 (p = 0,28)** | **Seleccionado:** residuos no autocorrelacionados |
+| OLS Global (14 vars) | 0,5444 | 0,3065 | p = 0,0010 | Descartado: sesgo espacial severo |
+| **MGWR Multiescalar (v3)** | **0,8272** | **0,0355** | **p = 0,0110** | **Seleccionado:** dependencia espacial sustancialmente mitigada |
 
-El salto de R² de 0,418 (OLS) a 0,782 (MGWR) y la reducción del AICc en más de 900 puntos evidencian que los fenómenos de valoración turística en Tenerife no son estacionarios y requieren un enfoque multiescala. La desaparición de la autocorrelación espacial en los residuos (I de Moran: 0,041, p = 0,284) confirma que el modelo MGWR captura correctamente la estructura espacial de los datos.
+El salto de R² de 0,5444 (OLS) a 0,8272 (MGWR) y la drástica reducción de la I de Moran de los residuos de 0,3065 a 0,0355 evidencian que los fenómenos de valoración e implantación turística en Tenerife no son estacionarios y requieren un enfoque multiescala. El MGWR mitiga sustancialmente la dependencia espacial residual, permitiendo capturar con precisión la estructura territorial de los datos.
 
 ### El Índice de Potencial Turístico No Aprovechado (PTNA)
 

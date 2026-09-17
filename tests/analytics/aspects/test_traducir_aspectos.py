@@ -1,5 +1,12 @@
-import pytest
+import sys
+from pathlib import Path
 from unittest.mock import MagicMock
+import pytest
+
+# Asegurar que la raíz del proyecto esté en sys.path al ejecutarse como script o en editores
+ROOT_DIR = Path(__file__).resolve().parents[3]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 
 from analytics.aspects.traducir_aspectos import (
     es_traduccion_valida,
@@ -93,3 +100,7 @@ def test_parse_args_defaults():
         assert args.dry_run is False
     finally:
         sys.argv = sys_argv_backup
+
+
+if __name__ == "__main__":
+    sys.exit(pytest.main([__file__, "-v"]))

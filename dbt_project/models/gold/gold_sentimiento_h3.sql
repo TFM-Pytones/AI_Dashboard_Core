@@ -7,8 +7,7 @@
 ) }}
 
 /*
-  Modelo Gold: gold_sentimiento_h3 (Issue #20 -- Georreferenciacion de
-  Topicos y Sentimientos)
+  Modelo Gold: gold_sentimiento_h3
 
   Agrega por hexagono H3 el sentimiento (Tarea 2.1, BERT multilingue) y la
   queja/aspecto mas frecuente (Tarea 2.2, PyABSA + normalizacion) de las
@@ -16,16 +15,8 @@
 
   gold.nlp_sentimiento_resenas ya trae `h3_index` resuelto en el momento del
   analisis -- el join hotel -> hexagono se hizo una unica vez dentro del
-  notebook 2.1 (merge con df_hotel_h3) -- asi que aqui NO hace falta repetir
+  notebook 2.1 (merge con df_hotel_h3) -- asi que aqui no hace falta repetir
   el cruce espacial contra las tablas de establecimientos: basta con agregar.
-
-  (analytics/tarea2/cruce_nlp_hexagono_h3.sql, tarea #68, intentaba
-  reconstruir ese cruce espacial desde cero y usaba columnas que no existen
-  en el esquema real -- e_b.longitude/latitude, silver.tripadvisor_ubicaciones
-  sin el prefijo silver_, a.aspecto_normalizado como si ya viniera en
-  nlp_aspectos_resenas. Este modelo lee directamente de las tablas reales que
-  escriben los notebooks, incluyendo el mapeo de gold.aspecto_traducciones
-  para la normalizacion de aspectos.)
 */
 
 WITH sentimiento AS (
@@ -38,7 +29,7 @@ WITH sentimiento AS (
     WHERE h3_index IS NOT NULL
 ),
 
--- Issue tarea 2.2 normaliza los aspectos en una tabla de mapeo aparte
+-- Normaliza los aspectos en una tabla de mapeo aparte
 -- (gold.aspecto_traducciones) en vez de una columna en nlp_aspectos_resenas;
 -- si un aspecto todavia no se ha traducido, usamos el original como fallback.
 aspectos_normalizados AS (

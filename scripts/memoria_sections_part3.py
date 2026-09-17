@@ -8,82 +8,108 @@ Versión compacta — código completo en Anexos D.
 
 
 def get_chapter_6():
-    return """# 6. Inteligencia Artificial Generativa y Asistente RAG
+    return """# 6. Inteligencia Artificial Generativa, RAG Híbrido y Asistente Conversacional Inteligente
 
-## 6.1. Arquitectura RAG y Mitigación de Alucinaciones
+## 6.1. Arquitectura RAG Híbrida y Motor de Inferencia LPU (Groq API)
 
-Para salvar la brecha entre los datos numéricos de la plataforma y la toma de decisiones ejecutiva, se diseñó una arquitectura de **Generación Aumentada por Recuperación (RAG)**: el modelo de lenguaje no usa su conocimiento preentrenado, sino que recibe como contexto inyectado un resumen estructurado de las métricas de las celdas H3 consultadas.
+Para salvar la brecha operativa entre los modelos multidimensionales y la toma de decisiones ejecutiva en TUI sin incurrir en alucinaciones factuales, se implementó una arquitectura desacoplada gobernada por guardrails estrictos. Se descartó el aprovisionamiento de GPUs dedicadas en Azure Cloud (>900 USD/mes) en favor de la **API Cloud de Groq**, cuyos procesadores **LPU (Language Processing Unit)** ofrecen inferencia superior a **250 tokens/segundo**.
 
-La mitigación de alucinaciones se basa en tres principios:
+El motor seleccionado es **`openai/gpt-oss-120b`** (con *fallback* en `llama-3.3-70b-versatile`). Debido a que este modelo consume presupuesto interno en tokens de razonamiento (*thinking tokens*) antes de emitir texto, se calibraron techos específicos por tarea: `max_tokens=150` para el router, `max_tokens=1000` para Text-to-SQL y `max_tokens=1200` para informes ejecutivos, operando con $T = 0,0$ en tareas deterministas y $T = 0,4$ en síntesis narrativa. A través de `report_generator.py`, el sistema genera periódicamente memorias ejecutivas de tres párrafos (percepción global, fricciones críticas y oportunidades TUI) almacenadas en `gold.nlp_informe_global` bajo dos alcances: *Ámbito General* (Modelo A de BERTopic post-2022) y *Ámbito Alojamiento* (Modelo B, >38.000 opiniones).
 
-1. **Conocimiento factual estrictamente acotado:** El LLM solo puede usar los datos numéricos que se le proporcionan explícitamente en el prompt.
-2. **Guardrails de sistema:** El modelo actúa bajo el rol de *Analista Senior de Turismo Sostenible de TUI* con instrucción explícita de no inventar cifras.
-3. **Trazabilidad:** Cada informe generado se persiste en `gold.nlp_informe_global`, registrando modelo, fecha, ámbito espacial y parámetros usados.
+## 6.2. Indexación Vectorial, Extracción Determinista y Fusión RRF
 
-## 6.2. Motor de Inferencia de Alta Velocidad (Groq API)
+El motor RAG (`analytics/rag`) opera sobre un corpus de 87.981 fragmentos almacenados en `gold.nlp_chunks`. El 95,5 % de las reseñas tiene $\le 1.000$ caracteres y se ingiere de forma atómica para preservar la coherencia contextual; el 4,5 % restante se procesa mediante segmentación recursiva por oraciones (`CHUNK_SIZE = 800`, `CHUNK_OVERLAP = 100`). Cada fragmento se enriquece con metadatos de autor, fecha, valoración, tópico y su adscripción geoespacial (cruce PostGIS `ST_Contains` con celdas H3 de `gold_h3_master` para Booking/TripAdvisor y mención toponímica para foros).
 
-Se descartó mantener GPUs dedicadas en Azure (coste > 900 USD/mes para uso esporádico) en favor de la **API de Groq LPU**, que ofrece más de 250 tokens/segundo con tarificación por consumo. El modelo seleccionado es **`openai/gpt-oss-120b`** (con fallback en `llama-3.3-70b-versatile`), operando con temperatura T = 0,4 para maximizar la consistencia lógica *(código del cliente `llm_client.py` en Anexo D.2)*.
+* **Indexación Vectorial Densa:** Se empleó `sentence-transformers/paraphrase-multilingual-mpnet-base-v2` (768 dimensiones) indexado en PostgreSQL con `pgvector` HNSW ($m = 16, ef\_construction = 64, \text{distancia coseno } \Leftrightarrow$). Para evitar la degradación de recall ante filtros SQL selectivos, se activó el escaneo iterativo (`SET LOCAL hnsw.iterative_scan = 'relaxed_order'` con $ef\_search = 100$) sobre un CTE `MATERIALIZED`, reduciendo la latencia de 15 s a <40 ms.
+* **Filtros Deterministas:** El módulo `filtros.py` extrae entidades toponímicas (resolviendo alias informales como "Las Américas" $\rightarrow$ Arona/Adeje), zonas protegidas y gentilicios plurales (*"los alemanes"*) mediante regex y diccionarios, eliminando la latencia y alucinaciones de un extractor LLM. Si la intersección estricta resulta vacía, relaja adaptativamente fechas conservando los filtros geográficos obligatorios.
+* **Búsqueda Híbrida y Fusión RRF:** Combina la similitud semántica con búsqueda léxica BM25 (`ts_rank_cd` logarítmico sobre índice GIN) mediante *Reciprocal Rank Fusion*:
+  $$RRF(d) = \sum_{m \in \{\text{sem},\, \text{lex}\}} \frac{1}{60 + \text{rank}_m(d)}$$
+* **Balanceo de Corpus y Deduplicación:** Ante el monopolio de Booking (84 % del volumen bruto), `TOPES_POR_PERSPECTIVA` limita sus fragmentos a un máximo de 2 en preguntas de destino general, dando visibilidad a YouTube y foros. Se aplica deduplicación por hash de los primeros 200 caracteres normalizados para purgar réplicas anidadas en foros.
 
-## 6.3. Casos de Uso: Informes Macro y Fichas Micro
+## 6.3. Guardrails Anti-Alucinación y Asistente Dual (Router + Text-to-SQL)
 
-El sistema ofrece dos modalidades de generación narrativa:
+Para erradicar respuestas inventadas, `rag_answer.py` implementa cuatro salvaguardas: (1) descomposición explícita de reseñas de Booking en `Título | Lo que gustó | Lo que no gustó`; (2) citas numéricas obligatorias entre corchetes `[1][2]`; (3) fórmula de abstención determinista (*"No hay información suficiente en las opiniones recuperadas para responder a esto"*); y (4) prohibición expresa de agregar o estimar porcentajes globales sobre muestras locales.
 
-* **Informe Macro Insular:** Sintetiza los tópicos del Modelo A de BERTopic en tres bloques ejecutivos: percepción general de la marca Tenerife, fricciones y puntos críticos (atascos, masificación, dificultad de acceso a Anaga y Masca) y oportunidades de mejora para TUI (reconfiguración de excursiones, promoción de medianías, desestacionalización).
-* **Ficha Micro Territorial por Celda H3:** Activada al seleccionar una celda en el mapa, recupera en tiempo real su altitud, microclima ajustado, paradas de transporte, plazas hoteleras, tiempo al aeropuerto, sentimiento medio y queja principal de PyABSA, generando una ficha ejecutiva de viabilidad de absorción de nuevos flujos turísticos en menos de tres segundos.
+El asistente conversacional (`analytics/chat`) unifica la consulta cualitativa y cuantitativa mediante un doble motor nativo (sin LangChain):
+1. **Router de Intención (`router.py`):** Clasifica la consulta con LLM ($T=0,0$) en `SQL` (conteos, rankings, series temporales, métricas oficiales de empleo, paro, plazas o sentimiento agregado) o `RAG` (percepciones cualitativas y vivencias).
+2. **Agente Text-to-SQL Seguro (`sql_agent.py`):** Genera consultas de solo lectura sobre 7 tablas maestras Gold (`gold_municipio_master`, series anuales/mensuales, empleo, AENA, `gold_h3_master` y `gold_h3_sentimiento`). Aplica un pipeline de seguridad en capas: sentencia única, inicio estricto con `SELECT`, bloqueo de palabras reservadas DML/DDL, lista blanca de tablas, inyección de `LIMIT 200`, y uso obligatorio de subconsultas (`WHERE cod_municipio IN (...)`) para evitar sesgos por duplicación al cruzar escalas H3 y municipales. En caso de error, activa un bucle de autocorrección antes de emitir una síntesis de 1-2 frases con topónimos legibles.
+
+## 6.4. Validación Empírica del Sistema RAG
+
+El sistema se validó mediante un benchmark de 22 pruebas tipificadas (`preguntas.yaml`) evaluado mediante *LLM-as-a-Judge* (`run_eval.py`):
+* **Precisión en Filtros y Extracción:** 100 % de acierto en detección geográfica y demográfica.
+* **Blindaje de Abstención:** 100 % de éxito en preguntas fuera de dominio (tipos del BCE, deportes), emitiendo la fórmula exacta de abstención.
+* **Deflexión de Agregaciones:** 100 % de desvío de trampas de recuento hacia el motor SQL.
+* **Fidelidad Factual (*Faithfulness*):** 4,82 sobre 5 en consistencia estricta entre el texto generado y las citas inyectadas.
 """
 
 
 def get_chapter_7():
     return """# 7. Productivización: AI-Dashboard Interactivo y Simulador de Decisiones
 
-## 7.1. Arquitectura Frontend (Streamlit + PyDeck)
+## 7.1. Arquitectura Frontend y Renderizado Geoespacial (Streamlit + PyDeck WebGL)
 
-El cuadro de mando se desarrolló con **Streamlit** y **Deck.gl / PyDeck** como motor de renderizado cartográfico acelerado mediante WebGL. Se eligió esta combinación frente a Power BI o Tableau por tres motivos: renderiza de forma nativa los 2.579 polígonos hexagonales 3D extruidos sin colapsar la interfaz; se integra sin fisuras con el resto del ecosistema Python (clustering, LLM, simulador gravitatorio); y se despliega en contenedores Docker sobre la VM de Azure sin costes de licencia por usuario.
+El cuadro de mando operacional se implementó con **Streamlit (v1.40+)** y **PyDeck / Deck.gl**, aprovechando la aceleración por hardware mediante WebGL. Esta arquitectura se priorizó frente a plataformas BI comerciales (Power BI o Tableau) por tres motivos decisivos: (1) renderizado nativo y fluido de los 2.579 polígonos hexagonales H3 en 2D y 3D (con extrusión topográfica mediante el MDT05 o por variables analíticas) sin colapsar el navegador del cliente; (2) interoperabilidad directa con los pipelines analíticos en Python (regresión espacial MGWR, clustering HDBSCAN, modelos vectoriales y LLM); y (3) despliegue ágil en contenedores Docker sin costes de licenciamiento por usuario.
 
-## 7.2. Módulos Operativos del Dashboard
+La capa de datos conecta con Azure PostgreSQL mediante SQLAlchemy, empleando almacenamiento en caché en memoria (`@st.cache_data`) para mantener latencias inferiores a 200 ms ante cambios de filtros. Para mitigar distorsiones visuales generadas por valores atípicos extremos en variables asimétricas (como la densidad hotelera o el brillo nocturno VIIRS), el módulo `color_scales.py` calibra dinámicamente las rampas continuas entre los percentiles empíricos **P1 y P99** (*winsorización visual*). La experiencia de usuario incorpora animaciones CSS de carga suave (`fadeInUp`), tarjetas métricas con micro-elevación interactiva (*hover*) y un asistente conversacional omnipresente anclado mediante `position: fixed`.
 
-El cuadro de mando se organiza en cuatro módulos:
+## 7.2. Vistas Especializadas y Diagnóstico Estratégico Multiescala
 
-**Módulo 1 — Explorador Territorial H3:** Permite superponer cuatro capas temáticas sobre las 2.579 celdas insulares: capa biofísica (NDVI, NDBI, VIIRS), capa microclimática (temperatura, humedad modelada con Mar de Nubes, horas de sol), capa de accesibilidad multimodal (isócronas ORS, densidad GTFS en 200/500/1.000 m, distancia a hospitales) y capa de arquetipos HDBSCAN + índice PTNA.
+La plataforma articula su análisis en 10 páginas nativas gestionadas mediante `st.navigation` (`app/main.py`):
 
-**Módulo 2 — Monitor de Reputación y NLP:** Mapa de calor por *Net Sentiment Score*; selector de quejas por las seis dimensiones de calidad (Limpieza, Servicio, Precio/Calidad, Ubicación, Ruido, Masificación); y botón de generación de informe RAG con Groq sobre el área visible en pantalla.
+1. **Resumen y Diagnóstico Macro (`summary.py`):** Radiografía insular consolidada que desglosa el régimen de protección del suelo (46,8 % en Espacios Naturales Protegidos vs 51,7 % sin restricción legal), balance alojativo municipal y celdas con cobertura de sentimiento.
+2. **Visor Cartográfico Multicapa (`map_layers.py`):** Permite conmutar entre la malla microespacial H3 (PTNA, Score ESG, Eje 1 de saturación, Eje 2 de oportunidad rural, sentimiento divergente y arquetipos) y la capa mesomunicipal coroplética (12 indicadores: desempleo, plazas por 1.000 hab., ingresos VV y presión residencial). Integra overlays de infraestructuras críticas: isócronas viales ORS (15 a 60 min), red y paradas de guaguas GTFS TITSA, 67 estaciones agroclimáticas de Agrocabildo y Bienes de Interés Cultural (BIC). Al hacer clic en cualquier celda, se despliega la **Ficha de Detalle Territorial (`detail_panel.py`)**, contrastando los KPIs locales frente a la media municipal e insular.
+3. **Matriz de Oportunidades y Arquetipos TUI (`arquetipos.py`):** Posiciona el territorio en los cuadrantes estratégicos de descompresión (Eje 1 vs Eje 2) y clasifica la isla en 5 arquetipos de producto (*Sol y playa*, *Ecoturismo rural*, *Cultural y patrimonial*, *Aventura y activo*, *Bienestar y salud*), aportando un diagnóstico DAFO y directrices de inversión.
+4. **Monitores Sectoriales y Exploración Tabular:** Vistas de microeconomía municipal (`municipios.py`), clima en tiempo real (`clima.py`), oferta alojativa y tópicos BERTopic (`alojamiento.py`, `temas.py`), coyuntura turística ISTAC y tráfico aéreo AENA (`turismo.py`), junto con tablas avanzadas de descarga CSV (`table_view.py`) y rankings insulares (`rankings.py`).
 
-**Módulo 3 — Simulador Gravitatorio de Redistribución:** Basado en los modelos de interacción espacial de Reilly (1931) y Huff (1963), permite al planificador definir el porcentaje de reasignación desde los municipios saturados del sur (Adeje, Arona) hacia comarcas deficitarias (Arico, Vilaflor, La Guancha, Buenavista). El algoritmo calcula la probabilidad de atracción de cada hexágono receptor en función de su PTNA, accesibilidad vial y distancia funcional, y proyecta al instante: reducción del tráfico diario en la TF-1, incremento de ingresos en medianías y verificación de la capacidad de absorción. El simulador bloquea automáticamente la reasignación hacia celdas del Cluster 3 (ENP) o con pendiente >25°, garantizando la sostenibilidad física de la simulación. Redirigir un 10 % de las pernoctaciones del sur reduce la congestión costera en ~14 % e inyecta más de 42 millones de euros anuales en la economía local de medianías.
+## 7.3. Simulador Territorial What-If de Políticas Turísticas (`simulador.py`)
 
-**Módulo 4 — Sistema de Alertas Preventivas:** Evalúa reglas de negocio sobre umbrales críticos: *Alerta Roja de Saturación* (plazas/km² > percentil 95 con transporte deficiente); *Alerta Climática de Calima* (temperatura >32 °C y humedad <25 %); y *Alerta de Fricción Reputacional* (sentimiento medio < -0,25 o queja dominante `"ruido nocturno"` / `"masificación"`).
+Como herramienta nuclear para la toma de decisiones, el simulador permite modelar intervenciones a **cuatro escalas territoriales**: celda H3 individual, municipio completo (31 términos), arquetipo de producto o clúster HDBSCAN. El planificador puede manipular cinco palancas operativas: variación de plazas hoteleras regladas ($\Delta plazas$), conectividad vial ($\Delta tiempo\_aeropuerto$), regeneración ambiental ($\Delta NDVI$), equipamientos complementarios ($\Delta POIs$) y gobernanza ($\Delta ESG$).
+
+El motor recalcula instantáneamente el impacto sobre el territorio:
+* **Proyección Empírica del PTNA:** Aplica los coeficientes de sensibilidad calibrados por el modelo MGWR v3 ($\beta_{\text{tiempo}} = -4,50$, $\beta_{\text{NDVI}} = 220,0$, $\beta_{\text{POIs}} = 2,80$) y proyecta la variación en los Ejes 1 y 2, visualizada mediante gráficos radar comparativos (*Antes vs. Después*).
+* **Alertas de Capacidad de Carga:** Identifica en tiempo real riesgos de sobreexplotación (*Alerta Roja* si la densidad supera el p95 insular o satura servicios) y bloquea intervenciones en celdas de alta fragilidad ecológica (ENP o pendientes >25°).
+* **Nivel de Confianza Predictiva:** Informa al gestor de la fiabilidad del pronóstico (*Alta, Media o Baja*), penalizando aquellos hexágonos donde el modelo MGWR saturó en anchos de banda globales por falta de variación local intrínseca.
+
+## 7.4. Asistente Conversacional Omnipresente con Fundamentación Territorial (`asistente.py`)
+
+Accesible desde un botón flotante en cualquier punto de la aplicación, el asistente conversacional integra un mecanismo de **anclaje territorial (*grounding*) contextual**: si el usuario tiene una celda H3 seleccionada en el mapa, el sistema inyecta automáticamente sus atributos locales en el prompt (`PROMPT_CONTEXTO_HEXAGONO`), resolviendo consultas sobre la zona en menos de un segundo. Para preguntas complejas o cuantitativas, el asistente deriva la petición al router inteligente, activando la síntesis cualitativa RAG o la ejecución de consultas seguras Text-to-SQL sobre la Capa Gold.
 """
 
 
 def get_chapter_8():
-    return """# 8. Validación Técnica, ROI y Conclusiones
+    return r"""# 8. Conclusiones y Hoja de Ruta Estratégica para TUI Group
 
-## 8.1. Validación Empírica de los Resultados
+## 8.1. Respuesta Fundamentada a las Siete Preguntas del Briefing de TUI Group
 
-Los resultados se sometieron a triple contraste frente a fuentes oficiales independientes:
+La plataforma responde de manera directa, cuantitativa y accionable a las siete cuestiones estratégicas planteadas por TUI Group:
 
-1. **Validación Altimétrica:** Cruce de las cotas H3 frente a 67 vértices geodésicos de la Red REGENTE del IGN: **RMSE de 4,12 m**, confirmando la fiabilidad de la topografía base.
-2. **Validación del Parque Alojativo:** Las 46.820 unidades identificadas en la capa Silver presentan una desviación inferior al 1,5 % respecto a las memorias anuales del ISTAC y el Registro General Turístico del Gobierno de Canarias.
-3. **Consistencia Topoclimática:** Evaluación cualitativa de los gradientes térmicos y orográficos frente a los pisos bioclimáticos de la isla, reproduciendo la inversión del Mar de Nubes y la aridez del sur sin artefactos espaciales.
+| Nº | Pregunta Estratégica de TUI | Metodología de Resolución | Diagnóstico y Hallazgo Clave |
+| :--- | :--- | :--- | :--- |
+| **P1** | **¿Dónde se localizan con exactitud las zonas saturadas?** | Malla H3 microespacial (res 8, 2.579 celdas) + radiancia nocturna VIIRS DNB. | El **78,4 % de las plazas alojativas** se concentra en solo **82 hexágonos** (3,1 % de la superficie insular), focalizados en Playa de las Américas, Los Cristianos y Costa Adeje, con radiancia VIIRS >65 nW/cm²/sr y colapso de las arterias TF-1 y TF-5 (>85 % de los viajes diarios). |
+| **P2** | **¿Qué zonas tienen alto potencial pero baja visibilidad?** | Clustering HDBSCAN + Índice de Potencial Turístico (PTNA) con MGWR. | Medianías del norte y cumbres intermedias (Icod de los Vinos, Buenavista del Norte, Vilaflor y La Orotava) presentan alto PTNA, elevado NDVI (>0,6) y gran satisfacción turística, pero concentran **menos del 10 % de la oferta reglada**. |
+| **P3** | **¿Qué comarcas rurales tienen condiciones para absorber demanda?** | Modelo topoclimático (inversión 800–1.500 m) + NDVI + Marco ESG ($PTNA > 0, ESG > 60$). | Se aíslan exactamente **247 hexágonos de oportunidad ideal** (9,6 % de la isla) en medianías protegidas del estrés térmico estival, compatibles con la capacidad de carga ecológica y con baja afección a avifauna protegida. |
+| **P4** | **¿Cómo influye la accesibilidad en el éxito de zonas no costeras?** | Matriz vial ORS (18 destinos, isócronas 15–60 min) + red GTFS TITSA multiumbral (200/500/1.000 m). | El modelo MGWR estima una severa penalización por aislamiento vial ($\beta_{\text{tiempo}} = -4,50$). Los microdestinos viables exigen conexión a <45 min de un aeropuerto y servicio regular de transporte público comarcal. |
+| **P5** | **¿Qué áreas muestran señales de congestión?** | Índice continuo de saturación (Eje 1): densidad de plazas/km² (p95) + quejas NLP + VIIRS. | Los núcleos de Playa de las Américas y Puerto Colón superan las 250 plazas/km², disparando alertas tempranas por sobrecarga de infraestructuras y fricción comunitaria. |
+| **P6** | **¿De qué se quejan los turistas en el sur y qué buscan en el interior?** | Inferencia multilingüe XLM-RoBERTa + BERTopic centrado en idiomas + minería PyABSA. | En el litoral sur predominan quejas de *"ruido nocturno"*, *"masificación"* y *"atascos"* (NSS +0,48); en el interior y medianías los viajeros buscan tranquilidad, naturaleza y autenticidad gastronómica (NSS +0,74), con quejas leves sobre curvas o accesos. |
+| **P7** | **¿Qué impacto tendría redistribuir un 10–20 % de la masa turística?** | Simulador territorial interactivo What-If (`app/simulador.py`) calibrado con sensibilidades MGWR v3. | El trasvase simulado de 13.800 a 27.600 plazas (10–20 % de las 137.951 plazas de Adeje y Arona) hacia municipios de medianías y norte (Icod, Vilaflor, Buenavista) reduce directamente el **Eje 1 de Saturación** en el litoral sur e incrementa el potencial de atracción rural (**PTNA y Eje 2**), impulsado por la sensibilidad al entorno ambiental ($\beta_{\text{NDVI}} = +220,0$). El simulador **bloquea automáticamente** cualquier incremento de plazas en celdas con Espacio Natural Protegido (`pct_area_enp > 0`) o pendientes >25°, y activa **alertas de capacidad de carga** si la densidad en destino supera el percentil 95 insular (>250 plazas/km²), garantizando una redistribución sin sobreexplotación ecológica. |
 
-## 8.2. Respuesta Estratégica a las Preguntas de TUI Group
+## 8.2. Recomendaciones Estratégicas y Hoja de Ruta para TUI Group
 
-| Pregunta Briefing TUI | Hallazgo Clave del Proyecto |
-| :--- | :--- |
-| **P1. ¿Cómo medir la saturación sub-municipal?** | Malla H3 Res 8 (2.579 celdas): densidad de plazas/km², VIIRS nocturna >65 nW en polos y cobertura GTFS en 3 umbrales. |
-| **P2. ¿Qué comarcas pueden absorber demanda?** | Cluster 2 HDBSCAN (31,5 % de celdas): medianías con NDVI >0,60, clima templado (18–22 °C) y NSS +0,74. |
-| **P3. ¿Cómo influye la accesibilidad?** | El índice PTNA prioriza celdas a <45 min de un aeropuerto y con >2 paradas GTFS en radio de 500 m. |
-| **P4. ¿Qué quejas hay en el sur vs. interior?** | Sur: `"ruido nocturno"` y `"masificación"` (NSS +0,48). Interior: queja residual `"acceso por curvas"` (NSS +0,74). |
-| **P5. Impacto de redistribuir un 10–20 %** | Redirigir el 10 % alivia ~8.500 trayectos/día en la TF-1 e inyecta >42 M€/año en la economía local de medianías. |
+A partir de los hallazgos analíticos y espaciales, se formulan cuatro directrices de acción inmediata para la operativa de TUI Group en Tenerife:
 
-El ROI para TUI se materializa en tres vectores: (1) reducción de 4 semanas a segundos del tiempo de diagnóstico de viabilidad territorial; (2) anticipación de moratorias turísticas y zonas de alta tensión residencial; y (3) identificación de microdestinos premium (enoturismo, astroturismo, senderismo botánico) con márgenes entre un 18 % y un 25 % superiores a los paquetes de sol y playa.
+1. **Lanzamiento de la Línea de Producto *"Tenerife Auténtico / Ecoturismo y Bienestar"*:* Desempaquetar la oferta masiva de sol y playa creando una cartera orientada a estancias de media y larga duración en alojamientos singulares de medianías (Icod de los Vinos, Vilaflor, Buenavista del Norte y comarca de Acentejo), donde el sentimiento neto es superior (+0,74) y el atractivo ambiental está demostrado ($PTNA > 70$).
+2. **Incentivo Comercial Dinámico de Dispersión Territorial:** Implementar en el motor de reservas y en los canales de venta de TUI un sistema de bonificaciones tarifarias o servicios añadidos (ej. seguro de viaje o experiencias gastronómicas incluidas) para aquellos clientes que elijan municipios de oportunidad en periodos de máxima saturación costera.
+3. **Corredores de Conectividad Sostenible:** Establecer acuerdos de transporte discrecional colectivo o rutas de movilidad compartida con TITSA que conecten directamente los aeropuertos insulares (TFS/TFN) con las cabeceras de medianías en menos de 45 minutos, mitigando la dependencia del vehículo de alquiler y la sobrecarga en las autopistas TF-1 y TF-5.
+4. **Adopción del AI-Dashboard en la Mesa de Contratación Hotelera:** Institucionalizar el uso del simulador territorial y las alertas de capacidad de carga como filtro previo obligatorio antes de formalizar nuevos contratos hoteleros o cupos de plazas, garantizando el cumplimiento de los criterios ESG insulares.
 
-## 8.3. Limitaciones y Líneas de Investigación Futuras
+## 8.3. Limitaciones del Estudio y Líneas de Investigación Futuras
 
-El equipo reconoce tres limitaciones con sus correspondientes vías de mejora:
+Para garantizar un rigor metodológico pleno, se identifican tres limitaciones operativas que marcan la hoja de ruta de evolución del sistema:
 
-1. **Frecuencia temporal de la teledetección:** Los compuestos Sentinel-2 son trimestrales por la nubosidad y la calima. La incorporación de Sentinel-1 SAR permitiría monitorizar la humedad del suelo con independencia del estado del cielo.
-2. **Flujos de movilidad interna:** La topología ORS y la oferta TITSA aproximan la movilidad; matrices de telefonía móvil aportarían distribución dinámica intra-diaria de turistas en tránsito.
-3. **Escalabilidad regional:** La arquitectura Azure + dbt + Docker puede replicarse de forma inmediata en otras islas canarias (Gran Canaria, La Palma, Lanzarote) o en destinos insulares mediterráneos y caribeños gestionados por TUI Group.
+1. **Resolución de Datos Turísticos Oficiales:** El ISTAC publica desglose mensual de ocupación y pernoctaciones únicamente para los seis municipios de mayor peso alojativo, obligando a modelar los 25 términos municipales restantes mediante imputación geoespacial basada en catastro reglado y señales de teledetección.
+2. **Dependencia de Extracción Web en Reputación Online:** El corpus textual se sustentó en scraping sobre Booking, TripAdvisor y foros especializados; en una fase de explotación comercial, la solución debe transicionar hacia acuerdos directos de consumo vía API con los agregadores turísticos.
+3. **Calibración Dinámica de Flujos con Matrices Origen-Destino Reales:** El simulador actual modela la sensibilidad con coeficientes espaciales MGWR. La línea de investigación inmediata radica en incorporar datos anonimizados de telefonía móvil (CDRs) o transacciones bancarias agregadas para observar la movilidad turística en tiempo real a lo largo de los corredores insulares.
 """
 
 

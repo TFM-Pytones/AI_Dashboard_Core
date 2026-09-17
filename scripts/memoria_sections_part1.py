@@ -30,7 +30,7 @@ def get_front_matter():
 
 Tenerife recibe más de 7,2 millones de turistas internacionales al año, pero más del 80 % de la oferta alojativa y del gasto turístico se concentra en la franja litoral del suroeste (Adeje, Arona y Santiago del Teide), mientras que los municipios del interior y del norte —con un patrimonio cultural, paisajístico y ambiental de primer orden— permanecen infrautilizados. Esta polarización ha derivado en saturación crónica de las autopistas TF-1 y TF-5, estrés hídrico, gentrificación y una creciente contestación social bajo el lema "Canarias tiene un límite".
 
-El presente TFM responde al **Desafío 3 de TUI Group** (UCM, 2025–2026): diseñar, implementar y productivizar un sistema de inteligencia territorial que diagnostique la capacidad de carga insular, detecte zonas con potencial desaprovechado y modele escenarios de redistribución de la demanda. La plataforma integra más de diez fuentes heterogéneas en un **Data Lakehouse en Microsoft Azure** con arquitectura Medallón (Bronze, Silver y Gold), articulado sobre la **Malla Hexagonal Uber H3 Resolución 8** (2.579 celdas terrestres de ~0,85 km²) para superar el sesgo MAUP de las divisiones administrativas. Las fuentes cubren: parque alojativo oficial y más de 55.000 reseñas de Booking y TripAdvisor; red de transporte público GTFS (TITSA y Tranvía); teledetección Copernicus Sentinel-2 (NDVI y NDBI) y radianza nocturna VIIRS; modelado topoclimático sobre 67 estaciones de Agrocabildo; isócronas de accesibilidad vial hacia 18 destinos estratégicos; y corpus textual multilingüe de YouTube y LosViajeros. La analítica avanzada incluye segmentación no supervisada con HDBSCAN, regresión geográfica ponderada multiescala (MGWR), modelado de tópicos con BERTopic y análisis de sentimiento con XLM-RoBERTa. El sistema culmina en un AI-Dashboard interactivo en Streamlit/PyDeck con simulador gravitatorio de redistribución y motor de informes narrativos vía Groq API.
+El presente TFM responde al **Desafío 3 de TUI Group** (UCM, 2025–2026): diseñar, implementar y productivizar un sistema de inteligencia territorial que diagnostique la capacidad de carga insular, detecte zonas con potencial desaprovechado y modele escenarios de redistribución de la demanda. La plataforma integra más de diez fuentes heterogéneas en un **Data Lakehouse en Microsoft Azure** con arquitectura Medallón (Bronze, Silver y Gold), articulado sobre la **Malla Hexagonal Uber H3 Resolución 8** (2.579 celdas terrestres de ~0,85 km²) para superar el sesgo MAUP de las divisiones administrativas. Las fuentes cubren: parque alojativo oficial y más de 55.000 reseñas de Booking y TripAdvisor; red de transporte público GTFS (TITSA y Tranvía); teledetección Copernicus Sentinel-2 (NDVI y NDBI) y radianza nocturna VIIRS; modelado topoclimático sobre 67 estaciones de Agrocabildo; isócronas de accesibilidad vial hacia 18 destinos estratégicos; y corpus textual multilingüe de YouTube y LosViajeros. La analítica avanzada incluye segmentación no supervisada con HDBSCAN, regresión geográfica ponderada multiescala (MGWR), modelado de tópicos con BERTopic y análisis de sentimiento con XLM-RoBERTa. El sistema culmina en un AI-Dashboard interactivo en Streamlit/PyDeck con simulador territorial interactivo de redistribución y motor de informes narrativos vía Groq API.
 
 **Palabras clave:** Inteligencia Territorial, Uber H3, PostGIS, Arquitectura Medallón, Topoclimatología, Teledetección, HDBSCAN, MGWR, BERTopic, RAG, TUI Group, Tenerife.
 
@@ -91,15 +91,17 @@ Esta hiperconcentración se traslada con idéntica crudeza al mercado residencia
 
 ## 1.2. Objetivos y Preguntas Estratégicas de TUI Group
 
-El **objetivo general** del proyecto es diseñar, desplegar y validar una plataforma de inteligencia territorial que capacite a TUI Group para monitorizar la capacidad de carga insular y planificar la redistribución equilibrada de los flujos turísticos en los 31 municipios de Tenerife. Los siete objetivos específicos se articulan en torno a las cinco preguntas estratégicas del briefing corporativo:
+El **objetivo general** del proyecto es diseñar, desplegar y validar una plataforma de inteligencia territorial que capacite a TUI Group para monitorizar la capacidad de carga insular y planificar la redistribución equilibrada de los flujos turísticos en los 31 municipios de Tenerife. Los objetivos específicos se articulan en torno a las siete preguntas estratégicas del briefing corporativo:
 
-| # | Pregunta Estratégica (Briefing TUI) | Módulo del Proyecto |
+| # | Pregunta Estratégica (Briefing TUI) | Cómo la Resolvemos (Módulo del Proyecto) |
 | :---: | :--- | :--- |
-| **P1** | ¿Dónde se localizan con exactitud las zonas saturadas? | Malla H3 + VIIRS + densidad alojativa |
-| **P2** | ¿Qué comarcas rurales tienen condiciones para absorber demanda? | Modelo topoclimático + NDVI + PTNA |
-| **P3** | ¿Cómo influye la accesibilidad en el éxito de zonas no costeras? | ORS (18 destinos) + GTFS multiumbral |
-| **P4** | ¿De qué se quejan los turistas en el sur y qué buscan en el interior? | XLM-RoBERTa + BERTopic + PyABSA |
-| **P5** | ¿Qué impacto tendría redistribuir un 10–20 % de la masa turística? | Simulador gravitatorio de Huff/Reilly |
+| **P1** | ¿Dónde se localizan con exactitud las zonas saturadas? | Malla H3 microespacial (res 8) + radiancia nocturna VIIRS |
+| **P2** | ¿Qué zonas tienen alto potencial pero baja visibilidad? | Clustering HDBSCAN + Índice de Potencial Turístico (PTNA) |
+| **P3** | ¿Qué comarcas rurales tienen condiciones para absorber demanda? | Modelo topoclimático + NDVI + Marco ESG ($PTNA > 0, ESG > 60$) |
+| **P4** | ¿Cómo influye la accesibilidad en el éxito de zonas no costeras? | Matriz vial ORS (18 destinos) + GTFS multiumbral (200/500/1.000 m) |
+| **P5** | ¿Qué áreas muestran señales de congestión? | Índice continuo de saturación: densidad de plazas + NLP + VIIRS |
+| **P6** | ¿De qué se quejan los turistas en el sur y qué buscan en el interior? | Inferencia multilingüe XLM-RoBERTa + BERTopic + PyABSA |
+| **P7** | ¿Qué impacto tendría redistribuir un 10–20 % de la masa turística? | Simulador territorial interactivo What-If (`simulador.py`) |
 
 ## 1.3. Propuesta de Valor y Aporte Diferencial
 

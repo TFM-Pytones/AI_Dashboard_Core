@@ -44,6 +44,18 @@ def add_h2(text):
     run.font.color.rgb = RGBColor(16, 44, 87)
     return p
 
+def add_h3(text):
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(8)
+    p.paragraph_format.space_after = Pt(3)
+    p.paragraph_format.keep_with_next = True
+    run = p.add_run(text)
+    run.font.name = 'Verdana'
+    run.font.size = Pt(10)
+    run.font.bold = True
+    run.font.color.rgb = RGBColor(16, 44, 87)
+    return p
+
 def add_body(text):
     p = doc.add_paragraph()
     p.paragraph_format.space_before = Pt(0)
@@ -96,12 +108,21 @@ add_h2('4.4. Fricción de red y accesibilidad multimodal')
 add_body('La viabilidad de descongestionar el sur depende de la conectividad real por carretera. En una isla de relieve escarpado, las distancias euclídeas resultan engañosas; por ello, el sistema computó matrices de viaje vial mediante OpenRouteService (ORS) desde cada celda H3 hacia 18 destinos estratégicos (aeropuertos TFS/TFN, Teide, núcleos costeros y cabeceras comarcales). Esto se complementó con la cobertura de transporte público regular GTFS (conteo escalonado de paradas TITSA a 200 m, 500 m y 1.000 m) y la distancia al hospital comarcal más cercano, generando isócronas continuas de 15, 30, 45 y 60 minutos en gold_h3_accesibilidad.')
 
 add_h2('4.5. Regresión geográfica ponderada multiescala (MGWR) e Índice PTNA')
-add_body('Los modelos de regresión lineal global (OLS) asumen erróneamente que las relaciones territoriales son constantes en toda la isla. Sin embargo, lo que condiciona la satisfacción del turista en un resort de Adeje difiere sustancialmente de lo que busca quien se hospeda en Vilaflor. La Regresión Geográfica Ponderada Multiescala (MGWR) resuelve esta no-estacionariedad estimando anchos de banda locales independientes para cada variable explicativa:')
-add_bullet('Escalas de operación empíricas: ', 'El modelo estimó un ancho de banda hiperlocal para la proximidad a la costa (bw=85 celdas), intermedio-comarcal para la vegetación NDVI (bw=240) y de escala insular para la conectividad aeroportuaria (bw=820), demostrando que la valoración del destino es un fenómeno multirresolución.')
-add_bullet('Bondad de ajuste y diagnóstico espacial: ', 'MGWR elevó el R² de 0,418 (OLS) a 0,782 y redujo el AICc en más de 900 puntos, eliminando la autocorrelación espacial residual (I de Moran = 0,041, p = 0,28 frente a I = 0,472, p < 0,001 en OLS; Anexo F).')
-add_bullet('Índice de Potencial Turístico No Aprovechado (PTNA): ', 'A partir de los coeficientes locales de MGWR, se formuló una métrica continua [0–100] que pondera atractivo ambiental (35 %), confort climático (20 %), baja saturación previa (25 %), reputación positiva (10 %) y accesibilidad a <45 min (10 %). Valores superiores a 70 identifican con objetividad las microzonas prioritarias para TUI en medianías del norte (Icod, Garachico, Buenavista) y valles del sureste (Arico, Fasnia).')
+add_body('Los modelos de regresión lineal global (OLS) asumen erróneamente que las relaciones territoriales son constantes en toda la isla. Sin embargo, lo que condiciona la satisfacción del turista en un resort de Adeje difiere sustancialmente de lo que busca quien se hospeda en Vilaflor. La Regresión Geográfica Ponderada Multiescala (MGWR) resuelve la no-estacionariedad estimando anchos de banda locales independientes para cada variable explicativa:')
+add_bullet('Escalas de operación empíricas: ', 'el modelo final (checkpoint v3, 2579 hexágonos) estimó anchos de banda genuinamente locales para variables como NDVI (bw=198) o altitud (bw=138), mientras que 9 de las 14 variables —entre ellas la distancia a la costa y el tiempo al aeropuerto— saturaron en bw≈2573, un ancho casi insular que el propio modelo señala como pérdida de variación local genuina, no como hallazgo positivo de escala; estos 259 hexágonos (10,0% del total) quedan marcados con confianza_ptna=\'baja\'.')
+add_bullet('Bondad de ajuste y diagnóstico espacial: ', 'el MGWR eleva el R² global (no ajustado por grados de libertad efectivos) de 0,5444 (OLS, mismas 14 variables) a 0,8272, y reduce la I de Moran de los residuos de 0,3065 (OLS) a 0,0355, ambas con autocorrelación espacial estadísticamente significativa (p=0,0010 y p=0,0110 respectivamente, permutación con 999 iteraciones) — el MGWR mitiga sustancialmente, pero no elimina por completo, la dependencia espacial residual.')
+add_bullet('Índice de Potencial Turístico No Aprovechado (PTNA): ', 'a partir del modelo MGWR ajustado, el PTNA se define como la diferencia entre la densidad de plazas esperada por el modelo y la densidad observada en cada hexágono (ptna_score = predy_MGWR − Y observado). Un valor ptna_score > 0 indica un hexágono con condiciones territoriales objetivamente superiores a su ocupación turística actual (oportunidad de inversión); un ptna_score < 0 señala zonas sobreexplotadas respecto a su vocación territorial (riesgo de overtourism). Los pesos implícitos de cada dimensión territorial no son arbitrarios: son los anchos de banda y coeficientes locales que el propio algoritmo MGWR estimó empíricamente a través de 14 variables explicativas. El filtro combinado PTNA×ESG identifica 247 hexágonos (9,6% del total), de los cuales 22 (8,9%) mantienen confianza_ptna=\'baja\', concentrados en Santa Cruz de Tenerife (34), La Laguna (29), La Orotava (22), Buenavista del Norte (20), El Tanque (19) y Los Realejos (18).')
+
+add_h3('Marco Multidimensional ESG (Environmental, Social, Governance) Territorial y Municipal')
+add_body('Para garantizar que la descompresión turística no comprometa la capacidad de carga insular, se diseñó un índice compuesto de sostenibilidad (Score_ESG = 0,40·E + 0,40·S + 0,20·G ∈ [0, 100]) formulado sobre datos públicos abiertos a dos escalas complementarias:')
+add_bullet('Dimensión Medioambiental [E] (40 %): ', 'A escala microespacial H3 (gold.gold_h3_esg_v1), pondera vigor vegetal (NDVI y delta 2022-2026), polución lumínica (VIIRS frente a la protección de avifauna), sellado NDBI, protección ambiental (pct_area_enp, distancia a costa) y estrés térmico. A escala mesomunicipal (gold.gold_bloque5_municipio_esg_v1), consolida estos forzadores junto a la superficie protegida municipal.')
+add_bullet('Dimensión Social [S] (40 %): ', 'A nivel H3, evalúa la presión alojativa (plazas/km² winsorizada al p95), accesibilidad a servicios esenciales (hospitales, paradas TITSA) y quejas vecinales por ruido o saturación extraídas por NLP. A nivel municipal, mide la vulnerabilidad por dependencia hostelera, desempleo, plazas por 1.000 habitantes y dependencia demográfica (ISTAC 2025).')
+add_bullet('Dimensión de Gobernanza [G] (20 %): ', 'A nivel H3, premia la oferta hotelera reglada frente al alquiler vacacional desregulado (hoteles / (hoteles + VV)) y el patrimonio BIC. A nivel municipal, mide la formalización productiva mediante la tasa de afiliación de autónomos (gold.gold_municipio_empleo).')
+add_body('El cruce del potencial económico con la solvencia ambiental (ptna_score > 0 y esg_h3_score > 60, umbral empírico adaptado) consolida la tabla gold.gold_bloque5_h3_oportunidad_v1. Este filtro aísla exactamente 247 hexágonos de Oportunidad Ideal (9,6 % de la isla), garantizando para TUI una expansión equilibrada con la cohesión social y ecológica de Tenerife.')
+
 
 add_h2('4.6. Segmentación territorial no supervisada: Tipologías insulares con HDBSCAN y matriz estratégica')
+
 add_body('Conociendo los forzadores territoriales y el potencial PTNA, se articuló el pipeline oficial de clustering espacial en Python (analytics/clustering/run_hdbscan_clustering.py). La acusada orografía insular y la extrema polarización turística invalidan algoritmos basados en particiones esféricas homogéneas (K-Means) o sin control legal de protección (que en modelos preliminares clasificaban erróneamente el Teide como urbano). El modelo definitivo opera sobre 8 covariables canónicas: plazas alojativas y radianza nocturna VIIRS (estabilizadas con transformación logarítmica log1p para atenuar colas pesadas), NDVI (vigor vegetal), NDBI (huella construida), altitud media, pendiente, distancia a la costa y el porcentaje de superficie en Espacio Natural Protegido (pct_area_enp, variable crítica). Tras estandarización con StandardScaler, un análisis PCA condensa el 81,5 % de la varianza en tres dimensiones no redundantes. La calibración óptima de HDBSCAN (min_cluster_size = 30, min_samples = 10, selección EOM) identificó de forma no supervisada 4 macro-clústeres de densidad (57,3 % del territorio). El 42,7 % restante de celdas de transición y ruido se reasignó mediante reglas de experto territorial: celdas con ≥ 500 plazas pasaron a «Saturado / Overtourism»; celdas con VIIRS ≥ 20 nW/(cm²·sr) y ENP < 20 % se tipificaron como «Urbano Residencial»; y el ruido remanente se absorbió proyectándolo al centroide euclídeo más próximo en el espacio PCA. El resultado consolida seis tipologías territoriales exhaustivas con el 100 % de cobertura insular:')
 
 # Table 3
@@ -197,20 +218,20 @@ add_body('Para transformar este diagnóstico territorial discreto en prescripcio
 add_h1('5. Procesamiento del Lenguaje Natural (NLP) y Percepción de Marca Destino')
 
 add_h2('5.1. Inferencia multilingüe de polaridad afectiva por lotes')
-add_body('El análisis cualitativo procesó un corpus de más de 55.000 opiniones en cinco idiomas (español, inglés, alemán, francés e italiano). Para maximizar la precisión analítica y optimizar el cómputo en GPU, se diseñó un pipeline en dos etapas operado de forma incremental:')
-add_bullet('Filtro de relevancia zero-shot: ', 'El modelo MoritzLaurer/mDeBERTa-v3-base-mnli-xnli clasifica cada texto frente a cuatro hipótesis de contexto turístico. Se descartan automáticamente conversaciones off-topic o spam que no alcancen un margen de confianza favorable superior a 0,25.')
-add_bullet('Inferencia de polaridad con XLM-RoBERTa: ', 'Los textos depurados son clasificados mediante cardiffnlp/twitter-xlm-roberta-base-sentiment por lotes de 32 documentos, derivando un índice de polaridad continua. Contrastado frente a 1.000 reseñas anotadas manualmente, el transformador alcanzó un Macro F1 de 0,874 y una exactitud global del 88,2 % (Anexo F).')
+add_body('El análisis cualitativo procesó un corpus de más de 55.000 opiniones procedentes de cuatro fuentes complementarias (Booking, TripAdvisor, YouTube y LosViajeros) en cinco idiomas principales (español, inglés, alemán, francés e italiano). Para maximizar la fidelidad analítica y optimizar el rendimiento computacional, el pipeline oficial (analytics/sentiment/batch_inference.py) articula un flujo desacoplado según la naturaleza estructurada o abierta de la fuente:')
+add_bullet('Filtro de relevancia zero-shot para redes sociales: ', 'Aplicado específicamente sobre los comentarios de YouTube mediante el transformador MoritzLaurer/mDeBERTa-v3-base-mnli-xnli. Evalúa cada texto frente a cuatro hipótesis contextuales (una sobre turismo y tres de ruido: video/canal, charla personal y spam). Se descartan automáticamente aquellas aportaciones que no superen al ruido por un margen de confianza favorable mayor a 0,25. Las reseñas regladas de Booking y TripAdvisor, al constituir valoraciones verificadas de estancias, no requieren este filtro y pasan directamente a inferencia.')
+add_bullet('Inferencia de polaridad y calificación continua: ', 'Los comentarios depurados de YouTube son clasificados mediante cardiffnlp/twitter-xlm-roberta-base-sentiment en 3 clases discretas (positivo, neutro y negativo) por lotes de 32 documentos, alcanzando en validación manual frente a 1.000 reseñas un Macro F1 de 0,874 y una exactitud global del 88,2 % (Anexo F). Paralelamente, las reseñas de alojamiento de Booking y TripAdvisor se procesan con nlptown/bert-base-multilingual-uncased-sentiment, infiriendo una calificación continua en escala de 1 a 5 estrellas que se persiste en gold.nlp_sentimiento_resenas y permite la posterior agregación espacial en la capa Gold.')
 
 add_h2('5.2. Descubrimiento no supervisado de tópicos insulares (BERTopic)')
-add_body('Para identificar las temáticas latentes sin imponer diccionarios cerrados, se implementó BERTopic mediante embeddings semánticos de 768 dimensiones (paraphrase-multilingual-mpnet-base-v2), reducción UMAP y clustering jerárquico c-TF-IDF. El sistema articula dos variantes:')
-add_bullet('Modelo A (Visión macro insular): ', 'Entrenado sobre YouTube y mensajes no geolocalizados de LosViajeros, aísla debates generales de alta coherencia (0,71): congestión de tráfico en las autopistas TF-1 y TF-5 (polaridad -0,62), saturación de playas del sur (-0,48) y valoraciones positivas de la gastronomía en guachinches (+0,86).')
-add_bullet('Modelo B (Micro geolocalizado): ', 'Entrenado sobre las 51.252 reseñas geocodificadas de Booking y TripAdvisor, asigna tópicos a hexágonos H3 específicos, contrastando quejas de masificación y ruido nocturno en el litoral sur frente a tranquilidad, naturaleza y sosiego en las medianías del norte.')
+add_body('Para identificar las temáticas latentes sin imponer diccionarios predeterminados, se implementó el marco de BERTopic mediante embeddings semánticos multilingües de 768 dimensiones (paraphrase-multilingual-mpnet-base-v2). Para neutralizar el sesgo de idioma y evitar que el algoritmo agrupe por lengua en lugar de por semántica, se aplicó un centrado vectorial por idioma que redujo la dependencia mutua (NMI de 0,218 a 0,031). En producción (analytics/topics/entrenar_topicos.py), para evitar que HDBSCAN descartase como ruido el 76,8 % de los documentos breves, el agrupamiento se optimizó mediante PCA a 50 dimensiones y K-Means, generando palabras clave con c-TF-IDF multilingüe y asignando nombres en español asistidos por LLM (Llama-3 / Groq):')
+add_bullet('Modelo A (Visión macro insular): ', 'Entrenado sobre YouTube y mensajes no geolocalizados de LosViajeros (k=20, coherencia 0,71), captura debates estratégicos generales: congestión vehicular en las autopistas TF-1 y TF-5 (polaridad media -0,62), saturación de playas del sur (-0,48) y valoraciones excelentes de la gastronomía y guachinches (+0,86).')
+add_bullet('Modelo B (Micro geolocalizado): ', 'Entrenado sobre 51.252 reseñas geocodificadas de Booking, TripAdvisor y mensajes con toponimia validada en gold.geo_mentions (k=50). Asigna temáticas a hexágonos H3 específicos, contraponiendo quejas de masificación, ruidos nocturnos y fatiga de instalaciones en el litoral sur frente a sosiego, naturaleza y confort en las medianías del norte.')
 
 add_h2('5.3. Minería de aspectos específicos y extracción de quejas principales (PyABSA)')
-add_body('Mediante PyABSA-ATEPC (Aspect-Term Extraction and Polarity Classification), el pipeline extrae simultáneamente los términos de experiencia y su polaridad en una sola pasada de inferencia. A través de la tabla de mapeo gold.aspecto_traducciones, más de 1.200 variantes lingüísticas se normalizan a seis dimensiones canónicas: Limpieza, Servicio, Relación Calidad-Precio, Ubicación, Confort/Ruido y Saturación/Instalaciones.')
+add_body('Mediante el modelo multilingüe PyABSA-ATEPC (Aspect-Term Extraction and Polarity Classification; analytics/aspects/batch_inference.py), el sistema extrae simultáneamente los términos de experiencia y su polaridad afectiva en una única pasada de inferencia por lotes de 32 textos. Dado el carácter políglota de los turistas, el script oficial analytics/aspects/traducir_aspectos.py aplica una traducción híbrida e incremental (Google Translate con respaldo en MyMemory y detección langdetect), persistiendo el mapeo en gold.aspecto_traducciones. Más de 1.200 términos normalizados se estructuran en seis dimensiones canónicas: Limpieza, Servicio, Relación Calidad-Precio, Ubicación, Confort/Ruido y Saturación/Instalaciones.')
 
 add_h2('5.4. Integración espacial del sentimiento en la malla H3')
-add_body('El modelo analítico gold_sentimiento_h3 consolida los resultados NLP a escala hexagonal. La queja principal de cada celda se computa calculando la moda del aspecto más repetido condicionada estrictamente a reseñas con sentimiento negativo (evitando el sesgo hacia aspectos positivos mayoritarios). El modelo evidencia una cobertura de sentimiento en 410 de los 2.579 hexágonos (15,9 %), coincidiendo con las zonas con actividad alojativa real.')
+add_body('El modelo analítico gold_sentimiento_h3 (materializado en gold.gold_h3_sentimiento vía analytics/mgwr/scripts/00_create_sentimiento_table.py) consolida los indicadores cualitativos a escala hexagonal. La queja principal de cada celda se obtiene computando la moda del aspecto más frecuente condicionada estrictamente a menciones con sentimiento negativo: MODE() WITHIN GROUP (ORDER BY aspecto) WHERE sentimiento = \'Negative\'. Esta restricción matemática es crítica para evitar que el indicador quede falseado por aspectos mayoritariamente positivos (como ubicación o desayuno). El modelo consolida resultados sobre 410 de los 2.579 hexágonos (15,9 % del territorio), coincidiendo de forma exacta con las celdas insulares que albergan oferta alojativa con reseñas geolocalizadas.')
 
 add_h2('5.5. Evaluación técnica comparativa de modelos frente a alternativas')
 add_body('En cumplimiento de los estándares de evaluación de la UCM, la selección metodológica de técnicas analíticas y de aprendizaje automático se fundamenta en su contraste explícito frente a alternativas descartadas:')
@@ -230,33 +251,33 @@ t4_data = [
     ['Técnica Seleccionada', 'Tarea / Dominio', 'Métricas Clave Obtenidas', 'Ventaja Diferencial de Negocio', 'Riesgo Técnico / Mitigación', 'Alternativa Descartada y Justificación'],
     [
         'XLM-RoBERTa + mDeBERTa Zero-Shot',
-        'Filtro de relevancia y polaridad de reseñas',
+        'Filtro de relevancia y polaridad de opiniones',
         'Macro F1 = 0,874; Exactitud = 88,2 %',
-        'Inferencia multilingüe real (ES/EN/DE) sensible a sintaxis de redes sociales.',
-        'Coste computacional en GPU mitigado por procesamiento por lotes de 32 textos.',
+        'Inferencia multilingüe real (ES/EN/DE/FR/IT) sensible al contexto y libre de sesgo léxico estático.',
+        'Coste computacional mitigado con filtro previo en YouTube y lotes de 32 textos.',
         'VADER / TextBlob: descartados por depender de diccionarios estáticos sin contexto ni soporte multilingüe.'
     ],
     [
-        'BERTopic (UMAP + c-TF-IDF)',
+        'BERTopic (mpnet-base-v2 + c-TF-IDF)',
         'Descubrimiento no supervisado de tópicos',
-        'Coherencia semántica = 0,71 (14 tópicos insulares)',
-        'Extracción dinámica de quejas y atractores sin fijar listas cerradas previas.',
-        'Sensibilidad a textos breves mitigada agrupando por hilo y filtrando por longitud.',
+        'Coherencia semántica = 0,71 (14 temas macro, 50 micro)',
+        'Extracción no supervisada de temáticas emergentes sin imponer taxonomías previas.',
+        'Ruido de HDBSCAN mitigado mediante PCA(50) + K-Means y etiquetado asistido por LLM (Llama-3).',
         'LDA clásico: descartado por pobre rendimiento ante textos coloquiales cortos y pérdida de contexto semántico.'
     ],
     [
         'MGWR Multiescala',
         'Determinantes espaciales y cálculo del PTNA',
-        'R² = 0,782; AICc = 3.914,6; Moran I = 0,041',
-        'Asigna anchos de banda locales independientes por variable, capturando microclimas y economías.',
-        'Riesgo de colinealidad local controlado mediante filtrado estricto de VIF < 5.',
-        'OLS Global (R² = 0,418, Moran I = 0,472): descartado por sesgo espacial severo e hipótesis homogénea falsa.'
+        'R² = 0,8272 (vs OLS 0,5444); Moran I = 0,0355 (p = 0,0110)',
+        'Asigna anchos de banda locales independientes por variable, capturando microclimas y economías locales.',
+        'Saturación de bandwidth en 9 covariables (bw≈2.573) señalizada con confianza_ptna=\'baja\' (10,0 %).',
+        'OLS Global (R² = 0,5444, Moran I = 0,3065, p = 0,0010): descartado por sesgo espacial severo y menor ajuste.'
     ],
     [
         'HDBSCAN (con PCA)',
         'Tipificación territorial de 2.579 celdas H3',
         'Varianza PCA = 81,5 %; 6 tipologías (cobertura 100 %)',
-        'Detecta morfologías arbitrarias y aísla ruido geográfico sin imponer clústeres artificiales.',
+        'Detecta morfologías arbitrarias y aísla ruido geográfico reasignado con reglas territoriales.',
         'Calibración de min_cluster_size optimizada mediante análisis de estabilidad de dendrograma.',
         'K-Means: descartado por forzar clústeres esféricos de igual tamaño, distorsionando la geografía insular.'
     ]
@@ -290,5 +311,16 @@ for r_idx, row in enumerate(table4.rows):
                 shd = parse_xml('<w:shd xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" w:fill="F4F6F9"/>')
                 tcPr.append(shd)
 
-doc.save('docs/capitulos_4_y_5_memoria_word.docx')
-print('Successfully saved docs/capitulos_4_y_5_memoria_word.docx')
+out_files = [
+    'docs/capitulos_4_y_5_memoria_word.docx',
+    'docs/capitulos_4_y_5_memoria_word_actualizado.docx',
+    'docs/capitulos_4_y_5_memoria_word_definitivo.docx'
+]
+
+for out_file in out_files:
+    try:
+        doc.save(out_file)
+        print(f'Successfully saved {out_file}')
+    except Exception as e:
+        print(f'Could not save {out_file}: {e}')
+

@@ -39,47 +39,50 @@ Este repositorio contiene el código fuente y la documentación para el Trabajo 
   - Geoprocesamiento programático con `rasterio` para la extracción de Altitud, Orientación (Aspect) y Pendiente (Slope) a partir de ficheros raster (.tif) del MDT hacia la Capa Plata.
 
 ### 4. Analítica Avanzada e Inteligencia Espacial
-* **4.1. Análisis de Sentimiento Multilingüe (NLP)**: Inferencia por lotes sobre reseñas turísticas utilizando transformadores de Hugging Face (`Multilingual BERT`).
-* **4.2. Detección Espacial de Tópicos y Extracción de Aspectos**: Modelado de temas con `BERTopic` y extracción de aspectos clave con `pyabsa`.
-* **4.3. Monitorización Ambiental por Satélite**: Cálculo de índices NDVI, NDBI y luces nocturnas VIIRS a nivel territorial.
-* **4.4. Detección de Brechas de Mercado y Aglomeraciones**: Clustering de densidad geoespacial con el algoritmo `HDBSCAN`.
-* **4.5. Modelado de Accesibilidad y Enrutamiento**: Cálculo de isócronas de viaje y redes de transporte mediante `OpenRouteService` y `pgRouting`.
-* **4.6. Evaluación de Factores de Éxito Local (MGWR) y Calibración Topoclimática**: Ajuste dinámico térmico basado en gradientes de altitud, vientos alisios (orientación) y sombras proyectadas.
+* **4.1. Análisis de Sentimiento Multilingüe (NLP)**: Pipeline desacoplado en dos ramas (`analytics/sentiment/batch_inference.py`):
+  - *Redes y Contenido Abierto (YouTube)*: Filtro de relevancia zero-shot con `MoritzLaurer/mDeBERTa-v3-base-mnli-xnli` (4 hipótesis, umbral de margen 0,25) y clasificación en 3 clases con `cardiffnlp/twitter-xlm-roberta-base-sentiment` (Macro F1 = 0,874, exactitud 88,2 %).
+  - *Alojamientos (Booking y TripAdvisor)*: Inferencia continua de 1 a 5 estrellas con `nlptown/bert-base-multilingual-uncased-sentiment` persistido en `gold.nlp_sentimiento_resenas` para agregación territorial.
+* **4.2. Detección Espacial de Tópicos y Minería de Aspectos**:
+  - *Modelado de Tópicos*: Implementación de `BERTopic` con embeddings `paraphrase-multilingual-mpnet-base-v2` (768 dimensiones), centrado multilingüe por idioma, agrupamiento optimizado mediante PCA(50) + K-Means ($k=20$ general, $k=50$ geocodificado) con c-TF-IDF y nombrado asistido por LLM (Llama-3 / Groq).
+  - *Extracción de Aspectos*: Modelo multilingüe `PyABSA-ATEPC` y normalización híbrida en `gold.aspecto_traducciones` (Google + MyMemory) estructurada en 6 dimensiones canónicas.
+* **4.3. Monitorización Satelital y Climatología Analítica**:
+  - Índices biofísicos trimestrales Copernicus Sentinel-2 (NDVI y NDBI a 20 m) y radianza mensual NOAA/NASA VIIRS (500 m) por celda H3.
+  - Modelo topoclimático microinsular sobre 67 estaciones de Agrocabildo: IDW corregido por gradiente térmico altitudinal (-0,0065 °C/m), termorregulación costera, condensación orográfica ("mar de nubes" 800–1.500 m) y sombra de lluvia en sotavento sur.
+* **4.4. Tipificación Territorial con HDBSCAN y Reglas de Experto**:
+  - Pipeline oficial `analytics/clustering/run_hdbscan_clustering.py`: 8 covariables canónicas (incluyendo `pct_area_enp` y log-transformaciones en plazas y VIIRS), estandarización `StandardScaler` y reducción PCA (3 componentes, **81,5 % de varianza explicada**).
+  - Algoritmo `HDBSCAN(min_cluster_size=30, min_samples=10)` complementado con reglas de experto territorial para reasignar el ruido, consolidando **6 tipologías territoriales con el 100 % de cobertura insular (2.579 hexágonos)** en `gold.h3_clusters`.
+* **4.5. Modelado de Accesibilidad Multimodal e Isócronas**:
+  - Matrices viales origen-destino mediante OpenRouteService (ORS API) hacia 18 polos estratégicos, derivando isócronas continuas de 15 a 60 min (`gold_isocronas_visuales.py`) y cobertura de paradas de transporte público regular GTFS TITSA a 200, 500 y 1.000 m.
+* **4.6. Regresión Geográfica Ponderada Multiescala (MGWR) e Índice PTNA**:
+  - Modelización local no estacionaria sobre las 2.579 celdas H3: eleva el $R^2$ global (no ajustado) de **0,5444** (OLS) a **0,8272**, reduciendo la I de Moran residual de **0,3065** ($p = 0,0010$) a **0,0355** ($p = 0,0110$, 999 permutaciones). Anchos de banda hiperlocales para NDVI (198) y altitud (138) y saturación en 9 variables (2.573) señalizada con `confianza_ptna = 'baja'` (10,0 % de celdas).
+  - Cálculo del **Índice de Potencial Turístico No Aprovechado (PTNA)**: $\text{ptna\_score} = \text{predy\_MGWR} - y_{\text{observado}}$. El filtro combinado $\text{PTNA} > 0$ y $\text{ESG} > 60$ aísla **247 hexágonos de oportunidad ideal** (9,6 % de la isla) para la estrategia de descompresión turística de TUI.
 
-### 5. Integración de Inteligencia Artificial Generativa (LLM)
-## Opción 1
+### 5. Integración de Inteligencia Artificial Generativa (LLM & Chatbot)
+* **5.1. Infraestructura de Inferencia de Alta Velocidad (Groq LPU)**: Conexión optimizada mediante cliente unificado (`analytics/llm/llm_client.py`) a modelos fundacionales en la nube (Groq API con `openai/gpt-oss-120b` y familia `Llama-3`), superando los 250 tokens/s sin costes de GPU dedicada en Azure.
+* **5.2. Generador de Informes Ejecutivos Narrativos (`analytics/llm/report_generator.py`)**: Rutina automatizada que sintetiza los tópicos insulares de BERTopic y las métricas territoriales en diagnósticos ejecutivos de 3 párrafos persistidos en `gold.nlp_informe_global` por ámbito (general y alojamiento).
+* **5.3. Agente Conversacional Inteligente Text-to-SQL (`analytics/chat/sql_agent.py`)**: Agente en lenguaje natural integrado en el frontend (`app/asistente.py`) que interpreta consultas del analista, genera y valida sentencias SQL seguras de solo lectura contra tablas maestras `gold.*`, las ejecuta en Azure PostgreSQL y redacta respuestas ejecutivas fundamentadas con contexto microespacial.
 
-* **5.1. Configuración de rutinas analíticas de extracción (Python Scripts).**
-* **5.2. Conexión automatizada con modelos comerciales fundacionales (API de Azure OpenAI o uso de IA local Groq/Ollama).**
-* **5.3. Generación de informes ejecutivos narrativos e insights automáticos basados en datos (Generative AI Summarization).**
-
-## Opción 2
-
-* **5.1. Configuración del entorno de orquestación en infraestructura de Azure (Instalación del framework LangChain).**
-* **5.2. Conexión y autenticación con modelos comerciales (API de Azure OpenAI o uso de IA local Groq/Ollama).**
-* **5.3. Creación de un agente inteligente conversacional (Implementación de un Text-to-SQL Agent para transformar preguntas en consultas SQL contra PostgreSQL).**
-
-
-### 6. Productivización: Tablero Visual y Simulador de Decisiones
-* **6.1. KPIs Estratégicos**: Consolidación de métricas de negocio para la toma de decisiones traducido del modelo matemático implementado en Python.
-* **6.2. Frontend en Streamlit**: Aplicación interactiva frontend con mapas interactivos de calor y congestión turística.
-* **6.3. Indexación H3**: Mapeo y agregación espacial mediante rejillas hexagonales H3 de Uber.
-* **6.4. Simulador de redistribución de flujos**: Algoritmos gravitatorios para modelar el impacto de trasladar demanda turística a zonas rurales del interior.
+### 6. Productivización: Tablero Visual y Simulador de Decisiones (`app/`)
+* **6.1. Arquitectura Multipágina en Streamlit (11 Módulos)**: Navegación nativa con vistas de Resumen Insular, Visor Cartográfico H3, Tabla Detallada, Rankings, Arquetipos TUI, Simulador What-If, Clima, Municipios, Alojamiento, Turismo y Asistente IA.
+* **6.2. Motor Cartográfico Acelerado (PyDeck / Deck.gl)**: Renderizado 2D/3D con Modelo Digital del Terreno (MDT25), teselado H3 Res 8 (2.579 celdas terrestres) y capas de isócronas, GTFS, BIC y estaciones de Agrocabildo.
+* **6.3. Matriz Estratégica 2D y Arquetipos TUI**: Proyección territorial en dos ejes continuos (Eje 1: Saturación Turística vs Eje 2: Potencial Rural y Sostenible / PTNA + ESG) para prescribir los 5 Arquetipos de Producto de TUI (*Sol y Playa Premium*, *Ecoturismo Rural*, *Cultural y Patrimonial*, *Turismo Activo*, *Bienestar y Salud*).
+* **6.4. Simulador Territorial What-If (`app/simulador.py`)**: Proyección interactiva de intervenciones en plazas, conectividad, vegetación y equipamientos a 4 escalas (hexágono, municipio, arquetipo o clúster HDBSCAN) con recálculo en tiempo real de los índices estratégicos y gráfico radar.
 
 ### 7. Pruebas, Validación y Documentación
-* **7.1. Depuración y Pruebas de Estrés**: Control de concurrencia y optimización de rendimiento de carga.
-* **7.2. Análisis Territorial de Tenerife**: Informes de resultados.
-* **7.3. Trabajo de Fin de Máster**: Documentación final y empaquetado.
+* **7.1. Batería de Pruebas Automatizadas con pytest (`tests/`)**: Cobertura de suites para ingesta, modelos dbt, analítica (NLP, aspectos, clustering, MGWR), asistente chatbot y componentes visuales de Streamlit.
+* **7.2. Gobernanza de Datos y Reproducibilidad**: Documentación metodológica en Markdown, esquemas DDL idempotentes y memoria académica oficial del TFM en formato Word / PDF.
 
 ---
 
 ## Organización del Repositorio
 
-* **`infra/`**: Configuración de servidores, variables de entorno y scripts de despliegue en Azure.
-* **`ingestion/`**: Pipelines de extracción incremental divididos por fuentes de datos (agrocabildo, open_meteo, microdatos, etc.).
-* **`dags/`**: Flujos de trabajo de Apache Airflow para orquestar la ingesta y la analítica.
-* **`dbt_project/`**: Código dbt para transformaciones de la Capa Plata y Capa Oro.
-* **`sql/`**: Definición de esquemas, índices PostGIS y procedimientos almacenados.
-* **`validation/`**: Scripts de validación cruzada y métricas de error.
-* **`scratch/`**: Scripts auxiliares de mantenimiento y particionamiento de datos locales.
-* **`docs/`**: Guías de configuración y documentación de arquitectura.
+* **`analytics/`**: Módulos de analítica avanzada: inferencia de sentimiento, tópicos BERTopic, aspectos PyABSA, clustering territorial HDBSCAN, accesibilidad ORS, MGWR/PTNA, RAG e integración de LLM.
+* **`app/`**: Aplicación web interactiva frontend desarrollada en Streamlit con visualizaciones Pydeck (Deck.gl), Plotly y panel de detalle H3.
+* **`dags/`**: Flujos de trabajo de orquestación en Apache Airflow (histórico completo, incremental mensual y refresco social).
+* **`dbt_project/`**: Proyecto dbt con modelos analíticos para la transformación de capas Bronze → Silver → Gold en Azure PostgreSQL.
+* **`docs/`**: Memoria técnica del TFM, índice académico, especificaciones de arquitectura y manuales de administración en Azure.
+* **`ingestion/`**: Pipelines de extracción automatizada e ingesta a Azure Blob Storage (`bronce-raw`) y Azure PostgreSQL (`bronze.*`).
+* **`notebooks/`**: Cuadernos Jupyter exploratorios utilizados en el diseño preliminar y validación analítica de modelos.
+* **`scripts/`**: Utilidades operativas para carga de datos, verificación de tablas y generación automatizada de memorias en Word (.docx).
+* **`sql/`**: Catálogo DDL centralizado de tablas, índices PostGIS y procedimientos almacenados complementarios a dbt.
+* **`tests/`**: Suite integral de pruebas unitarias y de integración del sistema ejecutadas con pytest.

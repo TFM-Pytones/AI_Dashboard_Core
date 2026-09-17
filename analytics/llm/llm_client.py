@@ -3,10 +3,6 @@
 Groq elegido sobre Azure OpenAI (no requiere aprovisionar ningun recurso) y
 Ollama local (no depende de que la VM del proyecto este encendida) -- ver
 analytics/contexto.md para el porque.
-
-`llama-3.1-70b-versatile` (el modelo que sugeria el plan original) ya no
-existe en Groq -- se sustituyo por `openai/gpt-oss-120b`, comprobado contra
-la API real (`client.models.list()`) antes de usarlo.
 """
 
 import os
