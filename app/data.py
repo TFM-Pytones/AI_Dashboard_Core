@@ -363,11 +363,11 @@ def compute_strategic_axes_and_archetypes(gdf: pd.DataFrame) -> pd.DataFrame:
     # Arquetipo Dominante
     arch_cols = ["score_sol_playa", "score_ecoturismo", "score_cultural", "score_aventura", "score_bienestar"]
     arch_names = {
-        "score_sol_playa": "🏖️ Sol y playa",
-        "score_ecoturismo": "🌿 Ecoturismo rural",
-        "score_cultural": "🏛️ Cultural y patrimonial",
-        "score_aventura": "🏔️ Aventura y activo",
-        "score_bienestar": "🧘 Bienestar y salud",
+        "score_sol_playa": "Sol y playa",
+        "score_ecoturismo": "Ecoturismo rural",
+        "score_cultural": "Cultural y patrimonial",
+        "score_aventura": "Aventura y activo",
+        "score_bienestar": "Bienestar y salud",
     }
     gdf["arquetipo_principal"] = gdf[arch_cols].idxmax(axis=1).map(arch_names)
 

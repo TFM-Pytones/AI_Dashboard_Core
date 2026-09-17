@@ -32,34 +32,43 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
         ("🏙️ Urbano residencial", n_urbano, "Áreas metropolitanas y núcleos poblacionales de uso primordialmente residencial."),
     ]
 
-    cols = st.columns(6)
-    for col, (titulo, n_hex, tooltip) in zip(cols, clusters_info):
+    r1_cols = st.columns(3)
+    for col, (titulo, n_hex, tooltip) in zip(r1_cols, clusters_info[:3]):
         pct = (n_hex / n_total) * 100.0
         with col.container(border=True):
-            col_html = (
-                f'<div style="font-family: inherit; min-height: 105px; display: flex; flex-direction: column; justify-content: space-between;" title="{tooltip}">'
-                f'<div style="font-size: 0.82rem; color: #475569; font-weight: 600; line-height: 1.25; min-height: 2.2rem;">{titulo}</div>'
-                f'<div>'
-                f'<div style="font-size: 1.45rem; font-weight: 700; color: var(--text-color, #1e293b); margin: 0.2rem 0 0.1rem 0;">{n_hex:,} hex.</div>'
-                f'<div style="font-size: 0.82rem; color: #64748b; font-weight: 500;">{pct:.1f}% del territorio</div>'
-                f'</div>'
-                f'</div>'
+            st.markdown(f"**{titulo}**", help=tooltip)
+            st.metric(
+                label="Hexágonos",
+                value=f"{n_hex:,}",
+                delta=f"{pct:.1f}% del territorio",
+                delta_color="off",
             )
-            st.markdown(col_html, unsafe_allow_html=True)
+
+    r2_cols = st.columns(3)
+    for col, (titulo, n_hex, tooltip) in zip(r2_cols, clusters_info[3:]):
+        pct = (n_hex / n_total) * 100.0
+        with col.container(border=True):
+            st.markdown(f"**{titulo}**", help=tooltip)
+            st.metric(
+                label="Hexágonos",
+                value=f"{n_hex:,}",
+                delta=f"{pct:.1f}% del territorio",
+                delta_color="off",
+            )
 
     pct_op = (n_oportunidad_ideal / n_total) * 100.0
-    banner_html = (
-        f'<div style="background: linear-gradient(90deg, rgba(30,58,138,0.07) 0%, rgba(13,148,136,0.07) 100%); border: 1px solid rgba(30,58,138,0.22); border-radius: 8px; padding: 0.85rem 1.25rem; margin-top: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">'
-        f'<div>'
-        f'<span style="font-weight: 700; color: #1e3a8a; font-size: 1.05rem;">🌟 Oportunidades ideales para TUI</span>'
-        f'<span style="color: #475569; font-size: 0.88rem; margin-left: 0.5rem;">Celdas territoriales de alto atractivo no explotado (PTNA &gt; 0) con certificación ambiental sostenible (ESG &gt; 60).</span>'
-        f'</div>'
-        f'<div style="font-size: 1.2rem; font-weight: 700; color: #0d9488;">'
-        f'{n_oportunidad_ideal:,} hexágonos <span style="font-size: 0.85rem; font-weight: 500; color: #64748b;">({pct_op:.1f}% del territorio insular)</span>'
-        f'</div>'
-        f'</div>'
-    )
-    st.markdown(banner_html, unsafe_allow_html=True)
+    with st.container(border=True):
+        c_desc, c_metric = st.columns([3, 1])
+        with c_desc:
+            st.markdown("##### 🌟 Oportunidades ideales para TUI")
+            st.markdown("Celdas territoriales de alto atractivo no explotado (**PTNA > 0**) con certificación ambiental sostenible (**ESG > 60**).")
+        with c_metric:
+            st.metric(
+                label="Hexágonos idóneos",
+                value=f"{n_oportunidad_ideal:,}",
+                delta=f"{pct_op:.1f}% del territorio insular",
+                delta_color="off",
+            )
 
     st.divider()
 
@@ -195,18 +204,18 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
 
     tab_sol, tab_eco, tab_cult, tab_av, tab_bien = st.tabs(
         [
-            "🏖️ Sol y playa",
-            "🌿 Ecoturismo rural",
-            "🏛️ Cultural y patrimonial",
-            "🏔️ Aventura y activo",
-            "🧘 Bienestar y salud",
+            "Sol y playa",
+            "Ecoturismo rural",
+            "Cultural y patrimonial",
+            "Aventura y activo",
+            "Bienestar y salud",
         ]
     )
 
     with tab_sol:
         c1, c2 = st.columns([2, 1])
         with c1:
-            st.markdown("### 🏖️ Sol y playa premium (Gestión de capacidad)")
+            st.markdown("### Sol y playa premium (Gestión de capacidad)")
             st.markdown(
                 """
                 - **Ubicación clave:** Adeje, Arona (Los Cristianos, Playa de las Américas), Puerto de la Cruz litoral.
@@ -218,7 +227,7 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
                 """
             )
         with c2.container(border=True):
-            sub_df = gdf[gdf["arquetipo_principal"] == "🏖️ Sol y playa"]
+            sub_df = gdf[gdf["arquetipo_principal"].astype(str).str.contains("Sol y playa", na=False)]
             st.metric("Hexágonos asignados", f"{len(sub_df)}")
             st.metric("Plazas registradas", format_metric(int(sub_df["n_plazas_registro"].sum()), "entero"))
             st.metric("Eje 1 medio", f"{sub_df['eje_1_saturacion'].mean():.2f}")
@@ -227,7 +236,7 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
     with tab_eco:
         c1, c2 = st.columns([2, 1])
         with c1:
-            st.markdown("### 🌿 Ecoturismo rural (Dinamización en rural infrautilizado)")
+            st.markdown("### Ecoturismo rural (Dinamización en rural infrautilizado)")
             st.markdown(
                 """
                 - **Ubicación clave:** Medianías de La Orotava, Teno (Buenavista, El Tanque), Anaga (Santa Cruz/La Laguna norte), Vilaflor, Arico interior.
@@ -239,7 +248,7 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
                 """
             )
         with c2.container(border=True):
-            sub_df = gdf[gdf["arquetipo_principal"] == "🌿 Ecoturismo rural"]
+            sub_df = gdf[gdf["arquetipo_principal"].astype(str).str.contains("Ecoturismo rural", na=False)]
             st.metric("Hexágonos asignados", f"{len(sub_df)}")
             st.metric("Eje 2 medio (potencial rural)", f"{sub_df['eje_2_rural_infrautilizado'].mean():.2f}")
             st.metric("NDVI medio", f"{sub_df['ndvi_medio'].mean():.2f}")
@@ -248,7 +257,7 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
     with tab_cult:
         c1, c2 = st.columns([2, 1])
         with c1:
-            st.markdown("### 🏛️ Cultural y patrimonial (Identidad y enoturismo)")
+            st.markdown("### Cultural y patrimonial (Identidad y enoturismo)")
             st.markdown(
                 """
                 - **Ubicación clave:** San Cristóbal de La Laguna (Patrimonio UNESCO), La Orotava casco histórico, Garachico, Candelaria, Icod de los Vinos.
@@ -260,7 +269,7 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
                 """
             )
         with c2.container(border=True):
-            sub_df = gdf[gdf["arquetipo_principal"] == "🏛️ Cultural y patrimonial"]
+            sub_df = gdf[gdf["arquetipo_principal"].astype(str).str.contains("Cultural y patrimonial", na=False)]
             st.metric("Hexágonos asignados", f"{len(sub_df)}")
             st.metric("POIs culturales totales", f"{int(sub_df['n_cultura'].sum())}")
             st.metric("Restaurantes registrados", f"{int(sub_df['n_restaurantes'].sum())}")
@@ -269,7 +278,7 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
     with tab_av:
         c1, c2 = st.columns([2, 1])
         with c1:
-            st.markdown("### 🏔️ Aventura y activo (Turismo deportivo y vulcanológico)")
+            st.markdown("### Aventura y activo (Turismo deportivo y vulcanológico)")
             st.markdown(
                 """
                 - **Ubicación clave:** Anillo de la Corona Forestal, Parque Nacional del Teide, Macizo de Teno (Masca), barrancos del sur.
@@ -281,7 +290,7 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
                 """
             )
         with c2.container(border=True):
-            sub_df = gdf[gdf["arquetipo_principal"] == "🏔️ Aventura y activo"]
+            sub_df = gdf[gdf["arquetipo_principal"].astype(str).str.contains("Aventura y activo", na=False)]
             st.metric("Hexágonos asignados", f"{len(sub_df)}")
             st.metric("Pendiente media", f"{sub_df['slope_mean'].mean():.1f}°")
             st.metric("Altitud media", f"{sub_df['altitud_media_m'].mean():.0f} m")
@@ -290,7 +299,7 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
     with tab_bien:
         c1, c2 = st.columns([2, 1])
         with c1:
-            st.markdown("### 🧘 Bienestar y salud (Desestacionalización climática)")
+            st.markdown("### Bienestar y salud (Desestacionalización climática)")
             st.markdown(
                 """
                 - **Ubicación clave:** Medianías bajas del norte (Tacoronte, Sauzal) y valles protegidos del sur (Valle San Lorenzo, Guía de Isora interior).
@@ -302,7 +311,7 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
                 """
             )
         with c2.container(border=True):
-            sub_df = gdf[gdf["arquetipo_principal"] == "🧘 Bienestar y salud"]
+            sub_df = gdf[gdf["arquetipo_principal"].astype(str).str.contains("Bienestar y salud", na=False)]
             st.metric("Hexágonos asignados", f"{len(sub_df)}")
             st.metric("Temperatura media anual", f"{sub_df['temp_media_anual'].mean():.1f} °C")
             st.metric("Score ESG medio", f"{sub_df['esg_h3_score'].mean():.1f} / 100")
@@ -345,7 +354,7 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
     ]
     cols_existentes = [c for c in columnas_mostrar if c in catalogo.columns]
     tabla_display = catalogo[cols_existentes].sort_values(
-        by="eje_2_rural_infrautilizado" if sel_arq == "🌿 Ecoturismo rural" else "eje_1_saturacion",
+        by="eje_2_rural_infrautilizado" if "Ecoturismo rural" in str(sel_arq) else "eje_1_saturacion",
         ascending=False,
     )
 

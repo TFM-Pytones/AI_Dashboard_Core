@@ -47,6 +47,12 @@ CLUSTER_COLOR_MAP_RGB = {
 
 # Arquetipos de producto turístico TUI
 ARCHETYPE_COLOR_MAP_HEX = {
+    "Sol y playa": "#0284c7",
+    "Ecoturismo rural": "#16a34a",
+    "Cultural y patrimonial": "#7c3aed",
+    "Aventura y activo": "#ea580c",
+    "Bienestar y salud": "#0d9488",
+    # Compatibilidad con datos cacheados
     "🏖️ Sol y playa": "#0284c7",
     "🌿 Ecoturismo rural": "#16a34a",
     "🏛️ Cultural y patrimonial": "#7c3aed",
@@ -54,6 +60,12 @@ ARCHETYPE_COLOR_MAP_HEX = {
     "🧘 Bienestar y salud": "#0d9488",
 }
 ARCHETYPE_COLOR_MAP_RGB = {
+    "Sol y playa": [2, 132, 199],
+    "Ecoturismo rural": [22, 163, 74],
+    "Cultural y patrimonial": [124, 58, 237],
+    "Aventura y activo": [234, 88, 12],
+    "Bienestar y salud": [13, 148, 136],
+    # Compatibilidad con datos cacheados
     "🏖️ Sol y playa": [2, 132, 199],
     "🌿 Ecoturismo rural": [22, 163, 74],
     "🏛️ Cultural y patrimonial": [124, 58, 237],

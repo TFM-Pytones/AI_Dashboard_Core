@@ -42,12 +42,52 @@ def mock_gdf():
         "score_cultural": [0.50, 0.35, 0.20],
         "score_aventura": [0.15, 0.25, 0.78],
         "score_bienestar": [0.45, 0.40, 0.65],
-        "arquetipo_principal": ["🏖️ Sol y playa", "🏖️ Sol y playa", "🌿 Ecoturismo rural"],
+        "arquetipo_principal": ["Sol y playa", "Sol y playa", "Ecoturismo rural"],
         "es_oportunidad_ideal": [False, False, True],
         "restriction_category": ["Sin restricción", "Sin restricción", "Espacio Natural Protegido"],
         "tipo_zona": ["Saturado / Overtourism", "Transición costera", "Rurales y medianías"],
     }
     return pd.DataFrame(data)
+
+
+def test_simulation_zero_delta_guarantees_no_change(mock_gdf):
+    """
+    Verifica que con deltas en cero no exista ningún desplazamiento ficticio:
+    simulado coincide exactamente con base, todos los deltas son 0.0 y no hay cambio de arquetipo.
+    """
+    bounds = compute_dataset_normalization_bounds(mock_gdf)
+    row = mock_gdf.iloc[0]
+
+    res = simulate_hexagon_intervention(
+        hexagon_data=row,
+        delta_plazas=0,
+        delta_tiempo_aeropuerto=0,
+        delta_ndvi=0.0,
+        delta_pois=0,
+        delta_esg=0.0,
+        bounds=bounds,
+    )
+
+    base = res["base"]
+    sim = res["simulado"]
+    deltas = res["deltas"]
+    alertas = res["alertas"]
+
+    assert sim["plazas"] == base["plazas"]
+    assert sim["tiempo_aeropuerto"] == base["tiempo_aeropuerto"]
+    assert sim["ndvi"] == base["ndvi"]
+    assert sim["pois"] == base["pois"]
+    assert sim["esg"] == base["esg"]
+    assert sim["ptna"] == base["ptna"]
+    assert sim["eje_1"] == base["eje_1"]
+    assert sim["eje_2"] == base["eje_2"]
+    assert sim["arquetipo"] == base["arquetipo"]
+    assert sim["scores"] == base["scores"]
+
+    for k, v in deltas.items():
+        assert v == 0.0, f"Delta for {k} was not zero: {v}"
+
+    assert alertas["archetype_changed"] is False
 
 
 def test_normalization_bounds_computation(mock_gdf):

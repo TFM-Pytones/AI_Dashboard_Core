@@ -22,12 +22,23 @@ from app.ui_helpers import add_chart_motion
 
 
 ARCHETYPE_NAMES_MAP = {
-    "score_sol_playa": "🏖️ Sol y playa",
-    "score_ecoturismo": "🌿 Ecoturismo rural",
-    "score_cultural": "🏛️ Cultural y patrimonial",
-    "score_aventura": "🏔️ Aventura y activo",
-    "score_bienestar": "🧘 Bienestar y salud",
+    "score_sol_playa": "Sol y playa",
+    "score_ecoturismo": "Ecoturismo rural",
+    "score_cultural": "Cultural y patrimonial",
+    "score_aventura": "Aventura y activo",
+    "score_bienestar": "Bienestar y salud",
 }
+
+
+def _clean_arch_name(name: Any) -> str:
+    """Elimina emojis de los nombres de arquetipos para estandarización insular."""
+    if not name or pd.isna(name):
+        return "Ecoturismo rural"
+    s = str(name).strip()
+    for prefix in ["🏖️ ", "🌿 ", "🏛️ ", "🏔️ ", "🧘 ", "🏖️", "🌿", "🏛️", "🏔️", "🧘"]:
+        if s.startswith(prefix):
+            s = s[len(prefix):].strip()
+    return s
 
 # Coeficientes de sensibilidad calibrados sobre el modelo MGWR
 SENSITIVITY_BETA_TIEMPO = -4.50   # Menos tiempo al aeropuerto -> mayor potencial esperado
@@ -121,9 +132,9 @@ def aggregate_hexagon_group(group_df: pd.DataFrame, label: str, group_type: str)
     # Arquetipo dominante en el grupo (moda)
     if "arquetipo_principal" in group_df.columns and not group_df["arquetipo_principal"].dropna().empty:
         mode_arch = group_df["arquetipo_principal"].dropna().mode()
-        arch_dom = mode_arch.iloc[0] if not mode_arch.empty else "🌿 Ecoturismo rural"
+        arch_dom = _clean_arch_name(mode_arch.iloc[0]) if not mode_arch.empty else "Ecoturismo rural"
     else:
-        arch_dom = "🌿 Ecoturismo rural"
+        arch_dom = "Ecoturismo rural"
 
     # Categoría de restricción mayoritaria
     if "restriction_category" in group_df.columns and not group_df["restriction_category"].dropna().empty:
@@ -203,102 +214,8 @@ def simulate_hexagon_intervention(
     base_ptna = _safe_float(hexagon_data.get("ptna_score", 0.0), default=0.0)
     base_eje1 = _safe_float(hexagon_data.get("eje_1_saturacion", 0.2), default=0.2)
     base_eje2 = _safe_float(hexagon_data.get("eje_2_rural_infrautilizado", 0.4), default=0.4)
-    base_arquetipo = str(hexagon_data.get("arquetipo_principal", "🌿 Ecoturismo rural"))
+    base_arquetipo = _clean_arch_name(hexagon_data.get("arquetipo_principal", "Ecoturismo rural"))
     pct_enp = _safe_float(hexagon_data.get("pct_area_enp", 0.0), default=0.0)
-
-    # 2. Nuevos valores absolutos simulados
-    sim_plazas = max(0.0, base_plazas + delta_plazas)
-    sim_tiempo = max(5.0, base_tiempo + delta_tiempo_aeropuerto)
-    sim_ndvi = float(np.clip(base_ndvi + delta_ndvi, 0.0, 1.0))
-    sim_pois = max(0.0, base_pois + delta_pois)
-    sim_esg = float(np.clip(base_esg + delta_esg, 0.0, 100.0))
-
-    # Estimación de componentes de POIs
-    base_rest = _safe_float(hexagon_data.get("n_restaurantes", 2.0), default=2.0)
-    base_cult = _safe_float(hexagon_data.get("n_cultura", 1.0), default=1.0)
-    base_nat = _safe_float(hexagon_data.get("n_naturaleza", 1.0), default=1.0)
-    sim_rest = max(0.0, base_rest + (delta_pois * 0.5))
-    sim_cult = max(0.0, base_cult + (delta_pois * 0.3))
-    sim_nat = max(0.0, base_nat + (delta_pois * 0.2))
-
-    # 3. Proyección del PTNA simulado (Ecuación de sensibilidad MGWR)
-    # Si es grupo macro, el impacto se amortigua proporcionalmente sobre el área total
-    impacto_plazas_ptna = - (delta_plazas / total_area_km2)
-    impacto_tiempo_ptna = SENSITIVITY_BETA_TIEMPO * delta_tiempo_aeropuerto
-    impacto_ndvi_ptna = SENSITIVITY_BETA_NDVI * delta_ndvi
-    impacto_pois_ptna = SENSITIVITY_BETA_POIS * (delta_pois / max(1.0, n_hex * 0.5))
-
-    sim_ptna = base_ptna + impacto_plazas_ptna + impacto_tiempo_ptna + impacto_ndvi_ptna + impacto_pois_ptna
-
-    # 4. Proyección de componentes normalizadas
-    # Se evalúa en escala per cápita de celda para ser invariante a agregación
-    sim_plazas_cell = sim_plazas / n_hex
-    p_norm = _norm_val(np.log1p(sim_plazas_cell), bounds["log_plazas"][0], bounds["log_plazas"][1])
-    v_norm = _norm_val(np.log1p(_safe_float(hexagon_data.get("viirs_medio", 0.0), default=0.0)), bounds["log_viirs"][0], bounds["log_viirs"][1])
-    dist_costa = _safe_float(hexagon_data.get("dist_costa_km", 5.0), default=5.0)
-    costa_prox = float(np.clip(1.0 - (dist_costa / 10.0), 0.0, 1.0))
-
-    base_establ_cell = (_safe_float(hexagon_data.get("n_establecimientos_registro", 1.0), default=1.0)) / n_hex
-    sim_establ_cell = max(0.0, base_establ_cell + ((delta_plazas / n_hex) / 25.0))
-    establ_norm = _norm_val(np.log1p(sim_establ_cell), bounds["log_establ"][0], bounds["log_establ"][1])
-
-    ndvi_norm = _norm_val(sim_ndvi, bounds["ndvi_medio"][0], bounds["ndvi_medio"][1])
-    base_ndbi = _safe_float(hexagon_data.get("ndbi_medio", 0.0), default=0.0)
-    ndbi_norm = _norm_val(base_ndbi, bounds["ndbi_medio"][0], bounds["ndbi_medio"][1])
-    ndbi_inv = float(np.clip(1.0 - ndbi_norm, 0.0, 1.0))
-
-    slope_norm = _norm_val(_safe_float(hexagon_data.get("slope_mean", 10.0), default=10.0), bounds["slope_mean"][0], bounds["slope_mean"][1])
-    alt_norm = _norm_val(_safe_float(hexagon_data.get("altitud_media_m", 200.0), default=200.0), bounds["altitud_media_m"][0], bounds["altitud_media_m"][1])
-
-    ptna_norm = _norm_val(sim_ptna, bounds["ptna_score"][0], bounds["ptna_score"][1])
-    esg_norm = float(np.clip(sim_esg / 100.0, 0.0, 1.0))
-
-    cult_cell = sim_cult / n_hex
-    rest_cell = sim_rest / n_hex
-    pois_cell = sim_pois / n_hex
-    nat_cell = sim_nat / n_hex
-
-    cult_norm = _norm_val(np.log1p(cult_cell), bounds["log_cultura"][0], bounds["log_cultura"][1])
-    rest_norm = _norm_val(np.log1p(rest_cell), bounds["log_rest"][0], bounds["log_rest"][1])
-    pois_norm = _norm_val(np.log1p(pois_cell), bounds["log_pois"][0], bounds["log_pois"][1])
-    nat_norm = _norm_val(np.log1p(nat_cell), bounds["log_nat"][0], bounds["log_nat"][1])
-
-    rating_val = _safe_float(hexagon_data.get("rating_booking_medio", 8.0), default=8.0)
-    rating_norm = _norm_val(rating_val, bounds["rating_booking_medio"][0], bounds["rating_booking_medio"][1])
-
-    temp_val = _safe_float(hexagon_data.get("temp_media_anual", 21.0), default=21.0)
-    temp_opt = float(np.clip(1.0 - (abs(temp_val - 21.0) / 10.0), 0.0, 1.0))
-
-    # 5. Proyección de Ejes Estratégicos
-    sim_eje_1_raw = 0.45 * p_norm + 0.25 * v_norm + 0.15 * costa_prox + 0.15 * establ_norm
-    sim_eje_1 = float(np.clip(sim_eje_1_raw, 0.0, 1.0))
-
-    no_masificacion = float(np.clip(1.0 - p_norm, 0.0, 1.0))
-    sim_eje_2_raw = (
-        0.25 * ndvi_norm +
-        0.25 * ptna_norm +
-        0.20 * no_masificacion +
-        0.15 * ndbi_inv +
-        0.15 * esg_norm
-    )
-    sim_eje_2 = float(np.clip(sim_eje_2_raw, 0.0, 1.0))
-
-    # 6. Scores de los 5 Arquetipos TUI
-    score_sol_playa = float(np.clip(0.40 * p_norm + 0.30 * costa_prox + 0.15 * v_norm + 0.15 * rating_norm, 0.0, 1.0))
-    score_ecoturismo = float(np.clip(0.30 * ndvi_norm + 0.25 * ptna_norm + 0.25 * no_masificacion + 0.20 * esg_norm, 0.0, 1.0))
-    score_cultural = float(np.clip(0.35 * cult_norm + 0.25 * rest_norm + 0.20 * pois_norm + 0.20 * ptna_norm, 0.0, 1.0))
-    score_aventura = float(np.clip(0.35 * slope_norm + 0.30 * alt_norm + 0.20 * ndvi_norm + 0.15 * nat_norm, 0.0, 1.0))
-    score_bienestar = float(np.clip(0.35 * temp_opt + 0.25 * no_masificacion + 0.20 * ndvi_norm + 0.20 * esg_norm, 0.0, 1.0))
-
-    archetype_scores = {
-        "score_sol_playa": score_sol_playa,
-        "score_ecoturismo": score_ecoturismo,
-        "score_cultural": score_cultural,
-        "score_aventura": score_aventura,
-        "score_bienestar": score_bienestar,
-    }
-    max_arch_key = max(archetype_scores, key=archetype_scores.get)
-    sim_arquetipo = ARCHETYPE_NAMES_MAP[max_arch_key]
 
     base_scores = {
         "score_sol_playa": _safe_float(hexagon_data.get("score_sol_playa", 0.1), default=0.1),
@@ -308,11 +225,144 @@ def simulate_hexagon_intervention(
         "score_bienestar": _safe_float(hexagon_data.get("score_bienestar", 0.3), default=0.3),
     }
 
-    # 7. Diagnósticos y Alertas Territoriales
+    is_zero_delta = (
+        abs(delta_plazas) < 1e-6
+        and abs(delta_tiempo_aeropuerto) < 1e-6
+        and abs(delta_ndvi) < 1e-6
+        and abs(delta_pois) < 1e-6
+        and abs(delta_esg) < 1e-6
+    )
+
+    if is_zero_delta:
+        sim_plazas = base_plazas
+        sim_tiempo = base_tiempo
+        sim_ndvi = base_ndvi
+        sim_pois = base_pois
+        sim_esg = base_esg
+        sim_ptna = base_ptna
+        sim_eje_1 = base_eje1
+        sim_eje_2 = base_eje2
+        sim_arquetipo = base_arquetipo
+        archetype_scores = base_scores.copy()
+        archetype_changed = False
+        deltas = {
+            "plazas": 0.0,
+            "tiempo_aeropuerto": 0.0,
+            "ndvi": 0.0,
+            "pois": 0.0,
+            "esg": 0.0,
+            "ptna": 0.0,
+            "eje_1": 0.0,
+            "eje_2": 0.0,
+        }
+    else:
+        # 2. Nuevos valores absolutos simulados
+        sim_plazas = max(0.0, base_plazas + delta_plazas)
+        sim_tiempo = max(5.0, base_tiempo + delta_tiempo_aeropuerto)
+        sim_ndvi = float(np.clip(base_ndvi + delta_ndvi, 0.0, 1.0))
+        sim_pois = max(0.0, base_pois + delta_pois)
+        sim_esg = float(np.clip(base_esg + delta_esg, 0.0, 100.0))
+
+        # 3. Proyección del PTNA simulado (Ecuación de sensibilidad MGWR)
+        impacto_plazas_ptna = - (delta_plazas / total_area_km2)
+        impacto_tiempo_ptna = SENSITIVITY_BETA_TIEMPO * delta_tiempo_aeropuerto
+        impacto_ndvi_ptna = SENSITIVITY_BETA_NDVI * delta_ndvi
+        impacto_pois_ptna = SENSITIVITY_BETA_POIS * (delta_pois / max(1.0, n_hex * 0.5))
+        sim_ptna = base_ptna + impacto_plazas_ptna + impacto_tiempo_ptna + impacto_ndvi_ptna + impacto_pois_ptna
+
+        # 4. Proyección de componentes normalizadas
+        sim_plazas_cell = sim_plazas / n_hex
+        base_plazas_cell = base_plazas / n_hex
+        p_norm = _norm_val(np.log1p(sim_plazas_cell), bounds["log_plazas"][0], bounds["log_plazas"][1])
+        base_p_norm = _norm_val(np.log1p(base_plazas_cell), bounds["log_plazas"][0], bounds["log_plazas"][1])
+
+        base_establ_cell = (_safe_float(hexagon_data.get("n_establecimientos_registro", 1.0), default=1.0)) / n_hex
+        sim_establ_cell = max(0.0, base_establ_cell + ((delta_plazas / n_hex) / 25.0))
+        establ_norm = _norm_val(np.log1p(sim_establ_cell), bounds["log_establ"][0], bounds["log_establ"][1])
+        base_est_norm = _norm_val(np.log1p(base_establ_cell), bounds["log_establ"][0], bounds["log_establ"][1])
+
+        ndvi_norm = _norm_val(sim_ndvi, bounds["ndvi_medio"][0], bounds["ndvi_medio"][1])
+        base_ndvi_norm = _norm_val(base_ndvi, bounds["ndvi_medio"][0], bounds["ndvi_medio"][1])
+
+        ptna_norm = _norm_val(sim_ptna, bounds["ptna_score"][0], bounds["ptna_score"][1])
+        base_ptna_norm = _norm_val(base_ptna, bounds["ptna_score"][0], bounds["ptna_score"][1])
+
+        esg_norm = float(np.clip(sim_esg / 100.0, 0.0, 1.0))
+        base_esg_norm = float(np.clip(base_esg / 100.0, 0.0, 1.0))
+
+        # Variación relativa proyectada sobre Ejes Estratégicos
+        d_eje1 = 0.45 * (p_norm - base_p_norm) + 0.15 * (establ_norm - base_est_norm)
+        sim_eje_1 = float(np.clip(base_eje1 + d_eje1, 0.0, 1.0))
+
+        d_no_masif = (1.0 - p_norm) - (1.0 - base_p_norm)
+        d_eje2 = (
+            0.25 * (ndvi_norm - base_ndvi_norm)
+            + 0.25 * (ptna_norm - base_ptna_norm)
+            + 0.20 * d_no_masif
+            + 0.15 * (esg_norm - base_esg_norm)
+        )
+        sim_eje_2 = float(np.clip(base_eje2 + d_eje2, 0.0, 1.0))
+
+        # Variación relativa de los scores de arquetipo
+        d_pois = (sim_pois - base_pois) / max(1.0, n_hex * 10.0)
+        d_pois_norm = float(np.clip(d_pois, -0.3, 0.3))
+
+        score_sol_playa = float(np.clip(base_scores["score_sol_playa"] + 0.50 * (p_norm - base_p_norm), 0.0, 1.0))
+        score_ecoturismo = float(np.clip(
+            base_scores["score_ecoturismo"]
+            + 0.35 * (ndvi_norm - base_ndvi_norm)
+            + 0.30 * (ptna_norm - base_ptna_norm)
+            + 0.20 * d_no_masif
+            + 0.15 * (esg_norm - base_esg_norm),
+            0.0, 1.0
+        ))
+        score_cultural = float(np.clip(
+            base_scores["score_cultural"]
+            + 0.40 * d_pois_norm
+            + 0.30 * (ptna_norm - base_ptna_norm)
+            + 0.30 * (establ_norm - base_est_norm),
+            0.0, 1.0
+        ))
+        score_aventura = float(np.clip(
+            base_scores["score_aventura"]
+            + 0.30 * (ndvi_norm - base_ndvi_norm)
+            + 0.20 * d_no_masif,
+            0.0, 1.0
+        ))
+        score_bienestar = float(np.clip(
+            base_scores["score_bienestar"]
+            + 0.35 * d_no_masif
+            + 0.30 * (ndvi_norm - base_ndvi_norm)
+            + 0.35 * (esg_norm - base_esg_norm),
+            0.0, 1.0
+        ))
+
+        archetype_scores = {
+            "score_sol_playa": score_sol_playa,
+            "score_ecoturismo": score_ecoturismo,
+            "score_cultural": score_cultural,
+            "score_aventura": score_aventura,
+            "score_bienestar": score_bienestar,
+        }
+        max_arch_key = max(archetype_scores, key=archetype_scores.get)
+        sim_arquetipo = ARCHETYPE_NAMES_MAP[max_arch_key]
+        archetype_changed = bool(sim_arquetipo != base_arquetipo)
+
+        deltas = {
+            "plazas": _safe_float(sim_plazas - base_plazas, default=0.0),
+            "tiempo_aeropuerto": _safe_float(sim_tiempo - base_tiempo, default=0.0),
+            "ndvi": _safe_float(sim_ndvi - base_ndvi, default=0.0),
+            "pois": _safe_float(sim_pois - base_pois, default=0.0),
+            "esg": _safe_float(sim_esg - base_esg, default=0.0),
+            "ptna": _safe_float(sim_ptna - base_ptna, default=0.0),
+            "eje_1": _safe_float(sim_eje_1 - base_eje1, default=0.0),
+            "eje_2": _safe_float(sim_eje_2 - base_eje2, default=0.0),
+        }
+
+    # 5. Diagnósticos y Alertas Territoriales
     is_overtourism_risk = bool(sim_eje_1 >= 0.60 or sim_ptna < -50.0)
     is_enp_conflict = bool(pct_enp > 0.0 and delta_plazas > 0)
     is_ideal_opportunity = bool(sim_ptna > 0.0 and sim_esg > 60.0)
-    archetype_changed = bool(sim_arquetipo != base_arquetipo)
 
     return {
         "base": {
@@ -341,16 +391,7 @@ def simulate_hexagon_intervention(
             "scores": archetype_scores,
             "es_oportunidad_ideal": is_ideal_opportunity,
         },
-        "deltas": {
-            "plazas": _safe_float(sim_plazas - base_plazas, default=0.0),
-            "tiempo_aeropuerto": _safe_float(sim_tiempo - base_tiempo, default=0.0),
-            "ndvi": _safe_float(sim_ndvi - base_ndvi, default=0.0),
-            "pois": _safe_float(sim_pois - base_pois, default=0.0),
-            "esg": _safe_float(sim_esg - base_esg, default=0.0),
-            "ptna": _safe_float(sim_ptna - base_ptna, default=0.0),
-            "eje_1": _safe_float(sim_eje_1 - base_eje1, default=0.0),
-            "eje_2": _safe_float(sim_eje_2 - base_eje2, default=0.0),
-        },
+        "deltas": deltas,
         "alertas": {
             "is_overtourism_risk": is_overtourism_risk,
             "is_enp_conflict": is_enp_conflict,
@@ -709,72 +750,79 @@ def render_simulador_tab(full_gdf: pd.DataFrame) -> None:
     alt_base = _safe_float(row.get("altitud_media_m", 300.0), default=300.0)
 
     with st.container(border=True):
-        ptna_color = "#27AE60" if ptna_base > 0 else "#E74C3C"
-        ptna_label = "Potencial no aprovechado (oportunidad)" if ptna_base > 0 else "Zona sobreexplotada (saturación)"
+        ptna_label = "Potencial no aprovechado" if ptna_base > 0 else "Zona saturada"
         enp_badge_text = f" · ⚠️ Solape con Espacio Natural Protegido: {pct_enp*100:.1f}%" if pct_enp > 0 else ""
 
         if modo_analisis == "Hexágono individual (H3)":
             nombre_ambito = str(row.get("municipio", "Tenerife"))
-            subtitulo_ambito = f"Celda H3: <code>{selected_target_id}</code> · Superficie: {total_area:.2f} km²"
+            subtitulo_ambito = f"Celda H3: {selected_target_id} · Superficie: {total_area:.2f} km²"
         elif modo_analisis == "Municipio completo":
             nombre_ambito = str(mun_sel)
-            subtitulo_ambito = f"Municipio completo · {n_hex:,} hexágonos H3 · Superficie acumulada: {total_area:,.1f} km²"
+            subtitulo_ambito = f"Municipio completo · {n_hex:,} hexágonos H3 · Superficie: {total_area:,.1f} km²"
         elif modo_analisis == "Por arquetipo turístico TUI":
             nombre_ambito = f"{arch_sel}"
-            subtitulo_ambito = f"Arquetipo turístico TUI · Ámbito geográfico: {mun_filtro} ({n_hex:,} hexágonos H3 · {total_area:,.1f} km²)"
+            subtitulo_ambito = f"Arquetipo turístico TUI · {mun_filtro} ({n_hex:,} hexágonos H3 · {total_area:,.1f} km²)"
         else:
             nombre_ambito = f"{cluster_sel}"
-            subtitulo_ambito = f"Clúster territorial · Ámbito geográfico: {mun_filtro} ({n_hex:,} hexágonos H3 · {total_area:,.1f} km²)"
+            subtitulo_ambito = f"Clúster territorial · {mun_filtro} ({n_hex:,} hexágonos H3 · {total_area:,.1f} km²)"
 
-        card_html = (
-            f'<div style="padding: 0.35rem 0.25rem; font-family: inherit;">'
-            f'<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid rgba(128,128,128,0.2); padding-bottom: 0.9rem; margin-bottom: 1rem;">'
-            f'<div style="flex: 1 1 340px; min-width: 250px;">'
-            f'<div style="font-size: 0.78rem; color: #888; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Ámbito territorial analizado</div>'
-            f'<div style="font-size: 1.55rem; font-weight: 700; color: var(--text-color, #1a202c); line-height: 1.25; margin-top: 0.2rem; word-break: break-word; white-space: normal;">{nombre_ambito}</div>'
-            f'<div style="font-size: 0.88rem; color: #666; margin-top: 0.25rem; line-height: 1.35; white-space: normal;">{subtitulo_ambito}</div>'
-            f'</div>'
-            f'<div style="flex: 0 1 auto; min-width: 240px; text-align: left;">'
-            f'<div style="font-size: 0.78rem; color: #888; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Arquetipo dominante actual</div>'
-            f'<div style="margin-top: 0.35rem;">'
-            f'<span style="font-size: 1.15rem; font-weight: 700; color: #1E3A8A; background: rgba(30, 58, 138, 0.1); border: 1px solid rgba(30, 58, 138, 0.25); padding: 0.45rem 0.95rem; border-radius: 8px; display: inline-block; white-space: normal; word-break: break-word; line-height: 1.35;">{arch_base}</span>'
-            f'</div>'
-            f'</div>'
-            f'</div>'
-            f'<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1rem; margin-bottom: 0.85rem;">'
-            f'<div style="background: rgba(128,128,128,0.06); padding: 0.85rem 1rem; border-radius: 8px; border-left: 4px solid #3498DB;">'
-            f'<div style="font-size: 0.8rem; color: #777; font-weight: 600;">Plazas regladas actuales</div>'
-            f'<div style="font-size: 1.35rem; font-weight: 700; color: var(--text-color, #1a202c); margin: 0.2rem 0; white-space: normal; word-break: break-word;">{int(plazas_tot):,} plazas</div>'
-            f'<div style="font-size: 0.82rem; color: #666;">{dens_plazas:.1f} pl/km²</div>'
-            f'</div>'
-            f'<div style="background: rgba(128,128,128,0.06); padding: 0.85rem 1rem; border-radius: 8px; border-left: 4px solid {ptna_color};">'
-            f'<div style="font-size: 0.8rem; color: #777; font-weight: 600;">Índice PTNA base</div>'
-            f'<div style="font-size: 1.35rem; font-weight: 700; color: var(--text-color, #1a202c); margin: 0.2rem 0; white-space: normal; word-break: break-word;">{ptna_base:+.1f}</div>'
-            f'<div style="font-size: 0.82rem; color: #666;">{ptna_label}</div>'
-            f'</div>'
-            f'<div style="background: rgba(128,128,128,0.06); padding: 0.85rem 1rem; border-radius: 8px; border-left: 4px solid #27AE60;">'
-            f'<div style="font-size: 0.8rem; color: #777; font-weight: 600;">Score ESG base</div>'
-            f'<div style="font-size: 1.35rem; font-weight: 700; color: var(--text-color, #1a202c); margin: 0.2rem 0; white-space: normal; word-break: break-word;">{esg_base:.1f} / 100</div>'
-            f'<div style="font-size: 0.82rem; color: #666;">Sostenibilidad territorial</div>'
-            f'</div>'
-            f'<div style="background: rgba(128,128,128,0.06); padding: 0.85rem 1rem; border-radius: 8px; border-left: 4px solid #E67E22;">'
-            f'<div style="font-size: 0.8rem; color: #777; font-weight: 600;">Eje 1: Saturación turística</div>'
-            f'<div style="font-size: 1.35rem; font-weight: 700; color: var(--text-color, #1a202c); margin: 0.2rem 0; white-space: normal; word-break: break-word;">{eje1_base:.3f}</div>'
-            f'<div style="font-size: 0.82rem; color: #666;">Presión en el gradiente insular</div>'
-            f'</div>'
-            f'<div style="background: rgba(128,128,128,0.06); padding: 0.85rem 1rem; border-radius: 8px; border-left: 4px solid #16A085;">'
-            f'<div style="font-size: 0.8rem; color: #777; font-weight: 600;">Eje 2: Potencial rural</div>'
-            f'<div style="font-size: 1.35rem; font-weight: 700; color: var(--text-color, #1a202c); margin: 0.2rem 0; white-space: normal; word-break: break-word;">{eje2_base:.3f}</div>'
-            f'<div style="font-size: 0.82rem; color: #666;">Potencial no masificado</div>'
-            f'</div>'
-            f'</div>'
-            f'<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px dashed rgba(128,128,128,0.2); font-size: 0.85rem; color: #555;">'
-            f'<div>✈️ <b>Accesibilidad:</b> {tiempo_aero:.0f} min al aeropuerto · 🏖️ <b>Costa:</b> {dist_costa:.1f} km · 🌿 <b>NDVI:</b> {ndvi_base:.2f} · ⛰️ <b>Altitud:</b> {alt_base:.0f} m</div>'
-            f'<div>🛡️ <b>Régimen legal:</b> {rest_cat}{enp_badge_text}</div>'
-            f'</div>'
-            f'</div>'
+        # Fila superior: Ámbito territorial analizado y Arquetipo dominante actual
+        top_c1, top_c2 = st.columns([3, 2])
+        with top_c1:
+            st.caption("ÁMBITO TERRITORIAL ANALIZADO")
+            st.markdown(f"### {nombre_ambito}")
+            st.caption(subtitulo_ambito)
+        with top_c2:
+            st.caption("ARQUETIPO DOMINANTE ACTUAL")
+            st.markdown(f"### {arch_base}")
+
+        # 5 tarjetas de métricas en columnas nativas con borde estándar
+        m_cols = st.columns(5)
+        with m_cols[0].container(border=True):
+            st.metric(
+                label="Plazas regladas actuales",
+                value=f"{int(plazas_tot):,} pl.",
+                delta=f"{dens_plazas:.1f} pl/km²",
+                delta_color="off",
+                help="Total de plazas registradas y densidad de alojamiento.",
+            )
+        with m_cols[1].container(border=True):
+            st.metric(
+                label="Índice PTNA base",
+                value=f"{ptna_base:+.1f}",
+                delta=ptna_label,
+                delta_color="off",
+                help="Potencial turístico no aprovechado: valores positivos denotan oportunidad.",
+            )
+        with m_cols[2].container(border=True):
+            st.metric(
+                label="Score ESG base",
+                value=f"{esg_base:.1f} / 100",
+                delta="Sostenibilidad insular",
+                delta_color="off",
+                help="Puntuación ambiental, social y de gobernanza territorial.",
+            )
+        with m_cols[3].container(border=True):
+            st.metric(
+                label="Eje 1: Saturación",
+                value=f"{eje1_base:.3f}",
+                delta="Presión territorial",
+                delta_color="off",
+                help="Gradiente continuo de saturación turística (0.0 a 1.0).",
+            )
+        with m_cols[4].container(border=True):
+            st.metric(
+                label="Eje 2: Potencial rural",
+                value=f"{eje2_base:.3f}",
+                delta="Potencial no masificado",
+                delta_color="off",
+                help="Potencial rural y sostenible infrautilizado (0.0 a 1.0).",
+            )
+
+        st.caption(
+            f"✈️ **Accesibilidad:** {tiempo_aero:.0f} min al aeropuerto · 🏖️ **Costa:** {dist_costa:.1f} km · "
+            f"🌿 **NDVI:** {ndvi_base:.2f} · ⛰️ **Altitud:** {alt_base:.0f} m · 🛡️ **Régimen legal:** {rest_cat}{enp_badge_text}"
         )
-        st.markdown(card_html, unsafe_allow_html=True)
 
     st.divider()
 
@@ -922,7 +970,7 @@ def render_simulador_tab(full_gdf: pd.DataFrame) -> None:
     st.divider()
 
     # ── 5. Resultados Proyectados (KPIs Comparativos) ──
-    st.subheader("📊 Resultados de la simulación")
+    st.subheader("Resultados de la simulación")
 
     kpi_c1, kpi_c2, kpi_c3, kpi_c4 = st.columns(4)
 
@@ -962,7 +1010,7 @@ def render_simulador_tab(full_gdf: pd.DataFrame) -> None:
                 <div style="font-size: 0.82rem; color: #777; font-weight: 600;">
                     Arquetipo dominante
                 </div>
-                <div style="font-size: 1.25rem; font-weight: 700; color: #1E3A8A; line-height: 1.3; margin: 0.25rem 0 0.15rem 0; white-space: normal; word-break: break-word;">
+                <div style="font-size: 1.25rem; font-weight: 700; color: var(--text-color, #1a202c); line-height: 1.3; margin: 0.25rem 0 0.15rem 0; white-space: normal; word-break: break-word;">
                     {sim['arquetipo']}
                 </div>
                 <div style="font-size: 0.82rem; color: {sub_color}; font-weight: 500;">
@@ -1018,45 +1066,68 @@ def render_simulador_tab(full_gdf: pd.DataFrame) -> None:
     # ── 8. Diagnóstico Narrativo Ejecutivo Automatizado ──
     st.markdown("##### Diagnóstico estratégico del escenario")
 
-    tipo_balance = "favorable" if (deltas["ptna"] >= 0 and deltas["eje_1"] < 0.1) else "de alta presión"
-    d_plazas_int = int(round(_safe_float(deltas.get("plazas", 0.0), default=0.0)))
-    if d_plazas_int > 0:
-        texto_plazas = f"incremento de **{d_plazas_int:+} plazas**"
-    elif d_plazas_int < 0:
-        texto_plazas = f"reducción de **{d_plazas_int:+} plazas** para descompresión"
-    else:
-        texto_plazas = "mantenimiento de la capacidad alojativa existente"
-
-    d_tiempo_int = int(round(_safe_float(deltas.get("tiempo_aeropuerto", 0.0), default=0.0)))
-    d_ndvi_flt = _safe_float(deltas.get("ndvi", 0.0), default=0.0)
-    d_esg_flt = _safe_float(deltas.get("esg", 0.0), default=0.0)
-
-    conclusiones: List[str] = []
-    if alertas["is_overtourism_risk"]:
-        conclusiones.append("el nivel de saturación proyectado desaconseja nuevas autorizaciones hoteleras estándar")
-    elif sim["eje_1"] < 0.35 and sim["eje_2"] > 0.50:
-        conclusiones.append("el área se consolida como un nicho privilegiado para productos de ecoturismo y turismo rural no invasivo")
-
-    if alertas["archetype_changed"]:
-        conclusiones.append(f"la intervención provoca una mutación estructural del arquetipo de **{base['arquetipo']}** hacia **{sim['arquetipo']}**")
-    else:
-        conclusiones.append(f"se preserva la identidad territorial del arquetipo **{sim['arquetipo']}**")
-
-    if alertas["is_enp_conflict"]:
-        conclusiones.append("se requiere informe ambiental vinculante previo debido al solape con espacios naturales protegidos")
-
-    texto_conclusiones = "; ".join(conclusiones)
-
-    st.info(
-        f"""
-        **Informe ejecutivo para TUI:**
-        La simulación planteada para **{ambito_titulo}** contempla un {texto_plazas},
-        una variación en accesibilidad de **{d_tiempo_int:+d} min**, un ajuste en vegetación (NDVI) de **{d_ndvi_flt:+.2f}**,
-        y un balance ESG de **{d_esg_flt:+.1f} puntos**.
-        
-        Como resultado, el índice PTNA evoluciona de **{base['ptna']:+.1f}** a **{sim['ptna']:+.1f}**, mientras que el Eje 1 de saturación
-        alcanza **{sim['eje_1']:.3f}** y el Eje 2 de potencial rural se sitúa en **{sim['eje_2']:.3f}**.
-        
-        *Recomendación estratégica:* Al evaluar el balance {tipo_balance}, {texto_conclusiones}.
-        """
+    is_zero_delta = (
+        abs(deltas["plazas"]) < 1e-6
+        and abs(deltas["tiempo_aeropuerto"]) < 1e-6
+        and abs(deltas["ndvi"]) < 1e-6
+        and abs(deltas["pois"]) < 1e-6
+        and abs(deltas["esg"]) < 1e-6
     )
+
+    if is_zero_delta:
+        st.info(
+            f"""
+            **Diagnóstico de situación de partida para TUI:**
+            No se han aplicado modificaciones sobre los parámetros de intervención de **{ambito_titulo}**.
+            El ámbito permanece en sus condiciones de referencia insular:
+            - **Índice PTNA base:** **{base['ptna']:+.1f}** ({'potencial no explotado' if base['ptna'] > 0 else 'saturación de capacidad'}).
+            - **Eje 1 (Saturación turística):** **{base['eje_1']:.3f}** / 1.000.
+            - **Eje 2 (Potencial rural y sostenible):** **{base['eje_2']:.3f}** / 1.000.
+            - **Arquetipo territorial dominante:** **{base['arquetipo']}**.
+            
+            *Ajusta los deslizadores superiores o selecciona un preset preconfigurado para modelar escenarios alternativos.*
+            """
+        )
+    else:
+        tipo_balance = "favorable" if (deltas["ptna"] >= 0 and deltas["eje_1"] < 0.1) else "de alta presión"
+        d_plazas_int = int(round(_safe_float(deltas.get("plazas", 0.0), default=0.0)))
+        if d_plazas_int > 0:
+            texto_plazas = f"incremento de **{d_plazas_int:+} plazas**"
+        elif d_plazas_int < 0:
+            texto_plazas = f"reducción de **{d_plazas_int:+} plazas** para descompresión"
+        else:
+            texto_plazas = "mantenimiento de la capacidad alojativa existente"
+
+        d_tiempo_int = int(round(_safe_float(deltas.get("tiempo_aeropuerto", 0.0), default=0.0)))
+        d_ndvi_flt = _safe_float(deltas.get("ndvi", 0.0), default=0.0)
+        d_esg_flt = _safe_float(deltas.get("esg", 0.0), default=0.0)
+
+        conclusiones: List[str] = []
+        if alertas["is_overtourism_risk"]:
+            conclusiones.append("el nivel de saturación proyectado desaconseja nuevas autorizaciones hoteleras estándar")
+        elif sim["eje_1"] < 0.35 and sim["eje_2"] > 0.50:
+            conclusiones.append("el área se consolida como un nicho privilegiado para productos de ecoturismo y turismo rural no invasivo")
+
+        if alertas["archetype_changed"]:
+            conclusiones.append(f"la intervención provoca una mutación estructural del arquetipo de **{base['arquetipo']}** hacia **{sim['arquetipo']}**")
+        else:
+            conclusiones.append(f"se preserva la identidad territorial del arquetipo **{sim['arquetipo']}**")
+
+        if alertas["is_enp_conflict"]:
+            conclusiones.append("se requiere informe ambiental vinculante previo debido al solape con espacios naturales protegidos")
+
+        texto_conclusiones = "; ".join(conclusiones)
+
+        st.info(
+            f"""
+            **Informe ejecutivo para TUI:**
+            La simulación planteada para **{ambito_titulo}** contempla un {texto_plazas},
+            una variación en accesibilidad de **{d_tiempo_int:+d} min**, un ajuste en vegetación (NDVI) de **{d_ndvi_flt:+.2f}**,
+            y un balance ESG de **{d_esg_flt:+.1f} puntos**.
+            
+            Como resultado, el índice PTNA evoluciona de **{base['ptna']:+.1f}** a **{sim['ptna']:+.1f}**, mientras que el Eje 1 de saturación
+            alcanza **{sim['eje_1']:.3f}** y el Eje 2 de potencial rural se sitúa en **{sim['eje_2']:.3f}**.
+            
+            *Recomendación estratégica:* Al evaluar el balance {tipo_balance}, {texto_conclusiones}.
+            """
+        )
