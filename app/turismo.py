@@ -200,18 +200,10 @@ def render_turismo_tab(
         st.info("No hay datos hoteleros para este municipio en el año seleccionado.")
     else:
         st.caption(anual_row["polo_turistico"])
-        r1_cols = st.columns(2)
-        for col, item in zip(r1_cols, HOTELERO_KPI_COLUMNS[:2]):
-            column, delta_column, label, kind, help_text = item
+        cols = st.columns(4)
+        for i, (column, delta_column, label, kind, help_text) in enumerate(HOTELERO_KPI_COLUMNS):
             delta = format_yoy_delta(anual_row.get(delta_column)) if delta_column else None
-            with col.container(border=True):
-                st.metric(label, format_metric(anual_row.get(column), kind), delta=delta, help=help_text)
-
-        r2_cols = st.columns(2)
-        for col, item in zip(r2_cols, HOTELERO_KPI_COLUMNS[2:]):
-            column, delta_column, label, kind, help_text = item
-            delta = format_yoy_delta(anual_row.get(delta_column)) if delta_column else None
-            with col.container(border=True):
+            with cols[i % 4].container(border=True):
                 st.metric(label, format_metric(anual_row.get(column), kind), delta=delta, help=help_text)
 
     st.subheader("Estacionalidad")
@@ -258,30 +250,28 @@ def render_turismo_tab(
         ]
         if not row_vv.empty:
             r = row_vv.iloc[0]
-            r1_cols = st.columns(2)
-            with r1_cols[0].container(border=True):
+            cols_kpi = st.columns(4)
+            with cols_kpi[0].container(border=True):
                 st.metric(
                     "🏘️ Plazas VV medias",
                     format_metric(r.get("plazas_vv_media"), "entero"),
                     delta=format_yoy_delta(r.get("crec_plazas_vv_yoy_pct")),
                     help="Plazas medias registradas en vivienda vacacional y variación interanual (YoY).",
                 )
-            with r1_cols[1].container(border=True):
+            with cols_kpi[1].container(border=True):
                 st.metric(
                     "📊 Tasa ocupación VV",
                     format_metric(r.get("tasa_ocupacion_vv_media"), "pct"),
                     help="Porcentaje medio de ocupación de las plazas de vivienda vacacional.",
                 )
-
-            r2_cols = st.columns(2)
-            with r2_cols[0].container(border=True):
+            with cols_kpi[2].container(border=True):
                 val_estancia = r.get("estancia_media_vv")
                 st.metric(
                     "🕐 Estancia media VV",
                     f"{val_estancia:.1f} días" if pd.notna(val_estancia) else "—",
                     help="Duración media de la estancia de viajeros en vivienda vacacional.",
                 )
-            with r2_cols[1].container(border=True):
+            with cols_kpi[3].container(border=True):
                 ingresos = r.get("ingresos_vv_acumulados")
                 ing_str = f"{ingresos:,.0f} €".replace(",", ".") if pd.notna(ingresos) else "—"
                 st.metric(
