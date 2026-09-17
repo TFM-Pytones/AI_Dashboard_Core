@@ -42,6 +42,7 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
                 value=f"{n_hex:,}",
                 delta=f"{pct:.1f}% del territorio",
                 delta_color="off",
+                delta_arrow="off",
             )
 
     r2_cols = st.columns(3)
@@ -54,6 +55,7 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
                 value=f"{n_hex:,}",
                 delta=f"{pct:.1f}% del territorio",
                 delta_color="off",
+                delta_arrow="off",
             )
 
     pct_op = (n_oportunidad_ideal / n_total) * 100.0
@@ -68,6 +70,7 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
                 value=f"{n_oportunidad_ideal:,}",
                 delta=f"{pct_op:.1f}% del territorio insular",
                 delta_color="off",
+                delta_arrow="off",
             )
 
     st.divider()

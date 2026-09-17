@@ -769,11 +769,11 @@ def render_simulador_tab(full_gdf: pd.DataFrame) -> None:
         # Fila superior: Ámbito territorial analizado y Arquetipo dominante actual
         top_c1, top_c2 = st.columns([3, 2])
         with top_c1:
-            st.caption("ÁMBITO TERRITORIAL ANALIZADO")
+            st.caption("Ámbito territorial analizado")
             st.markdown(f"### {nombre_ambito}")
             st.caption(subtitulo_ambito)
         with top_c2:
-            st.caption("ARQUETIPO DOMINANTE ACTUAL")
+            st.caption("Arquetipo dominante actual")
             st.markdown(f"### {arch_base}")
 
         # Tarjetas de información territorial en 2 filas estructuradas
@@ -785,6 +785,7 @@ def render_simulador_tab(full_gdf: pd.DataFrame) -> None:
                 value=f"{int(plazas_tot):,} pl.",
                 delta=f"{dens_plazas:.1f} pl/km²",
                 delta_color="off",
+                delta_arrow="off",
                 help="Total de plazas registradas y densidad de alojamiento en el ámbito analizado.",
             )
         with r1_c2.container(border=True):
@@ -793,6 +794,7 @@ def render_simulador_tab(full_gdf: pd.DataFrame) -> None:
                 value=f"{ptna_base:+.1f}",
                 delta=ptna_label,
                 delta_color="off",
+                delta_arrow="off",
                 help="Potencial turístico no aprovechado: valores positivos denotan oportunidad.",
             )
         with r1_c3.container(border=True):
@@ -801,6 +803,7 @@ def render_simulador_tab(full_gdf: pd.DataFrame) -> None:
                 value=f"{esg_base:.1f} / 100",
                 delta="Sostenibilidad insular",
                 delta_color="off",
+                delta_arrow="off",
                 help="Puntuación ambiental, social y de gobernanza territorial.",
             )
 
@@ -812,6 +815,7 @@ def render_simulador_tab(full_gdf: pd.DataFrame) -> None:
                 value=f"{eje1_base:.3f}",
                 delta="Presión en el gradiente insular",
                 delta_color="off",
+                delta_arrow="off",
                 help="Gradiente continuo de saturación turística (0.0 a 1.0).",
             )
         with r2_c2.container(border=True):
@@ -820,6 +824,7 @@ def render_simulador_tab(full_gdf: pd.DataFrame) -> None:
                 value=f"{eje2_base:.3f}",
                 delta="Potencial no masificado",
                 delta_color="off",
+                delta_arrow="off",
                 help="Potencial rural y sostenible infrautilizado (0.0 a 1.0).",
             )
 
