@@ -74,9 +74,9 @@ def render_clima_tab(
     col_v1, col_v2 = st.columns([1, 1])
     vista = col_v1.radio(
         "Tipo de visualización",
-        ["Media por trimestre (Q)", "Línea temporal por años"],
+        ["Media por trimestre (Q)", "Evolución anual (2022–2026)"],
         horizontal=True,
-        help="Elige entre el patrón estacional por trimestres (Q1 a Q4) o la evolución histórica multianual (2022–2026).",
+        help="Elige entre el patrón estacional por trimestres (Q1 a Q4) o la evolución histórica anual (2022–2026).",
     )
 
     selector_keys = ["Temperatura", "Precipitación", "Velocidad viento", "Humedad relativa"]
@@ -106,7 +106,7 @@ def render_clima_tab(
         valor_anual = climate_value_anual(gdf, variable["prefix"])
         st.caption(f"📅 La {variable_label.lower()} media anual es **{valor_anual:.1f} {unidad}**.")
     else:
-        # Línea temporal por años
+        # Evolución anual histórica (2022–2026)
         db_var = variable.get("db_nombre", variable_label)
         if clima_anual_df is not None and not clima_anual_df.empty:
             sub = clima_anual_df[
@@ -117,23 +117,24 @@ def render_clima_tab(
 
             if not sub.empty:
                 serie_anual = sub.groupby("anio", as_index=False)["valor"].mean().sort_values("anio")
-                fig = px.line(
+                fig = px.area(
                     serie_anual,
                     x="anio",
                     y="valor",
                     markers=True,
-                    title=f"{variable_label} — Línea temporal anual ({unidad}){nombre_ambito}",
+                    title=f"Evolución anual de {variable_label.lower()} ({unidad}){nombre_ambito}",
                     labels={"anio": "Año", "valor": f"{variable_label} ({unidad})"},
                 )
                 fig.update_traces(
                     line_color=color,
-                    line_width=3,
+                    line_shape="spline",
+                    fillcolor=hex_to_rgba(color, 0.15),
                     marker=dict(size=8, color=color),
                 )
                 fig.update_xaxes(type="category")
                 add_chart_motion(fig)
                 st.plotly_chart(fig, width="stretch")
-                st.caption(f"📊 Serie histórica registrada por la red agroclimática de Agrocabildo (2022–2026).")
+                st.caption(f"📊 Evolución histórica anual registrada por la red agroclimática de Agrocabildo (2022–2026).")
             else:
                 st.info(f"No hay registros anuales de {variable_label} para el municipio seleccionado.")
         else:
