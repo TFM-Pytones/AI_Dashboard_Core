@@ -29,7 +29,9 @@ from app.data import (
     list_municipios,
     load_accesibilidad,
     load_aena_pasajeros,
+    load_alojamiento_breakdown,
     load_bienes_culturales,
+    load_clima_anual,
     load_esg,
     load_estaciones_agrocabildo,
     load_gtfs_rutas,
@@ -66,6 +68,7 @@ from app.map_layers import (
     build_gtfs_rutas_layer,
     build_highlight_layer,
     build_isocronas_layer,
+    build_isocronas_layers,
     build_isocronas_origen_pins_layer,
     build_isocronas_pins_labels_layer,
     build_municipio_layer,
@@ -288,7 +291,7 @@ def page_resumen() -> None:
             nav_arquetipos,
             "🎯",
             "Oportunidades TUI",
-            "Matriz estratégica Eje 1 (Saturación) vs Eje 2 (Rural), clústeres territoriales y 5 arquetipos de producto.",
+            "Matriz estratégica: Eje 1 y Eje 2, clústeres territoriales y 5 arquetipos de producto.",
             "5 arquetipos de producto",
         ),
         (
@@ -309,7 +312,7 @@ def page_resumen() -> None:
             nav_clima,
             "🌡️",
             "Clima",
-            "Temperatura, lluvia, viento y humedad por trimestre y municipio.",
+            "Temperatura, precipitación, viento y humedad por trimestre, año y municipio.",
             "4 variables climáticas",
         ),
         (
@@ -323,14 +326,14 @@ def page_resumen() -> None:
             nav_alojamiento_temas,
             "🏨",
             "Alojamiento y Opinión",
-            "Reputación y tipo de alojamiento, y qué opinan los visitantes de verdad, extraído con NLP.",
+            "Reputación, plazas y tipo de alojamiento, y qué opinan los visitantes de verdad, extraído con NLP.",
             f"{format_metric(n_opiniones, 'entero')} opiniones analizadas",
         ),
         (
             nav_turismo,
             "✈️",
             "Turismo",
-            "Ocupación hotelera y tráfico aéreo por polo turístico, con estacionalidad mensual.",
+            "Ocupación hotelera, vivienda vacacional (VV) y tráfico aéreo insular con estacionalidad.",
             f"{aena_pasajeros['aeropuerto_nombre'].nunique()} aeropuertos monitorizados",
         ),
     ]
@@ -352,24 +355,20 @@ def page_mapa() -> None:
             options=[
                 "Malla de hexágonos H3",
                 "Capa municipal",
-                "Isócronas de transporte",
-                "Líneas de guagua (GTFS)",
-                "Bienes de Interés Cultural (BIC)",
-                "Estaciones meteorológicas (Agrocabildo)",
+                "Infraestructuras y patrimonio",
                 "Ninguna (solo mapa satélite)",
             ],
             index=0,
-            help="Solo puede haber una capa activa a la vez para evitar solapamientos visuales.",
+            help="Solo puede haber una categoría activa a la vez para evitar solapamientos visuales.",
         )
         show_hexagons = capa_activa == "Malla de hexágonos H3"
         show_municipios = capa_activa == "Capa municipal"
-        show_isocronas = capa_activa == "Isócronas de transporte"
-        show_gtfs = capa_activa == "Líneas de guagua (GTFS)"
-        show_bic = capa_activa == "Bienes de Interés Cultural (BIC)"
-        show_estaciones = capa_activa == "Estaciones meteorológicas (Agrocabildo)"
+        show_infra = capa_activa == "Infraestructuras y patrimonio"
 
         st.divider()
         st.subheader("Opciones de capa")
+
+        # Filtro municipal para capas con división por municipio
         if show_hexagons or show_municipios:
             map_municipio = st.selectbox("Municipio", ["Todos"] + list_municipios(full_gdf), key="map_municipio")
         else:
@@ -396,15 +395,91 @@ def page_mapa() -> None:
         else:
             municipio_metric_key = list(MUNICIPIO_METRICS.keys())[0]
 
+        # Opciones específicas para Infraestructuras y patrimonio
+        subcapa = None
         isocronas_seleccionadas: list[str] = []
-        if show_isocronas:
-            isocronas_seleccionadas = st.multiselect(
-                "Punto de referencia",
-                options=list(ISOCRONAS_DESTINOS_INFO.keys()),
-                default=["tfs", "tfn"],
-                format_func=lambda k: ISOCRONAS_DESTINOS_INFO[k]["label"],
-                help="Puedes seleccionar uno o varios puntos de referencia para comparar sus áreas de alcance simultáneamente.",
+        sel_bus_mun: list[str] = []
+        sel_bus_lines: list[str] = []
+        sel_bic_mun: list[str] = []
+        sel_agro_mun: list[str] = []
+
+        gtfs_rutas_gdf = None
+        bic_gdf = None
+        estaciones_gdf = None
+
+        if show_infra:
+            subcapa = st.selectbox(
+                "Capa a visualizar",
+                [
+                    "Isócronas de transporte",
+                    "Líneas de guagua (GTFS)",
+                    "Bienes de Interés Cultural (BIC)",
+                    "Estaciones meteorológicas (Agrocabildo)",
+                ],
             )
+
+            if subcapa == "Isócronas de transporte":
+                isocronas_seleccionadas = st.multiselect(
+                    "Punto de referencia",
+                    options=list(ISOCRONAS_DESTINOS_INFO.keys()),
+                    default=["tfs", "tfn"],
+                    format_func=lambda k: ISOCRONAS_DESTINOS_INFO[k]["label"],
+                    help="Puedes seleccionar varios puntos de referencia. Los anillos se apilan de 60 min (fondo) a 15 min (capa superior).",
+                )
+
+            elif subcapa == "Líneas de guagua (GTFS)":
+                with st.spinner("Cargando red de guaguas..."):
+                    gtfs_rutas_gdf = load_gtfs_rutas(engine)
+
+                all_gtfs_mun = sorted(
+                    {m.strip() for mun_str in gtfs_rutas_gdf["municipios"].dropna() for m in mun_str.split(",") if m.strip()}
+                )
+                sel_bus_mun = st.multiselect(
+                    "Filtrar por municipio",
+                    options=all_gtfs_mun,
+                    default=[],
+                    placeholder="Todos los municipios",
+                    help="Selecciona uno o más municipios para filtrar las líneas que pasan por ellos.",
+                )
+                temp_bus = gtfs_rutas_gdf
+                if sel_bus_mun:
+                    temp_bus = temp_bus[temp_bus["municipios"].apply(lambda s: any(m in s for m in sel_bus_mun))]
+
+                avail_lines = sorted(
+                    temp_bus["route_short_name"].dropna().unique().tolist(),
+                    key=lambda x: (int(x) if x.isdigit() else 9999, x),
+                )
+                sel_bus_lines = st.multiselect(
+                    "Filtrar por número de línea",
+                    options=avail_lines,
+                    default=[],
+                    placeholder="Todas las líneas",
+                    help="Selecciona una o más líneas concretas (ej. 110, 111, 014).",
+                )
+
+            elif subcapa == "Bienes de Interés Cultural (BIC)":
+                with st.spinner("Cargando Bienes de Interés Cultural (BIC)..."):
+                    bic_gdf = load_bienes_culturales(engine)
+                all_bic_mun = sorted(bic_gdf["municipio"].dropna().unique().tolist())
+                sel_bic_mun = st.multiselect(
+                    "Filtrar por municipio",
+                    options=all_bic_mun,
+                    default=[],
+                    placeholder="Todos los municipios",
+                    help="Selecciona uno o varios municipios para filtrar recintos de patrimonio protegido.",
+                )
+
+            elif subcapa == "Estaciones meteorológicas (Agrocabildo)":
+                with st.spinner("Cargando red meteorológica..."):
+                    estaciones_gdf = load_estaciones_agrocabildo(engine)
+                all_agro_mun = sorted(estaciones_gdf["municipio"].dropna().unique().tolist())
+                sel_agro_mun = st.multiselect(
+                    "Filtrar por municipio",
+                    options=all_agro_mun,
+                    default=[],
+                    placeholder="Todos los municipios",
+                    help="Selecciona uno o varios municipios para filtrar estaciones agroclimáticas activas.",
+                )
 
         st.divider()
         st.subheader("Perspectiva 3D")
@@ -443,20 +518,33 @@ def page_mapa() -> None:
                 "💡 **Mapa base CARTO activo:** Para visualizar la fotografía satelital de fondo de alta resolución, añade tu clave de Mapbox en tu archivo `.env` (`MAPBOX_API_KEY=pk...`)."
             )
 
-    gtfs_rutas_gdf = None
-    if show_gtfs:
-        with st.spinner("Cargando trazado insular de guaguas (GTFS)..."):
-            gtfs_rutas_gdf = load_gtfs_rutas(engine)
+    # Filtrados de subcapas de Infraestructuras y patrimonio
+    show_isocronas = show_infra and subcapa == "Isócronas de transporte"
+    show_gtfs = show_infra and subcapa == "Líneas de guagua (GTFS)"
+    show_bic = show_infra and subcapa == "Bienes de Interés Cultural (BIC)"
+    show_estaciones = show_infra and subcapa == "Estaciones meteorológicas (Agrocabildo)"
 
-    bic_gdf = None
-    if show_bic:
-        with st.spinner("Cargando Bienes de Interés Cultural (BIC)..."):
-            bic_gdf = load_bienes_culturales(engine)
+    filtered_bus_gdf = None
+    if show_gtfs and gtfs_rutas_gdf is not None:
+        filtered_bus_gdf = gtfs_rutas_gdf
+        if sel_bus_mun:
+            filtered_bus_gdf = filtered_bus_gdf[
+                filtered_bus_gdf["municipios"].apply(lambda s: any(m in s for m in sel_bus_mun))
+            ]
+        if sel_bus_lines:
+            filtered_bus_gdf = filtered_bus_gdf[filtered_bus_gdf["route_short_name"].isin(sel_bus_lines)]
 
-    estaciones_gdf = None
-    if show_estaciones:
-        with st.spinner("Cargando red agroclimática de Agrocabildo..."):
-            estaciones_gdf = load_estaciones_agrocabildo(engine)
+    filtered_bic_gdf = None
+    if show_bic and bic_gdf is not None:
+        filtered_bic_gdf = bic_gdf
+        if sel_bic_mun:
+            filtered_bic_gdf = filtered_bic_gdf[filtered_bic_gdf["municipio"].isin(sel_bic_mun)]
+
+    filtered_agro_gdf = None
+    if show_estaciones and estaciones_gdf is not None:
+        filtered_agro_gdf = estaciones_gdf
+        if sel_agro_mun:
+            filtered_agro_gdf = filtered_agro_gdf[filtered_agro_gdf["municipio"].isin(sel_agro_mun)]
 
     filtered_gdf = filter_by_municipio(full_gdf, map_municipio)
 
@@ -478,26 +566,29 @@ def page_mapa() -> None:
 
     if show_isocronas and isocronas_seleccionadas:
         nombres_dest = ", ".join(ISOCRONAS_DESTINOS_INFO[d]["label"] for d in isocronas_seleccionadas if d in ISOCRONAS_DESTINOS_INFO)
-        st.caption(f"Leyenda — Isócronas de conducción: **{nombres_dest}**")
+        st.caption(f"Leyenda — Isócronas de conducción hacia: **{nombres_dest}**")
         st.markdown(isocronas_legend_html(), unsafe_allow_html=True)
 
     if show_gtfs:
-        st.caption("Leyenda — Red de Transporte Insular de Guaguas (TITSA)")
+        total_rutas = len(filtered_bus_gdf) if filtered_bus_gdf is not None else 0
+        st.caption(f"Leyenda — Red de Transporte Insular de Guaguas ({total_rutas} trazas seleccionadas)")
         st.markdown(gtfs_legend_html(), unsafe_allow_html=True)
 
     if show_bic:
-        st.caption("Leyenda — Bienes de Interés Cultural protegidos (BIC)")
+        total_bics = len(filtered_bic_gdf) if filtered_bic_gdf is not None else 0
+        st.caption(f"Leyenda — Bienes de Interés Cultural protegidos ({total_bics} recintos seleccionados)")
         st.markdown(bic_legend_html(), unsafe_allow_html=True)
 
     if show_estaciones:
-        st.caption("Leyenda — Estaciones Meteorológicas de Agrocabildo")
+        total_est = len(filtered_agro_gdf) if filtered_agro_gdf is not None else 0
+        st.caption(f"Leyenda — Estaciones Meteorológicas de Agrocabildo ({total_est} estaciones seleccionadas)")
         st.markdown(estaciones_legend_html(), unsafe_allow_html=True)
 
     selected_h3_index = get_selected_h3_index()
 
     custom_tooltip = None
     if show_gtfs:
-        custom_tooltip = {"text": "{operador}\nLínea {route_short_name}: {route_long_name}"}
+        custom_tooltip = {"text": "{operador}\nLínea {route_short_name}: {route_long_name}\nMunicipios: {municipios}"}
     elif show_bic:
         custom_tooltip = {"text": "{nombre}\nTipo: {tipo}\nMunicipio: {municipio}"}
     elif show_estaciones:
@@ -518,15 +609,17 @@ def page_mapa() -> None:
     if show_municipios:
         deck.layers.append(build_municipio_layer(municipio_master, municipio_metric_key))
     if show_isocronas and isocronas_seleccionadas:
-        deck.layers.append(build_isocronas_layer(isocronas, isocronas_seleccionadas))
+        # Añade las capas de isócronas en orden: 60 min al fondo, 45 min, 30 min, y 15 min en la parte superior
+        for iso_layer in build_isocronas_layers(isocronas, isocronas_seleccionadas):
+            deck.layers.append(iso_layer)
         deck.layers.append(build_isocronas_origen_pins_layer(isocronas_seleccionadas))
         deck.layers.append(build_isocronas_pins_labels_layer(isocronas_seleccionadas))
-    if show_gtfs and gtfs_rutas_gdf is not None:
-        deck.layers.append(build_gtfs_rutas_layer(gtfs_rutas_gdf))
-    if show_bic and bic_gdf is not None:
-        deck.layers.append(build_bic_layer(bic_gdf))
-    if show_estaciones and estaciones_gdf is not None:
-        deck.layers.append(build_estaciones_agrocabildo_layer(estaciones_gdf))
+    if show_gtfs and filtered_bus_gdf is not None:
+        deck.layers.append(build_gtfs_rutas_layer(filtered_bus_gdf))
+    if show_bic and filtered_bic_gdf is not None:
+        deck.layers.append(build_bic_layer(filtered_bic_gdf))
+    if show_estaciones and filtered_agro_gdf is not None:
+        deck.layers.append(build_estaciones_agrocabildo_layer(filtered_agro_gdf))
 
     if selected_h3_index and show_hexagons:
         deck.layers.append(build_highlight_layer(selected_h3_index))
@@ -596,14 +689,20 @@ def page_rankings() -> None:
 
 def page_clima() -> None:
     render_page_banner(
-        "clima_montana.jpg", "Clima", "Temperatura, lluvia, viento y humedad por municipio"
+        "clima_montana.jpg", "Clima", "Temperatura, precipitación, velocidad del viento y humedad relativa por municipio"
     )
     clima_municipio = st.selectbox(
         "Municipio", ["Todos"] + list_municipios(full_gdf), key="clima_municipio"
     )
     if clima_municipio != "Todos":
         st.caption(f"🔍 Filtrando por municipio: **{clima_municipio}**")
-    render_clima_tab(filter_by_municipio(full_gdf, clima_municipio))
+    with st.spinner("Cargando histórico agroclimático..."):
+        clima_anual = load_clima_anual(engine)
+    render_clima_tab(
+        filter_by_municipio(full_gdf, clima_municipio),
+        clima_anual_df=clima_anual,
+        municipio=clima_municipio,
+    )
 
 
 def page_municipios() -> None:
@@ -623,7 +722,13 @@ def page_alojamiento_temas() -> None:
     )
     if alojamiento_municipio != "Todos":
         st.caption(f"🔍 Filtrando por municipio: **{alojamiento_municipio}**")
-    render_alojamiento_tab(filter_by_municipio(full_gdf, alojamiento_municipio))
+    with st.spinner("Cargando desglose de plazas turísticas..."):
+        alojamiento_breakdown = load_alojamiento_breakdown(engine)
+    render_alojamiento_tab(
+        filter_by_municipio(full_gdf, alojamiento_municipio),
+        alojamiento_breakdown_df=alojamiento_breakdown,
+        municipio=alojamiento_municipio,
+    )
 
     st.divider()
 
@@ -637,16 +742,22 @@ def page_turismo() -> None:
     render_page_banner(
         "turismo_playa.jpg",
         "Turismo",
-        "Ocupación hotelera, tráfico aéreo y estacionalidad por polo turístico",
+        "Ocupación hotelera, vivienda vacacional (VV), tráfico aéreo y estacionalidad insular",
     )
-    render_turismo_tab(turismo_hotelero_anual, turismo_hotelero_mensual, aena_pasajeros)
+    render_turismo_tab(
+        turismo_hotelero_anual,
+        turismo_hotelero_mensual,
+        aena_pasajeros,
+        municipio_anual_df=municipio_anual,
+        municipio_mensual_df=municipio_mensual,
+    )
 
 
 def page_arquetipos() -> None:
     render_page_banner(
         "hero_puerto_cruz.jpg",
         "Oportunidades TUI — Arquetipos y Clústeres",
-        "Matriz Estratégica Eje 1 (Saturación continua) vs Eje 2 (Rural infrautilizado), tipología territorial y catálogo",
+        "Matriz estratégica: Eje 1 y Eje 2, tipología territorial y catálogo de arquetipos",
     )
     render_arquetipos_tab(full_gdf)
 

@@ -27,3 +27,4 @@ def test_reputation_summary_averages_ratings_ignoring_nulls():
     assert summary["rating_booking_medio"] == 4.0
     assert summary["rating_tripadvisor_medio"] == 4.0
     assert summary["total_reviews_booking"] == 150
+    assert summary["total_reviews"] == 150

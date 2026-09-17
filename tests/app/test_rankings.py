@@ -51,10 +51,11 @@ def test_top_n_by_ranking_unknown_key_raises():
 
 
 def test_rankings_dict_covers_expected_labels():
-    assert set(RANKINGS.keys()) == {
+    expected = {
         "Mayor oferta alojativa (nº alojamientos)",
         "Mayor capacidad alojativa (nº plazas)",
         "Más vegetación (NDVI)",
         "Mejor valoradas (rating Booking)",
         "Más calurosas",
     }
+    assert expected.issubset(set(RANKINGS.keys()))

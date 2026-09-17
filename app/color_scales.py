@@ -47,18 +47,18 @@ CLUSTER_COLOR_MAP_RGB = {
 
 # Arquetipos de producto turístico TUI
 ARCHETYPE_COLOR_MAP_HEX = {
-    "🏖️ Sol y Playa": "#0284c7",
-    "🌿 Ecoturismo Rural": "#16a34a",
-    "🏛️ Cultural y Patrimonial": "#7c3aed",
-    "🏔️ Aventura y Activo": "#ea580c",
-    "🧘 Bienestar y Salud": "#0d9488",
+    "🏖️ Sol y playa": "#0284c7",
+    "🌿 Ecoturismo rural": "#16a34a",
+    "🏛️ Cultural y patrimonial": "#7c3aed",
+    "🏔️ Aventura y activo": "#ea580c",
+    "🧘 Bienestar y salud": "#0d9488",
 }
 ARCHETYPE_COLOR_MAP_RGB = {
-    "🏖️ Sol y Playa": [2, 132, 199],
-    "🌿 Ecoturismo Rural": [22, 163, 74],
-    "🏛️ Cultural y Patrimonial": [124, 58, 237],
-    "🏔️ Aventura y Activo": [234, 88, 12],
-    "🧘 Bienestar y Salud": [13, 148, 136],
+    "🏖️ Sol y playa": [2, 132, 199],
+    "🌿 Ecoturismo rural": [22, 163, 74],
+    "🏛️ Cultural y patrimonial": [124, 58, 237],
+    "🏔️ Aventura y activo": [234, 88, 12],
+    "🧘 Bienestar y salud": [13, 148, 136],
 }
 
 # Rampas secuenciales para ejes continuos y métricas satelitales

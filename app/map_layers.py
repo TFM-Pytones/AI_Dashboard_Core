@@ -361,7 +361,7 @@ def legend_html(metric_key: str, gdf: pd.DataFrame) -> str:
     scale = config.get("scale", "sequential")
     unit_str = config.get("unit", "")
     unit_badge = (
-        f'<div style="font-size:0.8rem;color:#94a3b8;margin-bottom:6px;">Unidad: <b style="color:#e2e8f0;">{unit_str}</b></div>'
+        f'<div style="font-size:0.875rem;color:rgba(250, 250, 250, 0.6);margin-bottom:6px;">Unidad: {unit_str}</div>'
         if unit_str
         else ""
     )
@@ -533,7 +533,7 @@ def municipio_legend_html(metric_key: str, gdf: pd.DataFrame) -> str:
     vmax = float(values.max()) if not values.empty else 1.0
     gradient = f"linear-gradient(to right, {light_hex}, {dark_hex})"
     unit_badge = (
-        f'<div style="font-size:0.8rem;color:#94a3b8;margin-bottom:6px;">Unidad: <b style="color:#e2e8f0;">{unit_str}</b></div>'
+        f'<div style="font-size:0.875rem;color:rgba(250, 250, 250, 0.6);margin-bottom:6px;">Unidad: {unit_str}</div>'
         if unit_str
         else ""
     )
@@ -631,6 +631,37 @@ def build_isocronas_fill_color(rangos: pd.Series) -> pd.Series:
     )
 
 
+def build_isocronas_layers(isocronas_gdf: pd.DataFrame, destinos: list[str] | str) -> list[pdk.Layer]:
+    target_destinos = [destinos] if isinstance(destinos, str) else list(destinos)
+    subset = isocronas_gdf[isocronas_gdf["destino"].isin(target_destinos)].copy()
+    subset["fill_color"] = build_isocronas_fill_color(subset["rango_min"])
+    subset["destino_nombre"] = subset["destino"].apply(
+        lambda d: ISOCRONAS_DESTINOS_INFO.get(d, {}).get("label", d)
+    )
+
+    # Orden de apilamiento: 60 min al fondo, 45 min, 30 min, y 15 min en la capa superior
+    layers = []
+    for rango in [60.0, 45.0, 30.0, 15.0]:
+        rango_subset = subset[subset["rango_min"] == rango]
+        if not rango_subset.empty:
+            geojson = json.loads(rango_subset[["destino", "destino_nombre", "rango_min", "fill_color", "geometry"]].to_json())
+            layers.append(
+                pdk.Layer(
+                    "GeoJsonLayer",
+                    id=f"isocronas_{int(rango)}min",
+                    data=geojson,
+                    pickable=True,
+                    stroked=True,
+                    filled=True,
+                    get_fill_color="properties.fill_color",
+                    get_line_color=[255, 255, 255, 120],
+                    line_width_min_pixels=1,
+                    opacity=0.45,
+                )
+            )
+    return layers
+
+
 def build_isocronas_layer(isocronas_gdf: pd.DataFrame, destinos: list[str] | str) -> pdk.Layer:
     target_destinos = [destinos] if isinstance(destinos, str) else list(destinos)
     subset = isocronas_gdf[isocronas_gdf["destino"].isin(target_destinos)].copy()
@@ -647,9 +678,9 @@ def build_isocronas_layer(isocronas_gdf: pd.DataFrame, destinos: list[str] | str
         stroked=True,
         filled=True,
         get_fill_color="properties.fill_color",
-        get_line_color=[255, 255, 255, 140],
+        get_line_color=[255, 255, 255, 120],
         line_width_min_pixels=1,
-        opacity=0.42,
+        opacity=0.45,
     )
 
 
@@ -717,8 +748,8 @@ def isocronas_legend_html() -> str:
     light_hex, dark_hex = SEQUENTIAL_DENSITY
     gradient = f"linear-gradient(to right, {dark_hex}, {light_hex})"
     return (
-        '<div style="font-size:0.8rem;color:#94a3b8;margin-bottom:6px;">Unidad: <b style="color:#e2e8f0;">Tiempo de conducción (minutos)</b></div>'
-        + _gradient_bar_html(gradient, "≤ 15 min (zona inmediata)", "60 min (periferia)")
+        '<div style="font-size:0.875rem;color:rgba(250, 250, 250, 0.6);margin-bottom:6px;">Unidad: Tiempo de conducción (minutos)</div>'
+        + _gradient_bar_html(gradient, "≤ 15 min (zona inmediata / capa superior)", "60 min (periferia / fondo)")
     )
 
 
@@ -726,7 +757,10 @@ def isocronas_legend_html() -> str:
 
 def build_gtfs_rutas_layer(gtfs_gdf: pd.DataFrame, opacity: float = 0.85) -> pdk.Layer:
     gdf = gtfs_gdf.copy()
-    geojson = json.loads(gdf[["shape_id", "route_short_name", "route_long_name", "operador", "geometry"]].to_json())
+    cols = ["shape_id", "route_short_name", "route_long_name", "operador", "geometry"]
+    if "municipios" in gdf.columns:
+        cols.append("municipios")
+    geojson = json.loads(gdf[cols].to_json())
     return pdk.Layer(
         "GeoJsonLayer",
         id="gtfs_rutas",
@@ -735,7 +769,7 @@ def build_gtfs_rutas_layer(gtfs_gdf: pd.DataFrame, opacity: float = 0.85) -> pdk
         stroked=True,
         filled=False,
         get_line_color=[14, 165, 233, 230],  # Azul celeste vibrante
-        line_width_min_pixels=2,
+        line_width_min_pixels=2.5,
         opacity=opacity,
     )
 
@@ -743,7 +777,7 @@ def build_gtfs_rutas_layer(gtfs_gdf: pd.DataFrame, opacity: float = 0.85) -> pdk
 def gtfs_legend_html() -> str:
     return (
         '<div style="font-size:0.85rem;padding:4px 0 10px;color:#cbd5e1;">'
-        '<div style="font-size:0.8rem;color:#94a3b8;margin-bottom:6px;">Unidad: <b style="color:#e2e8f0;">Trazado geográfico de líneas de transporte</b></div>'
+        '<div style="font-size:0.875rem;color:rgba(250, 250, 250, 0.6);margin-bottom:6px;">Unidad: Trazado geográfico de líneas de transporte</div>'
         '<span style="display:inline-flex;align-items:center;gap:8px;">'
         '<span style="width:24px;height:4px;background:#0ea5e9;display:inline-block;border-radius:2px;"></span>'
         '<span>Rutas regulares TITSA & Metropolitano de Tenerife</span></span>'
@@ -772,7 +806,7 @@ def build_bic_layer(bic_gdf: pd.DataFrame, opacity: float = 0.55) -> pdk.Layer:
 def bic_legend_html() -> str:
     return (
         '<div style="font-size:0.85rem;padding:4px 0 10px;color:#cbd5e1;">'
-        '<div style="font-size:0.8rem;color:#94a3b8;margin-bottom:6px;">Unidad: <b style="color:#e2e8f0;">Recintos protegidos de Interés Cultural</b></div>'
+        '<div style="font-size:0.875rem;color:rgba(250, 250, 250, 0.6);margin-bottom:6px;">Unidad: Recintos protegidos de Interés Cultural</div>'
         '<span style="display:inline-flex;align-items:center;gap:8px;">'
         '<span style="width:14px;height:14px;background:rgba(245,158,11,0.65);border:1.5px solid #d97706;display:inline-block;border-radius:3px;"></span>'
         '<span>Bienes de Interés Cultural (Gobierno de Canarias / Cabildo)</span></span>'
@@ -812,7 +846,7 @@ def build_estaciones_agrocabildo_layer(estaciones_gdf: pd.DataFrame) -> pdk.Laye
 def estaciones_legend_html() -> str:
     return (
         '<div style="font-size:0.85rem;padding:4px 0 10px;color:#cbd5e1;">'
-        '<div style="font-size:0.8rem;color:#94a3b8;margin-bottom:6px;">Unidad: <b style="color:#e2e8f0;">Estación meteorológica activa</b></div>'
+        '<div style="font-size:0.875rem;color:rgba(250, 250, 250, 0.6);margin-bottom:6px;">Unidad: Estación meteorológica activa</div>'
         '<span style="display:inline-flex;align-items:center;gap:8px;">'
         '<span style="width:12px;height:12px;border-radius:50%;background:#10b981;border:2px solid white;display:inline-block;"></span>'
         '<span>Red de estaciones agroclimáticas (Agrocabildo de Tenerife)</span></span>'

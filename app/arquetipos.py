@@ -56,7 +56,7 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
     st.divider()
 
     # ── 2. Matriz Estratégica Territorial 2D ──
-    st.subheader("🧭 Matriz Estratégica: Eje 1 vs Eje 2")
+    st.subheader("🧭 Matriz estratégica: Eje 1 y Eje 2")
     st.markdown(
         """
         Esta matriz proyecta la totalidad del territorio insular en dos dimensiones cuantitativas complementarias:
@@ -111,8 +111,8 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
             "eje_2_rural_infrautilizado": "Eje 2: Potencial rural y sostenible",
             color_col: "Categoría",
         },
-        title="Posicionamiento Territorial en la Matriz Estratégica TUI",
-        height=540,
+        title="Posicionamiento territorial en la Matriz estratégica: Eje 1 y Eje 2",
+        height=550,
     )
 
     # Líneas divisorias de cuadrantes estratégicos
@@ -159,7 +159,20 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
 
     fig_scatter.update_traces(marker=dict(size=7, opacity=0.8))
     fig_scatter.update_layout(
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        title=dict(
+            text="Posicionamiento territorial en la Matriz estratégica: Eje 1 y Eje 2",
+            y=0.98,
+            x=0.0,
+            xanchor="left",
+        ),
+        margin=dict(t=70, b=80, l=40, r=20),
+        legend=dict(
+            orientation="h",
+            yanchor="top",
+            y=-0.18,
+            xanchor="center",
+            x=0.5,
+        ),
         xaxis=dict(range=[-0.02, 1.05]),
         yaxis=dict(range=[-0.02, 1.05]),
     )
@@ -169,23 +182,23 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
     st.divider()
 
     # ── 3. Fichas de los 5 Arquetipos de Producto Turístico TUI ──
-    st.subheader("🏷️ Catálogo de Arquetipos de Producto TUI")
+    st.subheader("🏷️ Catálogo de arquetipos de producto TUI")
     st.caption("Estrategias de desarrollo turístico y modelos operativos basados en los datos del dashboard.")
 
     tab_sol, tab_eco, tab_cult, tab_av, tab_bien = st.tabs(
         [
-            "🏖️ Sol y Playa Premium",
-            "🌿 Ecoturismo Rural",
-            "🏛️ Cultural y Patrimonial",
-            "🏔️ Aventura y Activo",
-            "🧘 Bienestar y Salud",
+            "🏖️ Sol y playa",
+            "🌿 Ecoturismo rural",
+            "🏛️ Cultural y patrimonial",
+            "🏔️ Aventura y activo",
+            "🧘 Bienestar y salud",
         ]
     )
 
     with tab_sol:
         c1, c2 = st.columns([2, 1])
         with c1:
-            st.markdown("### 🏖️ Sol y Playa Premium (Gestión de Capacidad)")
+            st.markdown("### 🏖️ Sol y playa premium (Gestión de capacidad)")
             st.markdown(
                 """
                 - **Ubicación clave:** Adeje, Arona (Los Cristianos, Playa de las Américas), Puerto de la Cruz litoral.
@@ -197,7 +210,7 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
                 """
             )
         with c2.container(border=True):
-            sub_df = gdf[gdf["arquetipo_principal"] == "🏖️ Sol y Playa"]
+            sub_df = gdf[gdf["arquetipo_principal"] == "🏖️ Sol y playa"]
             st.metric("Hexágonos asignados", f"{len(sub_df)}")
             st.metric("Plazas registradas", format_metric(int(sub_df["n_plazas_registro"].sum()), "entero"))
             st.metric("Eje 1 medio", f"{sub_df['eje_1_saturacion'].mean():.2f}")
@@ -206,7 +219,7 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
     with tab_eco:
         c1, c2 = st.columns([2, 1])
         with c1:
-            st.markdown("### 🌿 Ecoturismo Rural (Dinamización en Rural Infrautilizado)")
+            st.markdown("### 🌿 Ecoturismo rural (Dinamización en rural infrautilizado)")
             st.markdown(
                 """
                 - **Ubicación clave:** Medianías de La Orotava, Teno (Buenavista, El Tanque), Anaga (Santa Cruz/La Laguna norte), Vilaflor, Arico interior.
@@ -218,7 +231,7 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
                 """
             )
         with c2.container(border=True):
-            sub_df = gdf[gdf["arquetipo_principal"] == "🌿 Ecoturismo Rural"]
+            sub_df = gdf[gdf["arquetipo_principal"] == "🌿 Ecoturismo rural"]
             st.metric("Hexágonos asignados", f"{len(sub_df)}")
             st.metric("Eje 2 medio (potencial rural)", f"{sub_df['eje_2_rural_infrautilizado'].mean():.2f}")
             st.metric("NDVI medio", f"{sub_df['ndvi_medio'].mean():.2f}")
@@ -227,7 +240,7 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
     with tab_cult:
         c1, c2 = st.columns([2, 1])
         with c1:
-            st.markdown("### 🏛️ Cultural y Patrimonial (Identidad y Enoturismo)")
+            st.markdown("### 🏛️ Cultural y patrimonial (Identidad y enoturismo)")
             st.markdown(
                 """
                 - **Ubicación clave:** San Cristóbal de La Laguna (Patrimonio UNESCO), La Orotava casco histórico, Garachico, Candelaria, Icod de los Vinos.
@@ -239,7 +252,7 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
                 """
             )
         with c2.container(border=True):
-            sub_df = gdf[gdf["arquetipo_principal"] == "🏛️ Cultural y Patrimonial"]
+            sub_df = gdf[gdf["arquetipo_principal"] == "🏛️ Cultural y patrimonial"]
             st.metric("Hexágonos asignados", f"{len(sub_df)}")
             st.metric("POIs culturales totales", f"{int(sub_df['n_cultura'].sum())}")
             st.metric("Restaurantes registrados", f"{int(sub_df['n_restaurantes'].sum())}")
@@ -248,7 +261,7 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
     with tab_av:
         c1, c2 = st.columns([2, 1])
         with c1:
-            st.markdown("### 🏔️ Aventura y Activo (Turismo Deportivo y Vulcanológico)")
+            st.markdown("### 🏔️ Aventura y activo (Turismo deportivo y vulcanológico)")
             st.markdown(
                 """
                 - **Ubicación clave:** Anillo de la Corona Forestal, Parque Nacional del Teide, Macizo de Teno (Masca), barrancos del sur.
@@ -260,7 +273,7 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
                 """
             )
         with c2.container(border=True):
-            sub_df = gdf[gdf["arquetipo_principal"] == "🏔️ Aventura y Activo"]
+            sub_df = gdf[gdf["arquetipo_principal"] == "🏔️ Aventura y activo"]
             st.metric("Hexágonos asignados", f"{len(sub_df)}")
             st.metric("Pendiente media", f"{sub_df['slope_mean'].mean():.1f}°")
             st.metric("Altitud media", f"{sub_df['altitud_media_m'].mean():.0f} m")
@@ -269,7 +282,7 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
     with tab_bien:
         c1, c2 = st.columns([2, 1])
         with c1:
-            st.markdown("### 🧘 Bienestar y Salud (Desestacionalización Climática)")
+            st.markdown("### 🧘 Bienestar y salud (Desestacionalización climática)")
             st.markdown(
                 """
                 - **Ubicación clave:** Medianías bajas del norte (Tacoronte, Sauzal) y valles protegidos del sur (Valle San Lorenzo, Guía de Isora interior).
@@ -281,7 +294,7 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
                 """
             )
         with c2.container(border=True):
-            sub_df = gdf[gdf["arquetipo_principal"] == "🧘 Bienestar y Salud"]
+            sub_df = gdf[gdf["arquetipo_principal"] == "🧘 Bienestar y salud"]
             st.metric("Hexágonos asignados", f"{len(sub_df)}")
             st.metric("Temperatura media anual", f"{sub_df['temp_media_anual'].mean():.1f} °C")
             st.metric("Score ESG medio", f"{sub_df['esg_h3_score'].mean():.1f} / 100")
@@ -290,7 +303,7 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
     st.divider()
 
     # ── 4. Explorador y Catálogo de Oportunidades por Arquetipo ──
-    st.subheader("🔍 Catálogo Filtrable de Hexágonos y Oportunidades")
+    st.subheader("🔍 Catálogo filtrable de hexágonos y oportunidades")
 
     col_f1, col_f2, col_f3 = st.columns(3)
     arq_opciones = ["Todos"] + sorted(gdf["arquetipo_principal"].dropna().unique().tolist())
@@ -324,7 +337,7 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
     ]
     cols_existentes = [c for c in columnas_mostrar if c in catalogo.columns]
     tabla_display = catalogo[cols_existentes].sort_values(
-        by="eje_2_rural_infrautilizado" if sel_arq == "🌿 Ecoturismo Rural" else "eje_1_saturacion",
+        by="eje_2_rural_infrautilizado" if sel_arq == "🌿 Ecoturismo rural" else "eje_1_saturacion",
         ascending=False,
     )
 

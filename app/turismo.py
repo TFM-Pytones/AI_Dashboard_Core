@@ -183,6 +183,8 @@ def render_turismo_tab(
     hotelero_anual_df: pd.DataFrame,
     hotelero_mensual_df: pd.DataFrame,
     aena_df: pd.DataFrame,
+    municipio_anual_df: pd.DataFrame | None = None,
+    municipio_mensual_df: pd.DataFrame | None = None,
 ) -> None:
     st.subheader("Turismo hotelero por polo turístico")
     municipios = sorted(hotelero_anual_df["municipio"].dropna().unique().tolist())
@@ -223,6 +225,90 @@ def render_turismo_tab(
     add_chart_motion(fig)
     st.plotly_chart(fig, width="stretch")
 
+    st.divider()
+    st.subheader("Vivienda vacacional (VV)")
+    st.caption(
+        "Indicadores oficiales de oferta, ocupación, rentabilidad y evolución mensual "
+        "de la Vivienda Vacacional para los 31 municipios de Tenerife (ISTAC)."
+    )
+
+    if municipio_anual_df is not None and not municipio_anual_df.empty:
+        all_vv_mun = sorted(municipio_anual_df["municipio"].dropna().unique().tolist())
+        col_vv1, col_vv2 = st.columns([2, 1])
+        default_idx = all_vv_mun.index(municipio) if municipio in all_vv_mun else 0
+        muni_vv = col_vv1.selectbox("Municipio (VV)", all_vv_mun, index=default_idx, key="turismo_vv_municipio")
+
+        vv_years = sorted(
+            municipio_anual_df.loc[municipio_anual_df["municipio"] == muni_vv, "anio"].dropna().unique().tolist()
+        )
+        anio_vv = col_vv2.selectbox(
+            "Año (VV)", vv_years, index=len(vv_years) - 1 if vv_years else 0, key="turismo_vv_anio"
+        )
+
+        row_vv = municipio_anual_df.loc[
+            (municipio_anual_df["municipio"] == muni_vv) & (municipio_anual_df["anio"] == anio_vv)
+        ]
+        if not row_vv.empty:
+            r = row_vv.iloc[0]
+            cols_kpi = st.columns(4)
+            with cols_kpi[0].container(border=True):
+                st.metric(
+                    "🏘️ Plazas VV medias",
+                    format_metric(r.get("plazas_vv_media"), "entero"),
+                    delta=format_yoy_delta(r.get("crec_plazas_vv_yoy_pct")),
+                    help="Plazas medias registradas en vivienda vacacional y variación interanual (YoY).",
+                )
+            with cols_kpi[1].container(border=True):
+                st.metric(
+                    "📊 Tasa ocupación VV",
+                    format_metric(r.get("tasa_ocupacion_vv_media"), "pct"),
+                    help="Porcentaje medio de ocupación de las plazas de vivienda vacacional.",
+                )
+            with cols_kpi[2].container(border=True):
+                val_estancia = r.get("estancia_media_vv")
+                st.metric(
+                    "🕐 Estancia media VV",
+                    f"{val_estancia:.1f} días" if pd.notna(val_estancia) else "—",
+                    help="Duración media de la estancia de viajeros en vivienda vacacional.",
+                )
+            with cols_kpi[3].container(border=True):
+                ingresos = r.get("ingresos_vv_acumulados")
+                ing_str = f"{ingresos:,.0f} €".replace(",", ".") if pd.notna(ingresos) else "—"
+                st.metric(
+                    "💶 Ingresos VV acumulados",
+                    ing_str,
+                    delta=format_yoy_delta(r.get("crec_ingresos_mensual_yoy_pct")),
+                    help="Ingresos brutos acumulados en vivienda vacacional durante el año.",
+                )
+
+        if municipio_mensual_df is not None and not municipio_mensual_df.empty:
+            metrica_vv_opciones = {
+                "Plazas VV": ("plazas_vv", "Plazas"),
+                "Tasa ocupación (%)": ("tasa_ocupacion_vv", "% ocupación"),
+                "Ingresos mensuales (€)": ("ingresos_vv", "Euros (€)"),
+                "Alojamientos abiertos": ("alojamientos_abiertos_vv", "Viviendas abiertas"),
+            }
+            metrica_vv_label = st.selectbox(
+                "Métrica mensual VV", list(metrica_vv_opciones.keys()), key="turismo_vv_metrica"
+            )
+            col_vv_val, col_vv_unit = metrica_vv_opciones[metrica_vv_label]
+
+            sub_mensual = municipio_mensual_df[municipio_mensual_df["municipio"] == muni_vv].sort_values("periodo")
+            if not sub_mensual.empty and col_vv_val in sub_mensual.columns:
+                fig_vv = px.area(
+                    sub_mensual,
+                    x="periodo",
+                    y=col_vv_val,
+                    title=f"Evolución mensual de {metrica_vv_label} — {muni_vv}",
+                    labels={"periodo": "Periodo (Año-Mes)", col_vv_val: col_vv_unit},
+                )
+                fig_vv.update_traces(
+                    line_color="#10b981", line_shape="spline", fillcolor=hex_to_rgba("#10b981", 0.15)
+                )
+                add_chart_motion(fig_vv)
+                st.plotly_chart(fig_vv, width="stretch")
+
+    st.divider()
     st.subheader("Tráfico aéreo")
     aeropuertos = sorted(aena_df["aeropuerto_nombre"].dropna().unique().tolist())
     opciones_aeropuerto = [AENA_TOTAL_NOMBRE] + aeropuertos

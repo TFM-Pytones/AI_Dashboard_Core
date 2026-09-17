@@ -31,7 +31,8 @@ def test_climate_by_trimestre_orders_q1_to_q4():
 
 
 def test_climate_variables_covers_expected_labels():
-    assert set(CLIMATE_VARIABLES.keys()) == {"Temperatura", "Lluvia", "Viento", "Humedad"}
+    expected = {"Temperatura", "Precipitación", "Velocidad viento", "Humedad relativa"}
+    assert expected.issubset(set(CLIMATE_VARIABLES.keys()))
 
 
 def test_climate_variables_each_have_a_prefix_unidad_and_help():

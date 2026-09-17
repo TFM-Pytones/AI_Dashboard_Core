@@ -23,7 +23,18 @@ SENTIMIENTO_QUERY = """
 """
 ACCESIBILIDAD_QUERY = "SELECT * FROM gold.gold_h3_accesibilidad"
 ISOCRONAS_QUERY = "SELECT * FROM gold.gold_isocronas_visuales"
-GTFS_RUTAS_QUERY = "SELECT shape_id, route_short_name, route_long_name, operador, ST_Simplify(geometry, 0.0002) AS geometry FROM silver.silver_gtfs_rutas"
+GTFS_RUTAS_QUERY = """
+SELECT r.shape_id,
+       r.route_short_name,
+       r.route_long_name,
+       r.operador,
+       COALESCE(string_agg(DISTINCT m.municipio, ', '), '') AS municipios,
+       ST_Simplify(r.geometry, 0.0002) AS geometry
+FROM silver.silver_gtfs_rutas r
+LEFT JOIN gold.gold_municipio_master m
+  ON ST_Intersects(r.geometry, m.geometry)
+GROUP BY r.shape_id, r.route_short_name, r.route_long_name, r.operador, r.geometry
+"""
 BIENES_CULTURALES_QUERY = "SELECT id, nombre, tipo, municipio, geometry FROM silver.silver_bienes_interes_culturales"
 ESTACIONES_AGROCABILDO_QUERY = "SELECT id_estacion, nombre_estacion, municipio, altitud_m, geometry FROM silver.silver_estaciones_agrocabildo"
 MUNICIPIO_MASTER_QUERY = "SELECT * FROM gold.gold_municipio_master"
@@ -33,6 +44,8 @@ MUNICIPIO_MENSUAL_QUERY = "SELECT * FROM gold.gold_municipio_mensual"
 TURISMO_HOTELERO_ANUAL_QUERY = "SELECT * FROM gold.gold_turismo_hotelero_anual"
 TURISMO_HOTELERO_MENSUAL_QUERY = "SELECT * FROM gold.gold_turismo_hotelero_mensual"
 AENA_PASAJEROS_QUERY = "SELECT * FROM gold.gold_aena_pasajeros"
+CLIMA_ANUAL_QUERY = "SELECT * FROM gold.gold_clima_anual"
+ALOJAMIENTO_BREAKDOWN_QUERY = "SELECT * FROM gold.gold_alojamiento_breakdown"
 TOPICOS_MUNICIPIO_QUERY = "SELECT * FROM gold.gold_topicos_municipio"
 NLP_CHUNKS_QUERY = """
     SELECT chunk_id, source, source_id, chunk_index, text, topic_id, topic_label,
@@ -199,6 +212,20 @@ def load_aena_pasajeros(_engine: Engine) -> pd.DataFrame:
 
 
 @st.cache_data
+def load_clima_anual(_engine: Engine) -> pd.DataFrame:
+    if not inspect(_engine).has_table("gold_clima_anual", schema="gold"):
+        return pd.DataFrame(columns=["municipio", "variable_nombre", "anio", "valor"])
+    return pd.read_sql(CLIMA_ANUAL_QUERY, _engine)
+
+
+@st.cache_data
+def load_alojamiento_breakdown(_engine: Engine) -> pd.DataFrame:
+    if not inspect(_engine).has_table("gold_alojamiento_breakdown", schema="gold"):
+        return pd.DataFrame(columns=["tipo", "municipio", "cantidad_alojamientos", "plazas"])
+    return pd.read_sql(ALOJAMIENTO_BREAKDOWN_QUERY, _engine)
+
+
+@st.cache_data
 def load_topicos_municipio(_engine: Engine) -> pd.DataFrame:
     return drop_municipio_alias_rows(pd.read_sql(TOPICOS_MUNICIPIO_QUERY, _engine))
 
@@ -336,11 +363,11 @@ def compute_strategic_axes_and_archetypes(gdf: pd.DataFrame) -> pd.DataFrame:
     # Arquetipo Dominante
     arch_cols = ["score_sol_playa", "score_ecoturismo", "score_cultural", "score_aventura", "score_bienestar"]
     arch_names = {
-        "score_sol_playa": "🏖️ Sol y Playa",
-        "score_ecoturismo": "🌿 Ecoturismo Rural",
-        "score_cultural": "🏛️ Cultural y Patrimonial",
-        "score_aventura": "🏔️ Aventura y Activo",
-        "score_bienestar": "🧘 Bienestar y Salud",
+        "score_sol_playa": "🏖️ Sol y playa",
+        "score_ecoturismo": "🌿 Ecoturismo rural",
+        "score_cultural": "🏛️ Cultural y patrimonial",
+        "score_aventura": "🏔️ Aventura y activo",
+        "score_bienestar": "🧘 Bienestar y salud",
     }
     gdf["arquetipo_principal"] = gdf[arch_cols].idxmax(axis=1).map(arch_names)
 

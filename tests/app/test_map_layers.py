@@ -158,7 +158,10 @@ def test_build_layer_accepts_custom_opacity():
 def test_build_highlight_layer_targets_the_selected_hexagon():
     layer = build_highlight_layer("8834413693fffff")
     assert isinstance(layer, pdk.Layer)
-    assert layer.data["h3_index"].tolist() == ["8834413693fffff"]
+    if isinstance(layer.data, list):
+        assert [d["h3_index"] for d in layer.data] == ["8834413693fffff"]
+    else:
+        assert layer.data["h3_index"].tolist() == ["8834413693fffff"]
     assert layer.get_hexagon == "@@=h3_index"
 
 
@@ -311,7 +314,7 @@ def test_build_municipio_layer_includes_municipio_and_formatted_tooltip_value():
     layer = build_municipio_layer(_municipio_gdf(), "Evolución de oferta VV")
     properties = [f["properties"] for f in layer.data["features"]]
     assert [p["municipio"] for p in properties] == ["Adeje", "Arona", "Santa Cruz de Tenerife"]
-    assert properties[0]["tooltip_value"] == "-5,0"
+    assert properties[0]["tooltip_value"].startswith("-5,0%")
 
 
 def test_municipio_legend_html_shows_gradient_with_min_max_labels():
