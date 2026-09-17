@@ -3,6 +3,7 @@ import pandas as pd
 import pytest
 
 from app.simulador import (
+    aggregate_hexagon_group,
     compute_dataset_normalization_bounds,
     create_radar_comparison_chart,
     create_strategic_matrix_simulation_chart,
@@ -14,7 +15,7 @@ from app.simulador import (
 def mock_gdf():
     data = {
         "h3_index": ["88344125d1fffff", "883441249bfffff", "88344122c7fffff"],
-        "municipio": ["Adeje", "Arona", "Santiago del Teide"],
+        "municipio": ["Adeje", "Arona", "Adeje"],
         "n_plazas_registro": [1500.0, 300.0, 50.0],
         "viirs_medio": [45.0, 20.0, 5.0],
         "dist_costa_km": [0.5, 1.2, 4.5],
@@ -44,6 +45,7 @@ def mock_gdf():
         "arquetipo_principal": ["🏖️ Sol y playa", "🏖️ Sol y playa", "🌿 Ecoturismo rural"],
         "es_oportunidad_ideal": [False, False, True],
         "restriction_category": ["Sin restricción", "Sin restricción", "Espacio Natural Protegido"],
+        "tipo_zona": ["Saturado / Overtourism", "Transición costera", "Rurales y medianías"],
     }
     return pd.DataFrame(data)
 
@@ -60,7 +62,6 @@ def test_simulation_intervention_deltas(mock_gdf):
     bounds = compute_dataset_normalization_bounds(mock_gdf)
     row = mock_gdf.iloc[0]  # Adeje row
 
-    # Simular +200 plazas, -10 min aeropuerto, +0.10 NDVI, +10 POIs, +5 ESG
     res = simulate_hexagon_intervention(
         hexagon_data=row,
         delta_plazas=200,
@@ -73,17 +74,12 @@ def test_simulation_intervention_deltas(mock_gdf):
 
     base = res["base"]
     sim = res["simulado"]
-    deltas = res["deltas"]
 
-    # Comprobación de deltas en variables de intervención
     assert sim["plazas"] == base["plazas"] + 200
     assert sim["tiempo_aeropuerto"] == base["tiempo_aeropuerto"] - 10
     assert pytest.approx(sim["ndvi"], 0.01) == base["ndvi"] + 0.10
     assert sim["pois"] == base["pois"] + 10
     assert sim["esg"] == base["esg"] + 5.0
-
-    # Comprobación de que el impacto en plazas reduce el PTNA (absorbe oferta)
-    # y mejorar tiempo incrementa el potencial de demanda
     assert "ptna" in sim
     assert "eje_1" in sim
     assert "eje_2" in sim
@@ -92,9 +88,8 @@ def test_simulation_intervention_deltas(mock_gdf):
 
 def test_simulation_physical_bounds_clipping(mock_gdf):
     bounds = compute_dataset_normalization_bounds(mock_gdf)
-    row = mock_gdf.iloc[2]  # Santiago del Teide (50 plazas, tiempo 55)
+    row = mock_gdf.iloc[2]
 
-    # Intentar restar más plazas de las que hay y reducir tiempo por debajo de 0
     res = simulate_hexagon_intervention(
         hexagon_data=row,
         delta_plazas=-500,
@@ -116,11 +111,11 @@ def test_simulation_physical_bounds_clipping(mock_gdf):
 def test_simulation_alerts(mock_gdf):
     bounds = compute_dataset_normalization_bounds(mock_gdf)
 
-    # Caso 1: ENP conflicto (Santiago del Teide tiene pct_area_enp = 0.85)
+    # Caso 1: ENP conflicto
     row_enp = mock_gdf.iloc[2]
     res_enp = simulate_hexagon_intervention(
         hexagon_data=row_enp,
-        delta_plazas=100,  # Sumar plazas en ENP
+        delta_plazas=100,
         delta_tiempo_aeropuerto=0,
         delta_ndvi=0.0,
         delta_pois=0,
@@ -142,18 +137,42 @@ def test_simulation_alerts(mock_gdf):
     )
     assert res_sat["alertas"]["is_overtourism_risk"] is True
 
-    # Caso 3: Desbloqueo de oportunidad ideal (PTNA > 0 y ESG > 60)
-    row_arona = mock_gdf.iloc[1]  # base PTNA < 0, ESG 48
+    # Caso 3: Desbloqueo de oportunidad ideal
+    row_arona = mock_gdf.iloc[1]
     res_opp = simulate_hexagon_intervention(
         hexagon_data=row_arona,
         delta_plazas=-100,
         delta_tiempo_aeropuerto=-15,
         delta_ndvi=0.20,
         delta_pois=20,
-        delta_esg=20.0,  # Sube ESG a 68 (> 60)
+        delta_esg=20.0,
         bounds=bounds,
     )
     assert res_opp["simulado"]["esg"] > 60.0
+
+
+def test_aggregate_hexagon_group(mock_gdf):
+    adeje_group = mock_gdf[mock_gdf["municipio"] == "Adeje"]
+    synth_row = aggregate_hexagon_group(adeje_group, label="Adeje", group_type="municipio")
+
+    assert synth_row["n_hex"] == 2
+    assert synth_row["n_plazas_registro"] == 1550.0  # 1500 + 50
+    assert synth_row["municipio"] == "Adeje"
+    assert "area_km2" in synth_row
+
+    bounds = compute_dataset_normalization_bounds(mock_gdf)
+    res_group = simulate_hexagon_intervention(
+        hexagon_data=synth_row,
+        delta_plazas=500,
+        delta_tiempo_aeropuerto=-5,
+        delta_ndvi=0.05,
+        delta_pois=10,
+        delta_esg=5.0,
+        bounds=bounds,
+    )
+    assert res_group["simulado"]["plazas"] == 2050.0
+    assert "ptna" in res_group["simulado"]
+    assert "eje_1" in res_group["simulado"]
 
 
 def test_charts_creation(mock_gdf):
@@ -172,15 +191,16 @@ def test_charts_creation(mock_gdf):
 
     fig_radar = create_radar_comparison_chart(res["base"]["scores"], res["simulado"]["scores"])
     assert fig_radar is not None
-    assert len(fig_radar.data) == 2  # Dos trazas: Situación actual y Escenario simulado
+    assert len(fig_radar.data) == 2
 
     fig_matrix = create_strategic_matrix_simulation_chart(
         full_gdf=mock_gdf,
-        municipio_actual="Arona",
         base_eje1=res["base"]["eje_1"],
         base_eje2=res["base"]["eje_2"],
         sim_eje1=res["simulado"]["eje_1"],
         sim_eje2=res["simulado"]["eje_2"],
     )
     assert fig_matrix is not None
-    assert len(fig_matrix.data) == 4  # Nube de fondo, vector, punto inicial, punto simulado
+    assert len(fig_matrix.data) == 4
+    # Verificar que la leyenda está situada encima para no solaparse
+    assert fig_matrix.layout.legend.y >= 1.0
