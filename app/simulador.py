@@ -521,6 +521,21 @@ def render_simulador_tab(full_gdf: pd.DataFrame) -> None:
 
     st.markdown(
         """
+        <style>
+        /* Desactivar cualquier corte por ellipsis en valores y etiquetas */
+        [data-testid="stMetricValue"], [data-testid="stMetricLabel"], [data-testid="stMetricDelta"] {
+            white-space: normal !important;
+            word-break: break-word !important;
+            text-overflow: clip !important;
+            overflow: visible !important;
+        }
+        [data-testid="stMetricValue"] > div {
+            white-space: normal !important;
+            word-break: break-word !important;
+            text-overflow: clip !important;
+            overflow: visible !important;
+        }
+        </style>
         <p style='color: var(--text-color, #444); font-size: 1.05rem; margin-top: -0.5rem; margin-bottom: 1.2rem;'>
         Modela hipótesis de planificación territorial en Tenerife y proyecta en tiempo real el impacto
         en el índice <b>PTNA</b>, los <b>ejes estratégicos de capacidad</b> y la transición entre <b>arquetipos turísticos TUI</b>.
@@ -659,7 +674,7 @@ def render_simulador_tab(full_gdf: pd.DataFrame) -> None:
         row = aggregate_hexagon_group(group_df, label=label, group_type="cluster")
         ambito_titulo = f"Clúster territorial: **{cluster_sel}** ({mun_filtro})"
 
-    # ── 2. Ficha Base de Información (Dividida en 2 Filas Espaciosas) ──
+    # ── 2. Ficha Base de Información (Tarjeta Única Amplia) ──
     st.markdown("##### Información territorial base")
     n_hex = int(row.get("n_hex", 1) or 1)
     total_area = float(row.get("area_km2", 0.737 * n_hex) or (0.737 * n_hex))
@@ -672,36 +687,90 @@ def render_simulador_tab(full_gdf: pd.DataFrame) -> None:
     arch_base = str(row.get("arquetipo_principal", "Ecoturismo rural"))
     rest_cat = str(row.get("restriction_category", "Sin restricción"))
     pct_enp = float(row.get("pct_area_enp", 0.0) or 0.0)
+    tiempo_aero = float(row.get("tiempo_aeropuerto_min", 40.0) or 40.0)
+    dist_costa = float(row.get("dist_costa_km", 5.0) or 5.0)
+    ndvi_base = float(row.get("ndvi_medio", 0.35) or 0.35)
+    alt_base = float(row.get("altitud_media_m", 300.0) or 300.0)
 
-    # Fila 1 de tarjetas
-    r1_c1, r1_c2, r1_c3, r1_c4 = st.columns(4)
-    with r1_c1.container(border=True):
-        st.metric("Ámbito territorial", str(row.get("municipio", "Tenerife")), f"{n_hex:,} hexágono(s)")
-    with r1_c2.container(border=True):
-        st.metric("Superficie analizada", f"{total_area:,.1f} km²", f"~{total_area/n_hex:.2f} km²/celda")
-    with r1_c3.container(border=True):
-        st.metric("Plazas regladas actuales", f"{int(plazas_tot):,} plazas", f"{dens_plazas:.1f} pl/km²")
-    with r1_c4.container(border=True):
-        st.metric("Arquetipo dominante actual", arch_base)
+    with st.container(border=True):
+        ptna_color = "#27AE60" if ptna_base > 0 else "#E74C3C"
+        ptna_label = "Potencial no aprovechado (oportunidad)" if ptna_base > 0 else "Zona sobreexplotada (saturación)"
+        enp_badge_text = f" · ⚠️ Solape con Espacio Natural Protegido: {pct_enp*100:.1f}%" if pct_enp > 0 else ""
 
-    # Fila 2 de tarjetas
-    r2_c1, r2_c2, r2_c3, r2_c4, r2_c5 = st.columns(5)
-    with r2_c1.container(border=True):
-        st.metric(
-            "Índice PTNA base",
-            f"{ptna_base:+.1f}",
-            "Oportunidad" if ptna_base > 0 else "Saturación",
-            help="Positivo = potencial no aprovechado; Negativo = sobreexplotado.",
-        )
-    with r2_c2.container(border=True):
-        st.metric("Score ESG base", f"{esg_base:.1f} / 100", help="Índice sintético de sostenibilidad territorial.")
-    with r2_c3.container(border=True):
-        st.metric("Eje 1: Saturación", f"{eje1_base:.3f}", help="Presión en el gradiente de masificación (0 a 1).")
-    with r2_c4.container(border=True):
-        st.metric("Eje 2: Potencial rural", f"{eje2_base:.3f}", help="Potencial ambiental no masificado (0 a 1).")
-    with r2_c5.container(border=True):
-        enp_sub = f"Solape ENP: {pct_enp*100:.1f}%" if pct_enp > 0 else "Urbano / turístico"
-        st.metric("Protección legal", rest_cat, enp_sub)
+        if modo_analisis == "Hexágono individual (H3)":
+            nombre_ambito = str(row.get("municipio", "Tenerife"))
+            subtitulo_ambito = f"Celda H3: <code>{selected_target_id}</code> · Superficie: {total_area:.2f} km²"
+        elif modo_analisis == "Municipio completo":
+            nombre_ambito = str(mun_sel)
+            subtitulo_ambito = f"Municipio completo · {n_hex:,} hexágonos H3 · Superficie acumulada: {total_area:,.1f} km²"
+        elif modo_analisis == "Por arquetipo turístico TUI":
+            nombre_ambito = f"{arch_sel}"
+            subtitulo_ambito = f"Arquetipo turístico TUI · Ámbito geográfico: {mun_filtro} ({n_hex:,} hexágonos H3 · {total_area:,.1f} km²)"
+        else:
+            nombre_ambito = f"{cluster_sel}"
+            subtitulo_ambito = f"Clúster territorial · Ámbito geográfico: {mun_filtro} ({n_hex:,} hexágonos H3 · {total_area:,.1f} km²)"
+
+        card_html = f"""
+        <div style="padding: 0.35rem 0.25rem; font-family: inherit;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid rgba(128,128,128,0.2); padding-bottom: 0.9rem; margin-bottom: 1rem;">
+                <div style="flex: 1 1 340px; min-width: 250px;">
+                    <div style="font-size: 0.78rem; color: #888; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Ámbito territorial analizado</div>
+                    <div style="font-size: 1.55rem; font-weight: 700; color: var(--text-color, #1a202c); line-height: 1.25; margin-top: 0.2rem; word-break: break-word; white-space: normal;">
+                        {nombre_ambito}
+                    </div>
+                    <div style="font-size: 0.88rem; color: #666; margin-top: 0.25rem; line-height: 1.35; white-space: normal;">
+                        {subtitulo_ambito}
+                    </div>
+                </div>
+                <div style="flex: 0 1 auto; min-width: 240px; text-align: left;">
+                    <div style="font-size: 0.78rem; color: #888; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Arquetipo dominante actual</div>
+                    <div style="margin-top: 0.35rem;">
+                        <span style="font-size: 1.15rem; font-weight: 700; color: #1E3A8A; background: rgba(30, 58, 138, 0.1); border: 1px solid rgba(30, 58, 138, 0.25); padding: 0.45rem 0.95rem; border-radius: 8px; display: inline-block; white-space: normal; word-break: break-word; line-height: 1.35;">
+                            {arch_base}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1rem; margin-bottom: 0.85rem;">
+                <div style="background: rgba(128,128,128,0.06); padding: 0.85rem 1rem; border-radius: 8px; border-left: 4px solid #3498DB;">
+                    <div style="font-size: 0.8rem; color: #777; font-weight: 600;">Plazas regladas actuales</div>
+                    <div style="font-size: 1.35rem; font-weight: 700; color: var(--text-color, #1a202c); margin: 0.2rem 0; white-space: normal; word-break: break-word;">{int(plazas_tot):,} plazas</div>
+                    <div style="font-size: 0.82rem; color: #666;">{dens_plazas:.1f} pl/km²</div>
+                </div>
+                <div style="background: rgba(128,128,128,0.06); padding: 0.85rem 1rem; border-radius: 8px; border-left: 4px solid {ptna_color};">
+                    <div style="font-size: 0.8rem; color: #777; font-weight: 600;">Índice PTNA base</div>
+                    <div style="font-size: 1.35rem; font-weight: 700; color: var(--text-color, #1a202c); margin: 0.2rem 0; white-space: normal; word-break: break-word;">{ptna_base:+.1f}</div>
+                    <div style="font-size: 0.82rem; color: #666;">{ptna_label}</div>
+                </div>
+                <div style="background: rgba(128,128,128,0.06); padding: 0.85rem 1rem; border-radius: 8px; border-left: 4px solid #27AE60;">
+                    <div style="font-size: 0.8rem; color: #777; font-weight: 600;">Score ESG base</div>
+                    <div style="font-size: 1.35rem; font-weight: 700; color: var(--text-color, #1a202c); margin: 0.2rem 0; white-space: normal; word-break: break-word;">{esg_base:.1f} / 100</div>
+                    <div style="font-size: 0.82rem; color: #666;">Sostenibilidad territorial</div>
+                </div>
+                <div style="background: rgba(128,128,128,0.06); padding: 0.85rem 1rem; border-radius: 8px; border-left: 4px solid #E67E22;">
+                    <div style="font-size: 0.8rem; color: #777; font-weight: 600;">Eje 1: Saturación turística</div>
+                    <div style="font-size: 1.35rem; font-weight: 700; color: var(--text-color, #1a202c); margin: 0.2rem 0; white-space: normal; word-break: break-word;">{eje1_base:.3f}</div>
+                    <div style="font-size: 0.82rem; color: #666;">Presión en el gradiente insular</div>
+                </div>
+                <div style="background: rgba(128,128,128,0.06); padding: 0.85rem 1rem; border-radius: 8px; border-left: 4px solid #16A085;">
+                    <div style="font-size: 0.8rem; color: #777; font-weight: 600;">Eje 2: Potencial rural</div>
+                    <div style="font-size: 1.35rem; font-weight: 700; color: var(--text-color, #1a202c); margin: 0.2rem 0; white-space: normal; word-break: break-word;">{eje2_base:.3f}</div>
+                    <div style="font-size: 0.82rem; color: #666;">Potencial no masificado</div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px dashed rgba(128,128,128,0.2); font-size: 0.85rem; color: #555;">
+                <div>
+                    ✈️ <b>Accesibilidad:</b> {tiempo_aero:.0f} min al aeropuerto · 🏖️ <b>Costa:</b> {dist_costa:.1f} km · 🌿 <b>NDVI:</b> {ndvi_base:.2f} · ⛰️ <b>Altitud:</b> {alt_base:.0f} m
+                </div>
+                <div>
+                    🛡️ <b>Régimen legal:</b> {rest_cat}{enp_badge_text}
+                </div>
+            </div>
+        </div>
+        """
+        st.markdown(card_html, unsafe_allow_html=True)
 
     st.divider()
 
@@ -762,6 +831,7 @@ def render_simulador_tab(full_gdf: pd.DataFrame) -> None:
         st.session_state.sim_delta_pois = 0
         st.session_state.sim_delta_esg = 15.0
 
+    col_pre_reset.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
     if col_pre_reset.button("🔄 Restablecer valores", use_container_width=True, help="Devuelve todos los controles a cero"):
         st.session_state.sim_delta_plazas = 0
         st.session_state.sim_delta_tiempo = 0
@@ -881,12 +951,22 @@ def render_simulador_tab(full_gdf: pd.DataFrame) -> None:
 
     with kpi_c4.container(border=True):
         arch_sub = "Sin cambio" if not alertas["archetype_changed"] else f"Antes: {base['arquetipo']}"
-        st.metric(
-            "Arquetipo dominante",
-            sim["arquetipo"],
-            arch_sub,
-            delta_color="off",
-            help="Arquetipo turístico dominante resultante del nuevo perfil de atributos.",
+        sub_color = "#666" if not alertas["archetype_changed"] else "#E67E22"
+        st.markdown(
+            f"""
+            <div style="font-family: inherit;">
+                <div style="font-size: 0.82rem; color: #777; font-weight: 600;">
+                    Arquetipo dominante
+                </div>
+                <div style="font-size: 1.25rem; font-weight: 700; color: #1E3A8A; line-height: 1.3; margin: 0.25rem 0 0.15rem 0; white-space: normal; word-break: break-word;">
+                    {sim['arquetipo']}
+                </div>
+                <div style="font-size: 0.82rem; color: {sub_color}; font-weight: 500;">
+                    {arch_sub}
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
 
     # ── 6. Banners de Alerta Territorial Inteligente ──
