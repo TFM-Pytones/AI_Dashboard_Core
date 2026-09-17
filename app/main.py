@@ -111,6 +111,44 @@ st.markdown(
         max-width: 100% !important;
     }
 
+    /* Evitar cualquier corte por puntos suspensivos o truncamiento en tarjetas de métricas en todo el dashboard */
+    [data-testid="stMetricLabel"],
+    [data-testid="stMetricValue"],
+    [data-testid="stMetricDelta"] {
+        white-space: normal !important;
+        word-break: normal !important;
+        overflow-wrap: break-word !important;
+        text-overflow: clip !important;
+        overflow: visible !important;
+    }
+    [data-testid="stMetricLabel"] > div,
+    [data-testid="stMetricLabel"] label,
+    [data-testid="stMetricLabel"] p {
+        white-space: normal !important;
+        word-break: normal !important;
+        overflow-wrap: break-word !important;
+        text-overflow: clip !important;
+        overflow: visible !important;
+        font-size: 0.88rem !important;
+        line-height: 1.25 !important;
+    }
+    [data-testid="stMetricValue"] > div {
+        white-space: normal !important;
+        word-break: normal !important;
+        overflow-wrap: break-word !important;
+        text-overflow: clip !important;
+        overflow: visible !important;
+        font-size: clamp(1.2rem, 1.8vw, 1.65rem) !important;
+        line-height: 1.2 !important;
+    }
+    [data-testid="stMetricDelta"] > div {
+        white-space: normal !important;
+        word-break: normal !important;
+        overflow-wrap: break-word !important;
+        text-overflow: clip !important;
+        overflow: visible !important;
+    }
+
     @keyframes fadeInUp {
         from { opacity: 0; transform: translateY(14px); }
         to { opacity: 1; transform: translateY(0); }
