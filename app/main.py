@@ -388,12 +388,7 @@ def page_mapa() -> None:
         st.divider()
         st.subheader("Opciones de capa")
 
-        # Filtro municipal para capas con división por municipio
-        if show_hexagons or show_municipios:
-            map_municipio = st.selectbox("Municipio", ["Todos"] + list_municipios(full_gdf), key="map_municipio")
-        else:
-            map_municipio = "Todos"
-
+        map_municipios: list[str] = []
         selected_categories = None
         slider_range = None
         slider_min = 0.0
@@ -402,6 +397,14 @@ def page_mapa() -> None:
 
         if show_hexagons:
             metric_key = st.selectbox("Capa del mapa (H3)", list(METRICS.keys()))
+            map_municipios = st.multiselect(
+                "Municipio",
+                options=list_municipios(full_gdf),
+                default=[],
+                placeholder="Todos los municipios",
+                key="map_municipios_h3",
+                help="Selecciona uno o varios municipios para filtrar la malla de hexágonos.",
+            )
             hex_opacity = st.slider(
                 "Opacidad de hexágonos",
                 min_value=0.05,
@@ -457,6 +460,14 @@ def page_mapa() -> None:
         if show_municipios:
             municipio_metric_key = st.selectbox(
                 "Métrica municipal", list(MUNICIPIO_METRICS.keys())
+            )
+            map_municipios = st.multiselect(
+                "Municipio",
+                options=sorted(municipio_master["municipio"].dropna().unique().tolist()),
+                default=[],
+                placeholder="Todos los municipios",
+                key="map_municipios_municipal",
+                help="Selecciona uno o varios municipios para filtrar la capa municipal.",
             )
             m_config = MUNICIPIO_METRICS[municipio_metric_key]
             m_col = m_config["column"]
@@ -634,7 +645,7 @@ def page_mapa() -> None:
         if sel_agro_mun:
             filtered_agro_gdf = filtered_agro_gdf[filtered_agro_gdf["municipio"].isin(sel_agro_mun)]
 
-    filtered_gdf = filter_by_municipio(full_gdf, map_municipio)
+    filtered_gdf = filter_by_municipio(full_gdf, map_municipios if show_hexagons else None)
 
     if show_hexagons:
         metric_config = METRICS[metric_key]
@@ -664,6 +675,10 @@ def page_mapa() -> None:
                 ]
 
     filtered_municipio_master = municipio_master
+    if show_municipios and map_municipios:
+        filtered_municipio_master = filtered_municipio_master[
+            filtered_municipio_master["municipio"].isin(map_municipios)
+        ]
     if show_municipios and m_slider_range is not None:
         m_low, m_high = m_slider_range
         m_tol = m_step * 0.25
@@ -673,21 +688,20 @@ def page_mapa() -> None:
         if m_at_min and m_at_max:
             pass
         elif m_at_max:
-            filtered_municipio_master = municipio_master[municipio_master[m_col] >= (m_low - 1e-6)]
+            filtered_municipio_master = filtered_municipio_master[filtered_municipio_master[m_col] >= (m_low - 1e-6)]
         elif m_at_min:
-            filtered_municipio_master = municipio_master[municipio_master[m_col] <= (m_high + 1e-6)]
+            filtered_municipio_master = filtered_municipio_master[filtered_municipio_master[m_col] <= (m_high + 1e-6)]
         else:
-            filtered_municipio_master = municipio_master[
-                (municipio_master[m_col] >= (m_low - 1e-6)) &
-                (municipio_master[m_col] <= (m_high + 1e-6))
+            filtered_municipio_master = filtered_municipio_master[
+                (filtered_municipio_master[m_col] >= (m_low - 1e-6)) &
+                (filtered_municipio_master[m_col] <= (m_high + 1e-6))
             ]
 
-    if map_municipio != "Todos":
-        st.caption(f"🔍 Filtrando por municipio: **{map_municipio}**")
-
     if show_hexagons:
+        if map_municipios:
+            st.caption(f"🔍 Filtrando por municipio: **{', '.join(map_municipios)}**")
         n_filtrados = len(filtered_gdf)
-        n_total_muni = len(filter_by_municipio(full_gdf, map_municipio))
+        n_total_muni = len(filter_by_municipio(full_gdf, map_municipios))
         if n_filtrados < n_total_muni:
             st.caption(f"🎯 Hexágonos visibles tras filtro de valores/grupos: **{n_filtrados:,}** de **{n_total_muni:,}**")
 
@@ -700,9 +714,12 @@ def page_mapa() -> None:
             )
 
     if show_municipios:
+        if map_municipios:
+            st.caption(f"🔍 Filtrando por municipio: **{', '.join(map_municipios)}**")
         n_muni_filtrados = len(filtered_municipio_master)
-        if n_muni_filtrados < len(municipio_master):
-            st.caption(f"🎯 Municipios visibles tras filtro: **{n_muni_filtrados}** de **{len(municipio_master)}**")
+        n_muni_base = len(municipio_master[municipio_master["municipio"].isin(map_municipios)]) if map_municipios else len(municipio_master)
+        if n_muni_filtrados < n_muni_base:
+            st.caption(f"🎯 Municipios visibles tras filtro: **{n_muni_filtrados}** de **{n_muni_base}**")
         st.caption(f"Leyenda — {municipio_metric_key} (Capa municipal)")
         st.markdown(municipio_legend_html(municipio_metric_key, filtered_municipio_master), unsafe_allow_html=True)
 

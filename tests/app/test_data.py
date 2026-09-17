@@ -84,6 +84,18 @@ def test_filter_by_municipio_filters_matching_rows():
     assert result["h3_index"].tolist() == ["a"]
 
 
+def test_filter_by_municipio_supports_multi_select_list():
+    gdf = _h3_gdf()
+    assert len(filter_by_municipio(gdf, [])) == 3
+    assert len(filter_by_municipio(gdf, ["Todos"])) == 3
+    result_single = filter_by_municipio(gdf, ["Adeje"])
+    assert result_single["h3_index"].tolist() == ["a"]
+    result_multi = filter_by_municipio(gdf, ["Adeje", "Arona"])
+    assert len(result_multi) == 2
+    assert set(result_multi["h3_index"].tolist()) == {"a", "b"}
+
+
+
 def test_clean_accesibilidad_sentinel_converts_999_to_nan():
     df = pd.DataFrame({
         "h3_index": ["a", "b"],

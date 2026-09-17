@@ -449,7 +449,12 @@ def list_municipios(gdf: pd.DataFrame) -> list[str]:
     return sorted(gdf["municipio"].dropna().unique().tolist())
 
 
-def filter_by_municipio(gdf: pd.DataFrame, municipio: str | None) -> pd.DataFrame:
+def filter_by_municipio(gdf: pd.DataFrame, municipio: str | list[str] | None) -> pd.DataFrame:
     if municipio is None or municipio == "Todos":
         return gdf
+    if isinstance(municipio, (list, tuple, set)):
+        if not municipio or "Todos" in municipio:
+            return gdf
+        return gdf[gdf["municipio"].isin(municipio)]
     return gdf[gdf["municipio"] == municipio]
+
