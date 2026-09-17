@@ -87,9 +87,25 @@ def compute_dataset_normalization_bounds(gdf: pd.DataFrame) -> Dict[str, Tuple[f
     return bounds
 
 
+def _safe_float(val: Any, default: float = 0.0) -> float:
+    """
+    Convierte de forma segura cualquier valor a float, sustituyendo None, NaN o inf por default.
+    """
+    if val is None or pd.isna(val):
+        return float(default)
+    try:
+        f = float(val)
+        return float(default) if (np.isnan(f) or np.isinf(f)) else f
+    except (ValueError, TypeError):
+        return float(default)
+
+
 def _norm_val(val: float, mn: float, mx: float) -> float:
-    if mx > mn:
-        return float(np.clip((val - mn) / (mx - mn), 0.0, 1.0))
+    safe_v = _safe_float(val, default=mn)
+    safe_mn = _safe_float(mn, default=0.0)
+    safe_mx = _safe_float(mx, default=1.0)
+    if safe_mx > safe_mn:
+        return float(np.clip((safe_v - safe_mn) / (safe_mx - safe_mn), 0.0, 1.0))
     return 0.0
 
 
@@ -99,19 +115,19 @@ def aggregate_hexagon_group(group_df: pd.DataFrame, label: str, group_type: str)
     representativa para alimentar el motor de simulación.
     """
     n_hex = max(1, len(group_df))
-    total_area = float(group_df["area_km2"].sum() if "area_km2" in group_df.columns else n_hex * 0.737)
-    total_plazas = float(group_df["n_plazas_registro"].sum() if "n_plazas_registro" in group_df.columns else 0.0)
+    total_area = _safe_float(group_df["area_km2"].sum() if "area_km2" in group_df.columns else n_hex * 0.737, default=n_hex * 0.737)
+    total_plazas = _safe_float(group_df["n_plazas_registro"].sum() if "n_plazas_registro" in group_df.columns else 0.0, default=0.0)
 
     # Arquetipo dominante en el grupo (moda)
-    if "arquetipo_principal" in group_df.columns and not group_df["arquetipo_principal"].empty:
-        mode_arch = group_df["arquetipo_principal"].mode()
+    if "arquetipo_principal" in group_df.columns and not group_df["arquetipo_principal"].dropna().empty:
+        mode_arch = group_df["arquetipo_principal"].dropna().mode()
         arch_dom = mode_arch.iloc[0] if not mode_arch.empty else "🌿 Ecoturismo rural"
     else:
         arch_dom = "🌿 Ecoturismo rural"
 
     # Categoría de restricción mayoritaria
-    if "restriction_category" in group_df.columns and not group_df["restriction_category"].empty:
-        mode_rest = group_df["restriction_category"].mode()
+    if "restriction_category" in group_df.columns and not group_df["restriction_category"].dropna().empty:
+        mode_rest = group_df["restriction_category"].dropna().mode()
         rest_dom = mode_rest.iloc[0] if not mode_rest.empty else "Sin restricción"
     else:
         rest_dom = "Sin restricción"
@@ -120,7 +136,7 @@ def aggregate_hexagon_group(group_df: pd.DataFrame, label: str, group_type: str)
     if group_type == "municipio":
         mun_name = label
     else:
-        mun_mode = group_df["municipio"].mode() if "municipio" in group_df.columns else pd.Series()
+        mun_mode = group_df["municipio"].dropna().mode() if "municipio" in group_df.columns else pd.Series()
         mun_name = mun_mode.iloc[0] if not mun_mode.empty else "Insular"
 
     synth_dict = {
@@ -129,30 +145,30 @@ def aggregate_hexagon_group(group_df: pd.DataFrame, label: str, group_type: str)
         "n_hex": n_hex,
         "area_km2": total_area,
         "n_plazas_registro": total_plazas,
-        "tiempo_aeropuerto_min": float(group_df["tiempo_aeropuerto_min"].mean() if "tiempo_aeropuerto_min" in group_df.columns else 40.0),
-        "ndvi_medio": float(group_df["ndvi_medio"].mean() if "ndvi_medio" in group_df.columns else 0.35),
-        "viirs_medio": float(group_df["viirs_medio"].mean() if "viirs_medio" in group_df.columns else 10.0),
-        "ndbi_medio": float(group_df["ndbi_medio"].mean() if "ndbi_medio" in group_df.columns else 0.0),
-        "dist_costa_km": float(group_df["dist_costa_km"].mean() if "dist_costa_km" in group_df.columns else 5.0),
-        "n_establecimientos_registro": float(group_df["n_establecimientos_registro"].sum() if "n_establecimientos_registro" in group_df.columns else 5.0),
-        "slope_mean": float(group_df["slope_mean"].mean() if "slope_mean" in group_df.columns else 10.0),
-        "altitud_media_m": float(group_df["altitud_media_m"].mean() if "altitud_media_m" in group_df.columns else 300.0),
-        "ptna_score": float(group_df["ptna_score"].mean() if "ptna_score" in group_df.columns else 0.0),
-        "esg_h3_score": float(group_df["esg_h3_score"].mean() if "esg_h3_score" in group_df.columns else 52.0),
-        "n_cultura": float(group_df["n_cultura"].sum() if "n_cultura" in group_df.columns else 2.0),
-        "n_restaurantes": float(group_df["n_restaurantes"].sum() if "n_restaurantes" in group_df.columns else 10.0),
-        "n_pois_total": float(group_df["n_pois_total"].sum() if "n_pois_total" in group_df.columns else 20.0),
-        "n_naturaleza": float(group_df["n_naturaleza"].sum() if "n_naturaleza" in group_df.columns else 5.0),
-        "rating_booking_medio": float(group_df["rating_booking_medio"].mean() if "rating_booking_medio" in group_df.columns else 8.1),
-        "temp_media_anual": float(group_df["temp_media_anual"].mean() if "temp_media_anual" in group_df.columns else 21.0),
-        "pct_area_enp": float(group_df["pct_area_enp"].mean() if "pct_area_enp" in group_df.columns else 0.0),
-        "eje_1_saturacion": float(group_df["eje_1_saturacion"].mean() if "eje_1_saturacion" in group_df.columns else 0.25),
-        "eje_2_rural_infrautilizado": float(group_df["eje_2_rural_infrautilizado"].mean() if "eje_2_rural_infrautilizado" in group_df.columns else 0.45),
-        "score_sol_playa": float(group_df["score_sol_playa"].mean() if "score_sol_playa" in group_df.columns else 0.2),
-        "score_ecoturismo": float(group_df["score_ecoturismo"].mean() if "score_ecoturismo" in group_df.columns else 0.5),
-        "score_cultural": float(group_df["score_cultural"].mean() if "score_cultural" in group_df.columns else 0.3),
-        "score_aventura": float(group_df["score_aventura"].mean() if "score_aventura" in group_df.columns else 0.3),
-        "score_bienestar": float(group_df["score_bienestar"].mean() if "score_bienestar" in group_df.columns else 0.4),
+        "tiempo_aeropuerto_min": _safe_float(group_df["tiempo_aeropuerto_min"].dropna().mean() if "tiempo_aeropuerto_min" in group_df.columns else 45.0, default=45.0),
+        "ndvi_medio": _safe_float(group_df["ndvi_medio"].dropna().mean() if "ndvi_medio" in group_df.columns else 0.35, default=0.35),
+        "viirs_medio": _safe_float(group_df["viirs_medio"].dropna().mean() if "viirs_medio" in group_df.columns else 10.0, default=10.0),
+        "ndbi_medio": _safe_float(group_df["ndbi_medio"].dropna().mean() if "ndbi_medio" in group_df.columns else 0.0, default=0.0),
+        "dist_costa_km": _safe_float(group_df["dist_costa_km"].dropna().mean() if "dist_costa_km" in group_df.columns else 5.0, default=5.0),
+        "n_establecimientos_registro": _safe_float(group_df["n_establecimientos_registro"].sum() if "n_establecimientos_registro" in group_df.columns else 5.0, default=5.0),
+        "slope_mean": _safe_float(group_df["slope_mean"].dropna().mean() if "slope_mean" in group_df.columns else 10.0, default=10.0),
+        "altitud_media_m": _safe_float(group_df["altitud_media_m"].dropna().mean() if "altitud_media_m" in group_df.columns else 300.0, default=300.0),
+        "ptna_score": _safe_float(group_df["ptna_score"].dropna().mean() if "ptna_score" in group_df.columns else 0.0, default=0.0),
+        "esg_h3_score": _safe_float(group_df["esg_h3_score"].dropna().mean() if "esg_h3_score" in group_df.columns else 52.0, default=52.0),
+        "n_cultura": _safe_float(group_df["n_cultura"].sum() if "n_cultura" in group_df.columns else 2.0, default=2.0),
+        "n_restaurantes": _safe_float(group_df["n_restaurantes"].sum() if "n_restaurantes" in group_df.columns else 10.0, default=10.0),
+        "n_pois_total": _safe_float(group_df["n_pois_total"].sum() if "n_pois_total" in group_df.columns else 20.0, default=20.0),
+        "n_naturaleza": _safe_float(group_df["n_naturaleza"].sum() if "n_naturaleza" in group_df.columns else 5.0, default=5.0),
+        "rating_booking_medio": _safe_float(group_df["rating_booking_medio"].dropna().mean() if "rating_booking_medio" in group_df.columns else 8.1, default=8.1),
+        "temp_media_anual": _safe_float(group_df["temp_media_anual"].dropna().mean() if "temp_media_anual" in group_df.columns else 21.0, default=21.0),
+        "pct_area_enp": _safe_float(group_df["pct_area_enp"].dropna().mean() if "pct_area_enp" in group_df.columns else 0.0, default=0.0),
+        "eje_1_saturacion": _safe_float(group_df["eje_1_saturacion"].dropna().mean() if "eje_1_saturacion" in group_df.columns else 0.25, default=0.25),
+        "eje_2_rural_infrautilizado": _safe_float(group_df["eje_2_rural_infrautilizado"].dropna().mean() if "eje_2_rural_infrautilizado" in group_df.columns else 0.45, default=0.45),
+        "score_sol_playa": _safe_float(group_df["score_sol_playa"].dropna().mean() if "score_sol_playa" in group_df.columns else 0.2, default=0.2),
+        "score_ecoturismo": _safe_float(group_df["score_ecoturismo"].dropna().mean() if "score_ecoturismo" in group_df.columns else 0.5, default=0.5),
+        "score_cultural": _safe_float(group_df["score_cultural"].dropna().mean() if "score_cultural" in group_df.columns else 0.3, default=0.3),
+        "score_aventura": _safe_float(group_df["score_aventura"].dropna().mean() if "score_aventura" in group_df.columns else 0.3, default=0.3),
+        "score_bienestar": _safe_float(group_df["score_bienestar"].dropna().mean() if "score_bienestar" in group_df.columns else 0.4, default=0.4),
         "arquetipo_principal": arch_dom,
         "es_oportunidad_ideal": bool(group_df["es_oportunidad_ideal"].any() if "es_oportunidad_ideal" in group_df.columns else False),
         "restriction_category": rest_dom,
@@ -173,22 +189,22 @@ def simulate_hexagon_intervention(
     Función pura que ejecuta la proyección matemática instantánea de una intervención territorial.
     Soporta tanto hexágonos individuales como agregaciones macro (municipales o clústeres).
     """
-    n_hex = int(hexagon_data.get("n_hex", 1) or 1)
-    total_area_km2 = float(hexagon_data.get("area_km2", 0.737 * n_hex) or (0.737 * n_hex))
+    n_hex = max(1, int(round(_safe_float(hexagon_data.get("n_hex", 1), default=1.0))))
+    total_area_km2 = _safe_float(hexagon_data.get("area_km2", 0.737 * n_hex), default=0.737 * n_hex)
     if total_area_km2 <= 0.05:
         total_area_km2 = 0.737 * n_hex
 
     # 1. Valores base
-    base_plazas = float(hexagon_data.get("n_plazas_registro", 0.0) or 0.0)
-    base_tiempo = float(hexagon_data.get("tiempo_aeropuerto_min", 45.0) or 45.0)
-    base_ndvi = float(hexagon_data.get("ndvi_medio", 0.35) or 0.35)
-    base_pois = float(hexagon_data.get("n_pois_total", 5.0) or 5.0)
-    base_esg = float(hexagon_data.get("esg_h3_score", 50.0) or 50.0)
-    base_ptna = float(hexagon_data.get("ptna_score", 0.0) or 0.0)
-    base_eje1 = float(hexagon_data.get("eje_1_saturacion", 0.2) or 0.2)
-    base_eje2 = float(hexagon_data.get("eje_2_rural_infrautilizado", 0.4) or 0.4)
+    base_plazas = _safe_float(hexagon_data.get("n_plazas_registro", 0.0), default=0.0)
+    base_tiempo = _safe_float(hexagon_data.get("tiempo_aeropuerto_min", 45.0), default=45.0)
+    base_ndvi = _safe_float(hexagon_data.get("ndvi_medio", 0.35), default=0.35)
+    base_pois = _safe_float(hexagon_data.get("n_pois_total", 5.0), default=5.0)
+    base_esg = _safe_float(hexagon_data.get("esg_h3_score", 50.0), default=50.0)
+    base_ptna = _safe_float(hexagon_data.get("ptna_score", 0.0), default=0.0)
+    base_eje1 = _safe_float(hexagon_data.get("eje_1_saturacion", 0.2), default=0.2)
+    base_eje2 = _safe_float(hexagon_data.get("eje_2_rural_infrautilizado", 0.4), default=0.4)
     base_arquetipo = str(hexagon_data.get("arquetipo_principal", "🌿 Ecoturismo rural"))
-    pct_enp = float(hexagon_data.get("pct_area_enp", 0.0) or 0.0)
+    pct_enp = _safe_float(hexagon_data.get("pct_area_enp", 0.0), default=0.0)
 
     # 2. Nuevos valores absolutos simulados
     sim_plazas = max(0.0, base_plazas + delta_plazas)
@@ -198,9 +214,9 @@ def simulate_hexagon_intervention(
     sim_esg = float(np.clip(base_esg + delta_esg, 0.0, 100.0))
 
     # Estimación de componentes de POIs
-    base_rest = float(hexagon_data.get("n_restaurantes", 2.0) or 2.0)
-    base_cult = float(hexagon_data.get("n_cultura", 1.0) or 1.0)
-    base_nat = float(hexagon_data.get("n_naturaleza", 1.0) or 1.0)
+    base_rest = _safe_float(hexagon_data.get("n_restaurantes", 2.0), default=2.0)
+    base_cult = _safe_float(hexagon_data.get("n_cultura", 1.0), default=1.0)
+    base_nat = _safe_float(hexagon_data.get("n_naturaleza", 1.0), default=1.0)
     sim_rest = max(0.0, base_rest + (delta_pois * 0.5))
     sim_cult = max(0.0, base_cult + (delta_pois * 0.3))
     sim_nat = max(0.0, base_nat + (delta_pois * 0.2))
@@ -218,21 +234,21 @@ def simulate_hexagon_intervention(
     # Se evalúa en escala per cápita de celda para ser invariante a agregación
     sim_plazas_cell = sim_plazas / n_hex
     p_norm = _norm_val(np.log1p(sim_plazas_cell), bounds["log_plazas"][0], bounds["log_plazas"][1])
-    v_norm = _norm_val(np.log1p(float(hexagon_data.get("viirs_medio", 0.0) or 0.0)), bounds["log_viirs"][0], bounds["log_viirs"][1])
-    dist_costa = float(hexagon_data.get("dist_costa_km", 5.0) or 5.0)
+    v_norm = _norm_val(np.log1p(_safe_float(hexagon_data.get("viirs_medio", 0.0), default=0.0)), bounds["log_viirs"][0], bounds["log_viirs"][1])
+    dist_costa = _safe_float(hexagon_data.get("dist_costa_km", 5.0), default=5.0)
     costa_prox = float(np.clip(1.0 - (dist_costa / 10.0), 0.0, 1.0))
 
-    base_establ_cell = (float(hexagon_data.get("n_establecimientos_registro", 1.0) or 1.0)) / n_hex
+    base_establ_cell = (_safe_float(hexagon_data.get("n_establecimientos_registro", 1.0), default=1.0)) / n_hex
     sim_establ_cell = max(0.0, base_establ_cell + ((delta_plazas / n_hex) / 25.0))
     establ_norm = _norm_val(np.log1p(sim_establ_cell), bounds["log_establ"][0], bounds["log_establ"][1])
 
     ndvi_norm = _norm_val(sim_ndvi, bounds["ndvi_medio"][0], bounds["ndvi_medio"][1])
-    base_ndbi = float(hexagon_data.get("ndbi_medio", 0.0) or 0.0)
+    base_ndbi = _safe_float(hexagon_data.get("ndbi_medio", 0.0), default=0.0)
     ndbi_norm = _norm_val(base_ndbi, bounds["ndbi_medio"][0], bounds["ndbi_medio"][1])
     ndbi_inv = float(np.clip(1.0 - ndbi_norm, 0.0, 1.0))
 
-    slope_norm = _norm_val(float(hexagon_data.get("slope_mean", 10.0) or 10.0), bounds["slope_mean"][0], bounds["slope_mean"][1])
-    alt_norm = _norm_val(float(hexagon_data.get("altitud_media_m", 200.0) or 200.0), bounds["altitud_media_m"][0], bounds["altitud_media_m"][1])
+    slope_norm = _norm_val(_safe_float(hexagon_data.get("slope_mean", 10.0), default=10.0), bounds["slope_mean"][0], bounds["slope_mean"][1])
+    alt_norm = _norm_val(_safe_float(hexagon_data.get("altitud_media_m", 200.0), default=200.0), bounds["altitud_media_m"][0], bounds["altitud_media_m"][1])
 
     ptna_norm = _norm_val(sim_ptna, bounds["ptna_score"][0], bounds["ptna_score"][1])
     esg_norm = float(np.clip(sim_esg / 100.0, 0.0, 1.0))
@@ -247,10 +263,10 @@ def simulate_hexagon_intervention(
     pois_norm = _norm_val(np.log1p(pois_cell), bounds["log_pois"][0], bounds["log_pois"][1])
     nat_norm = _norm_val(np.log1p(nat_cell), bounds["log_nat"][0], bounds["log_nat"][1])
 
-    rating_val = float(hexagon_data.get("rating_booking_medio", 8.0) or 8.0)
+    rating_val = _safe_float(hexagon_data.get("rating_booking_medio", 8.0), default=8.0)
     rating_norm = _norm_val(rating_val, bounds["rating_booking_medio"][0], bounds["rating_booking_medio"][1])
 
-    temp_val = float(hexagon_data.get("temp_media_anual", 21.0) or 21.0)
+    temp_val = _safe_float(hexagon_data.get("temp_media_anual", 21.0), default=21.0)
     temp_opt = float(np.clip(1.0 - (abs(temp_val - 21.0) / 10.0), 0.0, 1.0))
 
     # 5. Proyección de Ejes Estratégicos
@@ -285,11 +301,11 @@ def simulate_hexagon_intervention(
     sim_arquetipo = ARCHETYPE_NAMES_MAP[max_arch_key]
 
     base_scores = {
-        "score_sol_playa": float(hexagon_data.get("score_sol_playa", 0.1) or 0.1),
-        "score_ecoturismo": float(hexagon_data.get("score_ecoturismo", 0.4) or 0.4),
-        "score_cultural": float(hexagon_data.get("score_cultural", 0.2) or 0.2),
-        "score_aventura": float(hexagon_data.get("score_aventura", 0.3) or 0.3),
-        "score_bienestar": float(hexagon_data.get("score_bienestar", 0.3) or 0.3),
+        "score_sol_playa": _safe_float(hexagon_data.get("score_sol_playa", 0.1), default=0.1),
+        "score_ecoturismo": _safe_float(hexagon_data.get("score_ecoturismo", 0.4), default=0.4),
+        "score_cultural": _safe_float(hexagon_data.get("score_cultural", 0.2), default=0.2),
+        "score_aventura": _safe_float(hexagon_data.get("score_aventura", 0.3), default=0.3),
+        "score_bienestar": _safe_float(hexagon_data.get("score_bienestar", 0.3), default=0.3),
     }
 
     # 7. Diagnósticos y Alertas Territoriales
@@ -326,14 +342,14 @@ def simulate_hexagon_intervention(
             "es_oportunidad_ideal": is_ideal_opportunity,
         },
         "deltas": {
-            "plazas": sim_plazas - base_plazas,
-            "tiempo_aeropuerto": sim_tiempo - base_tiempo,
-            "ndvi": sim_ndvi - base_ndvi,
-            "pois": sim_pois - base_pois,
-            "esg": sim_esg - base_esg,
-            "ptna": sim_ptna - base_ptna,
-            "eje_1": sim_eje_1 - base_eje1,
-            "eje_2": sim_eje_2 - base_eje2,
+            "plazas": _safe_float(sim_plazas - base_plazas, default=0.0),
+            "tiempo_aeropuerto": _safe_float(sim_tiempo - base_tiempo, default=0.0),
+            "ndvi": _safe_float(sim_ndvi - base_ndvi, default=0.0),
+            "pois": _safe_float(sim_pois - base_pois, default=0.0),
+            "esg": _safe_float(sim_esg - base_esg, default=0.0),
+            "ptna": _safe_float(sim_ptna - base_ptna, default=0.0),
+            "eje_1": _safe_float(sim_eje_1 - base_eje1, default=0.0),
+            "eje_2": _safe_float(sim_eje_2 - base_eje2, default=0.0),
         },
         "alertas": {
             "is_overtourism_risk": is_overtourism_risk,
@@ -676,21 +692,21 @@ def render_simulador_tab(full_gdf: pd.DataFrame) -> None:
 
     # ── 2. Ficha Base de Información (Tarjeta Única Amplia) ──
     st.markdown("##### Información territorial base")
-    n_hex = int(row.get("n_hex", 1) or 1)
-    total_area = float(row.get("area_km2", 0.737 * n_hex) or (0.737 * n_hex))
-    plazas_tot = float(row.get("n_plazas_registro", 0.0) or 0.0)
+    n_hex = max(1, int(round(_safe_float(row.get("n_hex", 1), default=1.0))))
+    total_area = _safe_float(row.get("area_km2", 0.737 * n_hex), default=0.737 * n_hex)
+    plazas_tot = _safe_float(row.get("n_plazas_registro", 0.0), default=0.0)
     dens_plazas = plazas_tot / max(0.1, total_area)
-    ptna_base = float(row.get("ptna_score", 0.0) or 0.0)
-    esg_base = float(row.get("esg_h3_score", 50.0) or 50.0)
-    eje1_base = float(row.get("eje_1_saturacion", 0.2) or 0.2)
-    eje2_base = float(row.get("eje_2_rural_infrautilizado", 0.4) or 0.4)
+    ptna_base = _safe_float(row.get("ptna_score", 0.0), default=0.0)
+    esg_base = _safe_float(row.get("esg_h3_score", 50.0), default=50.0)
+    eje1_base = _safe_float(row.get("eje_1_saturacion", 0.2), default=0.2)
+    eje2_base = _safe_float(row.get("eje_2_rural_infrautilizado", 0.4), default=0.4)
     arch_base = str(row.get("arquetipo_principal", "Ecoturismo rural"))
     rest_cat = str(row.get("restriction_category", "Sin restricción"))
-    pct_enp = float(row.get("pct_area_enp", 0.0) or 0.0)
-    tiempo_aero = float(row.get("tiempo_aeropuerto_min", 40.0) or 40.0)
-    dist_costa = float(row.get("dist_costa_km", 5.0) or 5.0)
-    ndvi_base = float(row.get("ndvi_medio", 0.35) or 0.35)
-    alt_base = float(row.get("altitud_media_m", 300.0) or 300.0)
+    pct_enp = _safe_float(row.get("pct_area_enp", 0.0), default=0.0)
+    tiempo_aero = _safe_float(row.get("tiempo_aeropuerto_min", 40.0), default=40.0)
+    dist_costa = _safe_float(row.get("dist_costa_km", 5.0), default=5.0)
+    ndvi_base = _safe_float(row.get("ndvi_medio", 0.35), default=0.35)
+    alt_base = _safe_float(row.get("altitud_media_m", 300.0), default=300.0)
 
     with st.container(border=True):
         ptna_color = "#27AE60" if ptna_base > 0 else "#E74C3C"
@@ -971,9 +987,10 @@ def render_simulador_tab(full_gdf: pd.DataFrame) -> None:
 
     # ── 6. Banners de Alerta Territorial Inteligente ──
     if alertas["is_enp_conflict"]:
+        plazas_enp_int = int(round(_safe_float(deltas.get("plazas", 0.0), default=0.0)))
         st.warning(
             f"🛡️ **Restricción ambiental:** El ámbito analizado presenta un {alertas['pct_enp']*100:.1f}% de solape con "
-            f"**Espacio Natural Protegido**. La adición de {int(deltas['plazas']):+} plazas está "
+            f"**Espacio Natural Protegido**. La adición de {plazas_enp_int:+d} plazas está "
             f"sujeta a régimen especial de protección ambiental o moratoria turística en Canarias."
         )
 
@@ -1014,12 +1031,17 @@ def render_simulador_tab(full_gdf: pd.DataFrame) -> None:
     st.markdown("##### Diagnóstico estratégico del escenario")
 
     tipo_balance = "favorable" if (deltas["ptna"] >= 0 and deltas["eje_1"] < 0.1) else "de alta presión"
-    if deltas["plazas"] > 0:
-        texto_plazas = f"incremento de **{int(deltas['plazas']):+} plazas**"
-    elif deltas["plazas"] < 0:
-        texto_plazas = f"reducción de **{int(deltas['plazas']):+} plazas** para descompresión"
+    d_plazas_int = int(round(_safe_float(deltas.get("plazas", 0.0), default=0.0)))
+    if d_plazas_int > 0:
+        texto_plazas = f"incremento de **{d_plazas_int:+} plazas**"
+    elif d_plazas_int < 0:
+        texto_plazas = f"reducción de **{d_plazas_int:+} plazas** para descompresión"
     else:
         texto_plazas = "mantenimiento de la capacidad alojativa existente"
+
+    d_tiempo_int = int(round(_safe_float(deltas.get("tiempo_aeropuerto", 0.0), default=0.0)))
+    d_ndvi_flt = _safe_float(deltas.get("ndvi", 0.0), default=0.0)
+    d_esg_flt = _safe_float(deltas.get("esg", 0.0), default=0.0)
 
     conclusiones: List[str] = []
     if alertas["is_overtourism_risk"]:
@@ -1041,8 +1063,8 @@ def render_simulador_tab(full_gdf: pd.DataFrame) -> None:
         f"""
         **Informe ejecutivo para TUI:**
         La simulación planteada para **{ambito_titulo}** contempla un {texto_plazas},
-        una variación en accesibilidad de **{int(deltas['tiempo_aeropuerto']):+} min**, un ajuste en vegetación (NDVI) de **{deltas['ndvi']:+.2f}**,
-        y un balance ESG de **{deltas['esg']:+.1f} puntos**.
+        una variación en accesibilidad de **{d_tiempo_int:+d} min**, un ajuste en vegetación (NDVI) de **{d_ndvi_flt:+.2f}**,
+        y un balance ESG de **{d_esg_flt:+.1f} puntos**.
         
         Como resultado, el índice PTNA evoluciona de **{base['ptna']:+.1f}** a **{sim['ptna']:+.1f}**, mientras que el Eje 1 de saturación
         alcanza **{sim['eje_1']:.3f}** y el Eje 2 de potencial rural se sitúa en **{sim['eje_2']:.3f}**.

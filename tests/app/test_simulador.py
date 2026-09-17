@@ -204,3 +204,45 @@ def test_charts_creation(mock_gdf):
     assert len(fig_matrix.data) == 4
     # Verificar que la leyenda está situada encima para no solaparse
     assert fig_matrix.layout.legend.y >= 1.0
+
+
+def test_simulation_nan_robustness(mock_gdf):
+    """
+    Verifica que la presencia de valores NaN en columnas como tiempo_aeropuerto_min,
+    rating_booking_medio, etc. no provoque excepciones (p.ej. cannot convert float NaN to integer).
+    """
+    bounds = compute_dataset_normalization_bounds(mock_gdf)
+
+    nan_row = pd.Series({
+        "h3_index": "8839446ca3fffff",
+        "municipio": "Buenavista del Norte",
+        "n_hex": 1,
+        "tiempo_aeropuerto_min": np.nan,
+        "rating_booking_medio": np.nan,
+        "area_km2": np.nan,
+        "ptna_score": np.nan,
+        "n_plazas_registro": np.nan,
+        "ndvi_medio": np.nan,
+        "esg_h3_score": np.nan,
+    })
+
+    res = simulate_hexagon_intervention(
+        hexagon_data=nan_row,
+        delta_plazas=50,
+        delta_tiempo_aeropuerto=-10,
+        delta_ndvi=0.05,
+        delta_pois=5,
+        delta_esg=5.0,
+        bounds=bounds,
+    )
+
+    deltas = res["deltas"]
+    # Los deltas nunca deben ser NaN
+    assert not np.isnan(deltas["tiempo_aeropuerto"])
+    assert not np.isnan(deltas["plazas"])
+    assert not np.isnan(deltas["ptna"])
+
+    # Conversión a entero segura (el punto que causó la excepción anterior)
+    int_delta_tiempo = int(deltas["tiempo_aeropuerto"])
+    assert int_delta_tiempo == -10
+
