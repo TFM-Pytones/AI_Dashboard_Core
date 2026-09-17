@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
 
 from app.color_scales import (
@@ -125,6 +126,7 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
             "eje_2_rural_infrautilizado": ":.3f",
             "ptna_score": ":.2f",
             "esg_h3_score": ":.1f",
+            "es_oportunidad_ideal": True,
         },
         labels={
             "eje_1_saturacion": "Eje 1: Saturación turística",
@@ -178,7 +180,53 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
     )
 
     fig_scatter.update_traces(marker=dict(size=7, opacity=0.8))
+
+    # customdata[0] es h3_index (primera clave de hover_data) -- eje_1_saturacion
+    # y eje_2_rural_infrautilizado no ocupan slot propio en customdata porque
+    # Plotly ya los expone via %{x}/%{y} al ser también x e y del scatter
+    # (verificado empíricamente con esta misma estructura de hover_data).
+    oportunidad_por_hexagono = matriz_df.set_index("h3_index")["es_oportunidad_ideal"].to_dict()
+
+    def _resaltar_oportunidad_ideal(trace):
+        es_ideal = [oportunidad_por_hexagono.get(h3, False) for h3 in trace.customdata[:, 0]]
+        trace.marker.size = [9 if ideal else 7 for ideal in es_ideal]
+        trace.marker.symbol = ["star" if ideal else "circle" for ideal in es_ideal]
+
+    fig_scatter.for_each_trace(_resaltar_oportunidad_ideal)
+
+    # Bug de leyenda: marker.symbol es un array por punto (estrella/círculo) en cada
+    # trace real -- Plotly toma el símbolo del PRIMER punto del array como ícono de
+    # leyenda, así que una categoría cuyo primer punto sea es_oportunidad_ideal=True
+    # muestra una estrella en la leyenda aunque tenga ambos símbolos mezclados
+    # (confirmado en navegador: "Rural Agrícola / Medianías Norte" mostraba estrella,
+    # las otras 5 categorías círculo, por puro azar de orden de filas).
+    # Arreglo: una traza "ancla" invisible de un solo punto por categoría, con
+    # symbol="circle" fijo, es la que aparece en la leyenda -- la traza real deja de
+    # mostrarse en la leyenda (showlegend=False) pero comparte legendgroup con su
+    # ancla para que un click en la leyenda oculte/muestre ambas juntas (requiere
+    # legend.groupclick="togglegroup"; por defecto Plotly solo togglea el trace
+    # clicado, que sería la ancla invisible, dejando la traza real siempre visible).
+    anchor_traces = []
+    for trace in fig_scatter.data:
+        legend_group = trace.name
+        trace.legendgroup = legend_group
+        trace.showlegend = False
+        anchor_traces.append(
+            go.Scatter(
+                x=[trace.x[0]],
+                y=[trace.y[0]],
+                mode="markers",
+                marker=dict(color=trace.marker.color, size=7, symbol="circle", opacity=0),
+                name=legend_group,
+                legendgroup=legend_group,
+                showlegend=True,
+                hoverinfo="skip",
+            )
+        )
+    fig_scatter.add_traces(anchor_traces)
+
     fig_scatter.update_layout(
+
         title=dict(
             text="Posicionamiento territorial en la Matriz estratégica: Eje 1 y Eje 2",
             y=0.98,
@@ -192,6 +240,7 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
             y=-0.18,
             xanchor="center",
             x=0.5,
+            groupclick="togglegroup",
         ),
         xaxis=dict(range=[-0.02, 1.05]),
         yaxis=dict(range=[-0.02, 1.05]),
