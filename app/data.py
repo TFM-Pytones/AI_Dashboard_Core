@@ -32,7 +32,8 @@ TURISMO_HOTELERO_MENSUAL_QUERY = "SELECT * FROM gold.gold_turismo_hotelero_mensu
 AENA_PASAJEROS_QUERY = "SELECT * FROM gold.gold_aena_pasajeros"
 TOPICOS_MUNICIPIO_QUERY = "SELECT * FROM gold.gold_topicos_municipio"
 NLP_CHUNKS_QUERY = """
-    SELECT source, text, topic_id, topic_label, municipio
+    SELECT chunk_id, source, source_id, chunk_index, text, topic_id, topic_label,
+           municipio, zona, h3_index, fecha, pais_resenante, rating, processed_at
     FROM gold.nlp_chunks
 """
 H3_CLUSTERS_QUERY = "SELECT h3_index, tipo_zona FROM gold.h3_clusters"
