@@ -51,7 +51,7 @@ def test_merge_h3_data_joins_on_h3_index_and_keeps_unmatched_rows():
 def test_merge_h3_data_includes_restriction_category():
     sentimiento_df = pd.DataFrame({"h3_index": ["a"], "sentimiento_medio": [4.2]})
     merged = merge_h3_data(_h3_gdf(), sentimiento_df)
-    assert merged.loc[merged["h3_index"] == "b", "restriction_category"].iloc[0] == "ENP"
+    assert merged.loc[merged["h3_index"] == "b", "restriction_category"].iloc[0] == "Espacio Natural Protegido"
 
 
 def test_compute_restriction_category_defaults_to_sin_restriccion():
@@ -66,7 +66,7 @@ def test_compute_restriction_category_marks_zona_turistica():
 
 def test_compute_restriction_category_enp_takes_priority_over_zona_turistica():
     result = compute_restriction_category(_h3_gdf())
-    assert result.loc[result["h3_index"] == "b", "restriction_category"].iloc[0] == "ENP"
+    assert result.loc[result["h3_index"] == "b", "restriction_category"].iloc[0] == "Espacio Natural Protegido"
 
 
 def test_list_municipios_returns_sorted_unique_dropping_nan():

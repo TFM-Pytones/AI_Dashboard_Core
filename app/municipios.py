@@ -192,7 +192,6 @@ def render_municipios_tab(
     municipio_empleo_df: pd.DataFrame,
     municipio_mensual_df: pd.DataFrame,
 ) -> None:
-    st.markdown("<div style='margin-top: 1.5rem;'></div>", unsafe_allow_html=True)
     col1, col2 = st.columns([2, 1])
     municipio = col1.selectbox(
         "Municipio", sorted(municipio_master_df["municipio"].dropna().unique().tolist())
@@ -219,17 +218,33 @@ def render_municipios_tab(
     else:
         if not bool(anual_row.get("es_anio_completo", True)):
             st.caption(f"⚠️ Año en curso: datos de solo {int(anual_row['n_meses'])} de 12 meses.")
-        cols = st.columns(4)
-        for i, (column, delta_column, label, kind, help_text) in enumerate(ECONOMIA_KPI_COLUMNS):
+        r1_cols = st.columns(2)
+        for col, item in zip(r1_cols, ECONOMIA_KPI_COLUMNS[:2]):
+            column, delta_column, label, kind, help_text = item
             delta = format_yoy_delta(anual_row.get(delta_column)) if delta_column else None
-            with cols[i % 4].container(border=True):
+            with col.container(border=True):
+                st.metric(label, format_metric(anual_row.get(column), kind), delta=delta, help=help_text)
+
+        r2_cols = st.columns(2)
+        for col, item in zip(r2_cols, ECONOMIA_KPI_COLUMNS[2:]):
+            column, delta_column, label, kind, help_text = item
+            delta = format_yoy_delta(anual_row.get(delta_column)) if delta_column else None
+            with col.container(border=True):
                 st.metric(label, format_metric(anual_row.get(column), kind), delta=delta, help=help_text)
 
         st.subheader("Turismo: vivienda vacacional")
-        cols = st.columns(4)
-        for i, (column, delta_column, label, kind, help_text) in enumerate(TURISMO_VV_KPI_COLUMNS):
+        vv_r1 = st.columns(2)
+        for col, item in zip(vv_r1, TURISMO_VV_KPI_COLUMNS[:2]):
+            column, delta_column, label, kind, help_text = item
             delta = format_yoy_delta(anual_row.get(delta_column)) if delta_column else None
-            with cols[i % 4].container(border=True):
+            with col.container(border=True):
+                st.metric(label, format_metric(anual_row.get(column), kind), delta=delta, help=help_text)
+
+        vv_r2 = st.columns(2)
+        for col, item in zip(vv_r2, TURISMO_VV_KPI_COLUMNS[2:]):
+            column, delta_column, label, kind, help_text = item
+            delta = format_yoy_delta(anual_row.get(delta_column)) if delta_column else None
+            with col.container(border=True):
                 st.metric(label, format_metric(anual_row.get(column), kind), delta=delta, help=help_text)
 
     st.subheader("Evolución")

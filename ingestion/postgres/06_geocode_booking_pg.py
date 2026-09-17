@@ -93,8 +93,14 @@ def clean_address(addr_str):
         
     return addr
 
+try:
+    from azure.storage.blob import BlobServiceClient
+except ImportError:
+    BlobServiceClient = None
+
 def load_cache(engine):
     cache = {}
+    # 1. Cargar desde la tabla de lookup en Azure PostgreSQL
     try:
         query = "SELECT establishment_id, latitud_geocoded, longitud_geocoded FROM bronze.bronze_booking_geocoding_lookup"
         df_db = pd.read_sql(query, engine)
@@ -103,6 +109,29 @@ def load_cache(engine):
         logger.info(f"Cargados {len(cache)} registros cacheados desde PostgreSQL.")
     except Exception as e:
         logger.info("Aun no existe tabla en Postgres para usar de caché o está vacía.")
+        
+    # 2. Cargar desde Azure Blob Storage si hay registros de respaldo
+    try:
+        conn_str = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
+        if conn_str and BlobServiceClient is not None:
+            conn_str = conn_str.strip('"').strip("'")
+            if "AccountName=" not in conn_str and "DefaultEndpointsProtocol=" not in conn_str:
+                conn_str = f"DefaultEndpointsProtocol=https;AccountName=datalaketfmtenerife;AccountKey={conn_str};EndpointSuffix=core.windows.net"
+            blob_service_client = BlobServiceClient.from_connection_string(conn_str)
+            blob_client = blob_service_client.get_blob_client(container="bronce-raw", blob="booking/cache/geocode_booking_cache.json")
+            if blob_client.exists():
+                blob_bytes = blob_client.download_blob().readall()
+                cache_blob = json.loads(blob_bytes.decode('utf-8'))
+                added = 0
+                for k, v in cache_blob.items():
+                    if k not in cache:
+                        cache[k] = v
+                        added += 1
+                if added > 0:
+                    logger.info(f"Cargados {added} registros adicionales desde caché en Azure Blob Storage.")
+    except Exception as e:
+        logger.warning(f"No se pudo consultar caché en Azure Blob Storage: {e}")
+
     return cache
 
 def process_and_geocode():

@@ -32,7 +32,7 @@ def test_compute_summary_stats_pct_con_sentimiento():
 
 def test_compute_summary_stats_restriction_counts():
     stats = compute_summary_stats(_gdf())
-    assert stats["restriction_counts"] == {"ENP": 2, "Sin restricción": 1, "Zona turística oficial": 1}
+    assert stats["restriction_counts"] == {"Espacio Natural Protegido": 2, "Sin restricción": 1, "Zona turística oficial": 1}
 
 
 def test_compute_summary_stats_n_municipios_excludes_null():

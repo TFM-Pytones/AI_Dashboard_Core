@@ -19,6 +19,7 @@ import plotly.express as px
 import streamlit as st
 
 from app.alojamiento import render_alojamiento_tab
+from app.arquetipos import render_arquetipos_tab
 from app.asistente import render_floating_assistant
 from app.clima import render_clima_tab
 from app.color_scales import RESTRICTION_COLOR_MAP_HEX
@@ -28,6 +29,13 @@ from app.data import (
     list_municipios,
     load_accesibilidad,
     load_aena_pasajeros,
+    load_alojamiento_breakdown,
+    load_bienes_culturales,
+    load_clima_anual,
+    load_esg,
+    load_estaciones_agrocabildo,
+    load_gtfs_rutas,
+    load_h3_clusters,
     load_h3_master,
     load_isocronas,
     load_municipio_anual,
@@ -35,23 +43,39 @@ from app.data import (
     load_municipio_master,
     load_municipio_mensual,
     load_nlp_chunks,
+    load_nlp_chunks_count,
+    load_oportunidad,
+    load_ptna,
     load_sentimiento,
     load_topicos_municipio,
     load_turismo_hotelero_anual,
     load_turismo_hotelero_mensual,
     merge_accesibilidad,
+    merge_clusters_and_analytics,
     merge_h3_data,
 )
 from app.detail_panel import render_detail_panel
 from app.map_state import get_selected_h3_index
 from app.map_layers import (
     DEFAULT_HEXAGON_OPACITY,
+    ISOCRONAS_DESTINOS_INFO,
     METRICS,
     MUNICIPIO_METRICS,
+    bic_legend_html,
+    build_bic_layer,
     build_deck,
+    calculate_slider_bounds_and_step,
+    build_estaciones_agrocabildo_layer,
+    build_gtfs_rutas_layer,
     build_highlight_layer,
     build_isocronas_layer,
+    build_isocronas_layers,
+    build_isocronas_origen_pins_layer,
+    build_isocronas_pins_labels_layer,
     build_municipio_layer,
+    estaciones_legend_html,
+    gtfs_legend_html,
+    isocronas_legend_html,
     legend_html,
     list_destinos,
     municipio_legend_html,
@@ -60,6 +84,7 @@ from app.municipios import render_municipios_tab
 from app.rankings import RANKINGS, render_rankings_tab
 from app.summary import compute_summary_stats, restriction_counts_dataframe
 from app.table_view import build_column_glossary, build_table_column_config, filter_table, prepare_table_view
+from app.simulador import render_simulador_tab
 from app.temas import render_temas_tab
 from app.turismo import render_turismo_tab
 from app.ui_helpers import add_chart_motion, format_metric
@@ -69,9 +94,21 @@ st.set_page_config(page_title="AI-Dashboard Tenerife", page_icon="🌋", layout=
 st.markdown(
     """
     <style>
+    /* Barra superior fija limpia: visible con su botón de 3 puntos y rerun, pero sin tapar el scrollbar */
+    header[data-testid="stHeader"] {
+        background: rgba(254, 254, 254, 0.96) !important;
+        backdrop-filter: blur(8px) !important;
+        border-bottom: 1px solid #e5e7eb !important;
+        height: 3.5rem !important;
+        right: 16px !important; /* Deja totalmente libre el deslizador / scrollbar vertical derecho */
+        z-index: 999 !important;
+    }
+
+    /* El contenido de todas las vistas empieza más abajo (4.5rem) para que la barra nunca corte nada */
     .block-container {
-        padding-top: 1rem;
-        max-width: 100%;
+        padding-top: 4.5rem !important;
+        padding-bottom: 2rem !important;
+        max-width: 100% !important;
     }
 
     @keyframes fadeInUp {
@@ -82,7 +119,7 @@ st.markdown(
     .hero-banner {
         position: relative;
         height: 260px;
-        margin: -1rem -1rem 1.5rem -1rem;
+        margin: 0 -1rem 1.5rem -1rem;
         width: calc(100% + 2rem);
         background-size: cover;
         background-position: center 50%;
@@ -168,13 +205,18 @@ with st.spinner("Cargando datos del dashboard..."):
     municipio_empleo = load_municipio_empleo(engine)
     municipio_mensual = load_municipio_mensual(engine)
     topicos_municipio = load_topicos_municipio(engine)
-    nlp_chunks = load_nlp_chunks(engine)
+    n_opiniones = load_nlp_chunks_count(engine)
     turismo_hotelero_anual = load_turismo_hotelero_anual(engine)
     turismo_hotelero_mensual = load_turismo_hotelero_mensual(engine)
     aena_pasajeros = load_aena_pasajeros(engine)
+    clusters = load_h3_clusters(engine)
+    ptna = load_ptna(engine)
+    esg = load_esg(engine)
+    oportunidad = load_oportunidad(engine)
 
     full_gdf = merge_h3_data(h3_master, sentimiento)
     full_gdf = merge_accesibilidad(full_gdf, accesibilidad)
+    full_gdf = merge_clusters_and_analytics(full_gdf, clusters, ptna, esg, oportunidad)
 
 
 def page_resumen() -> None:
@@ -213,19 +255,25 @@ def page_resumen() -> None:
         )
 
     st.subheader("Reparto de restricciones legales")
-    restriction_df = restriction_counts_dataframe(stats["restriction_counts"])
-    fig_restriction = px.bar(restriction_df, x="restriction_category", y="n_hexagonos")
-    # Un solo trace con color por barra via marker_color, en vez de
-    # color="restriction_category" (igual que x): con color=x, Plotly Express
-    # crea un trace distinto por categoria y las centra como si fueran a
-    # agruparse con las demas, dejando cada barra desplazada de su etiqueta
-    # del eje X en vez de centrada encima.
+    medida_restriccion = st.radio(
+        "Unidad de medida:",
+        ["Nº de hexágonos", "Nº de km²"],
+        horizontal=True,
+        key="resumen_medida_restriccion",
+    )
+    is_km2 = medida_restriccion == "Nº de km²"
+    data_dict = stats.get("restriction_areas", {}) if is_km2 else stats.get("restriction_counts", {})
+    y_col = "area_km2" if is_km2 else "n_hexagonos"
+    y_label = "Superficie (km²)" if is_km2 else "Nº de hexágonos"
+
+    restriction_df = restriction_counts_dataframe(data_dict, y_col)
+    fig_restriction = px.bar(restriction_df, x="restriction_category", y=y_col)
     fig_restriction.update_traces(
-        marker_color=[RESTRICTION_COLOR_MAP_HEX[c] for c in restriction_df["restriction_category"]],
+        marker_color=[RESTRICTION_COLOR_MAP_HEX.get(c, "#64748b") for c in restriction_df["restriction_category"]],
         width=0.4,
     )
     fig_restriction.update_layout(
-        xaxis_title=None, yaxis_title="Nº de hexágonos", showlegend=False, height=320
+        xaxis_title=None, yaxis_title=y_label, showlegend=False, height=320
     )
     add_chart_motion(fig_restriction)
     st.plotly_chart(fig_restriction, width="stretch")
@@ -254,6 +302,20 @@ def page_resumen() -> None:
             f"{len(METRICS)} capas de color",
         ),
         (
+            nav_arquetipos,
+            "🎯",
+            "Oportunidades TUI",
+            "Matriz estratégica: Eje 1 y Eje 2, clústeres territoriales y 5 arquetipos de producto.",
+            "5 arquetipos de producto",
+        ),
+        (
+            nav_simulador,
+            "🔮",
+            "Simulador",
+            "Simula hipótesis territoriales (plazas, accesibilidad, NDVI, ESG) y proyecta el impacto en PTNA y arquetipos.",
+            "Modelado what-if instantáneo",
+        ),
+        (
             nav_tabla,
             "📋",
             "Tabla",
@@ -271,7 +333,7 @@ def page_resumen() -> None:
             nav_clima,
             "🌡️",
             "Clima",
-            "Temperatura, lluvia, viento y humedad por trimestre y municipio.",
+            "Temperatura, precipitación, viento y humedad por trimestre, año y municipio.",
             "4 variables climáticas",
         ),
         (
@@ -285,20 +347,20 @@ def page_resumen() -> None:
             nav_alojamiento_temas,
             "🏨",
             "Alojamiento y Opinión",
-            "Reputación y tipo de alojamiento, y qué opinan los visitantes de verdad, extraído con NLP.",
-            f"{format_metric(len(nlp_chunks), 'entero')} opiniones analizadas",
+            "Reputación, plazas y tipo de alojamiento, y qué opinan los visitantes de verdad, extraído con NLP.",
+            f"{format_metric(n_opiniones, 'entero')} opiniones analizadas",
         ),
         (
             nav_turismo,
             "✈️",
             "Turismo",
-            "Ocupación hotelera y tráfico aéreo por polo turístico, con estacionalidad mensual.",
+            "Ocupación hotelera, vivienda vacacional (VV) y tráfico aéreo insular con estacionalidad.",
             f"{aena_pasajeros['aeropuerto_nombre'].nunique()} aeropuertos monitorizados",
         ),
     ]
-    overview_cols = st.columns(4)
+    overview_cols = st.columns(3)
     for i, (page_obj, icon, title, description, highlight) in enumerate(overview_cards):
-        with overview_cols[i % 4].container(border=True):
+        with overview_cols[i % 3].container(border=True):
             st.markdown(f"#### {icon} {title}")
             st.caption(description)
             st.markdown(f"**{highlight}**")
@@ -306,7 +368,6 @@ def page_resumen() -> None:
 
 
 def page_mapa() -> None:
-    st.markdown("<div style='margin-top: 1.5rem;'></div>", unsafe_allow_html=True)
     with st.sidebar:
         st.subheader("Capa activa")
         capa_activa = st.radio(
@@ -314,19 +375,30 @@ def page_mapa() -> None:
             options=[
                 "Malla de hexágonos H3",
                 "Capa municipal",
-                "Isócronas de transporte",
+                "Infraestructuras y patrimonio",
                 "Ninguna (solo mapa satélite)",
             ],
             index=0,
-            help="Solo puede haber una capa visible a la vez para evitar solapamientos.",
+            help="Solo puede haber una categoría activa a la vez para evitar solapamientos visuales.",
         )
         show_hexagons = capa_activa == "Malla de hexágonos H3"
         show_municipios = capa_activa == "Capa municipal"
-        show_isocronas = capa_activa == "Isócronas de transporte"
+        show_infra = capa_activa == "Infraestructuras y patrimonio"
 
         st.divider()
         st.subheader("Opciones de capa")
-        map_municipio = st.selectbox("Municipio", ["Todos"] + list_municipios(full_gdf), key="map_municipio")
+
+        # Filtro municipal para capas con división por municipio
+        if show_hexagons or show_municipios:
+            map_municipio = st.selectbox("Municipio", ["Todos"] + list_municipios(full_gdf), key="map_municipio")
+        else:
+            map_municipio = "Todos"
+
+        selected_categories = None
+        slider_range = None
+        slider_min = 0.0
+        slider_max = 1.0
+        slider_step = 0.01
 
         if show_hexagons:
             metric_key = st.selectbox("Capa del mapa (H3)", list(METRICS.keys()))
@@ -338,20 +410,164 @@ def page_mapa() -> None:
                 step=0.05,
                 help="Más bajo = se ve más el satélite de fondo. Más alto = se ve más el color de los hexágonos.",
             )
+
+            # Filtro por rango numérico o grupos cualitativos
+            metric_config = METRICS[metric_key]
+            col_name = metric_config["column"]
+            scale_type = metric_config.get("scale", "sequential")
+
+            if scale_type == "categorical":
+                available_cats = sorted([
+                    str(c) for c in full_gdf[col_name].dropna().unique().tolist()
+                    if str(c).strip() != "" and str(c) != "nan"
+                ])
+                selected_categories = st.multiselect(
+                    "Filtrar grupos visibles",
+                    options=available_cats,
+                    default=available_cats,
+                    key=f"filter_cats_{metric_key}",
+                    help=f"Selecciona qué grupos o tipologías de {metric_key} mostrar en el mapa.",
+                )
+            elif scale_type in ("sequential", "diverging"):
+                s = full_gdf[col_name].dropna()
+                if not s.empty:
+                    min_val = float(s.min())
+                    max_val = float(s.max())
+                    slider_min, slider_max, slider_step, format_str = calculate_slider_bounds_and_step(
+                        min_val, max_val, metric_config
+                    )
+                    slider_range = st.slider(
+                        "Filtrar por rango de valores",
+                        min_value=slider_min,
+                        max_value=slider_max,
+                        value=(slider_min, slider_max),
+                        step=slider_step,
+                        format=format_str,
+                        key=f"filter_range_{metric_key}",
+                        help=f"Muestra solo los hexágonos con valores dentro de este rango de {metric_key}.",
+                    )
         else:
             metric_key = list(METRICS.keys())[0]
             hex_opacity = DEFAULT_HEXAGON_OPACITY
 
+        m_slider_range = None
+        m_slider_min = 0.0
+        m_slider_max = 100.0
+        m_step = 1.0
         if show_municipios:
             municipio_metric_key = st.selectbox(
                 "Métrica municipal", list(MUNICIPIO_METRICS.keys())
             )
+            m_config = MUNICIPIO_METRICS[municipio_metric_key]
+            m_col = m_config["column"]
+            m_s = municipio_master[m_col].dropna()
+            if not m_s.empty:
+                m_min_raw = float(m_s.min())
+                m_max_raw = float(m_s.max())
+                m_slider_min, m_slider_max, m_step, m_format = calculate_slider_bounds_and_step(
+                    m_min_raw, m_max_raw, m_config
+                )
+                m_slider_range = st.slider(
+                    "Filtrar municipios por rango",
+                    min_value=m_slider_min,
+                    max_value=m_slider_max,
+                    value=(m_slider_min, m_slider_max),
+                    step=m_step,
+                    format=m_format,
+                    key=f"muni_range_{municipio_metric_key}",
+                    help=f"Muestra solo los municipios con valores dentro de este rango de {municipio_metric_key}.",
+                )
         else:
             municipio_metric_key = list(MUNICIPIO_METRICS.keys())[0]
 
-        isocrona_destino = None
-        if show_isocronas:
-            isocrona_destino = st.selectbox("Destino de referencia", list_destinos(isocronas))
+        # Opciones específicas para Infraestructuras y patrimonio
+        subcapa = None
+        isocronas_seleccionadas: list[str] = []
+        sel_bus_mun: list[str] = []
+        sel_bus_lines: list[str] = []
+        sel_bic_mun: list[str] = []
+        sel_agro_mun: list[str] = []
+
+        gtfs_rutas_gdf = None
+        bic_gdf = None
+        estaciones_gdf = None
+
+        if show_infra:
+            subcapa = st.selectbox(
+                "Capa a visualizar",
+                [
+                    "Isócronas de transporte",
+                    "Líneas de guagua (GTFS)",
+                    "Bienes de Interés Cultural (BIC)",
+                    "Estaciones meteorológicas (Agrocabildo)",
+                ],
+            )
+
+            if subcapa == "Isócronas de transporte":
+                isocronas_seleccionadas = st.multiselect(
+                    "Punto de referencia",
+                    options=list(ISOCRONAS_DESTINOS_INFO.keys()),
+                    default=["tfs", "tfn"],
+                    max_selections=3,
+                    format_func=lambda k: ISOCRONAS_DESTINOS_INFO[k]["label"],
+                    help="Puedes seleccionar hasta un máximo de 3 puntos de referencia para evitar que la RAM colapse. Los anillos se apilan de 60 min (fondo) a 15 min (capa superior).",
+                )
+                if len(isocronas_seleccionadas) > 3:
+                    isocronas_seleccionadas = isocronas_seleccionadas[:3]
+
+            elif subcapa == "Líneas de guagua (GTFS)":
+                with st.spinner("Cargando red de guaguas..."):
+                    gtfs_rutas_gdf = load_gtfs_rutas(engine)
+
+                all_gtfs_mun = sorted(
+                    {m.strip() for mun_str in gtfs_rutas_gdf["municipios"].dropna() for m in mun_str.split(",") if m.strip()}
+                )
+                sel_bus_mun = st.multiselect(
+                    "Filtrar por municipio",
+                    options=all_gtfs_mun,
+                    default=[],
+                    placeholder="Todos los municipios",
+                    help="Selecciona uno o más municipios para filtrar las líneas que pasan por ellos.",
+                )
+                temp_bus = gtfs_rutas_gdf
+                if sel_bus_mun:
+                    temp_bus = temp_bus[temp_bus["municipios"].apply(lambda s: any(m in s for m in sel_bus_mun))]
+
+                avail_lines = sorted(
+                    temp_bus["route_short_name"].dropna().unique().tolist(),
+                    key=lambda x: (int(x) if x.isdigit() else 9999, x),
+                )
+                sel_bus_lines = st.multiselect(
+                    "Filtrar por número de línea",
+                    options=avail_lines,
+                    default=[],
+                    placeholder="Todas las líneas",
+                    help="Selecciona una o más líneas concretas (ej. 110, 111, 014).",
+                )
+
+            elif subcapa == "Bienes de Interés Cultural (BIC)":
+                with st.spinner("Cargando Bienes de Interés Cultural (BIC)..."):
+                    bic_gdf = load_bienes_culturales(engine)
+                all_bic_mun = sorted(bic_gdf["municipio"].dropna().unique().tolist())
+                sel_bic_mun = st.multiselect(
+                    "Filtrar por municipio",
+                    options=all_bic_mun,
+                    default=[],
+                    placeholder="Todos los municipios",
+                    help="Selecciona uno o varios municipios para filtrar recintos de patrimonio protegido.",
+                )
+
+            elif subcapa == "Estaciones meteorológicas (Agrocabildo)":
+                with st.spinner("Cargando red meteorológica..."):
+                    estaciones_gdf = load_estaciones_agrocabildo(engine)
+                all_agro_mun = sorted(estaciones_gdf["municipio"].dropna().unique().tolist())
+                sel_agro_mun = st.multiselect(
+                    "Filtrar por municipio",
+                    options=all_agro_mun,
+                    default=[],
+                    placeholder="Todos los municipios",
+                    help="Selecciona uno o varios municipios para filtrar estaciones agroclimáticas activas.",
+                )
 
         st.divider()
         st.subheader("Perspectiva 3D")
@@ -390,12 +606,91 @@ def page_mapa() -> None:
                 "💡 **Mapa base CARTO activo:** Para visualizar la fotografía satelital de fondo de alta resolución, añade tu clave de Mapbox en tu archivo `.env` (`MAPBOX_API_KEY=pk...`)."
             )
 
+    # Filtrados de subcapas de Infraestructuras y patrimonio
+    show_isocronas = show_infra and subcapa == "Isócronas de transporte"
+    show_gtfs = show_infra and subcapa == "Líneas de guagua (GTFS)"
+    show_bic = show_infra and subcapa == "Bienes de Interés Cultural (BIC)"
+    show_estaciones = show_infra and subcapa == "Estaciones meteorológicas (Agrocabildo)"
+
+    filtered_bus_gdf = None
+    if show_gtfs and gtfs_rutas_gdf is not None:
+        filtered_bus_gdf = gtfs_rutas_gdf
+        if sel_bus_mun:
+            filtered_bus_gdf = filtered_bus_gdf[
+                filtered_bus_gdf["municipios"].apply(lambda s: any(m in s for m in sel_bus_mun))
+            ]
+        if sel_bus_lines:
+            filtered_bus_gdf = filtered_bus_gdf[filtered_bus_gdf["route_short_name"].isin(sel_bus_lines)]
+
+    filtered_bic_gdf = None
+    if show_bic and bic_gdf is not None:
+        filtered_bic_gdf = bic_gdf
+        if sel_bic_mun:
+            filtered_bic_gdf = filtered_bic_gdf[filtered_bic_gdf["municipio"].isin(sel_bic_mun)]
+
+    filtered_agro_gdf = None
+    if show_estaciones and estaciones_gdf is not None:
+        filtered_agro_gdf = estaciones_gdf
+        if sel_agro_mun:
+            filtered_agro_gdf = filtered_agro_gdf[filtered_agro_gdf["municipio"].isin(sel_agro_mun)]
+
     filtered_gdf = filter_by_municipio(full_gdf, map_municipio)
+
+    if show_hexagons:
+        metric_config = METRICS[metric_key]
+        col_name = metric_config["column"]
+        scale_type = metric_config.get("scale", "sequential")
+
+        if scale_type == "categorical" and selected_categories is not None:
+            filtered_gdf = filtered_gdf[filtered_gdf[col_name].astype(str).isin(selected_categories)]
+        elif scale_type in ("sequential", "diverging") and slider_range is not None:
+            low, high = slider_range
+            tol = slider_step * 0.25
+            is_at_min = low <= (slider_min + tol)
+            is_at_max = high >= (slider_max - tol)
+
+            if is_at_min and is_at_max:
+                pass
+            elif is_at_max:
+                # Si el usuario tiene el extremo superior al máximo, no recortar por arriba
+                # para que ningún valor máximo se pierda por redondeos o precisión flotante
+                filtered_gdf = filtered_gdf[filtered_gdf[col_name] >= (low - 1e-6)]
+            elif is_at_min:
+                filtered_gdf = filtered_gdf[filtered_gdf[col_name] <= (high + 1e-6)]
+            else:
+                filtered_gdf = filtered_gdf[
+                    (filtered_gdf[col_name] >= (low - 1e-6)) &
+                    (filtered_gdf[col_name] <= (high + 1e-6))
+                ]
+
+    filtered_municipio_master = municipio_master
+    if show_municipios and m_slider_range is not None:
+        m_low, m_high = m_slider_range
+        m_tol = m_step * 0.25
+        m_at_min = m_low <= (m_slider_min + m_tol)
+        m_at_max = m_high >= (m_slider_max - m_tol)
+
+        if m_at_min and m_at_max:
+            pass
+        elif m_at_max:
+            filtered_municipio_master = municipio_master[municipio_master[m_col] >= (m_low - 1e-6)]
+        elif m_at_min:
+            filtered_municipio_master = municipio_master[municipio_master[m_col] <= (m_high + 1e-6)]
+        else:
+            filtered_municipio_master = municipio_master[
+                (municipio_master[m_col] >= (m_low - 1e-6)) &
+                (municipio_master[m_col] <= (m_high + 1e-6))
+            ]
 
     if map_municipio != "Todos":
         st.caption(f"🔍 Filtrando por municipio: **{map_municipio}**")
 
     if show_hexagons:
+        n_filtrados = len(filtered_gdf)
+        n_total_muni = len(filter_by_municipio(full_gdf, map_municipio))
+        if n_filtrados < n_total_muni:
+            st.caption(f"🎯 Hexágonos visibles tras filtro de valores/grupos: **{n_filtrados:,}** de **{n_total_muni:,}**")
+
         st.caption(f"Leyenda — {metric_key}")
         st.markdown(legend_html(metric_key, filtered_gdf), unsafe_allow_html=True)
         if enable_3d:
@@ -405,10 +700,43 @@ def page_mapa() -> None:
             )
 
     if show_municipios:
-        st.caption(f"Leyenda — {municipio_metric_key} (municipios)")
-        st.markdown(municipio_legend_html(municipio_metric_key, municipio_master), unsafe_allow_html=True)
+        n_muni_filtrados = len(filtered_municipio_master)
+        if n_muni_filtrados < len(municipio_master):
+            st.caption(f"🎯 Municipios visibles tras filtro: **{n_muni_filtrados}** de **{len(municipio_master)}**")
+        st.caption(f"Leyenda — {municipio_metric_key} (Capa municipal)")
+        st.markdown(municipio_legend_html(municipio_metric_key, filtered_municipio_master), unsafe_allow_html=True)
+
+    if show_isocronas and isocronas_seleccionadas:
+        nombres_dest = ", ".join(ISOCRONAS_DESTINOS_INFO[d]["label"] for d in isocronas_seleccionadas if d in ISOCRONAS_DESTINOS_INFO)
+        st.caption(f"Leyenda — Isócronas de conducción hacia: **{nombres_dest}**")
+        st.markdown(isocronas_legend_html(), unsafe_allow_html=True)
+
+    if show_gtfs:
+        total_rutas = len(filtered_bus_gdf) if filtered_bus_gdf is not None else 0
+        st.caption(f"Leyenda — Red de Transporte Insular de Guaguas ({total_rutas} trazas seleccionadas)")
+        st.markdown(gtfs_legend_html(), unsafe_allow_html=True)
+
+    if show_bic:
+        total_bics = len(filtered_bic_gdf) if filtered_bic_gdf is not None else 0
+        st.caption(f"Leyenda — Bienes de Interés Cultural protegidos ({total_bics} recintos seleccionados)")
+        st.markdown(bic_legend_html(), unsafe_allow_html=True)
+
+    if show_estaciones:
+        total_est = len(filtered_agro_gdf) if filtered_agro_gdf is not None else 0
+        st.caption(f"Leyenda — Estaciones Meteorológicas de Agrocabildo ({total_est} estaciones seleccionadas)")
+        st.markdown(estaciones_legend_html(), unsafe_allow_html=True)
 
     selected_h3_index = get_selected_h3_index()
+
+    custom_tooltip = None
+    if show_gtfs:
+        custom_tooltip = {"text": "{operador}\nLínea {route_short_name}: {route_long_name}\nMunicipios: {municipios}"}
+    elif show_bic:
+        custom_tooltip = {"text": "{nombre}\nTipo: {tipo}\nMunicipio: {municipio}"}
+    elif show_estaciones:
+        custom_tooltip = {"text": "{nombre_estacion} ({municipio})\nAltitud: {altitud_m} m"}
+    elif show_isocronas:
+        custom_tooltip = {"text": "{label}\n{destino_nombre}\nAlcance: ≤ {rango_min} min"}
 
     deck = build_deck(
         filtered_gdf,
@@ -418,13 +746,26 @@ def page_mapa() -> None:
         is_3d=enable_3d and show_hexagons,
         elevation_scale=elevation_scale,
         pitch=pitch,
+        tooltip=custom_tooltip,
     )
     if show_municipios:
-        deck.layers.append(build_municipio_layer(municipio_master, municipio_metric_key))
-    if show_isocronas and isocrona_destino:
-        deck.layers.append(build_isocronas_layer(isocronas, isocrona_destino))
-    if selected_h3_index:
+        deck.layers.append(build_municipio_layer(filtered_municipio_master, municipio_metric_key))
+    if show_isocronas and isocronas_seleccionadas:
+        # Añade las capas de isócronas en orden: 60 min al fondo, 45 min, 30 min, y 15 min en la parte superior
+        for iso_layer in build_isocronas_layers(isocronas, isocronas_seleccionadas):
+            deck.layers.append(iso_layer)
+        deck.layers.append(build_isocronas_origen_pins_layer(isocronas_seleccionadas))
+        deck.layers.append(build_isocronas_pins_labels_layer(isocronas_seleccionadas))
+    if show_gtfs and filtered_bus_gdf is not None:
+        deck.layers.append(build_gtfs_rutas_layer(filtered_bus_gdf))
+    if show_bic and filtered_bic_gdf is not None:
+        deck.layers.append(build_bic_layer(filtered_bic_gdf))
+    if show_estaciones and filtered_agro_gdf is not None:
+        deck.layers.append(build_estaciones_agrocabildo_layer(filtered_agro_gdf))
+
+    if selected_h3_index and show_hexagons:
         deck.layers.append(build_highlight_layer(selected_h3_index))
+
     st.pydeck_chart(deck, on_select="rerun", selection_mode="single-object", key="h3_map", height=650)
 
     st.divider()
@@ -432,7 +773,6 @@ def page_mapa() -> None:
 
 
 def page_tabla() -> None:
-    st.markdown("<div style='margin-top: 1.5rem;'></div>", unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     tabla_municipio = col1.selectbox(
         "Municipio", ["Todos"] + list_municipios(full_gdf), key="tabla_municipio"
@@ -490,14 +830,20 @@ def page_rankings() -> None:
 
 def page_clima() -> None:
     render_page_banner(
-        "clima_montana.jpg", "Clima", "Temperatura, lluvia, viento y humedad por municipio"
+        "clima_montana.jpg", "Clima", "Temperatura, precipitación, velocidad del viento y humedad relativa por municipio"
     )
     clima_municipio = st.selectbox(
         "Municipio", ["Todos"] + list_municipios(full_gdf), key="clima_municipio"
     )
     if clima_municipio != "Todos":
         st.caption(f"🔍 Filtrando por municipio: **{clima_municipio}**")
-    render_clima_tab(filter_by_municipio(full_gdf, clima_municipio))
+    with st.spinner("Cargando histórico agroclimático..."):
+        clima_anual = load_clima_anual(engine)
+    render_clima_tab(
+        filter_by_municipio(full_gdf, clima_municipio),
+        clima_anual_df=clima_anual,
+        municipio=clima_municipio,
+    )
 
 
 def page_municipios() -> None:
@@ -517,25 +863,59 @@ def page_alojamiento_temas() -> None:
     )
     if alojamiento_municipio != "Todos":
         st.caption(f"🔍 Filtrando por municipio: **{alojamiento_municipio}**")
-    render_alojamiento_tab(filter_by_municipio(full_gdf, alojamiento_municipio))
+    with st.spinner("Cargando desglose de plazas turísticas..."):
+        alojamiento_breakdown = load_alojamiento_breakdown(engine)
+    render_alojamiento_tab(
+        filter_by_municipio(full_gdf, alojamiento_municipio),
+        alojamiento_breakdown_df=alojamiento_breakdown,
+        municipio=alojamiento_municipio,
+    )
 
     st.divider()
 
     st.subheader("💬 Temas y Opinión")
-    render_temas_tab(topicos_municipio, nlp_chunks)
+    with st.spinner("Cargando opiniones cualitativas..."):
+        chunks = load_nlp_chunks(engine)
+    render_temas_tab(topicos_municipio, chunks)
 
 
 def page_turismo() -> None:
     render_page_banner(
         "turismo_playa.jpg",
         "Turismo",
-        "Ocupación hotelera, tráfico aéreo y estacionalidad por polo turístico",
+        "Ocupación hotelera, vivienda vacacional (VV), tráfico aéreo y estacionalidad insular",
     )
-    render_turismo_tab(turismo_hotelero_anual, turismo_hotelero_mensual, aena_pasajeros)
+    render_turismo_tab(
+        turismo_hotelero_anual,
+        turismo_hotelero_mensual,
+        aena_pasajeros,
+        municipio_anual_df=municipio_anual,
+        municipio_mensual_df=municipio_mensual,
+    )
+
+
+def page_arquetipos() -> None:
+    render_page_banner(
+        "hero_puerto_cruz.jpg",
+        "Oportunidades TUI — Arquetipos y Clústeres",
+        "Matriz estratégica: Eje 1 y Eje 2, tipología territorial y catálogo de arquetipos",
+    )
+    render_arquetipos_tab(full_gdf)
+
+
+def page_simulador() -> None:
+    render_page_banner(
+        "alojamiento_hotel.jpg",
+        "Simulador de escenarios",
+        "Modelado de intervenciones territoriales, capacidad de carga y potencial PTNA",
+    )
+    render_simulador_tab(full_gdf)
 
 
 nav_resumen = st.Page(page_resumen, title="Resumen", icon="📊", default=True)
 nav_mapa = st.Page(page_mapa, title="Mapa", icon="🗺️")
+nav_arquetipos = st.Page(page_arquetipos, title="Oportunidades TUI", icon="🎯")
+nav_simulador = st.Page(page_simulador, title="Simulador", icon="🔮")
 nav_tabla = st.Page(page_tabla, title="Tabla", icon="📋")
 nav_rankings = st.Page(page_rankings, title="Rankings", icon="🏆")
 nav_clima = st.Page(page_clima, title="Clima", icon="🌡️")
@@ -546,6 +926,8 @@ nav_turismo = st.Page(page_turismo, title="Turismo", icon="✈️")
 pages = [
     nav_resumen,
     nav_mapa,
+    nav_arquetipos,
+    nav_simulador,
     nav_tabla,
     nav_rankings,
     nav_clima,

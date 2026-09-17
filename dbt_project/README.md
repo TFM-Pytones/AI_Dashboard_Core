@@ -152,7 +152,6 @@ La capa Silver toma las tablas crudas de la capa `bronze.*`, descarta registros 
 ### `clima/`
 * `silver_clima_agrocabildo`: Lecturas horarias depuradas de 57 estaciones maduras del Cabildo (filtradas por fecha de instalación <= 01/01/2022 para evitar discontinuidades y nulos en el histórico), filtrando códigos de error (-999, -9999).
 * `silver_estaciones_agrocabildo`: Metadatos, coordenadas y geometría PostGIS de las 57 estaciones meteorológicas maduras (instaladas <= 2022-01-01).
-* `silver_era5land`: Reanálisis atmosférico ERA5-Land con conversión de unidades (temperatura a °C, precipitación a mm).
 
 ### `istac/`
 * `silver_istac_anual`: Cifras de población, tramos de edad y demografía municipal.
@@ -165,7 +164,6 @@ La capa Silver toma las tablas crudas de la capa `bronze.*`, descarta registros 
 * `silver_gtfs_rutas`: Trazados, cabeceras y frecuencias de líneas de guagua y tranvía.
 
 ### `losviajeros/` — Foros de viajes (NLP)
-* `silver_losviajeros`: Temas del foro LosViajeros con estadísticas de actividad y volumen de mensajes.
 * `silver_losviajeros_mensajes`: Corpus textual de viajeros depurado sin etiquetas HTML.
 
 ### `youtube/` — Redes sociales (NLP)
@@ -227,13 +225,13 @@ Siguiendo las directrices del **Bloque 2 del TFM (Gobernanza y Calidad de Datos)
 | **Silver Booking** | `models/silver/booking/schema.yml` | 2 modelos OTA Booking | 13 pruebas (integridad referencial review-hotel, ratings) |
 | **Silver TripAdvisor** | `models/silver/tripadvisor/schema.yml` | 2 modelos OTA TripAdvisor | 14 pruebas (location_id, reviews limpias > 15 chars) |
 | **Silver YouTube** | `models/silver/youtube/schema.yml` | 2 modelos social video | 12 pruebas (`video_id`, comentarios válidos) |
-| **Silver LosViajeros** | `models/silver/losviajeros/schema.yml` | 2 modelos foros de viajes | Pruebas estructurales de hilos y mensajes |
+| **Silver LosViajeros** | `models/silver/losviajeros/schema.yml` | 1 modelo foros de viajes | Pruebas estructurales de mensajes depurados |
 | **Singular Tests** | `tests/` | Pruebas transversales | `assert_no_personal_data_columns`, `assert_rating_in_range`, etc. |
 
 ### Ejecución de la suite completa de calidad:
 ```bash
 # Desde la raíz del repositorio
-python scratch/run_dbt.py test
+python run_dbt.py test
 
 # O desde dentro de dbt_project/
 dbt test

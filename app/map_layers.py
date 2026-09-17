@@ -1,11 +1,15 @@
 import json
+import math
 import os
+from typing import Any
 
 import pandas as pd
 import pydeck as pdk
 from shapely.geometry import MultiPolygon
 
 from app.color_scales import (
+    ARCHETYPE_COLOR_MAP_RGB,
+    CLUSTER_COLOR_MAP_RGB,
     DIVERGING_SENTIMENT_DOMAIN,
     DIVERGING_SENTIMENT_HIGH,
     DIVERGING_SENTIMENT_LOW,
@@ -15,7 +19,13 @@ from app.color_scales import (
     RESTRICTION_SIN_RESTRICCION,
     RESTRICTION_ZONA_TURISTICA,
     SEQUENTIAL_DENSITY,
+    SEQUENTIAL_EJE1,
+    SEQUENTIAL_EJE2,
+    SEQUENTIAL_ESG,
+    SEQUENTIAL_NDBI,
     SEQUENTIAL_NDVI,
+    SEQUENTIAL_PTNA,
+    SEQUENTIAL_VIIRS,
     categorical_color,
     diverging_color,
     sequential_color,
@@ -31,91 +41,177 @@ TENERIFE_VIEW_STATE = pdk.ViewState(
     latitude=28.29, longitude=-16.62, zoom=9, pitch=0, min_zoom=9, max_zoom=16
 )
 
-METRICS = {
+METRICS: dict[str, dict[str, Any]] = {
+    # ── Tipología Territorial y Estrategia TUI ──
+    "Clústeres territoriales": {
+        "column": "tipo_zona",
+        "scale": "categorical",
+        "unit": "Tipología HDBSCAN",
+        "categories": CLUSTER_COLOR_MAP_RGB,
+    },
+    "Arquetipo TUI óptimo": {
+        "column": "arquetipo_principal",
+        "scale": "categorical",
+        "unit": "Segmento de producto",
+        "categories": ARCHETYPE_COLOR_MAP_RGB,
+    },
+    "Saturación turística": {
+        "column": "eje_1_saturacion",
+        "scale": "sequential",
+        "ramp": SEQUENTIAL_EJE1,
+        "min_max": (0.0, 1.0),
+        "format": "decimal2",
+        "unit": "Índice continuo (0 - 1)",
+    },
+    "Potencial rural y sostenible": {
+        "column": "eje_2_rural_infrautilizado",
+        "scale": "sequential",
+        "ramp": SEQUENTIAL_EJE2,
+        "min_max": (0.0, 1.0),
+        "format": "decimal2",
+        "unit": "Índice continuo (0 - 1)",
+    },
+    "Potencial turístico": {
+        "column": "ptna_score",
+        "scale": "sequential",
+        "ramp": SEQUENTIAL_PTNA,
+        "format": "decimal2",
+        "unit": "Puntuación PTNA (0 - 1)",
+    },
+    "Índice ESG (Sostenibilidad)": {
+        "column": "esg_h3_score",
+        "scale": "sequential",
+        "ramp": SEQUENTIAL_ESG,
+        "format": "decimal",
+        "unit": "Puntuación ESG (0 - 100)",
+    },
+    # ── Análisis de Densidad y Oferta ──
     "Densidad hotelera": {
         "column": "densidad_metric",
         "scale": "sequential",
         "ramp": SEQUENTIAL_DENSITY,
+        "unit": "Plazas turísticas / km²",
     },
     "Sentimiento": {
         "column": "sentimiento_medio",
         "scale": "diverging",
         "domain": DIVERGING_SENTIMENT_DOMAIN,
+        "unit": "Polaridad de reseñas (1.0 - 5.0)",
     },
     "Naturaleza (NDVI)": {
         "column": "ndvi_medio",
         "scale": "sequential",
         "ramp": SEQUENTIAL_NDVI,
+        "unit": "Índice vegetación (-1 a +1)",
     },
-    # Site-selection layers (alojamiento turístico): cada una es una columna
-    # real de gold_h3_master, sin combinarlas en un índice/score inventado.
+    "Luz Nocturna (VIIRS)": {
+        "column": "viirs_medio",
+        "scale": "sequential",
+        "ramp": SEQUENTIAL_VIIRS,
+        "format": "decimal2",
+        "unit": "Radiancia nW/(cm²·sr)",
+    },
+    "Urbanización (NDBI)": {
+        "column": "ndbi_medio",
+        "scale": "sequential",
+        "ramp": SEQUENTIAL_NDBI,
+        "format": "decimal2",
+        "unit": "Índice edificación (-1 a +1)",
+    },
+    # ── Factores de Emplazamiento ──
     "Distancia a la costa": {
         "column": "dist_costa_km",
         "scale": "sequential",
         "ramp": SEQUENTIAL_DENSITY,
+        "unit": "Kilómetros (km)",
     },
     "Puntos de interés turísticos": {
         "column": "n_pois_total",
         "scale": "sequential",
         "ramp": SEQUENTIAL_DENSITY,
+        "unit": "Recursos (POIs)",
     },
     "Pendiente del terreno": {
         "column": "slope_mean",
         "scale": "sequential",
         "ramp": SEQUENTIAL_DENSITY,
+        "unit": "Grados (°)",
     },
     "Restricciones legales": {
         "column": "restriction_category",
         "scale": "categorical",
+        "unit": "Régimen de protección",
         "categories": {
+            "Espacio Natural Protegido": RESTRICTION_ENP,
             "ENP": RESTRICTION_ENP,
             "Zona turística oficial": RESTRICTION_ZONA_TURISTICA,
             "Sin restricción": RESTRICTION_SIN_RESTRICCION,
         },
     },
-    # Accesibilidad real (gold_h3_accesibilidad) -- el centinela 999 ya se
-    # limpia a NaN en app.data.clean_accesibilidad_sentinel antes de llegar aquí.
+    # ── Accesibilidad ──
     "Tiempo al aeropuerto": {
         "column": "tiempo_aeropuerto_min",
         "scale": "sequential",
         "ramp": SEQUENTIAL_DENSITY,
+        "unit": "Minutos en coche",
     },
     "Distancia a hospital": {
         "column": "dist_hospital_km",
         "scale": "sequential",
         "ramp": SEQUENTIAL_DENSITY,
+        "unit": "Kilómetros (km)",
     },
     "Paradas de bus cercanas": {
         "column": "n_paradas_bus_500m",
         "scale": "sequential",
         "ramp": SEQUENTIAL_DENSITY,
+        "unit": "Paradas (< 500m)",
     },
 }
 
 
 def build_fill_color_column(gdf: pd.DataFrame, metric_key: str) -> pd.Series:
     config = METRICS[metric_key]
-    values = gdf[config["column"]]
-    if config["scale"] == "sequential":
-        light_hex, dark_hex = config["ramp"]
+    col = config["column"]
+    values = gdf[col] if col in gdf.columns else pd.Series([None] * len(gdf), index=gdf.index)
+
+    scale = config.get("scale", "sequential")
+    if scale == "categorical":
+        return values.apply(lambda v: categorical_color(v, config.get("categories", {})))
+
+    if scale == "diverging":
+        domain = config.get("domain", DIVERGING_SENTIMENT_DOMAIN)
+        if len(domain) == 3:
+            vmin, vmid, vmax = domain
+        else:
+            vmin, vmax = domain[0], domain[-1]
+            vmid = (vmin + vmax) / 2.0
+        return values.apply(lambda v: diverging_color(v, vmin, vmid, vmax))
+
+    # scale == "sequential"
+    ramp: tuple[str, str] = config.get("ramp", SEQUENTIAL_DENSITY)
+    light_hex, dark_hex = ramp
+    if "min_max" in config:
+        vmin, vmax = config["min_max"]
+    elif "domain" in config and len(config["domain"]) == 2:
+        vmin, vmax = config["domain"]
+    else:
         non_null = values.dropna()
         vmin = float(non_null.min()) if not non_null.empty else 0.0
         vmax = float(non_null.max()) if not non_null.empty else 1.0
-        return values.apply(lambda v: sequential_color(v, vmin, vmax, light_hex, dark_hex))
-    if config["scale"] == "categorical":
-        return values.apply(lambda v: categorical_color(v, config["categories"]))
-    vmin, vmid, vmax = config["domain"]
-    return values.apply(lambda v: diverging_color(v, vmin, vmid, vmax))
+    return values.apply(lambda v: sequential_color(v, vmin, vmax, light_hex, dark_hex))
 
 
 DEFAULT_HEXAGON_OPACITY = 0.4
 
 
-def _tooltip_value_column(gdf: pd.DataFrame, config: dict) -> pd.Series:
-    values = gdf[config["column"]]
-    if config["scale"] == "categorical":
+def _tooltip_value_column(gdf: pd.DataFrame, config: dict[str, Any]) -> pd.Series:
+    col = config["column"]
+    values = gdf[col] if col in gdf.columns else pd.Series([None] * len(gdf), index=gdf.index)
+    if config.get("scale") == "categorical":
         return values.apply(lambda v: "Sin datos" if pd.isna(v) else str(v))
-    return values.apply(lambda v: "Sin datos" if pd.isna(v) else format_metric(v, "decimal"))
+    kind = config.get("format", "decimal")
+    return values.apply(lambda v: "Sin datos" if pd.isna(v) else format_metric(v, kind))
 
 
 def build_layer(
@@ -186,6 +282,7 @@ def build_deck(
     elevation_scale: float = 1.0,
     pitch: int = 50,
     bearing: int = -15,
+    tooltip: dict | None = None,
 ) -> pdk.Deck:
     layers = (
         [
@@ -218,6 +315,8 @@ def build_deck(
         if is_3d
         else f"{{municipio}}\n{metric_key}: {{tooltip_value}}"
     )
+    effective_tooltip = tooltip if tooltip is not None else {"text": tooltip_text}
+
     mapbox_token = os.environ.get("MAPBOX_API_KEY", "").strip()
     if mapbox_token:
         map_provider = "mapbox"
@@ -234,7 +333,7 @@ def build_deck(
         map_provider=map_provider,
         map_style=map_style,
         api_keys=api_keys,
-        tooltip={"text": tooltip_text},
+        tooltip=effective_tooltip,
     )
 
 
@@ -248,47 +347,186 @@ def _gradient_bar_html(gradient_css: str, min_label: str, max_label: str) -> str
     )
 
 
+def _format_legend_color(color) -> str:
+    if isinstance(color, str):
+        return color
+    if isinstance(color, (list, tuple)) and len(color) >= 3:
+        return f"rgb({color[0]},{color[1]},{color[2]})"
+    return "#6b7280"
+
+
+def calculate_slider_bounds_and_step(
+    min_val: float, max_val: float, metric_config: dict[str, Any]
+) -> tuple[float, float, float, str]:
+    """Calcula límites (min, max), paso y formato para el slider evitando pérdidas por redondeo."""
+    if "min_max" in metric_config:
+        c_min, c_max = metric_config["min_max"]
+        min_val = min(min_val, float(c_min))
+        max_val = max(max_val, float(c_max))
+    elif "domain" in metric_config:
+        d = metric_config["domain"]
+        min_val = min(min_val, float(d[0]))
+        max_val = max(max_val, float(d[-1]))
+
+    span = max_val - min_val
+    if span <= 1.05:
+        step = 0.01
+        format_str = "%.2f"
+        slider_min = math.floor(min_val * 100) / 100.0
+        slider_max = math.ceil(max_val * 100) / 100.0
+    elif span <= 10.0:
+        step = 0.1
+        format_str = "%.1f"
+        slider_min = math.floor(min_val * 10) / 10.0
+        slider_max = math.ceil(max_val * 10) / 10.0
+    elif span <= 100.0:
+        step = 1.0
+        format_str = "%.0f"
+        slider_min = float(math.floor(min_val))
+        slider_max = float(math.ceil(max_val))
+    else:
+        step = 5.0 if span <= 500 else 10.0
+        slider_min = float(math.floor(min_val / step) * step)
+        slider_max = float(math.ceil(max_val / step) * step)
+        format_str = "%.0f"
+
+    slider_min = round(slider_min, 4)
+    slider_max = round(slider_max, 4)
+
+    if slider_max <= slider_min:
+        slider_max = slider_min + step
+
+    return slider_min, slider_max, step, format_str
+
+
 def legend_html(metric_key: str, gdf: pd.DataFrame) -> str:
+    if metric_key not in METRICS:
+        return ""
     config = METRICS[metric_key]
+    scale = config.get("scale", "sequential")
+    unit_str = config.get("unit", "")
+    unit_badge = (
+        f'<div style="font-size:0.875rem;color:rgba(250, 250, 250, 0.6);margin-bottom:6px;">Unidad: {unit_str}</div>'
+        if unit_str
+        else ""
+    )
 
-    if config["scale"] == "categorical":
-        chips = "".join(
-            '<span style="display:inline-flex;align-items:center;gap:6px;margin-right:16px;">'
-            f'<span style="width:12px;height:12px;border-radius:3px;background:rgb({r},{g},{b});'
-            f'display:inline-block;"></span>{label}</span>'
-            for label, (r, g, b) in config["categories"].items()
-        )
-        return f'<div style="font-size:0.85rem;padding:4px 0 10px;">{chips}</div>'
+    if scale == "categorical":
+        col = config.get("column")
+        present_values = set(gdf[col].dropna().astype(str).unique()) if (col and col in gdf.columns) else None
+        chips = []
+        for label, color in config.get("categories", {}).items():
+            if present_values is not None and label not in present_values:
+                continue
+            color_css = _format_legend_color(color)
+            chips.append(
+                '<span style="display:inline-flex;align-items:center;gap:6px;margin-right:16px;">'
+                f'<span style="width:12px;height:12px;border-radius:3px;background:{color_css};'
+                f'display:inline-block;"></span>{label}</span>'
+            )
+        return f'{unit_badge}<div style="font-size:0.85rem;padding:2px 0 10px;">{"".join(chips)}</div>'
 
-    if config["scale"] == "diverging":
-        vmin, _vmid, vmax = config["domain"]
+    if scale == "diverging":
+        domain = config.get("domain", DIVERGING_SENTIMENT_DOMAIN)
+        if len(domain) == 3:
+            vmin, _vmid, vmax = domain
+        else:
+            vmin, vmax = domain[0], domain[-1]
         gradient = (
             f"linear-gradient(to right, {DIVERGING_SENTIMENT_LOW}, "
             f"{DIVERGING_SENTIMENT_MID}, {DIVERGING_SENTIMENT_HIGH})"
         )
-        return _gradient_bar_html(gradient, format_metric(vmin, "decimal"), format_metric(vmax, "decimal"))
+        return unit_badge + _gradient_bar_html(gradient, format_metric(vmin, "decimal"), format_metric(vmax, "decimal"))
 
-    light_hex, dark_hex = config["ramp"]
-    values = gdf[config["column"]].dropna()
-    vmin = float(values.min()) if not values.empty else 0.0
-    vmax = float(values.max()) if not values.empty else 1.0
+    # Sequential scale
+    ramp: tuple[str, str] = config.get("ramp", SEQUENTIAL_DENSITY)
+    light_hex, dark_hex = ramp
+    kind = config.get("format", "decimal")
+    if "min_max" in config:
+        vmin, vmax = config["min_max"]
+    elif "domain" in config and len(config["domain"]) == 2:
+        vmin, vmax = config["domain"]
+    else:
+        col = config["column"]
+        if col in gdf.columns:
+            values = gdf[col].dropna()
+            vmin = float(values.min()) if not values.empty else 0.0
+            vmax = float(values.max()) if not values.empty else 1.0
+        else:
+            vmin, vmax = 0.0, 1.0
+
     gradient = f"linear-gradient(to right, {light_hex}, {dark_hex})"
-    return _gradient_bar_html(gradient, format_metric(vmin, "decimal"), format_metric(vmax, "decimal"))
+    return unit_badge + _gradient_bar_html(gradient, format_metric(vmin, kind), format_metric(vmax, kind))
 
 
-# Capa coroplética municipal (gold_municipio_master): un polígono por
-# municipio, coloreado con la misma rampa secuencial genérica que ya usan las
-# métricas de sitio (dist_costa_km, n_pois_total, etc.) en vez de inventar un
-# esquema de color nuevo.
-MUNICIPIO_METRICS = {
-    "Presión residencial": "plazas_por_1000_hab",
-    "Densidad turística": "densidad_plazas_km2",
-    "Evolución de oferta VV": "crec_plazas_vv_pct",
+# ── Capa coroplética municipal ampliada (gold_municipio_master) ──
+MUNICIPIO_METRICS: dict[str, dict[str, Any]] = {
+    "Presión residencial": {
+        "column": "plazas_por_1000_hab",
+        "unit": "Plazas turísticas / 1.000 hab",
+        "format": "decimal",
+    },
+    "Densidad turística": {
+        "column": "densidad_plazas_km2",
+        "unit": "Plazas turísticas / km²",
+        "format": "decimal",
+    },
+    "Evolución de oferta VV": {
+        "column": "crec_plazas_vv_pct",
+        "unit": "Variación porcentual (%)",
+        "format": "pct",
+    },
+    "Población total": {
+        "column": "poblacion_actual",
+        "unit": "Habitantes empadronados",
+        "format": "entero",
+    },
+    "Empleo total registrado": {
+        "column": "empleo_total_actual",
+        "unit": "Afiliados a la Seguridad Social",
+        "format": "entero",
+    },
+    "Dependencia del turismo (% hostelería)": {
+        "column": "pct_dependencia_hosteleria",
+        "unit": "% afiliados en hostelería",
+        "format": "pct",
+    },
+    "Ingresos vivienda vacacional": {
+        "column": "ingresos_vv_actual",
+        "unit": "Euros mensuales estimados",
+        "format": "euro",
+    },
+    "Ocupación vivienda vacacional": {
+        "column": "tasa_ocupacion_vv_actual",
+        "unit": "Tasa de ocupación (%)",
+        "format": "pct",
+    },
+    "Superficie protegida (ENP)": {
+        "column": "pct_area_enp_medio",
+        "unit": "% territorio en Espacio Protegido",
+        "format": "pct",
+    },
+    "Plazas turísticas oficiales": {
+        "column": "n_plazas_registro",
+        "unit": "Plazas oficiales registradas",
+        "format": "entero",
+    },
+    "Recursos turísticos y culturales (POIs)": {
+        "column": "n_pois_total",
+        "unit": "Puntos de interés catalogados",
+        "format": "entero",
+    },
+    "Reputación hotelera (Booking)": {
+        "column": "rating_booking_medio",
+        "unit": "Puntuación media (1 a 10)",
+        "format": "decimal",
+    },
 }
 
 
 def build_municipio_fill_color_column(gdf: pd.DataFrame, metric_key: str) -> pd.Series:
-    column = MUNICIPIO_METRICS[metric_key]
+    config = MUNICIPIO_METRICS[metric_key]
+    column = config["column"]
     light_hex, dark_hex = SEQUENTIAL_DENSITY
     values = gdf[column]
     non_null = values.dropna()
@@ -304,16 +542,15 @@ def _as_multipolygon(geometry):
 
 
 def build_municipio_layer(gdf: pd.DataFrame, metric_key: str, opacity: float = 0.45) -> pdk.Layer:
-    column = MUNICIPIO_METRICS[metric_key]
+    config = MUNICIPIO_METRICS[metric_key]
+    column = config["column"]
+    kind = config.get("format", "decimal")
+    unit = config.get("unit", "")
     gdf = gdf.copy()
     gdf["fill_color"] = build_municipio_fill_color_column(gdf, metric_key)
     gdf["tooltip_value"] = gdf[column].apply(
-        lambda v: "Sin datos" if pd.isna(v) else format_metric(v, "decimal")
+        lambda v: "Sin datos" if pd.isna(v) else f"{format_metric(v, kind)} ({unit})"
     )
-    # deck.gl's GeoJsonLayer throws inside its SolidPolygonLayer sub-layer
-    # when a FeatureCollection mixes Polygon and MultiPolygon features --
-    # gold_municipio_master has both, so every geometry is normalized to
-    # MultiPolygon before serializing.
     gdf["geometry"] = gdf["geometry"].apply(_as_multipolygon)
     geojson = json.loads(gdf[["municipio", "tooltip_value", "fill_color", "geometry"]].to_json())
     return pdk.Layer(
@@ -331,19 +568,99 @@ def build_municipio_layer(gdf: pd.DataFrame, metric_key: str, opacity: float = 0
 
 
 def municipio_legend_html(metric_key: str, gdf: pd.DataFrame) -> str:
-    column = MUNICIPIO_METRICS[metric_key]
+    config = MUNICIPIO_METRICS[metric_key]
+    column = config["column"]
+    unit_str = config.get("unit", "")
+    kind = config.get("format", "decimal")
     light_hex, dark_hex = SEQUENTIAL_DENSITY
     values = gdf[column].dropna()
     vmin = float(values.min()) if not values.empty else 0.0
     vmax = float(values.max()) if not values.empty else 1.0
     gradient = f"linear-gradient(to right, {light_hex}, {dark_hex})"
-    return _gradient_bar_html(gradient, format_metric(vmin, "decimal"), format_metric(vmax, "decimal"))
+    unit_badge = (
+        f'<div style="font-size:0.875rem;color:rgba(250, 250, 250, 0.6);margin-bottom:6px;">Unidad: {unit_str}</div>'
+        if unit_str
+        else ""
+    )
+    return unit_badge + _gradient_bar_html(gradient, format_metric(vmin, kind), format_metric(vmax, kind))
 
 
-# Isócronas (gold.isocronas_visuales): un polígono por (destino, rango_min).
-# Los rangos son fijos (15/30/45/60 min) -- se colorea con la misma rampa
-# secuencial invirtiendo el dominio, para que el anillo más cercano (15 min)
-# sea el más oscuro.
+# ── Isócronas de transporte (gold.isocronas_visuales) ──
+ISOCRONAS_DESTINOS_INFO: dict[str, dict[str, Any]] = {
+    "anaga": {
+        "label": "Parque Rural de Anaga",
+        "coords": [-16.1573, 28.5660],
+    },
+    "extremo_norte": {
+        "label": "Extremo Norte Tenerife (Puerto de la Cruz)",
+        "coords": [-16.5488, 28.4148],
+    },
+    "extremo_sur": {
+        "label": "Extremo Sur Tenerife (Costa Adeje)",
+        "coords": [-16.7356, 28.0805],
+    },
+    "tfn": {
+        "label": "Aeropuerto Tenerife Norte (TFN)",
+        "coords": [-16.3413, 28.4827],
+    },
+    "tfs": {
+        "label": "Aeropuerto Tenerife Sur (TFS)",
+        "coords": [-16.5726, 28.0445],
+    },
+    "capital": {
+        "label": "Santa Cruz de Tenerife (Puerto)",
+        "coords": [-16.2519, 28.4700],
+    },
+    "teide": {
+        "label": "Teleférico del Teide (Base)",
+        "coords": [-16.6214, 28.2547],
+    },
+    "la_laguna": {
+        "label": "San Cristóbal de La Laguna (Patrimonio UNESCO)",
+        "coords": [-16.3155, 28.4871],
+    },
+    "candelaria": {
+        "label": "Basílica de Candelaria",
+        "coords": [-16.3683, 28.3516],
+    },
+    "los_gigantes": {
+        "label": "Acantilados de Los Gigantes",
+        "coords": [-16.8415, 28.2435],
+    },
+    "el_medano": {
+        "label": "El Médano (Playa y Surf)",
+        "coords": [-16.5366, 28.0461],
+    },
+    "garachico": {
+        "label": "Garachico (Casco Histórico)",
+        "coords": [-16.7645, 28.3734],
+    },
+    "masca": {
+        "label": "Caserío de Masca (Parque Rural de Teno)",
+        "coords": [-16.8344, 28.3197],
+    },
+    "la_orotava": {
+        "label": "La Orotava (Valle Norte)",
+        "coords": [-16.5227, 28.3903],
+    },
+    "vilaflor": {
+        "label": "Vilaflor de Chasna",
+        "coords": [-16.6377, 28.1582],
+    },
+    "guimar": {
+        "label": "Pirámides de Güímar",
+        "coords": [-16.4088, 28.3078],
+    },
+    "buenavista": {
+        "label": "Buenavista del Norte (Teno)",
+        "coords": [-16.8897, 28.3722],
+    },
+    "arico": {
+        "label": "Porís de Abona / Arico",
+        "coords": [-16.4648, 28.1655],
+    },
+}
+
 ISOCRONA_DOMAIN_MIN = 15.0
 ISOCRONA_DOMAIN_MAX = 60.0
 
@@ -359,18 +676,225 @@ def build_isocronas_fill_color(rangos: pd.Series) -> pd.Series:
     )
 
 
-def build_isocronas_layer(isocronas_gdf, destino: str) -> pdk.Layer:
-    subset = isocronas_gdf[isocronas_gdf["destino"] == destino].copy()
+def build_isocronas_layers(isocronas_gdf: pd.DataFrame, destinos: list[str] | str, max_destinos: int = 3) -> list[pdk.Layer]:
+    target_destinos = [destinos] if isinstance(destinos, str) else list(destinos)[:max_destinos]
+    subset = isocronas_gdf[isocronas_gdf["destino"].isin(target_destinos)].copy()
     subset["fill_color"] = build_isocronas_fill_color(subset["rango_min"])
-    geojson = json.loads(subset.to_json())
+    subset["destino_nombre"] = subset["destino"].apply(
+        lambda d: ISOCRONAS_DESTINOS_INFO.get(d, {}).get("label", d)
+    )
+
+    # Orden de apilamiento: 60 min al fondo, 45 min, 30 min, y 15 min en la capa superior
+    layers = []
+    for rango in [60.0, 45.0, 30.0, 15.0]:
+        rango_subset = subset[subset["rango_min"] == rango]
+        if not rango_subset.empty:
+            geojson = json.loads(rango_subset[["destino", "destino_nombre", "rango_min", "fill_color", "geometry"]].to_json())
+            layers.append(
+                pdk.Layer(
+                    "GeoJsonLayer",
+                    id=f"isocronas_{int(rango)}min",
+                    data=geojson,
+                    pickable=True,
+                    stroked=True,
+                    filled=True,
+                    get_fill_color="properties.fill_color",
+                    get_line_color=[255, 255, 255, 120],
+                    line_width_min_pixels=1,
+                    opacity=0.45,
+                )
+            )
+    return layers
+
+
+def build_isocronas_layer(isocronas_gdf: pd.DataFrame, destinos: list[str] | str) -> pdk.Layer:
+    target_destinos = [destinos] if isinstance(destinos, str) else list(destinos)
+    subset = isocronas_gdf[isocronas_gdf["destino"].isin(target_destinos)].copy()
+    subset["fill_color"] = build_isocronas_fill_color(subset["rango_min"])
+    subset["destino_nombre"] = subset["destino"].apply(
+        lambda d: ISOCRONAS_DESTINOS_INFO.get(d, {}).get("label", d)
+    )
+    geojson = json.loads(subset[["destino", "destino_nombre", "rango_min", "fill_color", "geometry"]].to_json())
     return pdk.Layer(
         "GeoJsonLayer",
+        id="isocronas",
         data=geojson,
         pickable=True,
         stroked=True,
         filled=True,
         get_fill_color="properties.fill_color",
-        get_line_color=[255, 255, 255],
+        get_line_color=[255, 255, 255, 120],
         line_width_min_pixels=1,
         opacity=0.45,
     )
+
+
+def build_isocronas_origen_pins_layer(destinos: list[str] | str, max_destinos: int = 3) -> pdk.Layer:
+    target_destinos = [destinos] if isinstance(destinos, str) else list(destinos)[:max_destinos]
+    pins_data = []
+    for d in target_destinos:
+        if d in ISOCRONAS_DESTINOS_INFO:
+            info = ISOCRONAS_DESTINOS_INFO[d]
+            pins_data.append({
+                "destino": d,
+                "label": info["label"],
+                "coordinates": info["coords"],
+            })
+    pins_df = pd.DataFrame(pins_data)
+    return pdk.Layer(
+        "ScatterplotLayer",
+        id="isocronas_pins",
+        data=pins_df,
+        pickable=True,
+        opacity=1.0,
+        stroked=True,
+        filled=True,
+        radius_scale=1,
+        radius_min_pixels=8,
+        radius_max_pixels=16,
+        line_width_min_pixels=2.5,
+        get_position="coordinates",
+        get_radius=350,
+        get_fill_color=[239, 68, 68, 255],  # Rojo pin distintivo
+        get_line_color=[255, 255, 255, 255],
+    )
+
+
+def build_isocronas_pins_labels_layer(destinos: list[str] | str, max_destinos: int = 3) -> pdk.Layer:
+    target_destinos = [destinos] if isinstance(destinos, str) else list(destinos)[:max_destinos]
+    pins_data = []
+    for d in target_destinos:
+        if d in ISOCRONAS_DESTINOS_INFO:
+            info = ISOCRONAS_DESTINOS_INFO[d]
+            pins_data.append({
+                "label": f"📍 {info['label']}",
+                "coordinates": info["coords"],
+            })
+    pins_df = pd.DataFrame(pins_data)
+    return pdk.Layer(
+        "TextLayer",
+        id="isocronas_labels",
+        data=pins_df,
+        pickable=False,
+        get_position="coordinates",
+        get_text="label",
+        get_size=12,
+        get_color=[255, 255, 255, 255],
+        get_angle=0,
+        get_text_anchor="'start'",
+        get_alignment_baseline="'center'",
+        get_pixel_offset=[14, 0],
+        background=True,
+        get_background_color=[15, 23, 42, 210],
+    )
+
+
+def isocronas_legend_html() -> str:
+    light_hex, dark_hex = SEQUENTIAL_DENSITY
+    gradient = f"linear-gradient(to right, {dark_hex}, {light_hex})"
+    return (
+        '<div style="font-size:0.875rem;color:rgba(250, 250, 250, 0.6);margin-bottom:6px;">Unidad: Tiempo de conducción (minutos)</div>'
+        + _gradient_bar_html(gradient, "≤ 15 min (zona inmediata / capa superior)", "60 min (periferia / fondo)")
+    )
+
+
+# ── Capas Vectoriales de Apoyo Insular ──
+
+def build_gtfs_rutas_layer(gtfs_gdf: pd.DataFrame, opacity: float = 0.85) -> pdk.Layer:
+    gdf = gtfs_gdf.copy()
+    cols = ["shape_id", "route_short_name", "route_long_name", "operador", "geometry"]
+    if "municipios" in gdf.columns:
+        cols.append("municipios")
+    geojson = json.loads(gdf[cols].to_json())
+    return pdk.Layer(
+        "GeoJsonLayer",
+        id="gtfs_rutas",
+        data=geojson,
+        pickable=True,
+        stroked=True,
+        filled=False,
+        get_line_color=[14, 165, 233, 230],  # Azul celeste vibrante
+        line_width_min_pixels=2.5,
+        opacity=opacity,
+    )
+
+
+def gtfs_legend_html() -> str:
+    return (
+        '<div style="font-size:0.85rem;padding:4px 0 10px;color:#cbd5e1;">'
+        '<div style="font-size:0.875rem;color:rgba(250, 250, 250, 0.6);margin-bottom:6px;">Unidad: Trazado geográfico de líneas de transporte</div>'
+        '<span style="display:inline-flex;align-items:center;gap:8px;">'
+        '<span style="width:24px;height:4px;background:#0ea5e9;display:inline-block;border-radius:2px;"></span>'
+        '<span>Rutas regulares TITSA & Metropolitano de Tenerife</span></span>'
+        '</div>'
+    )
+
+
+def build_bic_layer(bic_gdf: pd.DataFrame, opacity: float = 0.55) -> pdk.Layer:
+    gdf = bic_gdf.copy()
+    gdf["geometry"] = gdf["geometry"].apply(_as_multipolygon)
+    geojson = json.loads(gdf[["id", "nombre", "tipo", "municipio", "geometry"]].to_json())
+    return pdk.Layer(
+        "GeoJsonLayer",
+        id="bic",
+        data=geojson,
+        pickable=True,
+        stroked=True,
+        filled=True,
+        get_fill_color=[245, 158, 11, 150],  # Ámbar patrimonio
+        get_line_color=[217, 119, 6, 255],
+        line_width_min_pixels=2,
+        opacity=opacity,
+    )
+
+
+def bic_legend_html() -> str:
+    return (
+        '<div style="font-size:0.85rem;padding:4px 0 10px;color:#cbd5e1;">'
+        '<div style="font-size:0.875rem;color:rgba(250, 250, 250, 0.6);margin-bottom:6px;">Unidad: Recintos protegidos de Interés Cultural</div>'
+        '<span style="display:inline-flex;align-items:center;gap:8px;">'
+        '<span style="width:14px;height:14px;background:rgba(245,158,11,0.65);border:1.5px solid #d97706;display:inline-block;border-radius:3px;"></span>'
+        '<span>Bienes de Interés Cultural (Gobierno de Canarias / Cabildo)</span></span>'
+        '</div>'
+    )
+
+
+def build_estaciones_agrocabildo_layer(estaciones_gdf: pd.DataFrame) -> pdk.Layer:
+    gdf = estaciones_gdf.copy()
+    if "latitud" in gdf.columns and "longitud" in gdf.columns:
+        gdf["lon"] = gdf["longitud"].astype(float)
+        gdf["lat"] = gdf["latitud"].astype(float)
+    else:
+        gdf["lon"] = gdf.geometry.x
+        gdf["lat"] = gdf.geometry.y
+
+    gdf["coordinates"] = gdf.apply(lambda r: [r["lon"], r["lat"]], axis=1)
+    return pdk.Layer(
+        "ScatterplotLayer",
+        id="estaciones_agrocabildo",
+        data=gdf[["id_estacion", "nombre_estacion", "municipio", "altitud_m", "coordinates"]],
+        pickable=True,
+        opacity=0.9,
+        stroked=True,
+        filled=True,
+        radius_scale=1,
+        radius_min_pixels=6,
+        radius_max_pixels=14,
+        line_width_min_pixels=2,
+        get_position="coordinates",
+        get_radius=250,
+        get_fill_color=[16, 185, 129, 230],  # Verde esmeralda agroclimático
+        get_line_color=[255, 255, 255, 255],
+    )
+
+
+def estaciones_legend_html() -> str:
+    return (
+        '<div style="font-size:0.85rem;padding:4px 0 10px;color:#cbd5e1;">'
+        '<div style="font-size:0.875rem;color:rgba(250, 250, 250, 0.6);margin-bottom:6px;">Unidad: Estación meteorológica activa</div>'
+        '<span style="display:inline-flex;align-items:center;gap:8px;">'
+        '<span style="width:12px;height:12px;border-radius:50%;background:#10b981;border:2px solid white;display:inline-block;"></span>'
+        '<span>Red de estaciones agroclimáticas (Agrocabildo de Tenerife)</span></span>'
+        '</div>'
+    )
+

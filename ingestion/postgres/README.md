@@ -21,7 +21,7 @@ El proceso está modularizado en 7 etapas secuenciales orquestadas por un ejecut
  - Malla H3 Res 8 (2.746 celdas)                                             - MDT25 (IGN/GRAFCAN)
  - ENP, Zonas Turísticas, Límites                                            - Estadísticas zonales en H3
  - POIs OSM, BICs, Oficinas Turismo                                          - Pendiente, Orientación, Hillshade
- - GTFS Paradas y Rutas (PostGIS)                                            ──► bronze.bronze_mdt_h3
+ - GTFS Paradas y Rutas (PostGIS)                                            ──► bronze.bronze_mdt_stats
  ──► bronze.bronze_* (EPSG:4326)
     │                                                                           │
     ▼ FASE 3: Teledetección Satelital                                           ▼ FASE 4: Booking.com
@@ -29,7 +29,7 @@ El proceso está modularizado en 7 etapas secuenciales orquestadas por un ejecut
  - Sentinel-2 (NDVI y NDBI trimestral)                                       - Carga multi-archivo en append
  - VIIRS Luces Nocturnas (Radianza mensual)                                  - Cast de métricas numéricas
  - Flag COVID 2020-2021                                                      ──► bronze.bronze_booking_*
- ──► bronze.bronze_satelite_stats, bronze_viirs_h3
+ ──► bronze.bronze_satelite_stats, bronze_viirs_stats
     │                                                                           │
     ▼ FASE 5: Carga Tabular Masiva (COPY Streaming)                             ▼ FASE 6: Geocodificación Booking
  05_ingest_tabular_to_postgres.py                                            06_geocode_booking_pg.py
@@ -84,13 +84,13 @@ El proceso está modularizado en 7 etapas secuenciales orquestadas por un ejecut
   * **Pendiente (*Slope*)**: Grados de inclinación del terreno [0° - 90°].
   * **Orientación (*Aspect*)**: Grados azimutales [0° - 360°] en sentido horario respecto al Norte geográfico.
   * **Sombreado (*Hillshade*)**: Factor de iluminación de relieve [0 - 255] con sol a azimut 315° (NW) y elevación 45°.
-* **Agregación Espacial**: Mediante `rasterstats.zonal_stats`, extrae media, mínimo, máximo y desviación típica de elevación y pendiente para cada una de las celdas de la malla H3, persistiendo en `bronze_mdt_h3`.
+* **Agregación Espacial**: Mediante `rasterstats.zonal_stats`, extrae media, mínimo, máximo y desviación típica de elevación y pendiente para cada una de las celdas de la malla H3, persistiendo en `bronze_mdt_stats`.
 
 ---
 
 ### [`03_ingest_satelite_to_postgres.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/postgres/03_ingest_satelite_to_postgres.py) — Teledetección Zonal en H3
 * **Sentinel-2**: Cruza los composites trimestrales de reflectancia de Google Earth Engine con los polígonos H3, calculando media y desviación típica de NDVI y NDBI por celda y trimestre. Destino: `bronze_satelite_stats`.
-* **VIIRS Luces Nocturnas**: Cruza la radianza mensual calibrada de NOAA/NASA (`VNP46A2`), incorporando el flag `periodo_covid` (años 2020-2021) para aislar la caída anómala de actividad económica nocturna en los modelos espaciales. Destino: `bronze_viirs_h3`.
+* **VIIRS Luces Nocturnas**: Cruza la radianza mensual calibrada de NOAA/NASA (`VNP46A2`), incorporando el flag `periodo_covid` (años 2020-2021) para aislar la caída anómala de actividad económica nocturna en los modelos espaciales. Destino: `bronze_viirs_stats`.
 
 ---
 

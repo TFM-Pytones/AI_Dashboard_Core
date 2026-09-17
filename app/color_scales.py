@@ -21,10 +21,65 @@ RESTRICTION_ENP = [208, 59, 59]  # #d03b3b -- status critical
 RESTRICTION_ZONA_TURISTICA = [30, 58, 138]  # #1e3a8a -- categorical slot 1 (navy)
 RESTRICTION_SIN_RESTRICCION = [12, 163, 12]  # #0ca30c -- status good
 RESTRICTION_COLOR_MAP_HEX = {
+    "Espacio Natural Protegido": "#d03b3b",
     "ENP": "#d03b3b",
     "Zona turística oficial": "#1e3a8a",
     "Sin restricción": "#0ca30c",
 }
+
+# Clústeres territoriales (gold.h3_clusters): 6 tipologías oficiales HDBSCAN (V1)
+CLUSTER_COLOR_MAP_HEX = {
+    "Espacio Natural / Teide y Cumbre": "#475569",          # Pizarra / volcánico Teide
+    "Espacios Rurales Protegidos (Anaga/Teno)": "#15803d",    # Verde bosque frondoso
+    "Rural Agrícola / Medianías Norte": "#84cc16",          # Verde lima / huerta
+    "Transición Costera y Medianías": "#f59e0b",            # Ámbar / transición conector
+    "Saturado / Overtourism": "#ef4444",                    # Rojo intenso / masificación
+    "Urbano Residencial": "#3b82f6",                        # Azul metropolitano residencial
+}
+CLUSTER_COLOR_MAP_RGB = {
+    "Espacio Natural / Teide y Cumbre": [71, 85, 105],
+    "Espacios Rurales Protegidos (Anaga/Teno)": [21, 128, 61],
+    "Rural Agrícola / Medianías Norte": [132, 204, 22],
+    "Transición Costera y Medianías": [245, 158, 11],
+    "Saturado / Overtourism": [239, 68, 68],
+    "Urbano Residencial": [59, 130, 246],
+}
+
+# Arquetipos de producto turístico TUI
+ARCHETYPE_COLOR_MAP_HEX = {
+    "Sol y playa": "#0284c7",
+    "Ecoturismo rural": "#16a34a",
+    "Cultural y patrimonial": "#7c3aed",
+    "Aventura y activo": "#ea580c",
+    "Bienestar y salud": "#0d9488",
+    # Compatibilidad con datos cacheados
+    "🏖️ Sol y playa": "#0284c7",
+    "🌿 Ecoturismo rural": "#16a34a",
+    "🏛️ Cultural y patrimonial": "#7c3aed",
+    "🏔️ Aventura y activo": "#ea580c",
+    "🧘 Bienestar y salud": "#0d9488",
+}
+ARCHETYPE_COLOR_MAP_RGB = {
+    "Sol y playa": [2, 132, 199],
+    "Ecoturismo rural": [22, 163, 74],
+    "Cultural y patrimonial": [124, 58, 237],
+    "Aventura y activo": [234, 88, 12],
+    "Bienestar y salud": [13, 148, 136],
+    # Compatibilidad con datos cacheados
+    "🏖️ Sol y playa": [2, 132, 199],
+    "🌿 Ecoturismo rural": [22, 163, 74],
+    "🏛️ Cultural y patrimonial": [124, 58, 237],
+    "🏔️ Aventura y activo": [234, 88, 12],
+    "🧘 Bienestar y salud": [13, 148, 136],
+}
+
+# Rampas secuenciales para ejes continuos y métricas satelitales
+SEQUENTIAL_EJE1 = ("#fef3c7", "#b45309")  # Ámbar suave a naranja/rojo quemado (Saturación continua)
+SEQUENTIAL_EJE2 = ("#d1fae5", "#047857")  # Verde menta a esmeralda profundo (Rural infrautilizado)
+SEQUENTIAL_PTNA = ("#e0f2fe", "#0369a1")  # Azul celeste a cobalto (Potencial turístico)
+SEQUENTIAL_ESG = ("#ecfdf5", "#065f46")   # Verde claro a bosque profundo (Score ESG)
+SEQUENTIAL_VIIRS = ("#f3e8ff", "#6b21a8") # Púrpura suave a violeta eléctrico (Luz nocturna)
+SEQUENTIAL_NDBI = ("#ffedd5", "#c2410c")  # Melocotón a terracota (Urbanización NDBI)
 
 # Per-section accent colors (hex, for Plotly charts) -- every tab used the
 # same navy for every chart regardless of what it showed. Each section gets
@@ -35,6 +90,7 @@ ACCENT_TURISMO = "#0891b2"  # teal -- travel/ocean
 ACCENT_TURISMO_AEREO = "#d97706"  # amber -- contrasts hotel (teal) vs. air traffic within Turismo
 ACCENT_ALOJAMIENTO = "#d97706"  # amber -- hospitality/warmth
 ACCENT_TEMAS = "#7c3aed"  # purple -- opinion/insight
+ACCENT_OPORTUNIDADES = "#0284c7"  # sky blue -- TUI opportunities
 
 ACCENT_CLIMA_TEMPERATURA = "#dc2626"  # red -- heat
 ACCENT_CLIMA_LLUVIA = "#2563eb"  # blue -- water

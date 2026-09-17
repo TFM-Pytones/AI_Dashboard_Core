@@ -15,14 +15,14 @@ El pipeline de ingesta sigue un patrón desacoplado en dos niveles para garantiz
 │                                                                                        │
 │  APIs / Web Scraping / WFS / Satélite                                                  │
 │  ├── aena/                  ──> aena_pasajeros_upload_blob.py     ──> aena/*.parquet   │
-│  ├── alojamientos_oficiales/──> alojamientos_oficiales_download.py──> registro/*.json │
+│  ├── alojamientos_oficiales/──> alojamientos_oficiales_download.py──> alojamientos_oficiales/*.parquet│
 │  ├── booking/               ──> booking_scraper.py (Selenium)     ──> booking/*.parquet│
-│  ├── clima/                 ──> clima_*_upload_blob.py (RateLimit)──> clima/*.parquet  │
-│  ├── espacial/              ──> *_upload_blob.py (H3, ENP, POIs)  ──> spatial/*.geojson│
+│  ├── clima/                 ──> clima_*_upload_blob.py (CKAN)     ──> clima/mediciones/│
+│  ├── espacial/              ──> *_upload_blob.py (H3, ENP, POIs)  ──> espacial/*       │
 │  ├── gtfs/                  ──> gtfs_upload_blob.py (TITSA/TITF)  ──> gtfs/*.parquet   │
 │  ├── istac/                 ──> istac_*_upload_blob.py            ──> istac/*.parquet  │
 │  ├── satelite/              ──> sentinel2/viirs_upload_blob.py    ──> satelite/*.tif   │
-│  ├── tripadvisor/           ──> tripadvisor_upload_blob.py        ──> tripadvisor/*.pq │
+│  ├── tripadvisor/           ──> tripadvisor_upload_blob.py        ──> tripadvisor/*.parquet│
 │  └── youtube/               ──> youtube_upload_blob.py (API v3)   ──> youtube/*.parquet│
 └─────────────────────────────────────────┬──────────────────────────────────────────────┘
                                           │
@@ -50,11 +50,11 @@ Cada subcarpeta cuenta con su propia documentación detallada en un `README.md` 
 1. [**`aena/`**](aena/README.md) — Estadísticas de pasajeros comerciales, vuelos y carga para TFS y TFN.
 2. [**`alojamientos_oficiales/`**](alojamientos_oficiales/README.md) — Registros oficiales del Gobierno de Canarias (Hoteles, Extrahoteleros y VV).
 3. [**`booking/`**](booking/README.md) — Scraping automatizado y ético de establecimientos y opiniones en Booking.com.
-4. [**`clima/`**](clima/README.md) — Adquisición en tiempo real e histórica de las 67 estaciones de Agrocabildo con particionamiento Hive.
+4. [**`clima/`**](clima/README.md) — Adquisición en tiempo real e histórica de las 68 estaciones de Agrocabildo vía CKAN con particionamiento Hive.
 5. [**`espacial/`**](espacial/README.md) — Generación de la Malla H3 (Res 8, 2.746 celdas con buffer costero), ENP, zonas turísticas y POIs OSM.
 6. [**`gtfs/`**](gtfs/README.md) — Transporte público regular insular de TITSA y Metropolitano de Tenerife.
 7. [**`istac/`**](istac/README.md) — Series estadísticas municipales del ISTAC (demografía, empleo, EOH, vivienda vacacional).
-8. [**`los_viajeros/`**](los_viajeros/README.md) — Corpus cualitativo de hilos y 167.000 mensajes del foro de viajeros LosViajeros.com.
+8. [**`losviajeros/`**](losviajeros/README.md) — Corpus cualitativo de hilos y 167.000 mensajes del foro de viajeros LosViajeros.com.
 9. [**`postgres/`**](postgres/README.md) — Orquestación del pipeline de carga por lotes hacia el esquema `bronze.*` en Azure PostgreSQL.
 10. [**`satelite/`**](satelite/README.md) — Teledetección con Sentinel-2 (NDVI/NDBI libres de nubes y calima) y VIIRS (luces nocturnas).
 11. [**`tripadvisor/`**](tripadvisor/README.md) — Extracción vía Terra API con filtrado espacial PostGIS y consolidación a Parquet.

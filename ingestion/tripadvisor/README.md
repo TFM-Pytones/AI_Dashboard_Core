@@ -59,6 +59,9 @@ PostgreSQL: silver.silver_tripadvisor_hoteles / silver_tripadvisor_resenas
 * **`bronze_tripadvisor_resenas`**: Identificador de reseña (`review_id`), identificador de establecimiento (`location_id`), texto de la opinión, puntuación numérica (1 a 5 burbujas), fecha de publicación y metadatos brutos en JSON.
 
 En la capa **Silver**, dbt normaliza las escalas de valoración, limpia caracteres especiales y cruza los establecimientos con la malla hexagonal H3.
+### Documentación Legal y Ética (`docs/`)
+* [`resumen_robots_tripadvisor.md`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/tripadvisor/docs/resumen_robots_tripadvisor.md): Análisis de directivas `robots.txt` de TripAdvisor.
+* [`resumen_terminos_servicio.md`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/tripadvisor/docs/resumen_terminos_servicio.md): Evaluación de Términos de Servicio y política de uso de API.
 
 ---
 

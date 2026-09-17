@@ -9,9 +9,13 @@ from app.map_layers import (
     build_highlight_layer,
     build_isocronas_fill_color,
     build_isocronas_layer,
+    build_isocronas_layers,
+    build_isocronas_origen_pins_layer,
+    build_isocronas_pins_labels_layer,
     build_layer,
     build_municipio_fill_color_column,
     build_municipio_layer,
+    calculate_slider_bounds_and_step,
     legend_html,
     list_destinos,
     municipio_legend_html,
@@ -116,6 +120,16 @@ def test_build_isocronas_layer_filters_by_destino_and_returns_geojson_layer():
     assert layer.get_fill_color == "@@=properties.fill_color"
 
 
+def test_build_isocronas_layers_caps_at_max_destinos():
+    # Probar que más de 3 destinos se limitan a un máximo de 3
+    layers = build_isocronas_layers(_isocronas_gdf(), ["tfs", "teide", "otro1", "otro2"], max_destinos=3)
+    assert len(layers) > 0
+    pins_layer = build_isocronas_origen_pins_layer(["tfs", "teide", "otro1", "otro2"], max_destinos=3)
+    # Entre los 4 solo tfs y teide están en el diccionario, pero la lista de entrada se acotó a [:3]
+    labels_layer = build_isocronas_pins_labels_layer(["tfs", "tfn", "teide", "capital"], max_destinos=3)
+    assert len(labels_layer.data) == 3
+
+
 def test_build_layer_returns_pickable_h3_layer():
     layer = build_layer(_gdf(), "Densidad hotelera")
     assert isinstance(layer, pdk.Layer)
@@ -158,7 +172,10 @@ def test_build_layer_accepts_custom_opacity():
 def test_build_highlight_layer_targets_the_selected_hexagon():
     layer = build_highlight_layer("8834413693fffff")
     assert isinstance(layer, pdk.Layer)
-    assert layer.data["h3_index"].tolist() == ["8834413693fffff"]
+    if isinstance(layer.data, list):
+        assert [d["h3_index"] for d in layer.data] == ["8834413693fffff"]
+    else:
+        assert layer.data["h3_index"].tolist() == ["8834413693fffff"]
     assert layer.get_hexagon == "@@=h3_index"
 
 
@@ -311,7 +328,7 @@ def test_build_municipio_layer_includes_municipio_and_formatted_tooltip_value():
     layer = build_municipio_layer(_municipio_gdf(), "Evolución de oferta VV")
     properties = [f["properties"] for f in layer.data["features"]]
     assert [p["municipio"] for p in properties] == ["Adeje", "Arona", "Santa Cruz de Tenerife"]
-    assert properties[0]["tooltip_value"] == "-5,0"
+    assert properties[0]["tooltip_value"].startswith("-5,0%")
 
 
 def test_municipio_legend_html_shows_gradient_with_min_max_labels():
@@ -339,3 +356,25 @@ def test_build_municipio_layer_normalizes_mixed_geometry_types_to_multipolygon()
     layer = build_municipio_layer(gdf, "Densidad turística")
     geometry_types = {f["geometry"]["type"] for f in layer.data["features"]}
     assert geometry_types == {"MultiPolygon"}
+
+
+def test_calculate_slider_bounds_and_step_never_clips_max():
+    # Caso 1: Valores fraccionarios con span <= 1.0 (ej. NDVI -0.1136 a 0.8449)
+    s_min, s_max, step, fmt = calculate_slider_bounds_and_step(-0.1136, 0.8449, {})
+    assert s_max >= 0.8449
+    assert s_min <= -0.1136
+    # Exactitud en múltiplos de step
+    steps_count = round((s_max - s_min) / step)
+    assert abs((s_min + steps_count * step) - s_max) < 1e-6
+
+    # Caso 2: Puntos de interés turístico (377.0)
+    s_min, s_max, step, fmt = calculate_slider_bounds_and_step(0.0, 377.0, {})
+    assert s_max >= 377.0
+    steps_count = round((s_max - s_min) / step)
+    assert abs((s_min + steps_count * step) - s_max) < 1e-6
+
+    # Caso 3: Distancia costa (18.09 km)
+    s_min, s_max, step, fmt = calculate_slider_bounds_and_step(0.0, 18.09, {})
+    assert s_max >= 18.09
+    steps_count = round((s_max - s_min) / step)
+    assert abs((s_min + steps_count * step) - s_max) < 1e-6

@@ -11,6 +11,42 @@ from app.data import filter_by_municipio
 CURATED_COLUMNS = [
     ("municipio", "Municipio", None, "Municipio de Tenerife al que pertenece el hexágono."),
     (
+        "tipo_zona",
+        "Clúster Territorial",
+        None,
+        "Clasificación territorial en 4 tipologías: Saturado/Overtourism, Transición, Rural Infrautilizada, Urbano Sin Turismo.",
+    ),
+    (
+        "arquetipo_principal",
+        "Arquetipo TUI",
+        None,
+        "Arquetipo de producto turístico dominante según el modelo multicriterio.",
+    ),
+    (
+        "eje_1_saturacion",
+        "Eje 1 (Saturación)",
+        "%.2f",
+        "Gradiente continuo de saturación turística (HDBSCAN), de 0 (sin presión) a 1 (saturación máxima).",
+    ),
+    (
+        "eje_2_rural_infrautilizado",
+        "Eje 2 (Rural Infra.)",
+        "%.2f",
+        "Score compuesto de vocación rural y potencial turístico desaprovechado [0-1].",
+    ),
+    (
+        "ptna_score",
+        "Score PTNA",
+        "%.1f",
+        "Puntuación del modelo de Potencial Turístico No Aprovechado.",
+    ),
+    (
+        "esg_h3_score",
+        "Score ESG",
+        "%.1f",
+        "Puntuación de sostenibilidad territorial insular (escala 0-100).",
+    ),
+    (
         "restriction_category",
         "Restricción legal",
         None,
