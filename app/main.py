@@ -29,7 +29,10 @@ from app.data import (
     list_municipios,
     load_accesibilidad,
     load_aena_pasajeros,
+    load_bienes_culturales,
     load_esg,
+    load_estaciones_agrocabildo,
+    load_gtfs_rutas,
     load_h3_clusters,
     load_h3_master,
     load_isocronas,
@@ -53,12 +56,22 @@ from app.detail_panel import render_detail_panel
 from app.map_state import get_selected_h3_index
 from app.map_layers import (
     DEFAULT_HEXAGON_OPACITY,
+    ISOCRONAS_DESTINOS_INFO,
     METRICS,
     MUNICIPIO_METRICS,
+    bic_legend_html,
+    build_bic_layer,
     build_deck,
+    build_estaciones_agrocabildo_layer,
+    build_gtfs_rutas_layer,
     build_highlight_layer,
     build_isocronas_layer,
+    build_isocronas_origen_pins_layer,
+    build_isocronas_pins_labels_layer,
     build_municipio_layer,
+    estaciones_legend_html,
+    gtfs_legend_html,
+    isocronas_legend_html,
     legend_html,
     list_destinos,
     municipio_legend_html,
@@ -225,19 +238,25 @@ def page_resumen() -> None:
         )
 
     st.subheader("Reparto de restricciones legales")
-    restriction_df = restriction_counts_dataframe(stats["restriction_counts"])
-    fig_restriction = px.bar(restriction_df, x="restriction_category", y="n_hexagonos")
-    # Un solo trace con color por barra via marker_color, en vez de
-    # color="restriction_category" (igual que x): con color=x, Plotly Express
-    # crea un trace distinto por categoria y las centra como si fueran a
-    # agruparse con las demas, dejando cada barra desplazada de su etiqueta
-    # del eje X en vez de centrada encima.
+    medida_restriccion = st.radio(
+        "Unidad de medida:",
+        ["Nº de hexágonos", "Nº de km²"],
+        horizontal=True,
+        key="resumen_medida_restriccion",
+    )
+    is_km2 = medida_restriccion == "Nº de km²"
+    data_dict = stats.get("restriction_areas", {}) if is_km2 else stats.get("restriction_counts", {})
+    y_col = "area_km2" if is_km2 else "n_hexagonos"
+    y_label = "Superficie (km²)" if is_km2 else "Nº de hexágonos"
+
+    restriction_df = restriction_counts_dataframe(data_dict, y_col)
+    fig_restriction = px.bar(restriction_df, x="restriction_category", y=y_col)
     fig_restriction.update_traces(
-        marker_color=[RESTRICTION_COLOR_MAP_HEX[c] for c in restriction_df["restriction_category"]],
+        marker_color=[RESTRICTION_COLOR_MAP_HEX.get(c, "#64748b") for c in restriction_df["restriction_category"]],
         width=0.4,
     )
     fig_restriction.update_layout(
-        xaxis_title=None, yaxis_title="Nº de hexágonos", showlegend=False, height=320
+        xaxis_title=None, yaxis_title=y_label, showlegend=False, height=320
     )
     add_chart_motion(fig_restriction)
     st.plotly_chart(fig_restriction, width="stretch")
@@ -334,18 +353,27 @@ def page_mapa() -> None:
                 "Malla de hexágonos H3",
                 "Capa municipal",
                 "Isócronas de transporte",
+                "Líneas de guagua (GTFS)",
+                "Bienes de Interés Cultural (BIC)",
+                "Estaciones meteorológicas (Agrocabildo)",
                 "Ninguna (solo mapa satélite)",
             ],
             index=0,
-            help="Solo puede haber una capa visible a la vez para evitar solapamientos.",
+            help="Solo puede haber una capa activa a la vez para evitar solapamientos visuales.",
         )
         show_hexagons = capa_activa == "Malla de hexágonos H3"
         show_municipios = capa_activa == "Capa municipal"
         show_isocronas = capa_activa == "Isócronas de transporte"
+        show_gtfs = capa_activa == "Líneas de guagua (GTFS)"
+        show_bic = capa_activa == "Bienes de Interés Cultural (BIC)"
+        show_estaciones = capa_activa == "Estaciones meteorológicas (Agrocabildo)"
 
         st.divider()
         st.subheader("Opciones de capa")
-        map_municipio = st.selectbox("Municipio", ["Todos"] + list_municipios(full_gdf), key="map_municipio")
+        if show_hexagons or show_municipios:
+            map_municipio = st.selectbox("Municipio", ["Todos"] + list_municipios(full_gdf), key="map_municipio")
+        else:
+            map_municipio = "Todos"
 
         if show_hexagons:
             metric_key = st.selectbox("Capa del mapa (H3)", list(METRICS.keys()))
@@ -368,9 +396,15 @@ def page_mapa() -> None:
         else:
             municipio_metric_key = list(MUNICIPIO_METRICS.keys())[0]
 
-        isocrona_destino = None
+        isocronas_seleccionadas: list[str] = []
         if show_isocronas:
-            isocrona_destino = st.selectbox("Destino de referencia", list_destinos(isocronas))
+            isocronas_seleccionadas = st.multiselect(
+                "Punto de referencia",
+                options=list(ISOCRONAS_DESTINOS_INFO.keys()),
+                default=["tfs", "tfn"],
+                format_func=lambda k: ISOCRONAS_DESTINOS_INFO[k]["label"],
+                help="Puedes seleccionar uno o varios puntos de referencia para comparar sus áreas de alcance simultáneamente.",
+            )
 
         st.divider()
         st.subheader("Perspectiva 3D")
@@ -409,6 +443,21 @@ def page_mapa() -> None:
                 "💡 **Mapa base CARTO activo:** Para visualizar la fotografía satelital de fondo de alta resolución, añade tu clave de Mapbox en tu archivo `.env` (`MAPBOX_API_KEY=pk...`)."
             )
 
+    gtfs_rutas_gdf = None
+    if show_gtfs:
+        with st.spinner("Cargando trazado insular de guaguas (GTFS)..."):
+            gtfs_rutas_gdf = load_gtfs_rutas(engine)
+
+    bic_gdf = None
+    if show_bic:
+        with st.spinner("Cargando Bienes de Interés Cultural (BIC)..."):
+            bic_gdf = load_bienes_culturales(engine)
+
+    estaciones_gdf = None
+    if show_estaciones:
+        with st.spinner("Cargando red agroclimática de Agrocabildo..."):
+            estaciones_gdf = load_estaciones_agrocabildo(engine)
+
     filtered_gdf = filter_by_municipio(full_gdf, map_municipio)
 
     if map_municipio != "Todos":
@@ -424,10 +473,37 @@ def page_mapa() -> None:
             )
 
     if show_municipios:
-        st.caption(f"Leyenda — {municipio_metric_key} (municipios)")
+        st.caption(f"Leyenda — {municipio_metric_key} (Capa municipal)")
         st.markdown(municipio_legend_html(municipio_metric_key, municipio_master), unsafe_allow_html=True)
 
+    if show_isocronas and isocronas_seleccionadas:
+        nombres_dest = ", ".join(ISOCRONAS_DESTINOS_INFO[d]["label"] for d in isocronas_seleccionadas if d in ISOCRONAS_DESTINOS_INFO)
+        st.caption(f"Leyenda — Isócronas de conducción: **{nombres_dest}**")
+        st.markdown(isocronas_legend_html(), unsafe_allow_html=True)
+
+    if show_gtfs:
+        st.caption("Leyenda — Red de Transporte Insular de Guaguas (TITSA)")
+        st.markdown(gtfs_legend_html(), unsafe_allow_html=True)
+
+    if show_bic:
+        st.caption("Leyenda — Bienes de Interés Cultural protegidos (BIC)")
+        st.markdown(bic_legend_html(), unsafe_allow_html=True)
+
+    if show_estaciones:
+        st.caption("Leyenda — Estaciones Meteorológicas de Agrocabildo")
+        st.markdown(estaciones_legend_html(), unsafe_allow_html=True)
+
     selected_h3_index = get_selected_h3_index()
+
+    custom_tooltip = None
+    if show_gtfs:
+        custom_tooltip = {"text": "{operador}\nLínea {route_short_name}: {route_long_name}"}
+    elif show_bic:
+        custom_tooltip = {"text": "{nombre}\nTipo: {tipo}\nMunicipio: {municipio}"}
+    elif show_estaciones:
+        custom_tooltip = {"text": "{nombre_estacion} ({municipio})\nAltitud: {altitud_m} m"}
+    elif show_isocronas:
+        custom_tooltip = {"text": "{label}\n{destino_nombre}\nAlcance: ≤ {rango_min} min"}
 
     deck = build_deck(
         filtered_gdf,
@@ -437,13 +513,24 @@ def page_mapa() -> None:
         is_3d=enable_3d and show_hexagons,
         elevation_scale=elevation_scale,
         pitch=pitch,
+        tooltip=custom_tooltip,
     )
     if show_municipios:
         deck.layers.append(build_municipio_layer(municipio_master, municipio_metric_key))
-    if show_isocronas and isocrona_destino:
-        deck.layers.append(build_isocronas_layer(isocronas, isocrona_destino))
-    if selected_h3_index:
+    if show_isocronas and isocronas_seleccionadas:
+        deck.layers.append(build_isocronas_layer(isocronas, isocronas_seleccionadas))
+        deck.layers.append(build_isocronas_origen_pins_layer(isocronas_seleccionadas))
+        deck.layers.append(build_isocronas_pins_labels_layer(isocronas_seleccionadas))
+    if show_gtfs and gtfs_rutas_gdf is not None:
+        deck.layers.append(build_gtfs_rutas_layer(gtfs_rutas_gdf))
+    if show_bic and bic_gdf is not None:
+        deck.layers.append(build_bic_layer(bic_gdf))
+    if show_estaciones and estaciones_gdf is not None:
+        deck.layers.append(build_estaciones_agrocabildo_layer(estaciones_gdf))
+
+    if selected_h3_index and show_hexagons:
         deck.layers.append(build_highlight_layer(selected_h3_index))
+
     st.pydeck_chart(deck, on_select="rerun", selection_mode="single-object", key="h3_map", height=650)
 
     st.divider()

@@ -23,6 +23,9 @@ SENTIMIENTO_QUERY = """
 """
 ACCESIBILIDAD_QUERY = "SELECT * FROM gold.gold_h3_accesibilidad"
 ISOCRONAS_QUERY = "SELECT * FROM gold.gold_isocronas_visuales"
+GTFS_RUTAS_QUERY = "SELECT shape_id, route_short_name, route_long_name, operador, ST_Simplify(geometry, 0.0002) AS geometry FROM silver.silver_gtfs_rutas"
+BIENES_CULTURALES_QUERY = "SELECT id, nombre, tipo, municipio, geometry FROM silver.silver_bienes_interes_culturales"
+ESTACIONES_AGROCABILDO_QUERY = "SELECT id_estacion, nombre_estacion, municipio, altitud_m, geometry FROM silver.silver_estaciones_agrocabildo"
 MUNICIPIO_MASTER_QUERY = "SELECT * FROM gold.gold_municipio_master"
 MUNICIPIO_ANUAL_QUERY = "SELECT * FROM gold.gold_municipio_anual"
 MUNICIPIO_EMPLEO_QUERY = "SELECT * FROM gold.gold_municipio_empleo"
@@ -143,6 +146,21 @@ def load_accesibilidad(_engine: Engine) -> pd.DataFrame:
 @st.cache_data
 def load_isocronas(_engine: Engine) -> gpd.GeoDataFrame:
     return gpd.read_postgis(ISOCRONAS_QUERY, _engine, geom_col="geometry")
+
+
+@st.cache_data
+def load_gtfs_rutas(_engine: Engine) -> gpd.GeoDataFrame:
+    return gpd.read_postgis(GTFS_RUTAS_QUERY, _engine, geom_col="geometry")
+
+
+@st.cache_data
+def load_bienes_culturales(_engine: Engine) -> gpd.GeoDataFrame:
+    return gpd.read_postgis(BIENES_CULTURALES_QUERY, _engine, geom_col="geometry")
+
+
+@st.cache_data
+def load_estaciones_agrocabildo(_engine: Engine) -> gpd.GeoDataFrame:
+    return gpd.read_postgis(ESTACIONES_AGROCABILDO_QUERY, _engine, geom_col="geometry")
 
 
 @st.cache_data
@@ -370,7 +388,7 @@ def compute_restriction_category(gdf: pd.DataFrame) -> pd.DataFrame:
     gdf = gdf.copy()
     gdf["restriction_category"] = "Sin restricción"
     gdf.loc[gdf["pct_area_zona_turistica"] > 0, "restriction_category"] = "Zona turística oficial"
-    gdf.loc[gdf["pct_area_enp"] > 0, "restriction_category"] = "ENP"
+    gdf.loc[gdf["pct_area_enp"] > 0, "restriction_category"] = "Espacio Natural Protegido"
     return gdf
 
 

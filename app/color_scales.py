@@ -21,6 +21,7 @@ RESTRICTION_ENP = [208, 59, 59]  # #d03b3b -- status critical
 RESTRICTION_ZONA_TURISTICA = [30, 58, 138]  # #1e3a8a -- categorical slot 1 (navy)
 RESTRICTION_SIN_RESTRICCION = [12, 163, 12]  # #0ca30c -- status good
 RESTRICTION_COLOR_MAP_HEX = {
+    "Espacio Natural Protegido": "#d03b3b",
     "ENP": "#d03b3b",
     "Zona turística oficial": "#1e3a8a",
     "Sin restricción": "#0ca30c",
