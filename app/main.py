@@ -309,6 +309,13 @@ def page_resumen() -> None:
             "5 arquetipos de producto",
         ),
         (
+            nav_simulador,
+            "🔮",
+            "Simulador",
+            "Simula hipótesis territoriales (plazas, accesibilidad, NDVI, ESG) y proyecta el impacto en PTNA y arquetipos.",
+            "Modelado what-if instantáneo",
+        ),
+        (
             nav_tabla,
             "📋",
             "Tabla",
@@ -351,9 +358,9 @@ def page_resumen() -> None:
             f"{aena_pasajeros['aeropuerto_nombre'].nunique()} aeropuertos monitorizados",
         ),
     ]
-    overview_cols = st.columns(4)
+    overview_cols = st.columns(3)
     for i, (page_obj, icon, title, description, highlight) in enumerate(overview_cards):
-        with overview_cols[i % 4].container(border=True):
+        with overview_cols[i % 3].container(border=True):
             st.markdown(f"#### {icon} {title}")
             st.caption(description)
             st.markdown(f"**{highlight}**")
