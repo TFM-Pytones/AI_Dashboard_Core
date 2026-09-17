@@ -84,6 +84,7 @@ from app.municipios import render_municipios_tab
 from app.rankings import RANKINGS, render_rankings_tab
 from app.summary import compute_summary_stats, restriction_counts_dataframe
 from app.table_view import build_column_glossary, build_table_column_config, filter_table, prepare_table_view
+from app.simulador import render_simulador_tab
 from app.temas import render_temas_tab
 from app.turismo import render_turismo_tab
 from app.ui_helpers import add_chart_motion, format_metric
@@ -895,9 +896,19 @@ def page_arquetipos() -> None:
     render_arquetipos_tab(full_gdf)
 
 
+def page_simulador() -> None:
+    render_page_banner(
+        "alojamiento_hotel.jpg",
+        "Simulador de escenarios",
+        "Modelado de intervenciones territoriales, capacidad de carga y potencial PTNA",
+    )
+    render_simulador_tab(full_gdf)
+
+
 nav_resumen = st.Page(page_resumen, title="Resumen", icon="📊", default=True)
 nav_mapa = st.Page(page_mapa, title="Mapa", icon="🗺️")
 nav_arquetipos = st.Page(page_arquetipos, title="Oportunidades TUI", icon="🎯")
+nav_simulador = st.Page(page_simulador, title="Simulador", icon="🔮")
 nav_tabla = st.Page(page_tabla, title="Tabla", icon="📋")
 nav_rankings = st.Page(page_rankings, title="Rankings", icon="🏆")
 nav_clima = st.Page(page_clima, title="Clima", icon="🌡️")
@@ -909,6 +920,7 @@ pages = [
     nav_resumen,
     nav_mapa,
     nav_arquetipos,
+    nav_simulador,
     nav_tabla,
     nav_rankings,
     nav_clima,
