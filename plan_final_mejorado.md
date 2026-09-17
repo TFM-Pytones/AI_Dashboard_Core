@@ -1297,7 +1297,7 @@ pip install streamlit pydeck sqlalchemy geopandas pandas plotly wordcloud
        - *Evolución de Oferta:* `crec_plazas_vv_pct` (2022 vs 2025/2026).
      - Al hacer clic en un municipio: centrado automático de cámara y filtrado de los hexágonos H3 pertenecientes a dicho término municipal.
   2. **Capa Microespacial Hexagonal H3 (`PolygonLayer`):**
-     - Malla de 2.746 celdas desde `gold.gold_h3_master`.
+     - Malla de celdas desde `gold.gold_h3_master`.
      - Modos de visualización:
        - *Oportunidades de Inversión:* `ptna_score` (amarillo-dorado = alto potencial no aprovechado).
        - *Sostenibilidad Territorial:* `esg_territorial_score` (verde esmeralda = eco-sostenible).

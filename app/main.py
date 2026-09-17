@@ -706,6 +706,8 @@ def page_mapa() -> None:
             st.caption(f"🎯 Hexágonos visibles tras filtro de valores/grupos: **{n_filtrados:,}** de **{n_total_muni:,}**")
 
         st.caption(f"Leyenda — {metric_key}")
+        if scale_type in ("sequential", "diverging") and metric_config.get("unit"):
+            st.caption(f"Medida: {metric_config['unit']}")
         st.markdown(legend_html(metric_key, filtered_gdf), unsafe_allow_html=True)
         if enable_3d:
             st.caption(
@@ -721,6 +723,9 @@ def page_mapa() -> None:
         if n_muni_filtrados < n_muni_base:
             st.caption(f"🎯 Municipios visibles tras filtro: **{n_muni_filtrados}** de **{n_muni_base}**")
         st.caption(f"Leyenda — {municipio_metric_key} (Capa municipal)")
+        m_cfg = MUNICIPIO_METRICS.get(municipio_metric_key, {})
+        if m_cfg.get("unit"):
+            st.caption(f"Medida: {m_cfg['unit']}")
         st.markdown(municipio_legend_html(municipio_metric_key, filtered_municipio_master), unsafe_allow_html=True)
 
     if show_isocronas and isocronas_seleccionadas:
@@ -746,14 +751,16 @@ def page_mapa() -> None:
     selected_h3_index = get_selected_h3_index()
 
     custom_tooltip = None
-    if show_gtfs:
+    if show_municipios:
+        custom_tooltip = {"text": f"{{municipio}}\n{municipio_metric_key}: {{tooltip_value}}"}
+    elif show_gtfs:
         custom_tooltip = {"text": "{operador}\nLínea {route_short_name}: {route_long_name}\nMunicipios: {municipios}"}
     elif show_bic:
         custom_tooltip = {"text": "{nombre}\nTipo: {tipo}\nMunicipio: {municipio}"}
     elif show_estaciones:
         custom_tooltip = {"text": "{nombre_estacion} ({municipio})\nAltitud: {altitud_m} m"}
     elif show_isocronas:
-        custom_tooltip = {"text": "{label}\n{destino_nombre}\nAlcance: ≤ {rango_min} min"}
+        custom_tooltip = {"text": "{tooltip_text}"}
 
     deck = build_deck(
         filtered_gdf,

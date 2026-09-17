@@ -150,6 +150,13 @@ def aggregate_hexagon_group(group_df: pd.DataFrame, label: str, group_type: str)
         mun_mode = group_df["municipio"].dropna().mode() if "municipio" in group_df.columns else pd.Series()
         mun_name = mun_mode.iloc[0] if not mun_mode.empty else "Insular"
 
+    # Confianza PTNA dominante
+    if "confianza_ptna" in group_df.columns and not group_df["confianza_ptna"].dropna().empty:
+        mode_conf = group_df["confianza_ptna"].dropna().mode()
+        conf_dom = mode_conf.iloc[0] if not mode_conf.empty else "normal"
+    else:
+        conf_dom = "normal"
+
     synth_dict = {
         "h3_index": f"{label} ({n_hex} hex.)",
         "municipio": mun_name,
@@ -165,6 +172,7 @@ def aggregate_hexagon_group(group_df: pd.DataFrame, label: str, group_type: str)
         "slope_mean": _safe_float(group_df["slope_mean"].dropna().mean() if "slope_mean" in group_df.columns else 10.0, default=10.0),
         "altitud_media_m": _safe_float(group_df["altitud_media_m"].dropna().mean() if "altitud_media_m" in group_df.columns else 300.0, default=300.0),
         "ptna_score": _safe_float(group_df["ptna_score"].dropna().mean() if "ptna_score" in group_df.columns else 0.0, default=0.0),
+        "confianza_ptna": conf_dom,
         "esg_h3_score": _safe_float(group_df["esg_h3_score"].dropna().mean() if "esg_h3_score" in group_df.columns else 52.0, default=52.0),
         "n_cultura": _safe_float(group_df["n_cultura"].sum() if "n_cultura" in group_df.columns else 2.0, default=2.0),
         "n_restaurantes": _safe_float(group_df["n_restaurantes"].sum() if "n_restaurantes" in group_df.columns else 10.0, default=10.0),
@@ -661,7 +669,7 @@ def render_simulador_tab(full_gdf: pd.DataFrame) -> None:
             selected_h3_override = vilaflor_hex.iloc[0]["h3_index"] if not vilaflor_hex.empty else None
 
         hex_pool["display_label"] = (
-            hex_pool["h3_index"].astype(str).str.slice(0, 11) + "… | " +
+            hex_pool["h3_index"].astype(str) + " | " +
             hex_pool["municipio"].astype(str) + " | " +
             hex_pool["arquetipo_principal"].astype(str) + " (" +
             hex_pool["n_plazas_registro"].fillna(0).astype(int).astype(str) + " plazas)"
@@ -686,7 +694,7 @@ def render_simulador_tab(full_gdf: pd.DataFrame) -> None:
 
         row = full_gdf.loc[full_gdf["h3_index"] == selected_target_id].iloc[0].copy()
         row["n_hex"] = 1
-        ambito_titulo = f"Hexágono: `{selected_target_id[:13]}…` ({row.get('municipio')})"
+        ambito_titulo = f"Hexágono: `{selected_target_id}` ({row.get('municipio')})"
 
     elif modo_analisis == "Municipio completo":
         mun_sel = col_filtro.selectbox("Seleccionar municipio a simular:", todos_municipios, index=0)
@@ -751,6 +759,9 @@ def render_simulador_tab(full_gdf: pd.DataFrame) -> None:
 
     with st.container(border=True):
         ptna_label = "Potencial no aprovechado" if ptna_base > 0 else "Zona saturada"
+        conf_raw = str(row.get("confianza_ptna", "normal")).strip().lower()
+        conf_label = "Confianza baja" if "baja" in conf_raw else "Confianza media"
+        ptna_delta = f"{ptna_label} · {conf_label}"
         enp_badge_text = f" · ⚠️ Solape con Espacio Natural Protegido: {pct_enp*100:.1f}%" if pct_enp > 0 else ""
 
         if modo_analisis == "Hexágono individual (H3)":
@@ -792,10 +803,10 @@ def render_simulador_tab(full_gdf: pd.DataFrame) -> None:
             st.metric(
                 label="Índice PTNA base",
                 value=f"{ptna_base:+.1f}",
-                delta=ptna_label,
+                delta=ptna_delta,
                 delta_color="off",
                 delta_arrow="off",
-                help="Potencial turístico no aprovechado: valores positivos denotan oportunidad.",
+                help="Potencial turístico no aprovechado: valores positivos denotan oportunidad. Indica además el nivel de confianza del modelo predictivo (media o baja).",
             )
         with r1_c3.container(border=True):
             st.metric(

@@ -4,6 +4,7 @@ import pydeck as pdk
 from shapely.geometry import MultiPolygon, box
 
 from app.map_layers import (
+    METRICS,
     build_deck,
     build_fill_color_column,
     build_highlight_layer,
@@ -378,3 +379,45 @@ def test_calculate_slider_bounds_and_step_never_clips_max():
     assert s_max >= 18.09
     steps_count = round((s_max - s_min) / step)
     assert abs((s_min + steps_count * step) - s_max) < 1e-6
+
+
+def test_ndbi_removed_and_ptna_unit():
+    assert "Urbanización (NDBI)" not in METRICS
+    assert METRICS["Potencial turístico"]["unit"] == "Puntuación PTNA"
+
+
+def test_p1_p99_capping_with_outliers():
+    # 100 rows: mostly between 10 and 20, but one extreme outlier of 10000 and -5000
+    vals = [15.0] * 98 + [-5000.0, 10000.0]
+    df = pd.DataFrame({"h3_index": [f"h_{i}" for i in range(100)], "densidad_metric": vals})
+    colors = build_fill_color_column(df, "Densidad hotelera")
+    assert len(colors) == 100
+    # Outlier capping: index 99 (10000.0) reaches vmax, index 98 (-5000.0) reaches vmin
+    assert colors.iloc[99] == [13, 54, 107]
+    assert colors.iloc[98] == [205, 226, 251]
+
+
+def test_isocronas_layers_and_pins_tooltip_text():
+    isocronas_sample = gpd.GeoDataFrame(
+        {
+            "destino": ["tfs", "tfs"],
+            "rango_min": [15.0, 30.0],
+        },
+        geometry=[box(0, 0, 1, 1), box(0, 0, 2, 2)],
+    )
+    layers = build_isocronas_layers(isocronas_sample, "tfs")
+    assert len(layers) == 2
+    # Verify tooltip_text is in features
+    for layer in layers:
+        for feat in layer.data["features"]:
+            props = feat["properties"]
+            assert "tooltip_text" in props
+            assert "{label}" not in props["tooltip_text"]
+            assert "Aeropuerto Tenerife Sur (TFS)" in props["tooltip_text"]
+            assert "Alcance: ≤" in props["tooltip_text"]
+
+    pins_layer = build_isocronas_origen_pins_layer("tfs")
+    pin_record = pins_layer.data[0] if isinstance(pins_layer.data, list) else pins_layer.data.iloc[0]
+    assert pin_record["tooltip_text"] == "Aeropuerto Tenerife Sur (TFS)"
+    assert "{destino_nombre}" not in pin_record["tooltip_text"]
+

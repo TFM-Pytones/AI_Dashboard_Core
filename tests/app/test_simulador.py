@@ -286,3 +286,12 @@ def test_simulation_nan_robustness(mock_gdf):
     int_delta_tiempo = int(deltas["tiempo_aeropuerto"])
     assert int_delta_tiempo == -10
 
+
+def test_aggregate_hexagon_group_includes_confianza_ptna(mock_gdf):
+    df = mock_gdf.copy()
+    df["confianza_ptna"] = ["baja", "normal", "baja"]
+    row = aggregate_hexagon_group(df, label="TestGroup", group_type="cluster")
+    assert "confianza_ptna" in row
+    assert row["confianza_ptna"] == "baja"
+
+

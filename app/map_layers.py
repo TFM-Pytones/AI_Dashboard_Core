@@ -22,7 +22,6 @@ from app.color_scales import (
     SEQUENTIAL_EJE1,
     SEQUENTIAL_EJE2,
     SEQUENTIAL_ESG,
-    SEQUENTIAL_NDBI,
     SEQUENTIAL_NDVI,
     SEQUENTIAL_PTNA,
     SEQUENTIAL_VIIRS,
@@ -76,7 +75,7 @@ METRICS: dict[str, dict[str, Any]] = {
         "scale": "sequential",
         "ramp": SEQUENTIAL_PTNA,
         "format": "decimal2",
-        "unit": "Puntuación PTNA (0 - 1)",
+        "unit": "Puntuación PTNA",
     },
     "Índice ESG (Sostenibilidad)": {
         "column": "esg_h3_score",
@@ -110,13 +109,6 @@ METRICS: dict[str, dict[str, Any]] = {
         "ramp": SEQUENTIAL_VIIRS,
         "format": "decimal2",
         "unit": "Radiancia nW/(cm²·sr)",
-    },
-    "Urbanización (NDBI)": {
-        "column": "ndbi_medio",
-        "scale": "sequential",
-        "ramp": SEQUENTIAL_NDBI,
-        "format": "decimal2",
-        "unit": "Índice edificación (-1 a +1)",
     },
     # ── Factores de Emplazamiento ──
     "Distancia a la costa": {
@@ -197,8 +189,18 @@ def build_fill_color_column(gdf: pd.DataFrame, metric_key: str) -> pd.Series:
         vmin, vmax = config["domain"]
     else:
         non_null = values.dropna()
-        vmin = float(non_null.min()) if not non_null.empty else 0.0
-        vmax = float(non_null.max()) if not non_null.empty else 1.0
+        if not non_null.empty:
+            if len(non_null) >= 30:
+                vmin = float(non_null.quantile(0.01))
+                vmax = float(non_null.quantile(0.99))
+                if vmin >= vmax:
+                    vmin = float(non_null.min())
+                    vmax = float(non_null.max())
+            else:
+                vmin = float(non_null.min())
+                vmax = float(non_null.max())
+        else:
+            vmin, vmax = 0.0, 1.0
     return values.apply(lambda v: sequential_color(v, vmin, vmax, light_hex, dark_hex))
 
 
@@ -404,12 +406,6 @@ def legend_html(metric_key: str, gdf: pd.DataFrame) -> str:
         return ""
     config = METRICS[metric_key]
     scale = config.get("scale", "sequential")
-    unit_str = config.get("unit", "")
-    unit_badge = (
-        f'<div style="font-size:0.875rem;color:rgba(250, 250, 250, 0.6);margin-bottom:6px;">Unidad: {unit_str}</div>'
-        if unit_str
-        else ""
-    )
 
     if scale == "categorical":
         col = config.get("column")
@@ -424,7 +420,7 @@ def legend_html(metric_key: str, gdf: pd.DataFrame) -> str:
                 f'<span style="width:12px;height:12px;border-radius:3px;background:{color_css};'
                 f'display:inline-block;"></span>{label}</span>'
             )
-        return f'{unit_badge}<div style="font-size:0.85rem;padding:2px 0 10px;">{"".join(chips)}</div>'
+        return f'<div style="font-size:0.85rem;padding:2px 0 10px;">{"".join(chips)}</div>'
 
     if scale == "diverging":
         domain = config.get("domain", DIVERGING_SENTIMENT_DOMAIN)
@@ -436,7 +432,7 @@ def legend_html(metric_key: str, gdf: pd.DataFrame) -> str:
             f"linear-gradient(to right, {DIVERGING_SENTIMENT_LOW}, "
             f"{DIVERGING_SENTIMENT_MID}, {DIVERGING_SENTIMENT_HIGH})"
         )
-        return unit_badge + _gradient_bar_html(gradient, format_metric(vmin, "decimal"), format_metric(vmax, "decimal"))
+        return _gradient_bar_html(gradient, format_metric(vmin, "decimal"), format_metric(vmax, "decimal"))
 
     # Sequential scale
     ramp: tuple[str, str] = config.get("ramp", SEQUENTIAL_DENSITY)
@@ -450,13 +446,23 @@ def legend_html(metric_key: str, gdf: pd.DataFrame) -> str:
         col = config["column"]
         if col in gdf.columns:
             values = gdf[col].dropna()
-            vmin = float(values.min()) if not values.empty else 0.0
-            vmax = float(values.max()) if not values.empty else 1.0
+            if not values.empty:
+                if len(values) >= 30:
+                    vmin = float(values.quantile(0.01))
+                    vmax = float(values.quantile(0.99))
+                    if vmin >= vmax:
+                        vmin = float(values.min())
+                        vmax = float(values.max())
+                else:
+                    vmin = float(values.min())
+                    vmax = float(values.max())
+            else:
+                vmin, vmax = 0.0, 1.0
         else:
             vmin, vmax = 0.0, 1.0
 
     gradient = f"linear-gradient(to right, {light_hex}, {dark_hex})"
-    return unit_badge + _gradient_bar_html(gradient, format_metric(vmin, kind), format_metric(vmax, kind))
+    return _gradient_bar_html(gradient, format_metric(vmin, kind), format_metric(vmax, kind))
 
 
 # ── Capa coroplética municipal ampliada (gold_municipio_master) ──
@@ -530,8 +536,18 @@ def build_municipio_fill_color_column(gdf: pd.DataFrame, metric_key: str) -> pd.
     light_hex, dark_hex = SEQUENTIAL_DENSITY
     values = gdf[column]
     non_null = values.dropna()
-    vmin = float(non_null.min()) if not non_null.empty else 0.0
-    vmax = float(non_null.max()) if not non_null.empty else 1.0
+    if not non_null.empty:
+        if len(non_null) >= 30:
+            vmin = float(non_null.quantile(0.01))
+            vmax = float(non_null.quantile(0.99))
+            if vmin >= vmax:
+                vmin = float(non_null.min())
+                vmax = float(non_null.max())
+        else:
+            vmin = float(non_null.min())
+            vmax = float(non_null.max())
+    else:
+        vmin, vmax = 0.0, 1.0
     return values.apply(lambda v: sequential_color(v, vmin, vmax, light_hex, dark_hex))
 
 
@@ -570,19 +586,23 @@ def build_municipio_layer(gdf: pd.DataFrame, metric_key: str, opacity: float = 0
 def municipio_legend_html(metric_key: str, gdf: pd.DataFrame) -> str:
     config = MUNICIPIO_METRICS[metric_key]
     column = config["column"]
-    unit_str = config.get("unit", "")
     kind = config.get("format", "decimal")
     light_hex, dark_hex = SEQUENTIAL_DENSITY
     values = gdf[column].dropna()
-    vmin = float(values.min()) if not values.empty else 0.0
-    vmax = float(values.max()) if not values.empty else 1.0
+    if not values.empty:
+        if len(values) >= 30:
+            vmin = float(values.quantile(0.01))
+            vmax = float(values.quantile(0.99))
+            if vmin >= vmax:
+                vmin = float(values.min())
+                vmax = float(values.max())
+        else:
+            vmin = float(values.min())
+            vmax = float(values.max())
+    else:
+        vmin, vmax = 0.0, 1.0
     gradient = f"linear-gradient(to right, {light_hex}, {dark_hex})"
-    unit_badge = (
-        f'<div style="font-size:0.875rem;color:rgba(250, 250, 250, 0.6);margin-bottom:6px;">Unidad: {unit_str}</div>'
-        if unit_str
-        else ""
-    )
-    return unit_badge + _gradient_bar_html(gradient, format_metric(vmin, kind), format_metric(vmax, kind))
+    return _gradient_bar_html(gradient, format_metric(vmin, kind), format_metric(vmax, kind))
 
 
 # ── Isócronas de transporte (gold.isocronas_visuales) ──
@@ -683,13 +703,16 @@ def build_isocronas_layers(isocronas_gdf: pd.DataFrame, destinos: list[str] | st
     subset["destino_nombre"] = subset["destino"].apply(
         lambda d: ISOCRONAS_DESTINOS_INFO.get(d, {}).get("label", d)
     )
+    subset["tooltip_text"] = subset.apply(
+        lambda r: f"{r['destino_nombre']}\nAlcance: ≤ {int(r['rango_min'])} min", axis=1
+    )
 
     # Orden de apilamiento: 60 min al fondo, 45 min, 30 min, y 15 min en la capa superior
     layers = []
     for rango in [60.0, 45.0, 30.0, 15.0]:
         rango_subset = subset[subset["rango_min"] == rango]
         if not rango_subset.empty:
-            geojson = json.loads(rango_subset[["destino", "destino_nombre", "rango_min", "fill_color", "geometry"]].to_json())
+            geojson = json.loads(rango_subset[["destino", "destino_nombre", "rango_min", "tooltip_text", "fill_color", "geometry"]].to_json())
             layers.append(
                 pdk.Layer(
                     "GeoJsonLayer",
@@ -714,7 +737,10 @@ def build_isocronas_layer(isocronas_gdf: pd.DataFrame, destinos: list[str] | str
     subset["destino_nombre"] = subset["destino"].apply(
         lambda d: ISOCRONAS_DESTINOS_INFO.get(d, {}).get("label", d)
     )
-    geojson = json.loads(subset[["destino", "destino_nombre", "rango_min", "fill_color", "geometry"]].to_json())
+    subset["tooltip_text"] = subset.apply(
+        lambda r: f"{r['destino_nombre']}\nAlcance: ≤ {int(r['rango_min'])} min", axis=1
+    )
+    geojson = json.loads(subset[["destino", "destino_nombre", "rango_min", "tooltip_text", "fill_color", "geometry"]].to_json())
     return pdk.Layer(
         "GeoJsonLayer",
         id="isocronas",
@@ -739,6 +765,7 @@ def build_isocronas_origen_pins_layer(destinos: list[str] | str, max_destinos: i
                 "destino": d,
                 "label": info["label"],
                 "coordinates": info["coords"],
+                "tooltip_text": info["label"],
             })
     pins_df = pd.DataFrame(pins_data)
     return pdk.Layer(
