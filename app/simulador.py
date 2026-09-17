@@ -776,17 +776,18 @@ def render_simulador_tab(full_gdf: pd.DataFrame) -> None:
             st.caption("ARQUETIPO DOMINANTE ACTUAL")
             st.markdown(f"### {arch_base}")
 
-        # 5 tarjetas de métricas en columnas nativas con borde estándar
-        m_cols = st.columns(5)
-        with m_cols[0].container(border=True):
+        # Tarjetas de información territorial en 2 filas estructuradas
+        # Fila 1: Plazas registradas actuales, Índice PTNA base, Score ESG base (3 columnas)
+        r1_c1, r1_c2, r1_c3 = st.columns(3)
+        with r1_c1.container(border=True):
             st.metric(
-                label="Plazas regladas actuales",
+                label="Plazas registradas actuales",
                 value=f"{int(plazas_tot):,} pl.",
                 delta=f"{dens_plazas:.1f} pl/km²",
                 delta_color="off",
-                help="Total de plazas registradas y densidad de alojamiento.",
+                help="Total de plazas registradas y densidad de alojamiento en el ámbito analizado.",
             )
-        with m_cols[1].container(border=True):
+        with r1_c2.container(border=True):
             st.metric(
                 label="Índice PTNA base",
                 value=f"{ptna_base:+.1f}",
@@ -794,7 +795,7 @@ def render_simulador_tab(full_gdf: pd.DataFrame) -> None:
                 delta_color="off",
                 help="Potencial turístico no aprovechado: valores positivos denotan oportunidad.",
             )
-        with m_cols[2].container(border=True):
+        with r1_c3.container(border=True):
             st.metric(
                 label="Score ESG base",
                 value=f"{esg_base:.1f} / 100",
@@ -802,17 +803,20 @@ def render_simulador_tab(full_gdf: pd.DataFrame) -> None:
                 delta_color="off",
                 help="Puntuación ambiental, social y de gobernanza territorial.",
             )
-        with m_cols[3].container(border=True):
+
+        # Fila 2: Eje 1 (Saturación) y Eje 2 (Potencial rural) (2 columnas)
+        r2_c1, r2_c2 = st.columns(2)
+        with r2_c1.container(border=True):
             st.metric(
-                label="Eje 1: Saturación",
+                label="Eje 1: Saturación turística",
                 value=f"{eje1_base:.3f}",
-                delta="Presión territorial",
+                delta="Presión en el gradiente insular",
                 delta_color="off",
                 help="Gradiente continuo de saturación turística (0.0 a 1.0).",
             )
-        with m_cols[4].container(border=True):
+        with r2_c2.container(border=True):
             st.metric(
-                label="Eje 2: Potencial rural",
+                label="Eje 2: Potencial rural y sostenible",
                 value=f"{eje2_base:.3f}",
                 delta="Potencial no masificado",
                 delta_color="off",
@@ -1048,7 +1052,7 @@ def render_simulador_tab(full_gdf: pd.DataFrame) -> None:
     # Gráfico 1: Radar Chart Comparativo (fila completa)
     st.markdown("##### Comparativa de arquetipos TUI")
     fig_radar = create_radar_comparison_chart(base["scores"], sim["scores"])
-    st.plotly_chart(fig_radar, use_container_width=True)
+    st.plotly_chart(fig_radar, width="stretch")
 
     # Gráfico 2: Desplazamiento en la Matriz Estratégica (fila completa)
     st.markdown("##### Desplazamiento en la matriz estratégica")
@@ -1059,7 +1063,7 @@ def render_simulador_tab(full_gdf: pd.DataFrame) -> None:
         sim_eje1=sim["eje_1"],
         sim_eje2=sim["eje_2"],
     )
-    st.plotly_chart(fig_matrix, use_container_width=True)
+    st.plotly_chart(fig_matrix, width="stretch")
 
     st.divider()
 
