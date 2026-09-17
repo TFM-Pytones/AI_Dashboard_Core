@@ -15,6 +15,7 @@ from app.map_layers import (
     build_layer,
     build_municipio_fill_color_column,
     build_municipio_layer,
+    calculate_slider_bounds_and_step,
     legend_html,
     list_destinos,
     municipio_legend_html,
@@ -355,3 +356,25 @@ def test_build_municipio_layer_normalizes_mixed_geometry_types_to_multipolygon()
     layer = build_municipio_layer(gdf, "Densidad turística")
     geometry_types = {f["geometry"]["type"] for f in layer.data["features"]}
     assert geometry_types == {"MultiPolygon"}
+
+
+def test_calculate_slider_bounds_and_step_never_clips_max():
+    # Caso 1: Valores fraccionarios con span <= 1.0 (ej. NDVI -0.1136 a 0.8449)
+    s_min, s_max, step, fmt = calculate_slider_bounds_and_step(-0.1136, 0.8449, {})
+    assert s_max >= 0.8449
+    assert s_min <= -0.1136
+    # Exactitud en múltiplos de step
+    steps_count = round((s_max - s_min) / step)
+    assert abs((s_min + steps_count * step) - s_max) < 1e-6
+
+    # Caso 2: Puntos de interés turístico (377.0)
+    s_min, s_max, step, fmt = calculate_slider_bounds_and_step(0.0, 377.0, {})
+    assert s_max >= 377.0
+    steps_count = round((s_max - s_min) / step)
+    assert abs((s_min + steps_count * step) - s_max) < 1e-6
+
+    # Caso 3: Distancia costa (18.09 km)
+    s_min, s_max, step, fmt = calculate_slider_bounds_and_step(0.0, 18.09, {})
+    assert s_max >= 18.09
+    steps_count = round((s_max - s_min) / step)
+    assert abs((s_min + steps_count * step) - s_max) < 1e-6

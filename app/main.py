@@ -64,6 +64,7 @@ from app.map_layers import (
     bic_legend_html,
     build_bic_layer,
     build_deck,
+    calculate_slider_bounds_and_step,
     build_estaciones_agrocabildo_layer,
     build_gtfs_rutas_layer,
     build_highlight_layer,
@@ -387,6 +388,9 @@ def page_mapa() -> None:
 
         selected_categories = None
         slider_range = None
+        slider_min = 0.0
+        slider_max = 1.0
+        slider_step = 0.01
 
         if show_hexagons:
             metric_key = st.selectbox("Capa del mapa (H3)", list(METRICS.keys()))
@@ -421,36 +425,27 @@ def page_mapa() -> None:
                 if not s.empty:
                     min_val = float(s.min())
                     max_val = float(s.max())
-                    if round(max_val, 2) > round(min_val, 2):
-                        span = max_val - min_val
-                        if span <= 1.05:
-                            step = 0.05
-                            format_str = "%.2f"
-                        elif span <= 10.0:
-                            step = 0.1
-                            format_str = "%.1f"
-                        elif span <= 100.0:
-                            step = 1.0
-                            format_str = "%.0f"
-                        else:
-                            step = 10.0
-                            format_str = "%.0f"
-
-                        slider_range = st.slider(
-                            "Filtrar por rango de valores",
-                            min_value=round(min_val, 2),
-                            max_value=round(max_val, 2),
-                            value=(round(min_val, 2), round(max_val, 2)),
-                            step=step,
-                            format=format_str,
-                            key=f"filter_range_{metric_key}",
-                            help=f"Muestra solo los hexágonos con valores dentro de este rango de {metric_key}.",
-                        )
+                    slider_min, slider_max, slider_step, format_str = calculate_slider_bounds_and_step(
+                        min_val, max_val, metric_config
+                    )
+                    slider_range = st.slider(
+                        "Filtrar por rango de valores",
+                        min_value=slider_min,
+                        max_value=slider_max,
+                        value=(slider_min, slider_max),
+                        step=slider_step,
+                        format=format_str,
+                        key=f"filter_range_{metric_key}",
+                        help=f"Muestra solo los hexágonos con valores dentro de este rango de {metric_key}.",
+                    )
         else:
             metric_key = list(METRICS.keys())[0]
             hex_opacity = DEFAULT_HEXAGON_OPACITY
 
         m_slider_range = None
+        m_slider_min = 0.0
+        m_slider_max = 100.0
+        m_step = 1.0
         if show_municipios:
             municipio_metric_key = st.selectbox(
                 "Métrica municipal", list(MUNICIPIO_METRICS.keys())
@@ -459,22 +454,21 @@ def page_mapa() -> None:
             m_col = m_config["column"]
             m_s = municipio_master[m_col].dropna()
             if not m_s.empty:
-                m_min = float(m_s.min())
-                m_max = float(m_s.max())
-                if round(m_max, 2) > round(m_min, 2):
-                    m_span = m_max - m_min
-                    m_step = 0.1 if m_span <= 10 else (1.0 if m_span <= 500 else 10.0)
-                    m_format = "%.1f" if m_span <= 10 else "%.0f"
-                    m_slider_range = st.slider(
-                        "Filtrar municipios por rango",
-                        min_value=round(m_min, 2),
-                        max_value=round(m_max, 2),
-                        value=(round(m_min, 2), round(m_max, 2)),
-                        step=m_step,
-                        format=m_format,
-                        key=f"muni_range_{municipio_metric_key}",
-                        help=f"Muestra solo los municipios con valores dentro de este rango de {municipio_metric_key}.",
-                    )
+                m_min_raw = float(m_s.min())
+                m_max_raw = float(m_s.max())
+                m_slider_min, m_slider_max, m_step, m_format = calculate_slider_bounds_and_step(
+                    m_min_raw, m_max_raw, m_config
+                )
+                m_slider_range = st.slider(
+                    "Filtrar municipios por rango",
+                    min_value=m_slider_min,
+                    max_value=m_slider_max,
+                    value=(m_slider_min, m_slider_max),
+                    step=m_step,
+                    format=m_format,
+                    key=f"muni_range_{municipio_metric_key}",
+                    help=f"Muestra solo los municipios con valores dentro de este rango de {municipio_metric_key}.",
+                )
         else:
             municipio_metric_key = list(MUNICIPIO_METRICS.keys())[0]
 
@@ -642,15 +636,43 @@ def page_mapa() -> None:
         if scale_type == "categorical" and selected_categories is not None:
             filtered_gdf = filtered_gdf[filtered_gdf[col_name].astype(str).isin(selected_categories)]
         elif scale_type in ("sequential", "diverging") and slider_range is not None:
-            filtered_gdf = filtered_gdf[
-                filtered_gdf[col_name].between(slider_range[0], slider_range[1])
-            ]
+            low, high = slider_range
+            tol = slider_step * 0.25
+            is_at_min = low <= (slider_min + tol)
+            is_at_max = high >= (slider_max - tol)
+
+            if is_at_min and is_at_max:
+                pass
+            elif is_at_max:
+                # Si el usuario tiene el extremo superior al máximo, no recortar por arriba
+                # para que ningún valor máximo se pierda por redondeos o precisión flotante
+                filtered_gdf = filtered_gdf[filtered_gdf[col_name] >= (low - 1e-6)]
+            elif is_at_min:
+                filtered_gdf = filtered_gdf[filtered_gdf[col_name] <= (high + 1e-6)]
+            else:
+                filtered_gdf = filtered_gdf[
+                    (filtered_gdf[col_name] >= (low - 1e-6)) &
+                    (filtered_gdf[col_name] <= (high + 1e-6))
+                ]
 
     filtered_municipio_master = municipio_master
     if show_municipios and m_slider_range is not None:
-        filtered_municipio_master = municipio_master[
-            municipio_master[m_col].between(m_slider_range[0], m_slider_range[1])
-        ]
+        m_low, m_high = m_slider_range
+        m_tol = m_step * 0.25
+        m_at_min = m_low <= (m_slider_min + m_tol)
+        m_at_max = m_high >= (m_slider_max - m_tol)
+
+        if m_at_min and m_at_max:
+            pass
+        elif m_at_max:
+            filtered_municipio_master = municipio_master[municipio_master[m_col] >= (m_low - 1e-6)]
+        elif m_at_min:
+            filtered_municipio_master = municipio_master[municipio_master[m_col] <= (m_high + 1e-6)]
+        else:
+            filtered_municipio_master = municipio_master[
+                (municipio_master[m_col] >= (m_low - 1e-6)) &
+                (municipio_master[m_col] <= (m_high + 1e-6))
+            ]
 
     if map_municipio != "Todos":
         st.caption(f"🔍 Filtrando por municipio: **{map_municipio}**")

@@ -1,4 +1,5 @@
 import json
+import math
 import os
 from typing import Any
 
@@ -352,6 +353,50 @@ def _format_legend_color(color) -> str:
     if isinstance(color, (list, tuple)) and len(color) >= 3:
         return f"rgb({color[0]},{color[1]},{color[2]})"
     return "#6b7280"
+
+
+def calculate_slider_bounds_and_step(
+    min_val: float, max_val: float, metric_config: dict[str, Any]
+) -> tuple[float, float, float, str]:
+    """Calcula límites (min, max), paso y formato para el slider evitando pérdidas por redondeo."""
+    if "min_max" in metric_config:
+        c_min, c_max = metric_config["min_max"]
+        min_val = min(min_val, float(c_min))
+        max_val = max(max_val, float(c_max))
+    elif "domain" in metric_config:
+        d = metric_config["domain"]
+        min_val = min(min_val, float(d[0]))
+        max_val = max(max_val, float(d[-1]))
+
+    span = max_val - min_val
+    if span <= 1.05:
+        step = 0.01
+        format_str = "%.2f"
+        slider_min = math.floor(min_val * 100) / 100.0
+        slider_max = math.ceil(max_val * 100) / 100.0
+    elif span <= 10.0:
+        step = 0.1
+        format_str = "%.1f"
+        slider_min = math.floor(min_val * 10) / 10.0
+        slider_max = math.ceil(max_val * 10) / 10.0
+    elif span <= 100.0:
+        step = 1.0
+        format_str = "%.0f"
+        slider_min = float(math.floor(min_val))
+        slider_max = float(math.ceil(max_val))
+    else:
+        step = 5.0 if span <= 500 else 10.0
+        slider_min = float(math.floor(min_val / step) * step)
+        slider_max = float(math.ceil(max_val / step) * step)
+        format_str = "%.0f"
+
+    slider_min = round(slider_min, 4)
+    slider_max = round(slider_max, 4)
+
+    if slider_max <= slider_min:
+        slider_max = slider_min + step
+
+    return slider_min, slider_max, step, format_str
 
 
 def legend_html(metric_key: str, gdf: pd.DataFrame) -> str:
