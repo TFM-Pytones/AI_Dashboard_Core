@@ -29,6 +29,8 @@ AI_Dashboard_Core/
 ├── tests/              # Suite pytest: unitarios + integración
 ├── .env.example        # Plantilla de variables de entorno (sin claves reales)
 ├── requirements.txt    # Dependencias del proyecto
+├── requirements-airflow.txt     # Dependencias del Airflow
+├── requirements-ml.txt # Dependencias para Machine Learning
 └── README.md
 ```
 
