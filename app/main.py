@@ -38,6 +38,7 @@ from app.data import (
     load_municipio_master,
     load_municipio_mensual,
     load_nlp_chunks,
+    load_nlp_chunks_count,
     load_oportunidad,
     load_ptna,
     load_sentimiento,
@@ -174,7 +175,7 @@ with st.spinner("Cargando datos del dashboard..."):
     municipio_empleo = load_municipio_empleo(engine)
     municipio_mensual = load_municipio_mensual(engine)
     topicos_municipio = load_topicos_municipio(engine)
-    nlp_chunks = load_nlp_chunks(engine)
+    n_opiniones = load_nlp_chunks_count(engine)
     turismo_hotelero_anual = load_turismo_hotelero_anual(engine)
     turismo_hotelero_mensual = load_turismo_hotelero_mensual(engine)
     aena_pasajeros = load_aena_pasajeros(engine)
@@ -304,7 +305,7 @@ def page_resumen() -> None:
             "🏨",
             "Alojamiento y Opinión",
             "Reputación y tipo de alojamiento, y qué opinan los visitantes de verdad, extraído con NLP.",
-            f"{format_metric(len(nlp_chunks), 'entero')} opiniones analizadas",
+            f"{format_metric(n_opiniones, 'entero')} opiniones analizadas",
         ),
         (
             nav_turismo,
@@ -540,7 +541,9 @@ def page_alojamiento_temas() -> None:
     st.divider()
 
     st.subheader("💬 Temas y Opinión")
-    render_temas_tab(topicos_municipio, nlp_chunks)
+    with st.spinner("Cargando opiniones cualitativas..."):
+        chunks = load_nlp_chunks(engine)
+    render_temas_tab(topicos_municipio, chunks)
 
 
 def page_turismo() -> None:

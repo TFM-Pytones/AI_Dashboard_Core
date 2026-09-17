@@ -353,10 +353,13 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
         width="stretch",
     )
 
-    csv_data = tabla_display.to_csv(index=False).encode("utf-8")
+    @st.cache_data
+    def _convert_df_to_csv(df: pd.DataFrame) -> str:
+        return df.to_csv(index=False)
+
     st.download_button(
         "📥 Descargar Catálogo de Oportunidades (CSV)",
-        data=csv_data,
+        data=_convert_df_to_csv(tabla_display),
         file_name="catalogo_oportunidades_tui.csv",
         mime="text/csv",
     )

@@ -5,7 +5,7 @@ import geopandas as gpd
 import pandas as pd
 import streamlit as st
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.engine import Engine
 
 # override=True is required: Streamlit's own bootstrap pre-seeds
@@ -32,8 +32,7 @@ TURISMO_HOTELERO_MENSUAL_QUERY = "SELECT * FROM gold.gold_turismo_hotelero_mensu
 AENA_PASAJEROS_QUERY = "SELECT * FROM gold.gold_aena_pasajeros"
 TOPICOS_MUNICIPIO_QUERY = "SELECT * FROM gold.gold_topicos_municipio"
 NLP_CHUNKS_QUERY = """
-    SELECT chunk_id, source, source_id, chunk_index, text, topic_id, topic_label,
-           municipio, zona, h3_index, fecha, pais_resenante, rating, processed_at
+    SELECT source, text, topic_id, topic_label, municipio
     FROM gold.nlp_chunks
 """
 H3_CLUSTERS_QUERY = "SELECT h3_index, tipo_zona FROM gold.h3_clusters"
@@ -188,6 +187,13 @@ def load_topicos_municipio(_engine: Engine) -> pd.DataFrame:
 @st.cache_data
 def load_nlp_chunks(_engine: Engine) -> pd.DataFrame:
     return pd.read_sql(NLP_CHUNKS_QUERY, _engine)
+
+
+@st.cache_data
+def load_nlp_chunks_count(_engine: Engine) -> int:
+    with _engine.connect() as con:
+        val = con.execute(text("SELECT count(*) FROM gold.nlp_chunks")).scalar()
+        return int(val or 87981)
 
 
 @st.cache_data
