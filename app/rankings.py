@@ -32,19 +32,19 @@ RANKINGS = {
         "color": ACCENT_RANKING_NDVI,
         "label": "Score ESG medio (0-100)",
     },
-    "Mayor potencial rural infrautilizado (Eje 2)": {
+    "Mayor potencial rural y sostenible (Eje 2)": {
         "column": "eje_2_rural_infrautilizado",
         "agg": "mean",
         "kind": "decimal2",
         "color": ACCENT_RANKING_NDVI,
         "label": "Eje 2 medio (0-1)",
     },
-    "Mayor presión de saturación turística (Eje 1)": {
+    "Mayor saturación turística (Eje 1)": {
         "column": "eje_1_saturacion",
         "agg": "mean",
         "kind": "decimal2",
         "color": ACCENT_RANKING_CALUROSAS,
-        "label": "Eje 1 medio (HDBSCAN continuo)",
+        "label": "Eje 1 medio (0-1)",
     },
     "Mayor oferta alojativa (nº alojamientos)": {
         "column": "n_establecimientos_registro",

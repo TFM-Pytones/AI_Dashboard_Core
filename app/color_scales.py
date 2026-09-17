@@ -34,11 +34,6 @@ CLUSTER_COLOR_MAP_HEX = {
     "Transición Costera y Medianías": "#f59e0b",            # Ámbar / transición conector
     "Saturado / Overtourism": "#ef4444",                    # Rojo intenso / masificación
     "Urbano Residencial": "#3b82f6",                        # Azul metropolitano residencial
-    # Claves históricas / alias de compatibilidad
-    "Transición": "#f59e0b",
-    "Saturado/Overtourism": "#ef4444",
-    "Rural Infrautilizada": "#84cc16",
-    "Urbano Sin Turismo": "#475569",
 }
 CLUSTER_COLOR_MAP_RGB = {
     "Espacio Natural / Teide y Cumbre": [71, 85, 105],
@@ -47,11 +42,6 @@ CLUSTER_COLOR_MAP_RGB = {
     "Transición Costera y Medianías": [245, 158, 11],
     "Saturado / Overtourism": [239, 68, 68],
     "Urbano Residencial": [59, 130, 246],
-    # Claves históricas / alias de compatibilidad
-    "Transición": [245, 158, 11],
-    "Saturado/Overtourism": [239, 68, 68],
-    "Rural Infrautilizada": [132, 204, 22],
-    "Urbano Sin Turismo": [71, 85, 105],
 }
 
 # Arquetipos de producto turístico TUI

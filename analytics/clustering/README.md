@@ -326,7 +326,7 @@ El clustering no supervisado mediante HDBSCAN proporciona un diagnóstico territ
 Para salvar la distancia entre el **diagnóstico geofísico no supervisado** y la **prescripción estratégica de negocio**, se proyectan los 2.579 hexágonos en un espacio bidimensional continuo:
 
 ```
-                      Eje 2: Rural Infrautilizado [0 - 1]
+                      Eje 2: Potencial rural y sostenible [0 - 1]
                                      ▲
                                      │
            [Q2: EXPANSIÓN SOSTENIBLE]│   [Q4: DIVERSIFICACIÓN MIXTA]
@@ -334,7 +334,7 @@ Para salvar la distancia entre el **diagnóstico geofísico no supervisado** y l
            Eco-Resorts & Bienestar   │   Productos híbridos
                                      │
       ───────────────────────────────┼───────────────────────────────► Eje 1: Saturación
-                                     │                                  Turística [0 - 1]
+                                     │                                  turística [0 - 1]
            [Q3: PRESERVACIÓN / NEUTRO]│   [Q1: OVERTOURISM CRÍTICO]
            Teide (ENP estricto)      │   Playa de las Américas / Adeje
            Urbano Residencial puro   │   Descompresión y reconversión
@@ -343,11 +343,11 @@ Para salvar la distancia entre el **diagnóstico geofísico no supervisado** y l
 
 ### 11.2. Formulación Matemática de los Ejes
 
-#### Eje 1: Gradiente de Saturación Turística $[0, 1]$
+#### Eje 1: Saturación turística $[0, 1]$
 Calibrado a partir de la firma de densidad descubierta por HDBSCAN y la presión de oferta hotelera:
 $$\text{Eje 1} = \text{Norm}\Big(0.45 \cdot \log(1 + \text{Plazas}) + 0.25 \cdot \log(1 + \text{VIIRS}) + 0.15 \cdot \text{ProxCosta} + 0.15 \cdot \log(1 + \text{Establecimientos})\Big)$$
 
-#### Eje 2: Rural Infrautilizado $[0, 1]$
+#### Eje 2: Potencial rural y sostenible $[0, 1]$
 Integra el capital natural, el potencial latente no monetizado y la calidad ambiental:
 $$\text{Eje 2} = \text{Norm}\Big(0.25 \cdot \text{NDVI} + 0.25 \cdot \text{PTNA} + 0.20 \cdot (1 - \text{PlazasNorm}) + 0.15 \cdot (1 - \text{NDBI}) + 0.15 \cdot \text{ESG}\Big)$$
 
@@ -355,7 +355,7 @@ $$\text{Eje 2} = \text{Norm}\Big(0.25 \cdot \text{NDVI} + 0.25 \cdot \text{PTNA}
 
 ## 12. Modelización de los 5 Arquetipos de Producto Turístico TUI
 
-A partir de la combinación de los ejes estratégicos, la accesibilidad multimodal y la semántica de reseñas, se asigna a cada hexágono un **Arquetipo TUI Óptimo** mediante un sistema de scoring multi-criterio ponderado:
+A partir de la combinación de los ejes estratégicos, la accesibilidad multimodal y la semántica de reseñas, se asigna a cada hexágono un **Arquetipo TUI óptimo** mediante un sistema de scoring multi-criterio ponderado:
 
 | Arquetipo de Producto | Icono | Driver Principal de Scoring | Perfil Territorial Idóneo | Estrategia Comercial TUI |
 |:---|:---:|:---|:---|:---|
@@ -379,11 +379,11 @@ La totalidad de estos modelos se encuentra plenamente operativa en la interfaz a
 
 2. **Cartografía Interactiva H3 (`app/map_layers.py`):**
    * Incorporación de las capas temáticas con gradientes optimizados:
-     * *Tipología Territorial (HDBSCAN)* (paleta categórica de 6 clases).
-     * *Arquetipo TUI Óptimo* (paleta de producto de 5 clases).
-     * *Eje 1: Saturación Turística* (rampa secuencial ámbar/fuego).
-     * *Eje 2: Rural Infrautilizado* (rampa secuencial menta/esmeralda).
-     * *Potencial Turístico (PTNA)* y *Sostenibilidad ESG*.
+     * *Clústeres territoriales* (paleta categórica de 6 clases).
+     * *Arquetipo TUI óptimo* (paleta de producto de 5 clases).
+     * *Saturación turística* (rampa secuencial ámbar/fuego).
+     * *Potencial rural y sostenible* (rampa secuencial menta/esmeralda).
+     * *Potencial turístico* y *Sostenibilidad ESG*.
 
 3. **Panel de Detalle Microespacial (`app/detail_panel.py`):**
    * Al hacer clic sobre cualquier hexágono H3, se despliega un bloque de resumen estratégico que muestra la tipología HDBSCAN asignada, el arquetipo TUI prescrito, barras de progreso para el Eje 1 y Eje 2, y los valores normalizados de PTNA y ESG.

@@ -60,9 +60,9 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
     st.markdown(
         """
         Esta matriz proyecta la totalidad del territorio insular en dos dimensiones cuantitativas complementarias:
-        - **Eje 1 (HDBSCAN, silhouette 0.808): Saturado $\\leftrightarrow$ Transición [continuo]**  
+        - **Eje 1: Saturación turística [0-1]**  
           Mide el gradiente continuo de presión y densidad turística (de 0,0 en núcleos sin presión hasta 1,0 en saturación extrema).
-        - **Eje 2 (score compuesto): Rural Infrautilizado [0-1]**  
+        - **Eje 2: Potencial rural y sostenible [0-1]**  
           Integra vegetación satelital (NDVI), potencial no explotado (PTNA), ausencia de masificación previa, baja artificialización y score ESG.
         """
     )
@@ -70,7 +70,7 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
     col_ctrl1, col_ctrl2 = st.columns([2, 2])
     color_by = col_ctrl1.radio(
         "Colorear puntos por:",
-        ["Tipología Territorial (Clústeres)", "Arquetipo TUI Óptimo"],
+        ["Clústeres territoriales", "Arquetipo TUI óptimo"],
         horizontal=True,
     )
     filtro_muni = col_ctrl2.selectbox(
@@ -82,7 +82,7 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
     matriz_df = filter_by_municipio(gdf, filtro_muni).copy()
 
     # Mapeo de color para el scatter
-    if color_by == "Tipología Territorial (Clústeres)":
+    if color_by == "Clústeres territoriales":
         color_col = "tipo_zona"
         color_map = CLUSTER_COLOR_MAP_HEX
     else:
@@ -107,8 +107,8 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
             "esg_h3_score": ":.1f",
         },
         labels={
-            "eje_1_saturacion": "Eje 1: Saturación Turística (HDBSCAN continuo)",
-            "eje_2_rural_infrautilizado": "Eje 2: Rural Infrautilizado (Score compuesto 0-1)",
+            "eje_1_saturacion": "Eje 1: Saturación turística",
+            "eje_2_rural_infrautilizado": "Eje 2: Potencial rural y sostenible",
             color_col: "Categoría",
         },
         title="Posicionamiento Territorial en la Matriz Estratégica TUI",
@@ -132,7 +132,7 @@ def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
     fig_scatter.add_annotation(
         x=0.15,
         y=0.85,
-        text="<b>CUADRANTE II: RURAL INFRAUTILIZADO</b><br>Ecoturismo & Alto Potencial",
+        text="<b>CUADRANTE II: POTENCIAL RURAL Y SOSTENIBLE</b><br>Ecoturismo & Alto Potencial",
         showarrow=False,
         bgcolor="rgba(16, 185, 129, 0.12)",
         bordercolor="#10b981",

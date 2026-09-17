@@ -42,31 +42,31 @@ TENERIFE_VIEW_STATE = pdk.ViewState(
 
 METRICS: dict[str, dict[str, Any]] = {
     # ── Tipología Territorial y Estrategia TUI ──
-    "Tipología Territorial (Clústeres)": {
+    "Clústeres territoriales": {
         "column": "tipo_zona",
         "scale": "categorical",
         "categories": CLUSTER_COLOR_MAP_RGB,
     },
-    "Arquetipo TUI Óptimo": {
+    "Arquetipo TUI óptimo": {
         "column": "arquetipo_principal",
         "scale": "categorical",
         "categories": ARCHETYPE_COLOR_MAP_RGB,
     },
-    "Eje 1: Saturación Turística (HDBSCAN)": {
+    "Saturación turística": {
         "column": "eje_1_saturacion",
         "scale": "sequential",
         "ramp": SEQUENTIAL_EJE1,
         "min_max": (0.0, 1.0),
         "format": "decimal2",
     },
-    "Eje 2: Rural Infrautilizado [0-1]": {
+    "Potencial rural y sostenible": {
         "column": "eje_2_rural_infrautilizado",
         "scale": "sequential",
         "ramp": SEQUENTIAL_EJE2,
         "min_max": (0.0, 1.0),
         "format": "decimal2",
     },
-    "Potencial Turístico (PTNA)": {
+    "Potencial turístico": {
         "column": "ptna_score",
         "scale": "sequential",
         "ramp": SEQUENTIAL_PTNA,
@@ -339,8 +339,12 @@ def legend_html(metric_key: str, gdf: pd.DataFrame) -> str:
     scale = config.get("scale", "sequential")
 
     if scale == "categorical":
+        col = config.get("column")
+        present_values = set(gdf[col].dropna().astype(str).unique()) if (col and col in gdf.columns) else None
         chips = []
         for label, color in config.get("categories", {}).items():
+            if present_values is not None and label not in present_values:
+                continue
             color_css = _format_legend_color(color)
             chips.append(
                 '<span style="display:inline-flex;align-items:center;gap:6px;margin-right:16px;">'

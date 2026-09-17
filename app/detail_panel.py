@@ -182,7 +182,7 @@ def render_detail_panel(gdf: pd.DataFrame, selected_h3_index: str | None) -> Non
 
     # Bloque Estratégico TUI
     with st.container(border=True):
-        st.markdown("#### 🎯 Tipología Territorial y Estrategia TUI")
+        st.markdown("#### 🎯 Clúster Territorial y Estrategia TUI")
         b_col1, b_col2, b_col3, b_col4 = st.columns(4)
         with b_col1:
             st.markdown(f"**Clúster:** `{tipo_zona if pd.notna(tipo_zona) else 'Sin clasificar'}`")
@@ -190,12 +190,12 @@ def render_detail_panel(gdf: pd.DataFrame, selected_h3_index: str | None) -> Non
             st.markdown(f"**Arquetipo TUI:** **{arquetipo if pd.notna(arquetipo) else 'No asignado'}**")
         with b_col3:
             eje1 = row.get("eje_1_saturacion")
-            st.markdown(f"**Eje 1 (Saturación):** `{f'{eje1:.2f}' if pd.notna(eje1) else '-'}`")
+            st.markdown(f"**Eje 1 (Saturación turística):** `{f'{eje1:.2f}' if pd.notna(eje1) else '-'}`")
             if pd.notna(eje1):
                 st.progress(float(np.clip(eje1, 0.0, 1.0)))
         with b_col4:
             eje2 = row.get("eje_2_rural_infrautilizado")
-            st.markdown(f"**Eje 2 (Rural Infra.):** `{f'{eje2:.2f}' if pd.notna(eje2) else '-'}`")
+            st.markdown(f"**Eje 2 (Potencial rural y sostenible):** `{f'{eje2:.2f}' if pd.notna(eje2) else '-'}`")
             if pd.notna(eje2):
                 st.progress(float(np.clip(eje2, 0.0, 1.0)))
 
