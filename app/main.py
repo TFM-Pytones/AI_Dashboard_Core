@@ -92,35 +92,19 @@ st.set_page_config(page_title="AI-Dashboard Tenerife", page_icon="🌋", layout=
 st.markdown(
     """
     <style>
-    /* Ocultar barra superior blanca de Streamlit y menú de 3 puntos/rerun */
-    #MainMenu {
-        visibility: hidden !important;
-        display: none !important;
-    }
+    /* Barra superior fija limpia: visible con su botón de 3 puntos y rerun, pero sin tapar el scrollbar */
     header[data-testid="stHeader"] {
-        background: transparent !important;
-        height: 0 !important;
-        min-height: 0 !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        border-bottom: none !important;
-        box-shadow: none !important;
-        pointer-events: none !important;
-        z-index: 100 !important;
-    }
-    header[data-testid="stHeader"] [data-testid="stToolbar"] {
-        display: none !important;
-    }
-    /* Control para desplegar la barra lateral si está cerrada */
-    [data-testid="collapsedControl"] {
-        pointer-events: auto !important;
-        top: 0.5rem !important;
-        left: 0.5rem !important;
-        z-index: 1000 !important;
+        background: rgba(254, 254, 254, 0.96) !important;
+        backdrop-filter: blur(8px) !important;
+        border-bottom: 1px solid #e5e7eb !important;
+        height: 3.5rem !important;
+        right: 16px !important; /* Deja totalmente libre el deslizador / scrollbar vertical derecho */
+        z-index: 999 !important;
     }
 
+    /* El contenido de todas las vistas empieza más abajo (4.5rem) para que la barra nunca corte nada */
     .block-container {
-        padding-top: 1.25rem !important;
+        padding-top: 4.5rem !important;
         padding-bottom: 2rem !important;
         max-width: 100% !important;
     }
@@ -133,7 +117,7 @@ st.markdown(
     .hero-banner {
         position: relative;
         height: 260px;
-        margin: -1.25rem -1rem 1.5rem -1rem;
+        margin: 0 -1rem 1.5rem -1rem;
         width: calc(100% + 2rem);
         background-size: cover;
         background-position: center 50%;
