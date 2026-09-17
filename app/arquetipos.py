@@ -14,42 +14,52 @@ from app.ui_helpers import add_chart_motion, format_metric
 
 def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
     # ── 1. Resumen Ejecutivo y Métricas Clave ──
-    n_total = len(gdf)
-    n_saturado = int(gdf["tipo_zona"].str.contains("Saturado", na=False).sum())
-    n_transicion = int(gdf["tipo_zona"].str.contains("Transición", na=False).sum())
-    n_rural = int(gdf["tipo_zona"].str.contains("Rural", na=False).sum())
-    n_teide = int(gdf["tipo_zona"].str.contains("Espacio Natural", na=False).sum())
+    n_total = max(1, len(gdf))
+    n_saturado = int((gdf["tipo_zona"] == "Saturado / Overtourism").sum())
+    n_transicion = int((gdf["tipo_zona"] == "Transición Costera y Medianías").sum())
+    n_rural_prot = int((gdf["tipo_zona"] == "Espacios Rurales Protegidos (Anaga/Teno)").sum())
+    n_rural_agri = int((gdf["tipo_zona"] == "Rural Agrícola / Medianías Norte").sum())
+    n_teide = int((gdf["tipo_zona"] == "Espacio Natural / Teide y Cumbre").sum())
+    n_urbano = int((gdf["tipo_zona"] == "Urbano Residencial").sum())
     n_oportunidad_ideal = int(gdf.get("es_oportunidad_ideal", pd.Series(False, index=gdf.index)).sum())
 
-    kpi1, kpi2, kpi3, kpi4 = st.columns(4)
-    with kpi1.container(border=True):
-        st.metric(
-            "🔴 Saturado / Overtourism",
-            f"{n_saturado} hex.",
-            f"{(n_saturado / n_total * 100):.1f}% del territorio",
-            help="61 hexágonos con densidad hotelera extrema y máxima luz nocturna (Adeje, Arona, Puerto de la Cruz).",
-        )
-    with kpi2.container(border=True):
-        st.metric(
-            "🟡 Transición Costera",
-            f"{n_transicion} hex.",
-            f"{(n_transicion / n_total * 100):.1f}% del territorio",
-            help="Zonas intermedias con desarrollo turístico moderado o en crecimiento, óptimas para descompresión.",
-        )
-    with kpi3.container(border=True):
-        st.metric(
-            "🌲 Rurales y Medianías",
-            f"{n_rural} hex.",
-            f"{(n_rural / n_total * 100):.1f}% del territorio",
-            help="Espacios protegidos (Anaga/Teno) y medianías agrícolas del norte de alto valor paisajístico y potencial no explotado.",
-        )
-    with kpi4.container(border=True):
-        st.metric(
-            "🌋 Espacio Natural / Teide",
-            f"{n_teide} hex.",
-            f"{(n_teide / n_total * 100):.1f}% del territorio",
-            help="Parque Nacional del Teide y cumbres (ENP 93%), suelo protegido no urbanizable de máxima preservación ambiental.",
-        )
+    clusters_info = [
+        ("🔴 Saturado / overtourism", n_saturado, "Adeje, Arona, Puerto de la Cruz litoral con saturación extrema de plazas y capacidad de carga."),
+        ("🟡 Transición costera y medianías", n_transicion, "Zonas intermedias en desarrollo, óptimas para descompresión territorial equilibrada."),
+        ("🌲 Espacios rurales protegidos", n_rural_prot, "Parques rurales de Anaga y Teno de alto valor paisajístico y protección ambiental."),
+        ("🌱 Rural agrícola / medianías norte", n_rural_agri, "Medianías agrícolas de vertientes norte y sur con potencial enoturístico y producto local."),
+        ("🌋 Espacio natural / Teide y cumbre", n_teide, "Parque Nacional del Teide y altas cumbres insulares de máxima protección ambiental."),
+        ("🏙️ Urbano residencial", n_urbano, "Áreas metropolitanas y núcleos poblacionales de uso primordialmente residencial."),
+    ]
+
+    cols = st.columns(6)
+    for col, (titulo, n_hex, tooltip) in zip(cols, clusters_info):
+        pct = (n_hex / n_total) * 100.0
+        with col.container(border=True):
+            col_html = (
+                f'<div style="font-family: inherit; min-height: 105px; display: flex; flex-direction: column; justify-content: space-between;" title="{tooltip}">'
+                f'<div style="font-size: 0.82rem; color: #475569; font-weight: 600; line-height: 1.25; min-height: 2.2rem;">{titulo}</div>'
+                f'<div>'
+                f'<div style="font-size: 1.45rem; font-weight: 700; color: var(--text-color, #1e293b); margin: 0.2rem 0 0.1rem 0;">{n_hex:,} hex.</div>'
+                f'<div style="font-size: 0.82rem; color: #64748b; font-weight: 500;">{pct:.1f}% del territorio</div>'
+                f'</div>'
+                f'</div>'
+            )
+            st.markdown(col_html, unsafe_allow_html=True)
+
+    pct_op = (n_oportunidad_ideal / n_total) * 100.0
+    banner_html = (
+        f'<div style="background: linear-gradient(90deg, rgba(30,58,138,0.07) 0%, rgba(13,148,136,0.07) 100%); border: 1px solid rgba(30,58,138,0.22); border-radius: 8px; padding: 0.85rem 1.25rem; margin-top: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">'
+        f'<div>'
+        f'<span style="font-weight: 700; color: #1e3a8a; font-size: 1.05rem;">🌟 Oportunidades ideales para TUI</span>'
+        f'<span style="color: #475569; font-size: 0.88rem; margin-left: 0.5rem;">Celdas territoriales de alto atractivo no explotado (PTNA &gt; 0) con certificación ambiental sostenible (ESG &gt; 60).</span>'
+        f'</div>'
+        f'<div style="font-size: 1.2rem; font-weight: 700; color: #0d9488;">'
+        f'{n_oportunidad_ideal:,} hexágonos <span style="font-size: 0.85rem; font-weight: 500; color: #64748b;">({pct_op:.1f}% del territorio insular)</span>'
+        f'</div>'
+        f'</div>'
+    )
+    st.markdown(banner_html, unsafe_allow_html=True)
 
     st.divider()
 

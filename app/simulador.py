@@ -726,66 +726,54 @@ def render_simulador_tab(full_gdf: pd.DataFrame) -> None:
             nombre_ambito = f"{cluster_sel}"
             subtitulo_ambito = f"Clúster territorial · Ámbito geográfico: {mun_filtro} ({n_hex:,} hexágonos H3 · {total_area:,.1f} km²)"
 
-        card_html = f"""
-        <div style="padding: 0.35rem 0.25rem; font-family: inherit;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid rgba(128,128,128,0.2); padding-bottom: 0.9rem; margin-bottom: 1rem;">
-                <div style="flex: 1 1 340px; min-width: 250px;">
-                    <div style="font-size: 0.78rem; color: #888; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Ámbito territorial analizado</div>
-                    <div style="font-size: 1.55rem; font-weight: 700; color: var(--text-color, #1a202c); line-height: 1.25; margin-top: 0.2rem; word-break: break-word; white-space: normal;">
-                        {nombre_ambito}
-                    </div>
-                    <div style="font-size: 0.88rem; color: #666; margin-top: 0.25rem; line-height: 1.35; white-space: normal;">
-                        {subtitulo_ambito}
-                    </div>
-                </div>
-                <div style="flex: 0 1 auto; min-width: 240px; text-align: left;">
-                    <div style="font-size: 0.78rem; color: #888; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Arquetipo dominante actual</div>
-                    <div style="margin-top: 0.35rem;">
-                        <span style="font-size: 1.15rem; font-weight: 700; color: #1E3A8A; background: rgba(30, 58, 138, 0.1); border: 1px solid rgba(30, 58, 138, 0.25); padding: 0.45rem 0.95rem; border-radius: 8px; display: inline-block; white-space: normal; word-break: break-word; line-height: 1.35;">
-                            {arch_base}
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1rem; margin-bottom: 0.85rem;">
-                <div style="background: rgba(128,128,128,0.06); padding: 0.85rem 1rem; border-radius: 8px; border-left: 4px solid #3498DB;">
-                    <div style="font-size: 0.8rem; color: #777; font-weight: 600;">Plazas regladas actuales</div>
-                    <div style="font-size: 1.35rem; font-weight: 700; color: var(--text-color, #1a202c); margin: 0.2rem 0; white-space: normal; word-break: break-word;">{int(plazas_tot):,} plazas</div>
-                    <div style="font-size: 0.82rem; color: #666;">{dens_plazas:.1f} pl/km²</div>
-                </div>
-                <div style="background: rgba(128,128,128,0.06); padding: 0.85rem 1rem; border-radius: 8px; border-left: 4px solid {ptna_color};">
-                    <div style="font-size: 0.8rem; color: #777; font-weight: 600;">Índice PTNA base</div>
-                    <div style="font-size: 1.35rem; font-weight: 700; color: var(--text-color, #1a202c); margin: 0.2rem 0; white-space: normal; word-break: break-word;">{ptna_base:+.1f}</div>
-                    <div style="font-size: 0.82rem; color: #666;">{ptna_label}</div>
-                </div>
-                <div style="background: rgba(128,128,128,0.06); padding: 0.85rem 1rem; border-radius: 8px; border-left: 4px solid #27AE60;">
-                    <div style="font-size: 0.8rem; color: #777; font-weight: 600;">Score ESG base</div>
-                    <div style="font-size: 1.35rem; font-weight: 700; color: var(--text-color, #1a202c); margin: 0.2rem 0; white-space: normal; word-break: break-word;">{esg_base:.1f} / 100</div>
-                    <div style="font-size: 0.82rem; color: #666;">Sostenibilidad territorial</div>
-                </div>
-                <div style="background: rgba(128,128,128,0.06); padding: 0.85rem 1rem; border-radius: 8px; border-left: 4px solid #E67E22;">
-                    <div style="font-size: 0.8rem; color: #777; font-weight: 600;">Eje 1: Saturación turística</div>
-                    <div style="font-size: 1.35rem; font-weight: 700; color: var(--text-color, #1a202c); margin: 0.2rem 0; white-space: normal; word-break: break-word;">{eje1_base:.3f}</div>
-                    <div style="font-size: 0.82rem; color: #666;">Presión en el gradiente insular</div>
-                </div>
-                <div style="background: rgba(128,128,128,0.06); padding: 0.85rem 1rem; border-radius: 8px; border-left: 4px solid #16A085;">
-                    <div style="font-size: 0.8rem; color: #777; font-weight: 600;">Eje 2: Potencial rural</div>
-                    <div style="font-size: 1.35rem; font-weight: 700; color: var(--text-color, #1a202c); margin: 0.2rem 0; white-space: normal; word-break: break-word;">{eje2_base:.3f}</div>
-                    <div style="font-size: 0.82rem; color: #666;">Potencial no masificado</div>
-                </div>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px dashed rgba(128,128,128,0.2); font-size: 0.85rem; color: #555;">
-                <div>
-                    ✈️ <b>Accesibilidad:</b> {tiempo_aero:.0f} min al aeropuerto · 🏖️ <b>Costa:</b> {dist_costa:.1f} km · 🌿 <b>NDVI:</b> {ndvi_base:.2f} · ⛰️ <b>Altitud:</b> {alt_base:.0f} m
-                </div>
-                <div>
-                    🛡️ <b>Régimen legal:</b> {rest_cat}{enp_badge_text}
-                </div>
-            </div>
-        </div>
-        """
+        card_html = (
+            f'<div style="padding: 0.35rem 0.25rem; font-family: inherit;">'
+            f'<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid rgba(128,128,128,0.2); padding-bottom: 0.9rem; margin-bottom: 1rem;">'
+            f'<div style="flex: 1 1 340px; min-width: 250px;">'
+            f'<div style="font-size: 0.78rem; color: #888; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Ámbito territorial analizado</div>'
+            f'<div style="font-size: 1.55rem; font-weight: 700; color: var(--text-color, #1a202c); line-height: 1.25; margin-top: 0.2rem; word-break: break-word; white-space: normal;">{nombre_ambito}</div>'
+            f'<div style="font-size: 0.88rem; color: #666; margin-top: 0.25rem; line-height: 1.35; white-space: normal;">{subtitulo_ambito}</div>'
+            f'</div>'
+            f'<div style="flex: 0 1 auto; min-width: 240px; text-align: left;">'
+            f'<div style="font-size: 0.78rem; color: #888; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Arquetipo dominante actual</div>'
+            f'<div style="margin-top: 0.35rem;">'
+            f'<span style="font-size: 1.15rem; font-weight: 700; color: #1E3A8A; background: rgba(30, 58, 138, 0.1); border: 1px solid rgba(30, 58, 138, 0.25); padding: 0.45rem 0.95rem; border-radius: 8px; display: inline-block; white-space: normal; word-break: break-word; line-height: 1.35;">{arch_base}</span>'
+            f'</div>'
+            f'</div>'
+            f'</div>'
+            f'<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1rem; margin-bottom: 0.85rem;">'
+            f'<div style="background: rgba(128,128,128,0.06); padding: 0.85rem 1rem; border-radius: 8px; border-left: 4px solid #3498DB;">'
+            f'<div style="font-size: 0.8rem; color: #777; font-weight: 600;">Plazas regladas actuales</div>'
+            f'<div style="font-size: 1.35rem; font-weight: 700; color: var(--text-color, #1a202c); margin: 0.2rem 0; white-space: normal; word-break: break-word;">{int(plazas_tot):,} plazas</div>'
+            f'<div style="font-size: 0.82rem; color: #666;">{dens_plazas:.1f} pl/km²</div>'
+            f'</div>'
+            f'<div style="background: rgba(128,128,128,0.06); padding: 0.85rem 1rem; border-radius: 8px; border-left: 4px solid {ptna_color};">'
+            f'<div style="font-size: 0.8rem; color: #777; font-weight: 600;">Índice PTNA base</div>'
+            f'<div style="font-size: 1.35rem; font-weight: 700; color: var(--text-color, #1a202c); margin: 0.2rem 0; white-space: normal; word-break: break-word;">{ptna_base:+.1f}</div>'
+            f'<div style="font-size: 0.82rem; color: #666;">{ptna_label}</div>'
+            f'</div>'
+            f'<div style="background: rgba(128,128,128,0.06); padding: 0.85rem 1rem; border-radius: 8px; border-left: 4px solid #27AE60;">'
+            f'<div style="font-size: 0.8rem; color: #777; font-weight: 600;">Score ESG base</div>'
+            f'<div style="font-size: 1.35rem; font-weight: 700; color: var(--text-color, #1a202c); margin: 0.2rem 0; white-space: normal; word-break: break-word;">{esg_base:.1f} / 100</div>'
+            f'<div style="font-size: 0.82rem; color: #666;">Sostenibilidad territorial</div>'
+            f'</div>'
+            f'<div style="background: rgba(128,128,128,0.06); padding: 0.85rem 1rem; border-radius: 8px; border-left: 4px solid #E67E22;">'
+            f'<div style="font-size: 0.8rem; color: #777; font-weight: 600;">Eje 1: Saturación turística</div>'
+            f'<div style="font-size: 1.35rem; font-weight: 700; color: var(--text-color, #1a202c); margin: 0.2rem 0; white-space: normal; word-break: break-word;">{eje1_base:.3f}</div>'
+            f'<div style="font-size: 0.82rem; color: #666;">Presión en el gradiente insular</div>'
+            f'</div>'
+            f'<div style="background: rgba(128,128,128,0.06); padding: 0.85rem 1rem; border-radius: 8px; border-left: 4px solid #16A085;">'
+            f'<div style="font-size: 0.8rem; color: #777; font-weight: 600;">Eje 2: Potencial rural</div>'
+            f'<div style="font-size: 1.35rem; font-weight: 700; color: var(--text-color, #1a202c); margin: 0.2rem 0; white-space: normal; word-break: break-word;">{eje2_base:.3f}</div>'
+            f'<div style="font-size: 0.82rem; color: #666;">Potencial no masificado</div>'
+            f'</div>'
+            f'</div>'
+            f'<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px dashed rgba(128,128,128,0.2); font-size: 0.85rem; color: #555;">'
+            f'<div>✈️ <b>Accesibilidad:</b> {tiempo_aero:.0f} min al aeropuerto · 🏖️ <b>Costa:</b> {dist_costa:.1f} km · 🌿 <b>NDVI:</b> {ndvi_base:.2f} · ⛰️ <b>Altitud:</b> {alt_base:.0f} m</div>'
+            f'<div>🛡️ <b>Régimen legal:</b> {rest_cat}{enp_badge_text}</div>'
+            f'</div>'
+            f'</div>'
+        )
         st.markdown(card_html, unsafe_allow_html=True)
 
     st.divider()
