@@ -92,7 +92,6 @@ def top_n_by_ranking(gdf: pd.DataFrame, ranking_key: str, n: int = 10) -> pd.Dat
 
 
 def render_rankings_tab(gdf: pd.DataFrame) -> None:
-    st.markdown("<div style='margin-top: 1.5rem;'></div>", unsafe_allow_html=True)
     col1, col2 = st.columns([3, 1])
     ranking_key = col1.selectbox("Ranking", list(RANKINGS.keys()))
     n = col2.slider("Nº de municipios", min_value=5, max_value=31, value=10)

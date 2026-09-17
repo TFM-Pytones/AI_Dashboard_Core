@@ -92,9 +92,37 @@ st.set_page_config(page_title="AI-Dashboard Tenerife", page_icon="🌋", layout=
 st.markdown(
     """
     <style>
+    /* Ocultar barra superior blanca de Streamlit y menú de 3 puntos/rerun */
+    #MainMenu {
+        visibility: hidden !important;
+        display: none !important;
+    }
+    header[data-testid="stHeader"] {
+        background: transparent !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border-bottom: none !important;
+        box-shadow: none !important;
+        pointer-events: none !important;
+        z-index: 100 !important;
+    }
+    header[data-testid="stHeader"] [data-testid="stToolbar"] {
+        display: none !important;
+    }
+    /* Control para desplegar la barra lateral si está cerrada */
+    [data-testid="collapsedControl"] {
+        pointer-events: auto !important;
+        top: 0.5rem !important;
+        left: 0.5rem !important;
+        z-index: 1000 !important;
+    }
+
     .block-container {
-        padding-top: 1rem;
-        max-width: 100%;
+        padding-top: 1.25rem !important;
+        padding-bottom: 2rem !important;
+        max-width: 100% !important;
     }
 
     @keyframes fadeInUp {
@@ -105,7 +133,7 @@ st.markdown(
     .hero-banner {
         position: relative;
         height: 260px;
-        margin: -1rem -1rem 1.5rem -1rem;
+        margin: -1.25rem -1rem 1.5rem -1rem;
         width: calc(100% + 2rem);
         background-size: cover;
         background-position: center 50%;
@@ -347,7 +375,6 @@ def page_resumen() -> None:
 
 
 def page_mapa() -> None:
-    st.markdown("<div style='margin-top: 1.5rem;'></div>", unsafe_allow_html=True)
     with st.sidebar:
         st.subheader("Capa activa")
         capa_activa = st.radio(
@@ -374,6 +401,9 @@ def page_mapa() -> None:
         else:
             map_municipio = "Todos"
 
+        selected_categories = None
+        slider_range = None
+
         if show_hexagons:
             metric_key = st.selectbox("Capa del mapa (H3)", list(METRICS.keys()))
             hex_opacity = st.slider(
@@ -384,14 +414,83 @@ def page_mapa() -> None:
                 step=0.05,
                 help="Más bajo = se ve más el satélite de fondo. Más alto = se ve más el color de los hexágonos.",
             )
+
+            # Filtro por rango numérico o grupos cualitativos
+            metric_config = METRICS[metric_key]
+            col_name = metric_config["column"]
+            scale_type = metric_config.get("scale", "sequential")
+
+            if scale_type == "categorical":
+                available_cats = sorted([
+                    str(c) for c in full_gdf[col_name].dropna().unique().tolist()
+                    if str(c).strip() != "" and str(c) != "nan"
+                ])
+                selected_categories = st.multiselect(
+                    "Filtrar grupos visibles",
+                    options=available_cats,
+                    default=available_cats,
+                    key=f"filter_cats_{metric_key}",
+                    help=f"Selecciona qué grupos o tipologías de {metric_key} mostrar en el mapa.",
+                )
+            elif scale_type in ("sequential", "diverging"):
+                s = full_gdf[col_name].dropna()
+                if not s.empty:
+                    min_val = float(s.min())
+                    max_val = float(s.max())
+                    if round(max_val, 2) > round(min_val, 2):
+                        span = max_val - min_val
+                        if span <= 1.05:
+                            step = 0.05
+                            format_str = "%.2f"
+                        elif span <= 10.0:
+                            step = 0.1
+                            format_str = "%.1f"
+                        elif span <= 100.0:
+                            step = 1.0
+                            format_str = "%.0f"
+                        else:
+                            step = 10.0
+                            format_str = "%.0f"
+
+                        slider_range = st.slider(
+                            "Filtrar por rango de valores",
+                            min_value=round(min_val, 2),
+                            max_value=round(max_val, 2),
+                            value=(round(min_val, 2), round(max_val, 2)),
+                            step=step,
+                            format=format_str,
+                            key=f"filter_range_{metric_key}",
+                            help=f"Muestra solo los hexágonos con valores dentro de este rango de {metric_key}.",
+                        )
         else:
             metric_key = list(METRICS.keys())[0]
             hex_opacity = DEFAULT_HEXAGON_OPACITY
 
+        m_slider_range = None
         if show_municipios:
             municipio_metric_key = st.selectbox(
                 "Métrica municipal", list(MUNICIPIO_METRICS.keys())
             )
+            m_config = MUNICIPIO_METRICS[municipio_metric_key]
+            m_col = m_config["column"]
+            m_s = municipio_master[m_col].dropna()
+            if not m_s.empty:
+                m_min = float(m_s.min())
+                m_max = float(m_s.max())
+                if round(m_max, 2) > round(m_min, 2):
+                    m_span = m_max - m_min
+                    m_step = 0.1 if m_span <= 10 else (1.0 if m_span <= 500 else 10.0)
+                    m_format = "%.1f" if m_span <= 10 else "%.0f"
+                    m_slider_range = st.slider(
+                        "Filtrar municipios por rango",
+                        min_value=round(m_min, 2),
+                        max_value=round(m_max, 2),
+                        value=(round(m_min, 2), round(m_max, 2)),
+                        step=m_step,
+                        format=m_format,
+                        key=f"muni_range_{municipio_metric_key}",
+                        help=f"Muestra solo los municipios con valores dentro de este rango de {municipio_metric_key}.",
+                    )
         else:
             municipio_metric_key = list(MUNICIPIO_METRICS.keys())[0]
 
@@ -551,10 +650,33 @@ def page_mapa() -> None:
 
     filtered_gdf = filter_by_municipio(full_gdf, map_municipio)
 
+    if show_hexagons:
+        metric_config = METRICS[metric_key]
+        col_name = metric_config["column"]
+        scale_type = metric_config.get("scale", "sequential")
+
+        if scale_type == "categorical" and selected_categories is not None:
+            filtered_gdf = filtered_gdf[filtered_gdf[col_name].astype(str).isin(selected_categories)]
+        elif scale_type in ("sequential", "diverging") and slider_range is not None:
+            filtered_gdf = filtered_gdf[
+                filtered_gdf[col_name].between(slider_range[0], slider_range[1])
+            ]
+
+    filtered_municipio_master = municipio_master
+    if show_municipios and m_slider_range is not None:
+        filtered_municipio_master = municipio_master[
+            municipio_master[m_col].between(m_slider_range[0], m_slider_range[1])
+        ]
+
     if map_municipio != "Todos":
         st.caption(f"🔍 Filtrando por municipio: **{map_municipio}**")
 
     if show_hexagons:
+        n_filtrados = len(filtered_gdf)
+        n_total_muni = len(filter_by_municipio(full_gdf, map_municipio))
+        if n_filtrados < n_total_muni:
+            st.caption(f"🎯 Hexágonos visibles tras filtro de valores/grupos: **{n_filtrados:,}** de **{n_total_muni:,}**")
+
         st.caption(f"Leyenda — {metric_key}")
         st.markdown(legend_html(metric_key, filtered_gdf), unsafe_allow_html=True)
         if enable_3d:
@@ -564,8 +686,11 @@ def page_mapa() -> None:
             )
 
     if show_municipios:
+        n_muni_filtrados = len(filtered_municipio_master)
+        if n_muni_filtrados < len(municipio_master):
+            st.caption(f"🎯 Municipios visibles tras filtro: **{n_muni_filtrados}** de **{len(municipio_master)}**")
         st.caption(f"Leyenda — {municipio_metric_key} (Capa municipal)")
-        st.markdown(municipio_legend_html(municipio_metric_key, municipio_master), unsafe_allow_html=True)
+        st.markdown(municipio_legend_html(municipio_metric_key, filtered_municipio_master), unsafe_allow_html=True)
 
     if show_isocronas and isocronas_seleccionadas:
         nombres_dest = ", ".join(ISOCRONAS_DESTINOS_INFO[d]["label"] for d in isocronas_seleccionadas if d in ISOCRONAS_DESTINOS_INFO)
@@ -610,7 +735,7 @@ def page_mapa() -> None:
         tooltip=custom_tooltip,
     )
     if show_municipios:
-        deck.layers.append(build_municipio_layer(municipio_master, municipio_metric_key))
+        deck.layers.append(build_municipio_layer(filtered_municipio_master, municipio_metric_key))
     if show_isocronas and isocronas_seleccionadas:
         # Añade las capas de isócronas en orden: 60 min al fondo, 45 min, 30 min, y 15 min en la parte superior
         for iso_layer in build_isocronas_layers(isocronas, isocronas_seleccionadas):
@@ -634,7 +759,6 @@ def page_mapa() -> None:
 
 
 def page_tabla() -> None:
-    st.markdown("<div style='margin-top: 1.5rem;'></div>", unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     tabla_municipio = col1.selectbox(
         "Municipio", ["Todos"] + list_municipios(full_gdf), key="tabla_municipio"

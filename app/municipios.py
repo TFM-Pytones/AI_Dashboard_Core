@@ -192,7 +192,6 @@ def render_municipios_tab(
     municipio_empleo_df: pd.DataFrame,
     municipio_mensual_df: pd.DataFrame,
 ) -> None:
-    st.markdown("<div style='margin-top: 1.5rem;'></div>", unsafe_allow_html=True)
     col1, col2 = st.columns([2, 1])
     municipio = col1.selectbox(
         "Municipio", sorted(municipio_master_df["municipio"].dropna().unique().tolist())

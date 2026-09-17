@@ -13,8 +13,6 @@ from app.ui_helpers import add_chart_motion, format_metric
 
 
 def render_arquetipos_tab(gdf: pd.DataFrame) -> None:
-    st.markdown("<div style='margin-top: 1.5rem;'></div>", unsafe_allow_html=True)
-
     # ── 1. Resumen Ejecutivo y Métricas Clave ──
     n_total = len(gdf)
     n_saturado = int(gdf["tipo_zona"].str.contains("Saturado", na=False).sum())

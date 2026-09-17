@@ -1,6 +1,9 @@
 [server]
 enableStaticServing = true
 
+[client]
+toolbarMode = "minimal"
+
 [[theme.fontFaces]]
 family = "Inter"
 url = "app/static/Inter_18pt-Regular.ttf"
