@@ -31,7 +31,7 @@ Módulo de teledetección espacial para la captura, corrección atmosférica y p
              Carga y Estadísticas Zonales en Malla H3 (PostgreSQL)
              (ingestion/postgres/03_ingest_satelite_to_postgres.py)
              ├── bronze.bronze_satelite_stats (NDVI y NDBI por celda H3)
-             └── bronze.bronze_viirs_h3 (Radianza mensual por celda H3)
+             └── bronze.bronze_viirs_stats (Radianza mensual por celda H3)
 ```
 
 ---
@@ -111,4 +111,4 @@ AZURE_STORAGE_CONNECTION_STRING="DefaultEndpointsProtocol=https;AccountName=...;
 
 Una vez depositados los ficheros GeoTIFF en Azure Blob Storage o en el almacenamiento local, el script [`ingestion/postgres/03_ingest_satelite_to_postgres.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/postgres/03_ingest_satelite_to_postgres.py) realiza las estadísticas zonales sobre cada celda hexagonal de la malla H3, poblando:
 * `bronze.bronze_satelite_stats` (panel trimestral 2019-2026 de NDVI y NDBI)
-* `bronze.bronze_viirs_h3` (panel mensual de radianza nocturna)
+* `bronze.bronze_viirs_stats` (panel mensual de radianza nocturna)

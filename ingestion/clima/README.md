@@ -72,16 +72,8 @@ Descarga el censo de estaciones e inventario físico de sensores directamente de
 * Normaliza series diezminutales, genera particiones mensuales por estación y las almacena en Azure Blob Storage.
 * Incorpora control de progreso y tolerancia a interrupciones en `clima_ckan_progress.json`.
 
-### 4. [`promote_clima_to_production.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/clima/promote_clima_to_production.py) (Promoción y Optimización a Producción)
-* Sincroniza blobs masivamente lado servidor (`start_copy_from_url` con SAS token) a más de 300 blobs/segundo.
-* Promueve y asegura la tabla de producción `bronze.bronze_clima_horario_agrocabildo` en Azure PostgreSQL.
-* Genera los índices de alta velocidad:
-  - `idx_clima_horario_ts` en `(timestamp)`
-  - `idx_clima_horario_st_sensor_ts` en `(id_estacion, id_sensor, timestamp)`
-* Ejecuta `ANALYZE` sobre la relación.
-
-### 5. [`05_ingest_tabular_to_postgres.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/postgres/05_ingest_tabular_to_postgres.py) (Cargador Tabular a PostgreSQL)
-* Carga tanto los metadatos de estaciones y sensores como las lecturas particionadas usando streaming con `PyArrow` y comando `COPY` de PostgreSQL, reduciendo tiempos de ingesta a segundos.
+### 4. [`05_ingest_tabular_to_postgres.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/postgres/05_ingest_tabular_to_postgres.py) (Cargador Tabular a PostgreSQL)
+* Carga tanto los metadatos de estaciones y sensores como las lecturas particionadas usando streaming con `PyArrow` y comando `COPY` de PostgreSQL hacia `bronze.bronze_clima_horario_agrocabildo`, reduciendo tiempos de ingesta a segundos.
 
 ---
 
@@ -116,12 +108,7 @@ python ingestion/clima/clima_realtime_upload_blob.py --days-back 7
 python ingestion/clima/clima_ckan_bulk_upload_blob.py --years 2019-2026 --upload-blob --no-local
 ```
 
-### 4. Sincronización y Promoción a Producción:
-```bash
-python ingestion/clima/promote_clima_to_production.py
-```
-
-### 5. Carga a Azure PostgreSQL (Capa Bronze):
+### 4. Carga a Azure PostgreSQL (Capa Bronze):
 ```bash
 python ingestion/postgres/05_ingest_tabular_to_postgres.py
 ```

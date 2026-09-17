@@ -59,6 +59,14 @@ El diseño del scraper sigue un estricto protocolo ético:
 3. **Uso exclusivamente analítico**: La información agregada alimenta modelos de analítica de texto (BERTopic, PyABSA) y visualización territorial para el TFM, sin fines comerciales ni de republicación íntegra.
 4. **Respeto a la infraestructura**: Rate limiting con pausas aleatorias entre visitas para no sobrecargar el servidor web.
 
+### Documentación Legal y Operativa (`docs/`)
+* [`resumen_robots_booking.md`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/booking/docs/resumen_robots_booking.md): Análisis de directivas `robots.txt` de Booking.com.
+* [`resumen_terminos_servicio.md`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/booking/docs/resumen_terminos_servicio.md): Evaluación de Términos de Servicio y marco ético académico.
+* [`consultas_cruce_municipios_booking.md`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/booking/docs/consultas_cruce_municipios_booking.md): Cruces espaciales y validaciones municipales.
+* [`hallazgo_establecimientos_sin_resenas.md`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/booking/docs/hallazgo_establecimientos_sin_resenas.md): Análisis de cobertura de opiniones.
+* [`incidente_disco_lleno_vm.md`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/booking/docs/incidente_disco_lleno_vm.md): Post-mortem y resolución de incidentes en VM de Azure.
+* [`limitacion_orden_relevancia_deep_scrape.md`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/booking/docs/limitacion_orden_relevancia_deep_scrape.md): Paginación y criterios de ordenación en scraping profundo.
+
 ---
 
 ## 4. Flujo hacia la Base de Datos y Capa Silver
