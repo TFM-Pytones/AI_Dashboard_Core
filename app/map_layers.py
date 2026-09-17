@@ -631,8 +631,8 @@ def build_isocronas_fill_color(rangos: pd.Series) -> pd.Series:
     )
 
 
-def build_isocronas_layers(isocronas_gdf: pd.DataFrame, destinos: list[str] | str) -> list[pdk.Layer]:
-    target_destinos = [destinos] if isinstance(destinos, str) else list(destinos)
+def build_isocronas_layers(isocronas_gdf: pd.DataFrame, destinos: list[str] | str, max_destinos: int = 3) -> list[pdk.Layer]:
+    target_destinos = [destinos] if isinstance(destinos, str) else list(destinos)[:max_destinos]
     subset = isocronas_gdf[isocronas_gdf["destino"].isin(target_destinos)].copy()
     subset["fill_color"] = build_isocronas_fill_color(subset["rango_min"])
     subset["destino_nombre"] = subset["destino"].apply(
@@ -684,8 +684,8 @@ def build_isocronas_layer(isocronas_gdf: pd.DataFrame, destinos: list[str] | str
     )
 
 
-def build_isocronas_origen_pins_layer(destinos: list[str] | str) -> pdk.Layer:
-    target_destinos = [destinos] if isinstance(destinos, str) else list(destinos)
+def build_isocronas_origen_pins_layer(destinos: list[str] | str, max_destinos: int = 3) -> pdk.Layer:
+    target_destinos = [destinos] if isinstance(destinos, str) else list(destinos)[:max_destinos]
     pins_data = []
     for d in target_destinos:
         if d in ISOCRONAS_DESTINOS_INFO:
@@ -715,8 +715,8 @@ def build_isocronas_origen_pins_layer(destinos: list[str] | str) -> pdk.Layer:
     )
 
 
-def build_isocronas_pins_labels_layer(destinos: list[str] | str) -> pdk.Layer:
-    target_destinos = [destinos] if isinstance(destinos, str) else list(destinos)
+def build_isocronas_pins_labels_layer(destinos: list[str] | str, max_destinos: int = 3) -> pdk.Layer:
+    target_destinos = [destinos] if isinstance(destinos, str) else list(destinos)[:max_destinos]
     pins_data = []
     for d in target_destinos:
         if d in ISOCRONAS_DESTINOS_INFO:

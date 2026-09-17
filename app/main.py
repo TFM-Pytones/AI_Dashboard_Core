@@ -423,9 +423,12 @@ def page_mapa() -> None:
                     "Punto de referencia",
                     options=list(ISOCRONAS_DESTINOS_INFO.keys()),
                     default=["tfs", "tfn"],
+                    max_selections=3,
                     format_func=lambda k: ISOCRONAS_DESTINOS_INFO[k]["label"],
-                    help="Puedes seleccionar varios puntos de referencia. Los anillos se apilan de 60 min (fondo) a 15 min (capa superior).",
+                    help="Puedes seleccionar hasta un máximo de 3 puntos de referencia para evitar que la RAM colapse. Los anillos se apilan de 60 min (fondo) a 15 min (capa superior).",
                 )
+                if len(isocronas_seleccionadas) > 3:
+                    isocronas_seleccionadas = isocronas_seleccionadas[:3]
 
             elif subcapa == "Líneas de guagua (GTFS)":
                 with st.spinner("Cargando red de guaguas..."):

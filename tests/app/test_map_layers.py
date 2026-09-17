@@ -9,6 +9,9 @@ from app.map_layers import (
     build_highlight_layer,
     build_isocronas_fill_color,
     build_isocronas_layer,
+    build_isocronas_layers,
+    build_isocronas_origen_pins_layer,
+    build_isocronas_pins_labels_layer,
     build_layer,
     build_municipio_fill_color_column,
     build_municipio_layer,
@@ -114,6 +117,16 @@ def test_build_isocronas_layer_filters_by_destino_and_returns_geojson_layer():
     assert isinstance(layer, pdk.Layer)
     assert len(layer.data["features"]) == 2
     assert layer.get_fill_color == "@@=properties.fill_color"
+
+
+def test_build_isocronas_layers_caps_at_max_destinos():
+    # Probar que más de 3 destinos se limitan a un máximo de 3
+    layers = build_isocronas_layers(_isocronas_gdf(), ["tfs", "teide", "otro1", "otro2"], max_destinos=3)
+    assert len(layers) > 0
+    pins_layer = build_isocronas_origen_pins_layer(["tfs", "teide", "otro1", "otro2"], max_destinos=3)
+    # Entre los 4 solo tfs y teide están en el diccionario, pero la lista de entrada se acotó a [:3]
+    labels_layer = build_isocronas_pins_labels_layer(["tfs", "tfn", "teide", "capital"], max_destinos=3)
+    assert len(labels_layer.data) == 3
 
 
 def test_build_layer_returns_pickable_h3_layer():
