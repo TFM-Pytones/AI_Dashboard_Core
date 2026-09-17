@@ -21,11 +21,11 @@ Azure Blob Storage: bronce-raw/youtube/
        │
        ▼  Carga en Base de Datos (ingestion/postgres/05_ingest_tabular_to_postgres.py)
 PostgreSQL:
-       ├── bronze.bronze_youtube_videos
-       └── bronze.bronze_youtube_comments
+       ├── bronze.bronze_youtube_videos (41 vídeos)
+       └── bronze.bronze_youtube_comments (3.100 comentarios)
        │
        ▼  Transformación analítica con dbt
-PostgreSQL: silver.silver_youtube_videos / silver_youtube_comentarios
+PostgreSQL: silver.silver_youtube (38 vídeos) / silver.silver_youtube_comentarios (2.819 comentarios)
        │
        ▼  Modelos de IA y Procesamiento del Lenguaje Natural (Analytics)
        ├── BERTopic Modelo A (Tópicos cualitativos y sentimiento global)
@@ -76,6 +76,15 @@ La cuota gratuita de Google Cloud para YouTube Data API v3 es de **10.000 unidad
 | `like_count` | `INT` | Número de "Me gusta" recibidos por el comentario |
 | `published_at` | `TIMESTAMP` | Fecha de publicación del comentario |
 | `author_name` | `VARCHAR` | Nombre del usuario autor |
+
+### Resumen de Volúmenes Verificados
+
+| Capa | Tabla PostgreSQL | Volumen Verificado | Descripción |
+|---|---|:---:|---|
+| **Bronze** | `bronze.bronze_youtube_videos` | **41** vídeos | Vídeos turísticos identificados mediante búsquedas focalizadas |
+| **Bronze** | `bronze.bronze_youtube_comments` | **3.100** comentarios | Comentarios brutos recopilados vía YouTube API v3 |
+| **Silver** | `silver.silver_youtube` | **38** vídeos | Vídeos con comentarios contemporáneos validados |
+| **Silver** | `silver.silver_youtube_comentarios` | **2.819** comentarios | Comentarios filtrados ($\ge 2022$, longitud $> 15$) |
 
 ---
 

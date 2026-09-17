@@ -75,7 +75,14 @@ Dado que `losviajeros_mensajes.parquet` contiene más de **167.000 registros de 
 
 En la capa **Silver**, los modelos dbt ejecutan:
 * [`silver_losviajeros`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/dbt_project/models/silver/losviajeros/silver_losviajeros.sql): Agrega métricas por hilo (volumen de respuestas, primer y último mensaje publicado).
-* [`silver_losviajeros_mensajes`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/dbt_project/models/silver/losviajeros/silver_losviajeros_mensajes.sql): Limpieza de entidades HTML (`&amp;`, `&quot;`, `<br>`), eliminación de firmas automáticas y etiquetado del flag `periodo_covid`.
+* [`silver_losviajeros_mensajes`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/dbt_project/models/silver/losviajeros/silver_losviajeros_mensajes.sql): Limpieza de entidades HTML (`&amp;`, `&quot;`, `<br>`), eliminación de firmas automáticas y depuración léxica.
+
+| Capa | Tabla PostgreSQL | Volumen Verificado | Descripción |
+|---|---|:---:|---|
+| **Bronze** | `bronze.bronze_losviajeros_temas` | **248** hilos | Hilos de discusión completos sobre Tenerife (2004–2026) |
+| **Bronze** | `bronze.bronze_losviajeros_mensajes` | **167.274** mensajes | Posts brutos con texto íntegro y contexto de página |
+| **Silver** | `silver.silver_losviajeros` | **248** hilos | Métricas consolidadas por tema |
+| **Silver** | `silver.silver_losviajeros_mensajes` | **168.035** mensajes | Corpus textual limpio listo para NLP |
 
 Posteriormente, este corpus alimenta:
 * **BERTopic (Topic Modeling)**: Detección no supervisada de temáticas emergentes (rutas de senderismo en Anaga, alquiler de coches en los aeropuertos, masificación en el Teide, microclimas norte vs. sur).

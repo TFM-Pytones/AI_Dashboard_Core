@@ -71,11 +71,11 @@ def fetch_youtube(conn) -> list[tuple[str, str, str]]:
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT source_id, text
-            FROM silver.silver_sentiment_results
-            WHERE source = %s AND is_relevant = true AND length(text) > %s
+            SELECT comment_id, texto
+            FROM silver.silver_youtube_comentarios
+            WHERE length(texto) > %s
             """,
-            (SOURCE_YOUTUBE, MIN_TEXT_LENGTH),
+            (MIN_TEXT_LENGTH,),
         )
         return [(SOURCE_YOUTUBE, sid, text) for sid, text in cur.fetchall()]
 

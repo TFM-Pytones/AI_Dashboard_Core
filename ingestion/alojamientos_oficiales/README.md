@@ -39,11 +39,14 @@ Azure PostgreSQL: silver.silver_alojamientos_oficiales (Geometrías PostGIS EPSG
 
 Los datos se obtienen directamente desde los endpoints oficiales de datos abiertos del Gobierno de Canarias:
 
-| Nombre del Dataset | Tipología Turística | Archivo Parquet en Blob | Tabla Bronze PostgreSQL |
-|---|---|---|---|
-| **`registro_hoteles`** | Establecimientos hoteleros (hoteles, hoteles urbanos, hoteles rurales) | `alojamientos_oficiales/registro_hoteles_tenerife.parquet` | `bronze.bronze_registro_hoteles` |
-| **`registro_extrahoteleros`** | Apartamentos turísticos, complejos de bungalows, villas | `alojamientos_oficiales/registro_extrahoteleros_tenerife.parquet` | `bronze.bronze_registro_extrahoteleros` |
-| **`registro_viviendas_vacacionales`** | Viviendas vacacionales regladas bajo el Decreto 113/2015 | `alojamientos_oficiales/registro_viviendas_vacacionales_tenerife.parquet` | `bronze.bronze_registro_viviendas_vacacionales` |
+| Nombre del Dataset | Tipología Turística | Archivo Parquet en Blob | Tabla Bronze PostgreSQL | Registros Verificados |
+|---|---|---|---|:---:|
+| **`registro_hoteles`** | Hoteles urbanos, de costa y rurales | `alojamientos_oficiales/registro_hoteles_tenerife.parquet` | `bronze.bronze_registro_hoteles` | **314** |
+| **`registro_extrahoteleros`** | Apartamentos turísticos, bungalows, villas | `alojamientos_oficiales/registro_extrahoteleros_tenerife.parquet` | `bronze.bronze_registro_extrahoteleros` | **411** |
+| **`registro_viviendas_vacacionales`** | Viviendas vacacionales regladas (Decreto 113/2015) | `alojamientos_oficiales/registro_viviendas_vacacionales_tenerife.parquet` | `bronze.bronze_registro_viviendas_vacacionales` | **30.589** |
+| **Total Consolidado Silver** | **Unificado en `silver.silver_alojamientos_oficiales`** | — | — | **31.314** *(263.769 plazas)* |
+
+Además, la tabla de soporte `bronze.bronze_registro_geocoding_lookup` centraliza **9.397** resoluciones de coordenadas geocodificadas para los registros que carecían de lat/lon nativa.
 
 ---
 

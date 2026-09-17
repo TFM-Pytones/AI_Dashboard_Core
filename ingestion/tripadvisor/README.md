@@ -26,11 +26,11 @@ Azure Blob Storage: bronce-raw/tripadvisor/
        │
        ▼  Carga en Base de Datos (ingestion/postgres/05_ingest_tabular_to_postgres.py)
 PostgreSQL:
-       ├── bronze.bronze_tripadvisor_ubicaciones
-       └── bronze.bronze_tripadvisor_resenas
+       ├── bronze.bronze_tripadvisor_ubicaciones (750 ubicaciones)
+       └── bronze.bronze_tripadvisor_resenas (807 reseñas)
        │
        ▼  Modelado en dbt
-PostgreSQL: silver.silver_tripadvisor_hoteles / silver_tripadvisor_resenas
+PostgreSQL: silver.silver_tripadvisor_ubicaciones (748 ubicaciones) / silver.silver_tripadvisor_resenas (807 reseñas)
 ```
 
 ---
@@ -58,7 +58,15 @@ PostgreSQL: silver.silver_tripadvisor_hoteles / silver_tripadvisor_resenas
 * **`bronze_tripadvisor_ubicaciones`**: Identificador de ubicación, nombre comercial, dirección, latitud, longitud, categoría (hotel o restaurante), teléfono y calificación promedio.
 * **`bronze_tripadvisor_resenas`**: Identificador de reseña (`review_id`), identificador de establecimiento (`location_id`), texto de la opinión, puntuación numérica (1 a 5 burbujas), fecha de publicación y metadatos brutos en JSON.
 
-En la capa **Silver**, dbt normaliza las escalas de valoración, limpia caracteres especiales y cruza los establecimientos con la malla hexagonal H3.
+En la capa **Silver**, dbt normaliza las escalas de valoración, limpia caracteres especiales, descarta textos con menos de 15 caracteres y cruza los establecimientos con la malla hexagonal H3.
+
+| Capa | Tabla PostgreSQL | Volumen Verificado | Descripción |
+|---|---|:---:|---|
+| **Bronze** | `bronze.bronze_tripadvisor_ubicaciones` | **750** filas | Ubicaciones capturadas dentro del bounding box y polígono insular |
+| **Bronze** | `bronze.bronze_tripadvisor_resenas` | **807** filas | Opiniones brutas con payload JSON completo |
+| **Silver** | `silver.silver_tripadvisor_ubicaciones` | **748** filas | Ubicaciones deduplicadas con geometrías PostGIS EPSG:4326 |
+| **Silver** | `silver.silver_tripadvisor_resenas` | **807** filas | Reseñas depuradas (periodo 2025–2026, texto $> 15$) |
+
 ### Documentación Legal y Ética (`docs/`)
 * [`resumen_robots_tripadvisor.md`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/tripadvisor/docs/resumen_robots_tripadvisor.md): Análisis de directivas `robots.txt` de TripAdvisor.
 * [`resumen_terminos_servicio.md`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/ingestion/tripadvisor/docs/resumen_terminos_servicio.md): Evaluación de Términos de Servicio y política de uso de API.

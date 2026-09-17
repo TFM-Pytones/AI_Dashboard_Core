@@ -45,20 +45,22 @@ El pipeline de ingesta sigue un patrón desacoplado en dos niveles para garantiz
 
 ## Módulos y Fuentes de Datos Disponibles
 
-Cada subcarpeta cuenta con su propia documentación detallada en un `README.md` específico:
+A continuación se resume el catálogo de módulos de ingesta y sus volúmenes reales verificados en el Lakehouse (**Azure Blob Storage** y **Azure Database for PostgreSQL**):
 
-1. [**`aena/`**](aena/README.md) — Estadísticas de pasajeros comerciales, vuelos y carga para TFS y TFN.
-2. [**`alojamientos_oficiales/`**](alojamientos_oficiales/README.md) — Registros oficiales del Gobierno de Canarias (Hoteles, Extrahoteleros y VV).
-3. [**`booking/`**](booking/README.md) — Scraping automatizado y ético de establecimientos y opiniones en Booking.com.
-4. [**`clima/`**](clima/README.md) — Adquisición en tiempo real e histórica de las 68 estaciones de Agrocabildo vía CKAN con particionamiento Hive.
-5. [**`espacial/`**](espacial/README.md) — Generación de la Malla H3 (Res 8, 2.746 celdas con buffer costero), ENP, zonas turísticas y POIs OSM.
-6. [**`gtfs/`**](gtfs/README.md) — Transporte público regular insular de TITSA y Metropolitano de Tenerife.
-7. [**`istac/`**](istac/README.md) — Series estadísticas municipales del ISTAC (demografía, empleo, EOH, vivienda vacacional).
-8. [**`losviajeros/`**](losviajeros/README.md) — Corpus cualitativo de hilos y 167.000 mensajes del foro de viajeros LosViajeros.com.
-9. [**`postgres/`**](postgres/README.md) — Orquestación del pipeline de carga por lotes hacia el esquema `bronze.*` en Azure PostgreSQL.
-10. [**`satelite/`**](satelite/README.md) — Teledetección con Sentinel-2 (NDVI/NDBI libres de nubes y calima) y VIIRS (luces nocturnas).
-11. [**`tripadvisor/`**](tripadvisor/README.md) — Extracción vía Terra API con filtrado espacial PostGIS y consolidación a Parquet.
-12. [**`youtube/`**](youtube/README.md) — Extracción de vídeos turísticos y comentarios de viajeros mediante YouTube Data API v3.
+| Módulo | Fuente / Proveedor | Capa Bronze (Raw) | Capa Silver (Limpia) | Documentación |
+|---|---|---|---|---|
+| [**`clima/`**](clima/README.md) | Agrocabildo (CKAN) | **68** estaciones, **136,4 M** lecturas | **57** estaciones maduras, **12,95 M** registros | [`clima/README.md`](clima/README.md) |
+| [**`booking/`**](booking/README.md) | Booking.com (Scraping) | **4.099** establecimientos, **105.104** reseñas | **3.740** hoteles deduplicados, **73.888** reseñas | [`booking/README.md`](booking/README.md) |
+| [**`tripadvisor/`**](tripadvisor/README.md) | TripAdvisor (Terra API) | **750** ubicaciones, **807** reseñas | **748** ubicaciones geolocalizadas, **807** reseñas | [`tripadvisor/README.md`](tripadvisor/README.md) |
+| [**`losviajeros/`**](losviajeros/README.md) | LosViajeros.com (Foro) | **248** hilos, **167.274** mensajes brutos | **248** hilos, **168.035** mensajes procesados | [`losviajeros/README.md`](losviajeros/README.md) |
+| [**`youtube/`**](youtube/README.md) | YouTube Data API v3 | **41** vídeos, **3.100** comentarios | **38** vídeos, **2.819** comentarios ($\ge 2022$) | [`youtube/README.md`](youtube/README.md) |
+| [**`alojamientos_oficiales/`**](alojamientos_oficiales/README.md) | Gobierno de Canarias | **31.314** registros (30.589 VV, 314 H, 411 EH) | **31.314** oficiales geocodificados (263.769 plazas) | [`alojamientos_oficiales/README.md`](alojamientos_oficiales/README.md) |
+| [**`gtfs/`**](gtfs/README.md) | TITSA / Tranvía | **3.934** paradas, **873** rutas, **1,36 M** horarios | **3.934** paradas PostGIS, **873** rutas con trazado | [`gtfs/README.md`](gtfs/README.md) |
+| [**`espacial/`**](espacial/README.md) | Cabildo / GRAFCAN / H3 | **2.746** celdas H3 (buffer costero), 43 ENP, 125 BIC | **2.579** celdas H3 terrestres, 31 municipios, 17 zonas | [`espacial/README.md`](espacial/README.md) |
+| [**`satelite/`**](satelite/README.md) | Sentinel-2 / VIIRS | **82.380** Sentinel stats, **241.648** VIIRS stats | **46.422** compuestos NDVI/NDBI trimestrales | [`satelite/README.md`](satelite/README.md) |
+| [**`istac/`**](istac/README.md) | ISTAC (API REST) | **24** series municipales (demografía, empleo, EOH, VV) | **1.736** mensual, **682** trimestral, **124** anual | [`istac/README.md`](istac/README.md) |
+| [**`aena/`**](aena/README.md) | AENA (Informes oficiales) | **182** registros brutos TFS/TFN | **110** registros mensuales armonizados | [`aena/README.md`](aena/README.md) |
+| [**`postgres/`**](postgres/README.md) | Orquestador de carga | Scripts `01_` a `07_` en streaming `COPY` binario | Pipeline automatizado de carga a Azure PostgreSQL | [`postgres/README.md`](postgres/README.md) |
 
 ---
 

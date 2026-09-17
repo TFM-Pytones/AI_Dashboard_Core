@@ -45,8 +45,8 @@ sources:
       - name: bronze_losviajeros_mensajes
       - name: bronze_tripadvisor_resenas
       - name: bronze_tripadvisor_ubicaciones
-      - name: bronze_ml_sentiment_results
-      - name: bronze_ml_aspect_results
+      - name: bronze_viirs_stats
+        description: "Estadísticas de radiancia nocturna VIIRS por celda H3 (tabla de apoyo en bronze, no consumida directamente por modelos dbt actuales)."
 
       # ISTAC - Demografía y Paro
       - name: bronze_istac_mun_edad_media

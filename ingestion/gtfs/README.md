@@ -23,14 +23,24 @@ El proceso automatizado se encuentra implementado en [`ingestion/gtfs/gtfs_uploa
 El traspaso desde Azure Blob Storage hacia Azure Database for PostgreSQL se realiza mediante scripts de carga por lotes:
 
 * **Tablas relacionales puras**:
-  * `bronze_gtfs_viajes`: Viajes programados por línea y servicio.
-  * `bronze_gtfs_horarios`: Horarios exactos de paso por parada.
-  * `bronze_gtfs_calendario`: Días de operación regulares.
-  * `bronze_gtfs_calendario_excepciones`: Festivos y servicios especiales.
-  * `bronze_gtfs_rutas_atributos`: Denominación, color y operador de ruta.
+  * `bronze_gtfs_horarios` (**1.359.365** filas): Horarios exactos de paso por parada (de los 2,08 millones de registros brutos extraídos del ZIP).
+  * `bronze_gtfs_viajes` (**48.655** filas): Viajes programados por línea y servicio.
+  * `bronze_gtfs_rutas_atributos` (**183** filas): Denominación comercial, color y operador de ruta.
+  * `bronze_gtfs_calendario_excepciones` (**26.651** filas): Festivos y servicios especiales.
+  * `bronze_gtfs_calendario` (**3** filas): Tipos de servicio base.
 * **Tablas espaciales (PostGIS)**:
-  * `bronze_gtfs_paradas`: Puntos geolocalizados de paradas.
-  * `bronze_gtfs_rutas`: Geometrías lineales del viario por trayecto.
+  * `bronze_gtfs_paradas` (**3.934** paradas): Puntos geolocalizados de paradas en EPSG:4326.
+  * `bronze_gtfs_rutas` (**873** rutas): Geometrías lineales del viario por trayecto en EPSG:4326.
+
+| Capa | Tabla PostgreSQL | Registros Verificados | Tipo y SRID | Descripción |
+|---|---|:---:|---|---|
+| **Bronze** | `bronze.bronze_gtfs_paradas` | **3.934** | PostGIS Point (4326) | Marquesinas y paradas insulares |
+| **Bronze** | `bronze.bronze_gtfs_rutas` | **873** | PostGIS LineString (4326) | Trazados geométricos por trayecto |
+| **Bronze** | `bronze.bronze_gtfs_rutas_atributos` | **183** | Relacional | Códigos comerciales y atributos de líneas |
+| **Bronze** | `bronze.bronze_gtfs_viajes` | **48.655** | Relacional | Expediciones y viajes planificados |
+| **Bronze** | `bronze.bronze_gtfs_horarios` | **1.359.365** | Relacional | Horarios de paso cronometrados |
+| **Silver** | `silver.silver_gtfs_paradas` | **3.934** | PostGIS Point (4326) | Paradas enriquecidas con líneas y volumen diario |
+| **Silver** | `silver.silver_gtfs_rutas` | **873** | PostGIS LineString (4326) | Rutas enriquecidas con total de viajes |
 
 ---
 

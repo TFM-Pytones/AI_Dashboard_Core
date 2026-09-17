@@ -19,16 +19,16 @@ Este repositorio contiene el código fuente y la documentación para el Trabajo 
   - **Capas Plata y Oro**: Servidor Flexible de Azure Database for PostgreSQL con extensión espacial PostGIS.
 * **2.2. Aprovisionamiento de Máquina Virtual (Azure VM)**: Servidor Linux/Windows para la ejecución periódica de ingestas, web scraping y alojamiento del dashboard.
 * **2.3. Extracción de Microdatos Tabulares y Espaciales**:
-  - **Datos Espaciales**: Límites municipales, Espacios Naturales Protegidos, Zonas Turísticas y Modelo Digital del Terreno (MDT) de Tenerife (fuentes IDECanarias e ISTAC).
-  - **Datos Tabulares**: Estadísticas demográficas y de oferta alojativa de Tenerife.
-* **2.4. Integración de Movilidad Pública (GTFS)**: Descarga periódica y estructuración de la topología de transporte público (rutas, paradas, horarios y calendarios de TITSA y Metropolitano de Tenerife).
+  - **Datos Espaciales**: Límites municipales (31), Espacios Naturales Protegidos (43 ENP), Zonas Turísticas (17), Bienes de Interés Cultural (125 BIC) y Modelo Digital del Terreno (MDT25) derivado a nivel de celda H3 (fuentes IDECanarias, Cabildo e ISTAC).
+  - **Alojamiento Oficial**: Censo reglado del Gobierno de Canarias con **31.314 establecimientos** (30.589 Viviendas Vacacionales, 314 Hoteles y 411 Extrahoteleros; 263.769 plazas ofertadas), geocodificados vía Nominatim/ArcGIS.
+* **2.4. Integración de Movilidad Pública (GTFS)**: Estructuración de la topología insular de transporte (TITSA y Metropolitano de Tenerife) con **3.934 paradas** físicas georreferenciadas, **873 trazados de rutas** (183 líneas comerciales) y **1,36 millones de registros de paso** horarios.
 * **2.5. Automatización de Ingesta Ambiental y Satelital**:
-  - Datos climáticos horarios e históricos en punto de la red de **Agrocabildo**.
-  - Predicciones meteorológicas e históricos de validación cruzada mediante **Open-Meteo API**.
-  - Datos satelitales ambientales (Copernicus Sentinel / ERA5-Land).
-* **2.6. Extracción de Datos Cualitativos**:
-  - Web scraping de reseñas de plataformas de alojamiento y opinión (TripAdvisor, Booking).
-  - Extracción automatizada de comentarios y vídeos mediante **YouTube API** (`youtube_comments.parquet` y `youtube_videos.parquet`).
+  - **Red Agrocabildo**: 68 estaciones automáticas (378 sensores físicos) y 136,4 millones de lecturas brutas en Bronze, depuradas en Silver a 12,95 millones de registros continuos para las 57 estaciones maduras (instaladas $\le 2022$).
+  - **Teledetección Espacial**: Composites trimestrales libres de nubes de **Copernicus Sentinel-2** (NDVI y NDBI a 20 m, 46.422 registros Silver) y radianza mensual de luces nocturnas **NOAA/NASA VIIRS** (241.648 observaciones).
+* **2.6. Extracción de Datos Cualitativos y Reputación**:
+  - **Comunidades de Viajeros**: Web scraping ético de LosViajeros.com con **248 hilos temáticos** y **167.274 mensajes brutos** (168.035 depurados en Silver).
+  - **Audiovisual Turístico**: Monitorización de **41 vídeos** y extracción de **3.100 comentarios** de YouTube (2.819 opiniones en Silver del periodo 2022–2026).
+  - **Plataformas de Alojamiento**: Scraping ético y API de Booking.com y TripAdvisor, consolidando **74.695 reseñas limpias y georreferenciadas** (73.888 Booking + 807 TripAdvisor) sobre 3.740 hoteles y 748 actividades turísticas.
 
 ### 3. Estructuración, Data Warehouse y Topología Geoespacial
 * **3.1. Diseño del Data Warehouse Espacial**: Modelado relacional en Azure Database for PostgreSQL habilitando PostGIS para soportar tipos espaciales (`GEOMETRY` / `GEOGRAPHY`).

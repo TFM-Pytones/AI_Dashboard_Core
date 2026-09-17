@@ -41,7 +41,7 @@ start
   │
   │    join (none_failed_min_one_success → continúa aunque falle alguna ⚠️)
   │
-  ├── FASE 2: Carga a PostgreSQL (secuencial)
+  ├── FASE 2: Carga a PostgreSQL (secuencial — equivalente a run_all_ingestion.py)
   │    pg_01_vector → pg_02_mdt → pg_03_satelite → pg_04_booking
   │    → pg_05_tabular → pg_06_geocode_booking → pg_07_alojamientos_geocode
   │
@@ -50,16 +50,22 @@ start
   │    silver_istac │ silver_losviajeros │ silver_movilidad
   │    silver_tripadvisor │ silver_youtube
   │
-  ├── FASE 4: Analytics
+  ├── FASE 4: Analytics (Paralelo — puente de ML y algoritmia espacial)
   │    ├── check_ml_enabled (ShortCircuit — lee Variable 'run_heavy_ml')
-  │    │    └── sentiment_batch │ sentiment_backfill │ aspects_batch
-  │    │         geo_toponyms │ clustering_features
-  │    └── accesibilidad_h3 (siempre — no requiere GPU)
+  │    │    ├── sentiment_batch_inference (YouTube)
+  │    │    ├── sentiment_batch_inference_resenas (Booking + TripAdvisor)
+  │    │    ├── aspects_batch_inference (YouTube PyABSA)
+  │    │    ├── aspects_batch_inference_resenas (Booking/TripAdvisor PyABSA)
+  │    │    ├── sentiment_backfill_relevance
+  │    │    ├── geo_extract_toponyms (LosViajeros)
+  │    │    └── clustering_hdbscan (HDBSCAN Oficial V1)
+  │    └── accesibilidad_h3 (siempre activo — cálculo de fricción espacial ORS sin GPU)
   │
-  └── FASE 5: dbt Gold (paralelo)
+  └── FASE 5: dbt Gold (paralelo — 11 modelos canónicos finales)
        gold_aena_pasajeros │ gold_h3_master │ gold_municipio_anual
        gold_municipio_empleo │ gold_municipio_master │ gold_municipio_mensual
-       gold_sentimiento_h3 │ gold_turismo_hotelero_anual │ gold_turismo_hotelero_mensual
+       gold_sentimiento_h3 │ gold_topicos_h3 │ gold_topicos_municipio
+       gold_turismo_hotelero_anual │ gold_turismo_hotelero_mensual
   │
  end
 ```
@@ -68,7 +74,8 @@ start
 
 | Variable | Valor por defecto | Descripción |
 |----------|------------------|-------------|
-| `run_heavy_ml` | `false` | Activar tasks de GPU (sentiment, aspects, topics) |
+| `run_heavy_ml` | `false` | Activar tasks de GPU y Deep Learning (sentiment con BERT, aspectos con PyABSA, geo-topónimos). Si es `false`, estas tareas se saltan limpiamente sin error. |
+| `aena_upload_ready` | `false` | Poner en `true` cuando se descargue un nuevo Excel mensual de AENA en `data/aena/`. |
 
 ### ⚡ Ingesta de Clima vía CKAN (Agrocabildo)
 
@@ -153,9 +160,72 @@ AENA no tiene API pública — publica Excel mensuales en su web. Proceso:
 > - **TripAdvisor, Booking y YouTube**: Se deben reemplazar los scrapers y APIs gratuitas actuales por integraciones con sus **APIs oficiales de pago** (enterprise). Airflow ejecutaría scripts adaptados a estas APIs para garantizar estabilidad, legalidad y velocidad.
 > - **LosViajeros**: Al no existir API oficial, **se mantiene el scraper** actual como única vía de extracción, ejecutado como una tarea aislada en este DAG.
 
-**Downstream**: silver social → NLP analytics (si `run_heavy_ml=true`) → gold h3/sentimiento
+### Flujo de tareas
+
+```
+start
+  │
+  ├── FASE 1: Ingesta social (paralelo)
+  │    ├── ingest_tripadvisor (API Terra)
+  │    ├── ingest_youtube (API Data v3)
+  │    ├── ingest_booking_scraper (Selenium Chrome Headless)
+  │    └── ingest_losviajeros_scraper (Scraper supervisado)
+  │
+  │    join (none_failed_min_one_success)
+  │
+  ├── FASE 2: PostgreSQL (paralelo)
+  │    pg_booking → pg_booking_geocode │ pg_tabular_social
+  │
+  ├── FASE 3: dbt Silver (paralelo)
+  │    silver_tripadvisor │ silver_youtube │ silver_booking │ silver_losviajeros
+  │
+  ├── FASE 4: Analytics NLP + Geo (ShortCircuit run_heavy_ml)
+  │    ├── sentiment_batch_inference (YouTube)
+  │    ├── sentiment_batch_inference_resenas (Booking + TripAdvisor)
+  │    ├── sentiment_backfill_relevance
+  │    ├── aspects_batch_inference (YouTube)
+  │    ├── aspects_batch_inference_resenas (Booking + TripAdvisor)
+  │    └── geo_extract_toponyms (LosViajeros)
+  │
+  └── FASE 5: dbt Gold (5 modelos analíticos actualizados)
+       gold_h3_master │ gold_sentimiento_h3 │ gold_municipio_master
+       gold_topicos_h3 │ gold_topicos_municipio
+  │
+ end
+```
 
 > ⚠️ Booking puede tardar **hasta 8 horas** — planifica el trigger con tiempo suficiente.
+
+---
+
+## 4. Contrato Arquitectónico: Dependencias Silver ➔ Analytics ➔ Gold
+
+En una arquitectura Medallion con Inteligencia Artificial, **dbt por sí solo no ejecuta modelos de Deep Learning (Transformers) ni enrutamiento geoespacial en grafos viales (OpenRouteService)**. Por ello, la carpeta `analytics/` actúa como el **puente analítico de computación pesada**:
+
+```
+dbt Silver (PostGIS/SQL) ──▶ Analytics (Python/ML/ORS) ──▶ dbt Gold (Consolidación)
+```
+
+### 4.1. ¿Qué lee Analytics desde Silver?
+Los algoritmos de `analytics/` **nunca leen datos brutos de Bronze**; exigen datos previamente limpios, validados y proyectados en PostGIS por dbt Silver:
+* **`batch_inference.py` (Sentimiento BERT)**: Lee de `silver.silver_booking_reviews`, `silver.tripadvisor_resenas` y resuelve el hexágono espacial sobre `silver.silver_h3_grid`.
+* **`aspects/batch_inference.py` (Aspectos PyABSA)**: Lee de `silver.silver_booking_reviews` y `silver.tripadvisor_resenas`.
+* **`gold_h3_accesibilidad.py` (Tiempos ORS)**: Lee los centroides de `silver.silver_h3_grid`, las paradas de `silver.silver_gtfs_paradas` y los POIs de `silver.silver_osm_pois`.
+* **`extract_toponyms.py` (Gazetteer toponímico)**: Lee los textos depurados de `silver.silver_losviajeros_mensajes`.
+* **`build_chunks.py` (RAG y Tópicos)**: Enlaza opiniones limpias de Silver con `gold.nlp_topics`.
+
+### 4.2. ¿Qué necesita dbt Gold desde Analytics?
+Los modelos finales de dbt Gold no pueden compilar si Analytics no ha escrito previamente sus tablas de resultados:
+
+| Modelo Gold | Dependencia generada por `analytics/` | Script responsable en `analytics/` | Contenido aportado |
+|---|---|---|---|
+| **`gold_h3_master`** | `gold.gold_h3_accesibilidad` | `analytics/accesibilidad/gold_h3_accesibilidad.py` | Tiempos mínimos a TFS/TFN, Teide, distancias a hospitales y paradas TITSA. |
+| **`gold_sentimiento_h3`** | `gold.nlp_sentimiento_resenas`<br>`gold.nlp_aspectos_resenas`<br>`gold.aspecto_traducciones` | `analytics/sentiment/batch_inference.py`<br>`analytics/aspects/batch_inference.py` | Sentimiento medio (1-5 estrellas) y queja principal modal por celda H3. |
+| **`gold_topicos_h3`** | `gold.nlp_chunks` | `analytics/rag/build_chunks.py` | Distribución H3 de los tópicos de BERTopic para Booking y TripAdvisor. |
+| **`gold_topicos_municipio`** | `gold.geo_mentions`<br>`gold.nlp_chunks` | `analytics/geo/extract_toponyms.py`<br>`analytics/rag/build_chunks.py` | Temas de conversación municipal integrando LosViajeros georreferenciado. |
+
+> 📌 **Invariante de ejecución en Airflow**: En todos los DAGs, la **Fase 4 (Analytics)** está estrictamente secuenciada **DESPUÉS** de la **Fase 3 (Silver)** y **ANTES** de la **Fase 5 (Gold)**.
+
 
 ---
 

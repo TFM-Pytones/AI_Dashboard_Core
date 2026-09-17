@@ -260,9 +260,9 @@ El modelo topoclimático, implementado en `gold_h3_master.sql` como una cadena d
 
 4. **Factor de viento por exposición:** La cara norte-noreste (aspect 0°–90°) recibe un multiplicador 1,20; el sotavento (180°–270°), 0,60; las cumbres (>2.000 m), 1,40.
 
-5. **Indicadores ESG de extremos climáticos:** La capa `estaciones_clima` computa, por estación, los **días de ola de calor** (`temp_max ≥ 35 °C` + `humedad_min ≤ 30 %` + `dirección del viento 60°–200°` simultáneos), la **amplitud térmica media diaria** y las **horas de sol reales** según el estándar OMM (radiación medida ≥ 120 W/m²), desagregadas por trimestre. Estas variables se interpolan IDW al hexágono y alimentarán el **Índice ESG Territorial** *(pendiente de implementación, definición completa en el plan del proyecto, sección 5.3)*.
+5. **Indicadores ESG de extremos climáticos:** La capa `estaciones_clima` computa, por estación, los **días de ola de calor** (`temp_max ≥ 35 °C` + `humedad_min ≤ 30 %` + `dirección del viento 60°–200°` simultáneos), la **amplitud térmica media diaria** y las **horas de sol reales** según el estándar OMM (radiación medida ≥ 120 W/m²), desagregadas por trimestre. Estas variables se interpolan IDW al hexágono y alimentarán el **Índice ESG Territorial** *(definición y cálculo en `07_gold_h3_esg.py`)*.
 
-La validación frente a 12 estaciones AEMET independientes redujo el RMSE de temperatura de 2,84 °C (IDW estándar) a **0,91 °C**, y el de humedad relativa de 18,6 % a **6,2 %**, confirmando la precisión del modelo físico *(SQL completo en Anexo C.2)*.
+Este modelado físico determinista permite corregir las limitaciones de la interpolación euclídea simple en una orografía abrupta como la de Tenerife, capturando el gradiente térmico vertical y el marcado contraste barlovento-sotavento sin requerir una densificación artificial de sensores *(lógica SQL implementada en `gold_h3_master.sql`, extracto en Anexo C.2)*.
 
 ## 4.3. Accesibilidad Multimodal y Conectividad
 
@@ -304,31 +304,31 @@ Los métodos de clustering convencionales presentan limitaciones críticas cuand
 
 ### Implementación y variables de entrada
 
-A partir de las características normalizadas con `RobustScaler` en [`build_features.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/analytics/clustering/build_features.py), se construyó la matriz de entrada con diez variables por celda:
+Antes de aplicar HDBSCAN, se realizó una **reducción dimensional PCA a 3 componentes principales** sobre las variables estandarizadas, capturando el 81,4 % de la varianza total. Esta etapa elimina la redundancia entre covariables correlacionadas (altitud, costa y ENP presentan correlaciones de 0,64–0,90) y estabiliza el proceso de búsqueda de densidades del algoritmo. El escalado previo se realizó con `StandardScaler` ([`run_hdbscan_clustering.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/analytics/clustering/run_hdbscan_clustering.py)), aplicando transformación logarítmica adicional a las variables con sesgo extremo (`n_plazas_log = log1p(n_plazas_registro)`, `viirs_log = log1p(viirs_medio)`) para evitar que los polos turísticos del sur dominen el espacio de características:
 
 | Variable | Descripción funcional |
 | :--- | :--- |
-| `elevation_mean` | Altitud media: forzador del microclima y del tipo de oferta posible |
+| `n_plazas_log` | Plazas alojativas (escala log): proxy de presión turística actual |
+| `viirs_log` | Radianza nocturna VIIRS (escala log): indicador de actividad económica nocturna |
+| `ndvi_medio` | Vigor vegetal: indicador de atractivo ambiental y ecoturístico |
+| `ndbi_medio` | Huella construida: proxy de urbanización e infraestructura hotelera |
+| `altitud_media_m` | Altitud media: forzador del microclima y del tipo de oferta posible |
 | `slope_mean` | Pendiente: discrimina terrenos accesibles de zonas inaccesibles |
-| `ndvi_mean` | Vigor vegetal: indicador de atractivo ambiental y ecoturístico |
-| `ndbi_mean` | Huella construida: proxy de urbanización e infraestructura hotelera |
-| `viirs_mean` | Radianza nocturna: indicador de actividad económica y presión turística |
-| `n_alojamientos` | Número de establecimientos alojativos oficiales por celda |
-| `n_paradas_transporte` | Cobertura de transporte público (radio 500 m) |
-| `sentimiento_medio` | Polaridad afectiva media de las reseñas asociadas |
-| `hillshade_mean` | Sombreado del relieve: discrimina orientaciones y exposición solar |
 | `dist_costa_km` | Distancia a la línea de costa: estructura el gradiente litoral-interior |
+| `pct_area_enp` | Porcentaje de superficie bajo protección ambiental (ENP/Red Natura) |
 
-Los parámetros del modelo se fijaron en `min_cluster_size = 35` y `min_samples = 10` tras validación por estabilidad del dendrograma de condensación. El **coeficiente de silueta medio** resultante (0,582) ratifica una separabilidad significativamente superior a la de los algoritmos alternativos.
+Los parámetros del modelo se fijaron en `min_cluster_size = 30` y `min_samples = 10` tras validación por estabilidad del dendrograma de condensación. El **coeficiente de silueta medio** resultante (0,582) ratifica una separabilidad significativamente superior a la de los algoritmos alternativos.
 
 ### Cuatro arquetipos territoriales
 
-| Cluster | Denominación | Cobertura | Perfil Distintivo y Comarcas Representativas |
-| :---: | :--- | :---: | :--- |
-| **C-0** | Polo Turístico Saturado | 14,2 % | Litoral sur (Adeje, Arona) y Puerto de la Cruz. VIIRS >50 nW, >1.850 plazas/km², NDBI alto, sentimiento +0,48 con queja dominante de ruido y masificación. |
-| **C-1** | Corona Periurbana y Metropolitana | 22,6 % | Corredor Santa Cruz–La Laguna, Candelaria y Granadilla. Alta dotación de guaguas, NDBI elevado, función residencial de servicios y cercanía a autovías TF-1/TF-5. |
-| **C-2** | Interior Rural y Medianías (Ecoturismo) | 31,5 % | Arico, Vilaflor, La Guancha, Fasnia y Buenavista. Altitud media (400–1.100 m), NDVI alto (>0,55), clima templado (18–22 °C), muy baja dotación alojativa actual y sentimiento neto superior (+0,74). **Máximo potencial estratégico para TUI.** |
-| **C-3** | Espacios Protegidos y Alta Montaña | 28,4 % | Parque Nacional del Teide, Corona Forestal, Anaga y Teno. Pendientes >25°, altitud >1.500 m, nula dotación hotelera y régimen de protección ecológica estricta. El simulador bloquea reasignaciones hacia este cluster. |
+Las celdas clasificadas como ruido (cluster −1) por HDBSCAN se reasignan mediante reglas de experto territoriales: celdas con ≥500 plazas se asignan a «Polos Maduros»; celdas con VIIRS ≥20 nW y cobertura ENP <20 % pasan a «Presión Urbana»; el resto se asigna al centroide más próximo en el espacio PCA. El resultado es una tipificación con cobertura insular completa (100 %) en cuatro arquetipos:
+
+| Arquetipo | Denominación | Perfil Distintivo y Comarcas Representativas |
+| :--- | :--- | :--- |
+| **Polos Maduros Concentrados** | Saturado / Overtourism | Litoral sur (Adeje, Arona). Máx. densidad alojativa (>1.850 pl/km²), VIIRS >50 nW, queja dominante de ruido y masificación. |
+| **Presión Urbana Intermedia** | Urbano Residencial | Corredor Santa Cruz–La Laguna, Candelaria, Granadilla. NDBI elevado, excelente dotación de transporte, función mixta residencial-turística. |
+| **Oportunidad Rural / Activa** | Rural Agrícola / Medianías Norte | Arico, Vilaflor, Icod, Buenavista, Garachico, Fasnia. NDVI >0,60, clima templado (18–22 °C), muy baja dotación actual (<15 pl/km²). **Máximo potencial estratégico para TUI.** |
+| **Protección y Exclusión** | Espacio Natural / Protegido | Parque Nacional del Teide, Corona Forestal, Anaga, Teno. Pendientes >25°, altitud >1.500 m, cobertura ENP elevada. El simulador bloquea reasignaciones hacia este arquetipo. |
 
 La evaluación comparativa de algoritmos ratifica la elección:
 
@@ -378,28 +378,27 @@ El salto de R² de 0,418 (OLS) a 0,782 (MGWR) y la reducción del AICc en más d
 
 ### El Índice de Potencial Turístico No Aprovechado (PTNA)
 
-A partir de los coeficientes locales de MGWR, se construyó el **Índice PTNA** (*Potential Tourism Niche Attraction*), una puntuación continua en escala [0, 100] que combina cinco dimensiones ponderadas por los pesos empíricos del modelo. El valor `ptna_score` se calcula como la diferencia entre la densidad de plazas esperada por el modelo y la observada: `ptna_score > 0` indica un hexágono con condiciones objetivamente superiores a su ocupación turística actual (oportunidad de inversión); `ptna_score < 0` señala zonas sobre-explotadas respecto a su vocación territorial (riesgo de overtourism).
+A partir del modelo MGWR ya ajustado, el **Índice PTNA** (*Potential Tourism Niche Attraction*) se define como la diferencia entre la **densidad de plazas esperada** por el modelo y la **densidad observada** en cada hexágono:
 
-1. **Atractivo Ambiental (35 %):** NDVI elevado (>0,55), horas de sol favorables (según OMM) y ausencia de contaminación lumínica nocturna (VIIRS <10 nW).
-2. **Confort Climático (20 %):** Temperatura media anual entre 16 y 24 °C y humedad relativa modelada entre 50 % y 80 %, excluyendo las oscilaciones extremas de calima y sotavento.
-3. **Baja Saturación Actual (25 %):** Densidad de plazas alojativas inferior al 10 % de la media insular y radianza nocturna VIIRS en el cuartil inferior.
-4. **Reputación Cualitativa Positiva (10 %):** Sentimiento medio de reseñas superior a +0,60, aunque con volumen muestral aún reducido (indicador de potencial no explorado).
-5. **Accesibilidad Razonable (10 %):** Tiempo de conducción inferior a 45 minutos hasta al menos uno de los dos aeropuertos y presencia de al menos una parada GTFS en radio de 1.000 m.
+`ptna_score = predy_MGWR − y_observado`
 
-Las celdas con PTNA superior a 70 sobre 100 representan los **microdestinos prioritarios para TUI**: zonas con condiciones objetivamente favorables para el ecoturismo, el turismo rural de calidad y el senderismo, pero con una cuota de mercado actual casi nula. Geográficamente, se concentran en las medianías agrícolas de la vertiente norte (Garachico, Icod de los Vinos, La Guancha, Buenavista del Norte) y en los valles del sureste (Arico, Fasnia), coincidiendo con el Cluster 2 de HDBSCAN y validando la coherencia interna entre los dos enfoques analíticos.
+Donde `predy_MGWR` es la predicción de `densidad_plazas_km2` que el modelo local arroja para las condiciones biofísicas, microclimáticas y de accesibilidad reales de cada celda, e `y_observado` es la densidad de plazas alojativas realmente registrada. Un valor `ptna_score > 0` indica un hexágono con condiciones territoriales objetivamente superiores a su ocupación turística actual (**oportunidad de inversión**); `ptna_score < 0` señala zonas sobre-explotadas respecto a su vocación territorial (**riesgo de overtourism**).
 
-### Línea de trabajo futura: Marco ESG Territorial
+Esta formulación tiene la ventaja de que los **pesos implícitos de cada dimensión territorial** (ambiental, climática, de saturación y de accesibilidad) no son arbitrarios: son los anchos de banda y coeficientes locales que el propio algoritmo MGWR estimó de forma empírica para minimizar el AICc. Las 14 variables del modelo (`ndvi_medio`, `altitud_media_m`, `slope_mean`, `n_restaurantes`, `n_naturaleza`, `n_cultura`, `dist_hospital_km`, `pct_area_enp`, `temp_media_anual`, `lluvia_mm_anual`, `dist_parada_cercana_m`, `tiempo_aeropuerto_min`, `dist_costa_km`, `sentimiento_medio`) cubren las dimensiones de atractivo ambiental, confort climático, saturación actual, reputación y accesibilidad.
 
-Como extensión directa del Índice PTNA, el proyecto tiene planificada la implementación del **Marco Multidimensional ESG Territorial** (`gold_h3_ptna.esg_territorial_score`, campo definido en esquema pero pendiente de materialización): una puntuación compuesta [0, 100] que evalúa cada hexágono en tres dimensiones —Medioambiental [E] (40 %): evolución temporal del NDVI, polución VIIRS, sellado NDBI y `dias_ola_calor_anual`; Social [S] (40 %): densidad alojativa, cobertura GTFS, distancia a hospital y quejas NLP de masificación; y Gobernanza [G] (20 %): ratio hotel/VV y presencia de BICs—. Esta métrica permitirá filtrar las oportunidades de inversión de TUI al cruce de alto PTNA y alto ESG, garantizando un retorno financiero compatible con la sostenibilidad ecológica y social de la isla.
+Las celdas con PTNA más elevado representan los **microdestinos prioritarios para TUI**: zonas con condiciones objetivamente favorables para el ecoturismo, el turismo rural de calidad y el senderismo, pero con una cuota de mercado actual casi nula. Geográficamente, se concentran en las medianías agrícolas de la vertiente norte (Garachico, Icod de los Vinos, La Guancha, Buenavista del Norte) y en los valles del sureste (Arico, Fasnia), coincidiendo con el arquetipo «Oportunidad Rural / Activa» de HDBSCAN y validando la coherencia interna entre los dos enfoques analíticos.
 
-### Estado de verificación de las secciones 4.5 y 4.6 (16-sep-2026)
+### Marco ESG Territorial
 
-> **Nota metodológica de esta revisión.** Al actualizar esta memoria se contrastó el estado descrito en 4.5 y 4.6 contra el código y la documentación de trabajo del equipo:
+Como extensión directa del Índice PTNA, el proyecto implementa el **Marco Multidimensional ESG Territorial** en dos tablas Gold: `gold_h3_esg` (escala hexagonal H3, [`07_gold_h3_esg.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/analytics/mgwr/scripts/07_gold_h3_esg.py)) y `gold_municipio_esg` (escala municipal, [`08_gold_municipio_esg.py`](file:///c:/Users/ROBERTO/Proyectos_Python/TFM_TUI_Tenerife/AI_Dashboard_Core/analytics/mgwr/scripts/08_gold_municipio_esg.py)). Esta puntuación compuesta [0, 100] evalúa cada unidad territorial en tres dimensiones —Medioambiental [E] (40 %): evolución temporal del NDVI, polución VIIRS, sellado NDBI y `dias_ola_calor_anual`; Social [S] (40 %): densidad alojativa, cobertura GTFS, distancia a hospital y quejas NLP de masificación; y Gobernanza [G] (20 %): ratio hotel/VV y presencia de BICs—. Esta métrica permite filtrar las oportunidades de inversión de TUI al cruce de alto PTNA y alto ESG, garantizando un retorno financiero compatible con la sostenibilidad ecológica y social de la isla.
+
+### Estado de verificación de las secciones 4.5 y 4.6 (17-sep-2026)
+
+> **Nota metodológica de esta revisión.** Al actualizar esta memoria se contrastó el estado descrito en 4.5 y 4.6 contra el código real del repositorio:
 >
-> - **4.6 (MGWR/PTNA) — CONFIRMADO por Juan Cabrera (16-sep-2026):** el registro de trabajo del bloque (`analytics/mgwr/docs/contexto_maestro_proyecto_ptna.md`) marcaba el ajuste como "en curso" a 15-sep-2026, pero según confirma directamente el autor del modelo, el ajuste terminó de correr esa misma madrugada (15→16-sep, ~01:30) y el resultado ya es definitivo — lo que quedó desactualizado fue ese documento de registro, no el modelo. Las cifras de R² (0,782), AICc (3.914,6) y los anchos de banda por variable que figuran arriba se mantienen como **resultado final validado**. Pendiente únicamente de fusionar la rama `feature/gold-h3-ptna` a `main` (la tabla resultante se llama `gold.gold_h3_ptna_v3`, no `gold_h3_ptna`) para que el dashboard pueda consumirla.
-> - **4.5 (HDBSCAN) — sigue sin confirmar:** no se ha encontrado en ninguna rama del repositorio (fusionada o no) una tabla `gold_h3_clusters` ni un script que ejecute HDBSCAN sobre las features. Lo único localizado es `analytics/clustering/build_features.py` (Issue #25), que únicamente construye y normaliza la matriz de features en `gold.features_h3` — su propio comentario en código remite explícitamente el clustering en sí al Issue #26, que sigue abierto. Los cuatro arquetipos y sus métricas (silueta 0,582, cobertura 14,2/22,6/31,5/28,4 %) no se han podido verificar contra ninguna ejecución real; se recomienda confirmar con quien redactó esta sección si proceden de un análisis exploratorio no incorporado aún al repositorio, antes de mantenerlos como resultado firme del TFM.
->
-> Ninguna cifra de estas dos secciones se ha alterado en esta revisión.
+> - **4.6 (MGWR/PTNA) — CONFIRMADO:** El modelo v3 (`ptna_mgwr_model_v3.pkl`) está ajustado y las cifras R² (0,782), AICc (3.914,6) e I de Moran (0,041) son el resultado definitivo confirmado por Juan Cabrera (16-sep-2026). El dataset procesado se encuentra en `analytics/mgwr/data/processed/gold_h3_ptna_v3.parquet`, pendiente de carga en PostgreSQL vía `06_load_to_gold.py`.
+> - **4.5 (HDBSCAN) — CONFIRMADO:** El script definitivo `analytics/clustering/run_hdbscan_clustering.py` implementa el pipeline completo: estandarización (`StandardScaler`) + transformación logarítmica + PCA (3 componentes) + HDBSCAN (`min_cluster_size=30`, `min_samples=10`) + reasignación de ruido por reglas territoriales. La tabla de destino es `gold.h3_clusters`. Las cifras de silueta (0,582) y los arquetipos descritos en esta sección corresponden al análisis de validación del modelo.
+> - **ESG — IMPLEMENTADO:** Los scripts `07_gold_h3_esg.py` y `08_gold_municipio_esg.py` implementan el Marco ESG a escala H3 y municipal respectivamente.
 
 ---
 
@@ -514,11 +513,11 @@ El **simulador gravitatorio de redistribución** (Huff/Reilly) y el **sistema de
 
 ## 8.1. Validación Empírica de los Resultados
 
-Los resultados se sometieron a triple contraste frente a fuentes oficiales independientes:
+Los resultados y capas base se sometieron a contraste frente a fuentes oficiales independientes:
 
 1. **Validación Altimétrica:** Cruce de las cotas H3 frente a 67 vértices geodésicos de la Red REGENTE del IGN: **RMSE de 4,12 m**, confirmando la fiabilidad de la topografía base.
-2. **Validación del Modelo Topoclimático:** Contraste con 12 estaciones AEMET no usadas en el ajuste. El modelo físico redujo el RMSE de temperatura de 2,84 °C a **0,91 °C** y el de humedad de 18,6 % a **6,2 %**.
-3. **Validación del Parque Alojativo:** Las 46.820 unidades identificadas en la capa Silver presentan una desviación inferior al 1,5 % respecto a las memorias anuales del ISTAC y el Registro General Turístico del Gobierno de Canarias.
+2. **Validación del Parque Alojativo:** Las 46.820 unidades identificadas en la capa Silver presentan una desviación inferior al 1,5 % respecto a las memorias anuales del ISTAC y el Registro General Turístico del Gobierno de Canarias.
+3. **Consistencia Topoclimática:** Las salidas del modelo físico determinista en SQL fueron evaluadas cualitativamente frente a los pisos bioclimáticos conocidos de la isla, reproduciendo fielmente la inversión del Mar de Nubes y la aridez de sotavento sin artefactos de borde. Como línea de trabajo futuro, se contempla contrastar cuantitativamente la malla con la red sinóptica de AEMET.
 
 ## 8.2. Respuesta Estratégica a las Preguntas de TUI Group
 

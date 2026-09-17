@@ -10,7 +10,7 @@ Este directorio centraliza los módulos de **Machine Learning, Procesamiento de 
 analytics/
 ├── sentiment/          # 4.1 Inferencia de sentimiento multilingüe (XLM-RoBERTa)
 ├── topics/             # 4.2 Modelado de tópicos de conversación turística (BERTopic)
-├── aspects/ & tarea2/  # 4.2 Extracción y normalización de aspectos/quejas (PyABSA)
+├── aspects/          # 4.3 Extracción y normalización de aspectos/quejas (PyABSA + traductor híbrido)
 ├── clustering/         # 4.4 Detección de brechas y hotspots de saturación (HDBSCAN)
 ├── accesibilidad/      # 4.5 Modelado de tiempos de acceso e isócronas (GTFS / OSRM)
 ├── geo/                # Utilidades de enriquecimiento espacial y zonal
@@ -33,10 +33,10 @@ analytics/
   * *Corpus General*: Detección de grandes temáticas insulares (clima, precios, masificación, experiencias naturales).
   * *Corpus Georreferenciado*: Extracción de tópicos vinculados a establecimientos y municipios específicos para su cruce con la malla H3.
 
-### 1.3. Extracción de Aspectos y Quejas Específicas ([`aspects/`](aspects/) y [`tarea2/`](tarea2/))
-* **Tecnología**: **PyABSA** (*Aspect-Based Sentiment Analysis*).
+### 1.3. Extracción de Aspectos y Quejas Específicas ([`aspects/`](aspects/))
+* **Tecnología**: **PyABSA** (*Aspect-Based Sentiment Analysis* via [`batch_inference.py`](aspects/batch_inference.py)) y **Traducción Híbrida** ([`traducir_aspectos.py`](aspects/traducir_aspectos.py)).
 * **Objetivo**: Aislar el aspecto concreto evaluado por el turista (ej. *limpieza*, *ruido*, *atención del personal*, *comida*, *playas*) junto con la polaridad asociada.
-* **Normalización**: Traducción y agrupación canónica de aspectos (`gold.aspecto_traducciones`) para determinar la queja principal modal por hexágono H3 en `gold_sentimiento_h3`.
+* **Normalización**: Traducción incremental multilingüe y agrupación canónica de aspectos (`gold.aspecto_traducciones`) para determinar la queja principal modal por hexágono H3 en `gold_sentimiento_h3`. (Notebooks de experimentación histórica preservados en `notebooks/tarea2/`).
 
 ### 1.4. Detección de Hotspots y Brechas de Mercado ([`clustering/`](clustering/))
 * **Algoritmo**: **HDBSCAN** (*Hierarchical Density-Based Spatial Clustering of Applications with Noise*).

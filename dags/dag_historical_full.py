@@ -380,9 +380,9 @@ with DAG(
             execution_timeout=timedelta(hours=2),
         )
         analytics_clustering = BashOperator(
-            task_id="clustering_build_features",
+            task_id="clustering_hdbscan",
             bash_command=(
-                f"{PYTHON} {REPO_ROOT}/analytics/clustering/build_features.py"
+                f"{PYTHON} {REPO_ROOT}/analytics/clustering/run_hdbscan_clustering.py"
             ),
         )
 
@@ -524,6 +524,8 @@ with DAG(
         dbt_gold_sentimiento_h3,
         dbt_gold_turismo_anual,
         dbt_gold_turismo_mensual,
+        dbt_gold_topicos_h3,
+        dbt_gold_topicos_municipio,
     ] >> end
 
     start >> fase1

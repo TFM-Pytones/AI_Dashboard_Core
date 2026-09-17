@@ -62,8 +62,8 @@ def get_chapter_8():
 Los resultados se sometieron a triple contraste frente a fuentes oficiales independientes:
 
 1. **Validación Altimétrica:** Cruce de las cotas H3 frente a 67 vértices geodésicos de la Red REGENTE del IGN: **RMSE de 4,12 m**, confirmando la fiabilidad de la topografía base.
-2. **Validación del Modelo Topoclimático:** Contraste con 12 estaciones AEMET no usadas en el ajuste. El modelo físico redujo el RMSE de temperatura de 2,84 °C a **0,91 °C** y el de humedad de 18,6 % a **6,2 %**.
-3. **Validación del Parque Alojativo:** Las 46.820 unidades identificadas en la capa Silver presentan una desviación inferior al 1,5 % respecto a las memorias anuales del ISTAC y el Registro General Turístico del Gobierno de Canarias.
+2. **Validación del Parque Alojativo:** Las 46.820 unidades identificadas en la capa Silver presentan una desviación inferior al 1,5 % respecto a las memorias anuales del ISTAC y el Registro General Turístico del Gobierno de Canarias.
+3. **Consistencia Topoclimática:** Evaluación cualitativa de los gradientes térmicos y orográficos frente a los pisos bioclimáticos de la isla, reproduciendo la inversión del Mar de Nubes y la aridez del sur sin artefactos espaciales.
 
 ## 8.2. Respuesta Estratégica a las Preguntas de TUI Group
 

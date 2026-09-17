@@ -168,17 +168,6 @@ def save_to_database(df: pd.DataFrame, engine, dry_run: bool = False):
         return
 
     table_name = "h3_clusters"
-    backup_table = "h3_clusters_backup_old"
-
-    with engine.begin() as con:
-        # Respaldar tabla anterior si existe y no se ha respaldado aún
-        check_backup = con.execute(text(
-            f"SELECT 1 FROM information_schema.tables WHERE table_schema='gold' AND table_name='{backup_table}'"
-        )).scalar()
-        if not check_backup:
-            logging.info(f"Creando copia de respaldo de seguridad: gold.{backup_table}...")
-            con.execute(text(f"CREATE TABLE gold.{backup_table} AS SELECT * FROM gold.{table_name}"))
-            logging.info("Respaldo creado correctamente.")
 
     # Guardar la nueva tabla manteniendo compatibilidad exacta
     out_df = df[["h3_index", "tipo_zona", "pca_1", "pca_2", "pca_3", "hdbscan_raw_label"]].copy()

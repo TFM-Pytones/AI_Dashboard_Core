@@ -48,7 +48,7 @@ El modelo topoclimático, implementado en `gold_h3_master.sql` como una cadena d
 
 5. **Indicadores ESG de extremos climáticos:** La capa `estaciones_clima` computa, por estación, los **días de ola de calor** (`temp_max ≥ 35 °C` + `humedad_min ≤ 30 %` + `dirección del viento 60°–200°` simultáneos), la **amplitud térmica media diaria** y las **horas de sol reales** según el estándar OMM (radiación medida ≥ 120 W/m²), desagregadas por trimestre. Estas variables se interpolan IDW al hexágono y alimentarán el **Índice ESG Territorial** *(pendiente de implementación, definición completa en el plan del proyecto, sección 5.3)*.
 
-La validación frente a 12 estaciones AEMET independientes redujo el RMSE de temperatura de 2,84 °C (IDW estándar) a **0,91 °C**, y el de humedad relativa de 18,6 % a **6,2 %**, confirmando la precisión del modelo físico *(SQL completo en Anexo C.2)*.
+Este modelado físico determinista permite corregir las limitaciones de la interpolación euclídea simple en una orografía abrupta como la de Tenerife, capturando el gradiente térmico vertical y el marcado contraste barlovento-sotavento sin requerir una densificación artificial de sensores *(lógica SQL implementada en `gold_h3_master.sql`, extracto en Anexo C.2)*.
 
 ## 4.3. Accesibilidad Multimodal y Conectividad
 

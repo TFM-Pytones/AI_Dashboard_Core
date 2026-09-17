@@ -21,13 +21,13 @@ booking_scraper.py / run_continuous.py (Selenium Headless)
 Contenedor: bronce-raw/booking/*.parquet
        │
        ▼  Puente de carga (ingestion/postgres/04_ingest_booking_to_postgres.py)
-PostgreSQL: bronze.bronze_booking_establecimientos / bronze_booking_resenas
+PostgreSQL: bronze.bronze_booking_establishments (4.099 filas) / bronze_booking_reviews (105.104 filas)
        │
        ▼  Geocodificación PostGIS (ingestion/postgres/06_geocode_booking_pg.py)
 PostgreSQL: Enriquecimiento espacial con Nominatim y tabla centralizada `bronze.bronze_booking_geocoding_lookup`
        │
        ▼  Transformación analítica y deduplicación con dbt
-PostgreSQL: silver.silver_booking_hoteles / silver_booking_resenas
+PostgreSQL: silver.silver_booking_establishments (3.740 hoteles) / silver_booking_reviews (73.888 reseñas)
 ```
 
 ---
@@ -85,7 +85,15 @@ El diseño del scraper sigue un estricto protocolo ético:
    *(Asigna coordenadas geográficas a partir de la dirección, usando Nominatim y la tabla centralizada en Azure PostgreSQL `bronze.bronze_booking_geocoding_lookup`).*
 
 3. **Deduplicación y Transformación en dbt**:
-   En la capa Silver (`silver_booking_hoteles` y `silver_booking_resenas`), dbt se encarga de deduplicar por identificador de hotel y reseña (`keep last`), aplicar tests de calidad y estandarizar tipos numéricos.
+   En la capa Silver (`silver_booking_establishments` y `silver_booking_reviews`), dbt se encarga de deduplicar por identificador de hotel y reseña (`keep last`), descartar opiniones anteriores a 2022 o con menos de 15 caracteres, aplicar tests de calidad y estandarizar tipos numéricos.
+
+| Capa | Tabla PostgreSQL | Volumen Verificado | Descripción |
+|---|---|:---:|---|
+| **Bronze** | `bronze.bronze_booking_establishments` | **4.099** filas | Establecimientos brutos extraídos de sitemaps y OpenStreetMap |
+| **Bronze** | `bronze.bronze_booking_reviews` | **105.104** filas | Reseñas completas brutas con texto y metadatos |
+| **Bronze** | `bronze.bronze_booking_geocoding_lookup` | **32** filas | Caché de resoluciones directas de coordenadas |
+| **Silver** | `silver.silver_booking_establishments` | **3.740** filas | Alojamientos deduplicados con lat/lon validadas |
+| **Silver** | `silver.silver_booking_reviews` | **73.888** filas | Reseñas filtradas ($\ge 2022$, longitud $> 15$, con hotel válido) |
 
 ---
 

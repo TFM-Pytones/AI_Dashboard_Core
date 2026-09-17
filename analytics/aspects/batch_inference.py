@@ -2,7 +2,7 @@
 
 Unifica lo que antes estaba partido en dos sitios (punto 5 de la revision de
 codigo): este script, que solo hacia YouTube, y el notebook manual
-analytics/tarea2/nlp_aspectos_tarea_2_2.ipynb, que hacia Booking + TripAdvisor
+notebooks/tarea2/nlp_aspectos_tarea_2_2.ipynb, que hacia Booking + TripAdvisor
 fuera de Airflow. Ahora es un unico comando parametrizado por fuente.
 
     python analytics/aspects/batch_inference.py --source youtube

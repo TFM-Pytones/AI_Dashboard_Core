@@ -212,21 +212,21 @@ bronze.bronze_istac_mun_*
 
 ## 7. Pruebas y validación de calidad de datos (Data Governance)
 
-Siguiendo las directrices del **Bloque 2 del TFM (Gobernanza y Calidad de Datos)** y los estándares de *Analytics Engineering*, cada una de las subcarpetas del proyecto (`silver/` y `gold/`) cuenta con su correspondiente archivo de gobernanza **`schema.yml`**, configurando un total de **216 pruebas automatizadas** de integración y validación:
+Siguiendo las directrices del **Bloque 2 del TFM (Gobernanza y Calidad de Datos)** y los estándares de *Analytics Engineering*, cada una de las subcarpetas del proyecto (`silver/` y `gold/`) cuenta con su correspondiente archivo de gobernanza **`schema.yml`**, configurando un total de **229 pruebas automatizadas** de integración y validación:
 
-| Capa / Dominio | Archivo de Especificación | Modelos Cubiertos | Pruebas de Calidad |
-|---|---|---|---|
-| **Gold** | `models/gold/schema.yml` | 8 modelos analíticos | 64 pruebas (`unique`, `not_null`, `relationships`, `accepted_values`) |
-| **Silver Espacial** | `models/silver/espacial/schema.yml` | 9 modelos espaciales | 52 pruebas (integridad geométrica, `unique`, `not_null`, `relationships`) |
-| **Silver Clima** | `models/silver/clima/schema.yml` | 2 modelos climáticos | 15 pruebas (validación de sensores, integridad referencial de 1.8M filas) |
-| **Silver Movilidad** | `models/silver/movilidad/schema.yml` | 3 modelos GTFS / AENA | 19 pruebas (`stop_id`, `shape_id`, aeropuertos canónicos) |
-| **Silver ISTAC** | `models/silver/istac/schema.yml` | 3 modelos demográficos/laborales | 19 pruebas (códigos INE municipales, temporalidad) |
-| **Silver Alojamiento** | `models/silver/alojamiento/schema.yml` | 1 modelo oficial | 7 pruebas (categorías oficiales, tipologías regladas) |
-| **Silver Booking** | `models/silver/booking/schema.yml` | 2 modelos OTA Booking | 13 pruebas (integridad referencial review-hotel, ratings) |
-| **Silver TripAdvisor** | `models/silver/tripadvisor/schema.yml` | 2 modelos OTA TripAdvisor | 14 pruebas (location_id, reviews limpias > 15 chars) |
-| **Silver YouTube** | `models/silver/youtube/schema.yml` | 2 modelos social video | 12 pruebas (`video_id`, comentarios válidos) |
-| **Silver LosViajeros** | `models/silver/losviajeros/schema.yml` | 1 modelo foros de viajes | Pruebas estructurales de mensajes depurados |
-| **Singular Tests** | `tests/` | Pruebas transversales | `assert_no_personal_data_columns`, `assert_rating_in_range`, etc. |
+| Capa / Dominio | Método de Ingesta (Bronze / Origen) | Archivo de Especificación | Modelos Cubiertos | Pruebas de Calidad |
+|---|---|---|---|---|
+| **Gold** | Transformación y materialización analítica dbt SQL (`dbt run --select gold.*`) a partir de capas Silver + enriquecimiento ML | `models/gold/schema.yml` | 11 modelos analíticos | 73 pruebas (`unique`, `not_null`, `relationships`, `accepted_values`) |
+| **Silver Espacial** | API CKAN (`datos.tenerife.es`), WFS IDECanarias/GRAFCAN, Overpass API (OSM) y exportación raster GEE → Azure Blob → PostGIS | `models/silver/espacial/schema.yml` | 9 modelos espaciales | 52 pruebas (integridad geométrica, `unique`, `not_null`, `relationships`) |
+| **Silver Clima** | API REST v2.0.0 Agrocabildo con control de flujo (10 req/min) y partición Hive (`año=YYYY/mes=MM/`) → Azure Blob → PostgreSQL | `models/silver/clima/schema.yml` | 2 modelos climáticos | 15 pruebas (validación de sensores, integridad referencial de 1.8M filas) |
+| **Silver Movilidad** | Descarga directa de feeds ZIP GTFS (TITSA/Tranvía) y descarga automatizada de CSVs mensuales de AENA → Azure Blob → PostgreSQL | `models/silver/movilidad/schema.yml` | 3 modelos GTFS / AENA | 19 pruebas (`stop_id`, `shape_id`, aeropuertos canónicos) |
+| **Silver ISTAC** | API REST / SDMX estadística del ISTAC (sistemas `C00067A` y `C00065A_000061`) con paginación JSON → Azure Blob → PostgreSQL | `models/silver/istac/schema.yml` | 3 modelos demográficos/laborales | 19 pruebas (códigos INE municipales, temporalidad) |
+| **Silver Alojamiento** | Extracción web / API abierta del Registro General Turístico (Gobierno de Canarias) + Geocodificación por lotes con caché PostGIS | `models/silver/alojamiento/schema.yml` | 1 modelo oficial | 7 pruebas (categorías oficiales, tipologías regladas) |
+| **Silver Booking** | Web scraping ético distribuido con rotación de User-Agent, retrasos probabilísticos (2,5–5 s) y sitemaps XML → Azure Blob → PostgreSQL | `models/silver/booking/schema.yml` | 2 modelos OTA Booking | 13 pruebas (integridad referencial review-hotel, ratings) |
+| **Silver TripAdvisor** | Scraping / Terra API con validación geoespacial perimetral en PostGIS para evitar homónimos → Azure Blob → PostgreSQL | `models/silver/tripadvisor/schema.yml` | 2 modelos OTA TripAdvisor | 14 pruebas (location_id, reviews limpias > 15 chars) |
+| **Silver YouTube** | Extracción automatizada vía YouTube Data API v3 (Google Cloud Platform) con endpoints REST paginados → Azure Blob → PostgreSQL | `models/silver/youtube/schema.yml` | 2 modelos social video | 12 pruebas (`video_id`, comentarios válidos) |
+| **Silver LosViajeros** | Web scraping ético en Python (BeautifulSoup) sobre paginación HTML de foros (248 hilos, cortesía 1,5 s) → Azure Blob → PostgreSQL | `models/silver/losviajeros/schema.yml` | 1 modelo foros de viajes | 5 pruebas (`unique`, `not_null` en mensaje, tema, texto y fecha) |
+| **Singular Tests** | Scripts Python y queries SQL de validación cruzada y privacidad | `tests/` | Pruebas transversales | `assert_no_personal_data_columns`, `assert_rating_in_range`, etc. |
 
 ### Ejecución de la suite completa de calidad:
 ```bash
